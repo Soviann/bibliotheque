@@ -113,6 +113,7 @@ class IsbnLookupService
         return [
             'authors' => $googleResult['authors'] ?? null,
             'description' => $googleResult['description'] ?? null,
+            'isbn' => $googleResult['isbn'] ?? null,
             'isOneShot' => $googleResult['isOneShot'] ?? null,
             'publishedDate' => $googleResult['publishedDate'] ?? null,
             'publisher' => $googleResult['publisher'] ?? null,
@@ -253,6 +254,7 @@ class IsbnLookupService
         $result = [
             'authors' => null,
             'description' => null,
+            'isbn' => null,
             'isOneShot' => null,
             'publishedDate' => null,
             'publisher' => null,
@@ -296,6 +298,11 @@ class IsbnLookupService
                 $result['title'] = $volumeInfo['title'];
             }
 
+            // ISBN (préfère ISBN-13)
+            if (null === $result['isbn'] && \is_array($volumeInfo) && !empty($volumeInfo['industryIdentifiers']) && \is_array($volumeInfo['industryIdentifiers'])) {
+                $result['isbn'] = $this->extractIsbnFromIdentifiers($volumeInfo['industryIdentifiers']);
+            }
+
             // Détection one-shot : si seriesInfo est absent, c'est probablement un one-shot
             if (null === $result['isOneShot'] && \is_array($volumeInfo)) {
                 $result['isOneShot'] = !\array_key_exists('seriesInfo', $volumeInfo) || null === $volumeInfo['seriesInfo'];
@@ -323,6 +330,35 @@ class IsbnLookupService
             && null !== $data['publisher']
             && null !== $data['thumbnail']
             && null !== $data['title'];
+    }
+
+    /**
+     * Extrait l'ISBN depuis les identifiants Google Books.
+     * Préfère ISBN-13, sinon ISBN-10.
+     *
+     * @param array<mixed, mixed> $identifiers
+     */
+    private function extractIsbnFromIdentifiers(array $identifiers): ?string
+    {
+        $isbn10 = null;
+        $isbn13 = null;
+
+        foreach ($identifiers as $identifier) {
+            if (!\is_array($identifier)) {
+                continue;
+            }
+
+            $type = \is_string($identifier['type'] ?? null) ? $identifier['type'] : '';
+            $value = \is_string($identifier['identifier'] ?? null) ? $identifier['identifier'] : '';
+
+            if ('ISBN_13' === $type && '' !== $value) {
+                $isbn13 = $value;
+            } elseif ('ISBN_10' === $type && '' !== $value) {
+                $isbn10 = $value;
+            }
+        }
+
+        return $isbn13 ?? $isbn10;
     }
 
     /**

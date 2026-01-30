@@ -33,6 +33,7 @@ export default class extends Controller {
         publishedDate: 'Date de publication',
         publisher: 'Éditeur',
         title: 'Titre',
+        tomeIsbn: 'ISBN du tome',
         type: 'Type',
     };
 
@@ -270,6 +271,13 @@ export default class extends Controller {
                 filledFields.push('isOneShot');
             }
 
+            // Pré-remplit l'ISBN du tome si one-shot détecté et ISBN disponible
+            if (data.isOneShot === true && data.isbn) {
+                if (this.fillTomeIsbn(data.isbn)) {
+                    filledFields.push('tomeIsbn');
+                }
+            }
+
             // Affiche les sources utilisées
             const sourceLabels = {
                 'anilist': 'AniList',
@@ -484,6 +492,31 @@ export default class extends Controller {
 
         selectElement.value = value;
         this.highlightField(selectElement);
+        return true;
+    }
+
+    /**
+     * Remplit l'ISBN du premier tome (pour les one-shots).
+     * @returns {boolean} true si le champ a été rempli
+     */
+    fillTomeIsbn(isbn) {
+        if (!isbn || !this.hasTomesListTarget) {
+            return false;
+        }
+
+        // Trouve le premier tome
+        const firstTome = this.tomesListTarget.querySelector('[data-tomes-collection-target="entry"]');
+        if (!firstTome) {
+            return false;
+        }
+
+        const isbnInput = firstTome.querySelector('.tome-isbn-input');
+        if (!isbnInput || isbnInput.value.trim()) {
+            return false;
+        }
+
+        isbnInput.value = isbn;
+        this.highlightField(isbnInput);
         return true;
     }
 

@@ -21,7 +21,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - AniList : si `format` vaut `ONE_SHOT` OU si `volumes = 1` et `status = FINISHED`
   - La case "One-shot" est cochée automatiquement
   - Un tome avec le numéro 1 est créé automatiquement
-  - L'ISBN est retourné dans les résultats de recherche par ISBN
+  - L'ISBN est extrait de Google Books (`industryIdentifiers`) et pré-rempli dans le tome
 
 - **Champ Type en premier** : Le type est maintenant le premier champ du formulaire pour conditionner la recherche API
 
