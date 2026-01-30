@@ -27,9 +27,11 @@
         "symfony/stimulus-bundle": "^2.32",
         "symfony/twig-bundle": "^7.2",
         "symfony/ux-autocomplete": "^2.32",
+        "symfony/ux-dropzone": "^2.32",
         "symfony/ux-turbo": "^2.32",
         "symfony/validator": "^7.2",
-        "symfony/yaml": "^7.4.1"
+        "symfony/yaml": "^7.4.1",
+        "vich/uploader-bundle": "^2.9"
     },
     "config": {
         "allow-plugins": {

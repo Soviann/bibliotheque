@@ -16,6 +16,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\UX\Dropzone\Form\DropzoneType;
 
 class ComicSeriesType extends AbstractType
 {
@@ -26,8 +27,16 @@ class ComicSeriesType extends AbstractType
                 'label' => 'Auteur(s)',
                 'required' => false,
             ])
+            ->add('coverFile', DropzoneType::class, [
+                'attr' => [
+                    'data-controller' => 'symfony--ux-dropzone--dropzone',
+                    'placeholder' => 'Glissez une image ou cliquez pour parcourir',
+                ],
+                'label' => 'Image de couverture',
+                'required' => false,
+            ])
             ->add('coverUrl', UrlType::class, [
-                'label' => 'URL de la couverture',
+                'label' => 'URL de la couverture (externe)',
                 'required' => false,
             ])
             ->add('currentIssue', IntegerType::class, [

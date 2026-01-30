@@ -336,6 +336,20 @@ body {
     box-shadow: var(--md-elevation-3);
 }
 
+.comic-card-cover {
+    aspect-ratio: 2 / 3;
+    background-color: var(--md-background);
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.comic-card-cover img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+
 .comic-card-content {
     flex: 1;
     padding: var(--md-spacing-md);
@@ -1129,6 +1143,89 @@ body {
     .cards-grid {
         grid-template-columns: repeat(4, 1fr);
     }
+}
+
+/* Cover Upload Section */
+.cover-upload-section {
+    margin-bottom: var(--md-spacing-lg);
+}
+
+.cover-upload-field {
+    margin-bottom: 0;
+}
+
+.current-cover {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--md-spacing-sm);
+    margin-bottom: var(--md-spacing-md);
+}
+
+.current-cover img {
+    border-radius: var(--md-radius-sm);
+    box-shadow: var(--md-elevation-1);
+    height: auto;
+    max-height: 200px;
+    max-width: 150px;
+    object-fit: cover;
+}
+
+.current-cover small {
+    color: var(--md-text-medium);
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.form-hint {
+    color: var(--md-text-medium);
+    display: block;
+    font-size: 0.75rem;
+    margin-top: var(--md-spacing-xs);
+}
+
+/* Symfony UX Dropzone customization */
+.dropzone-container {
+    background-color: var(--md-background);
+    border: 2px dashed var(--md-divider);
+    border-radius: var(--md-radius-md);
+    cursor: pointer;
+    padding: var(--md-spacing-lg);
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.dropzone-container:hover {
+    border-color: var(--md-primary);
+}
+
+.dropzone-container.dropzone-dragover {
+    background-color: rgba(25, 118, 210, 0.08);
+    border-color: var(--md-primary);
+}
+
+.dropzone-placeholder {
+    color: var(--md-text-medium);
+    font-size: 0.875rem;
+}
+
+.dropzone-preview {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--md-spacing-sm);
+}
+
+.dropzone-preview img {
+    border-radius: var(--md-radius-sm);
+    max-height: 150px;
+    object-fit: contain;
+}
+
+.dropzone-preview-filename {
+    color: var(--md-text-high);
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 /* Safe area for notched devices */

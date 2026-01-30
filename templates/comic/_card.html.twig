@@ -1,4 +1,13 @@
 <div class="comic-card">
+    {% if comic.coverImage %}
+        <div class="comic-card-cover">
+            <img src="{{ vich_uploader_asset(comic, 'coverFile') }}" alt="Couverture de {{ comic.title }}" loading="lazy">
+        </div>
+    {% elseif comic.coverUrl %}
+        <div class="comic-card-cover">
+            <img src="{{ comic.coverUrl }}" alt="Couverture de {{ comic.title }}" loading="lazy">
+        </div>
+    {% endif %}
     <div class="comic-card-content">
         <div class="comic-card-title">
             <h3>{{ comic.title }}</h3>

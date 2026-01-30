@@ -239,6 +239,9 @@
             "config/routes/ux_autocomplete.yaml"
         ]
     },
+    "symfony/ux-dropzone": {
+        "version": "v2.32.0"
+    },
     "symfony/ux-turbo": {
         "version": "2.32",
         "recipe": {
@@ -262,5 +265,14 @@
         "files": [
             "config/packages/validator.yaml"
         ]
+    },
+    "vich/uploader-bundle": {
+        "version": "2.9",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.13",
+            "ref": "1b3064c2f6b255c2bc2f56461aaeb76b11e07e36"
+        }
     }
 }

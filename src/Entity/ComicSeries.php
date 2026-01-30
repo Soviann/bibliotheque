@@ -11,10 +11,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ComicSeriesRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
 class ComicSeries
 {
     #[ORM\Id]
@@ -80,6 +83,23 @@ class ComicSeries
     #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'comicSeries')]
     #[ORM\JoinTable(name: 'comic_series_author')]
     private Collection $authors;
+
+    /**
+     * Fichier image uploadé pour la couverture.
+     */
+    #[Vich\UploadableField(mapping: 'comic_covers', fileNameProperty: 'coverImage')]
+    #[Assert\File(
+        maxSize: '5M',
+        mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+        mimeTypesMessage: 'Veuillez télécharger une image valide (JPEG, PNG, GIF ou WebP).'
+    )]
+    private ?File $coverFile = null;
+
+    /**
+     * Nom du fichier de couverture uploadé.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $coverImage = null;
 
     /**
      * URL de la couverture.
@@ -160,6 +180,38 @@ class ComicSeries
     public function getAuthorsAsString(): string
     {
         return \implode(', ', $this->authors->map(static fn (Author $a) => $a->getName())->toArray());
+    }
+
+    public function getCoverFile(): ?File
+    {
+        return $this->coverFile;
+    }
+
+    /**
+     * Définit le fichier de couverture et met à jour updatedAt pour déclencher Doctrine.
+     */
+    public function setCoverFile(?File $coverFile = null): static
+    {
+        $this->coverFile = $coverFile;
+
+        if (null !== $coverFile) {
+            // Met à jour updatedAt pour que Doctrine détecte le changement
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+
+        return $this;
+    }
+
+    public function getCoverImage(): ?string
+    {
+        return $this->coverImage;
+    }
+
+    public function setCoverImage(?string $coverImage): static
+    {
+        $this->coverImage = $coverImage;
+
+        return $this;
     }
 
     public function getCoverUrl(): ?string

@@ -53,6 +53,17 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Création à la volée des nouveaux auteurs
   - Type de formulaire `AuthorAutocompleteType`
 
+- **Affichage des couvertures** : Ajout des images de couverture sur les cartes
+  - URL récupérée automatiquement via les API (Google Books / Open Library)
+  - Affichage avec ratio 2:3 et lazy loading
+
+- **Upload de couvertures** : Ajout de l'upload manuel d'images de couverture
+  - Intégration de VichUploaderBundle pour la gestion des fichiers
+  - Interface drag & drop avec Symfony UX Dropzone
+  - Formats acceptés : JPEG, PNG, GIF, WebP (max 5 Mo)
+  - Stockage dans `public/uploads/covers`
+  - Priorité à l'image uploadée sur l'URL externe
+
 ### Changed
 
 - **Formulaire ComicSeries** : Réorganisation avec les nouveaux champs

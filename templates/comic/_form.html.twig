@@ -41,9 +41,24 @@
         </div>
 
         <div class="mdc-text-field">
-            <label for="{{ form.coverUrl.vars.id }}">URL de la couverture</label>
+            <label for="{{ form.coverUrl.vars.id }}">URL de la couverture (externe)</label>
             {{ form_widget(form.coverUrl, {attr: {'data-comic-form-target': 'coverUrl'}}) }}
             {{ form_errors(form.coverUrl) }}
+        </div>
+    </div>
+
+    <div class="form-row cover-upload-section">
+        <div class="mdc-text-field mdc-text-field--full-width cover-upload-field">
+            <label>Image de couverture (upload manuel)</label>
+            {% if form.vars.data.coverImage %}
+                <div class="current-cover">
+                    <img src="{{ vich_uploader_asset(form.vars.data, 'coverFile') }}" alt="Couverture actuelle">
+                    <small>Image actuelle (sera remplacee si vous uploadez une nouvelle image)</small>
+                </div>
+            {% endif %}
+            {{ form_widget(form.coverFile) }}
+            {{ form_errors(form.coverFile) }}
+            <small class="form-hint">Glissez une image ou cliquez pour parcourir. Formats : JPEG, PNG, GIF, WebP. Max : 5 Mo.</small>
         </div>
     </div>
 
