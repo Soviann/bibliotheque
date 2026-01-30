@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Enum\ComicStatus;
@@ -157,7 +159,7 @@ class ComicSeries
      */
     public function getAuthorsAsString(): string
     {
-        return \implode(', ', $this->authors->map(fn (Author $a) => $a->getName())->toArray());
+        return \implode(', ', $this->authors->map(static fn (Author $a) => $a->getName())->toArray());
     }
 
     public function getCoverUrl(): ?string

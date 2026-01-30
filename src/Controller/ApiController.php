@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Repository\ComicSeriesRepository;
@@ -34,7 +36,7 @@ class ApiController extends AbstractController
 
         $result = $isbnLookupService->lookup($isbn);
 
-        if ($result === null) {
+        if (null === $result) {
             return $this->json(['error' => 'Aucun résultat trouvé'], 404);
         }
 

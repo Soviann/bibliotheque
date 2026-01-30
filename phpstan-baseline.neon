@@ -1,0 +1,313 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Property App\\Entity\\Author\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Author.php
+
+		-
+			message: '#^Property App\\Entity\\ComicSeries\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/ComicSeries.php
+
+		-
+			message: '#^Method App\\Entity\\User\:\:getRoles\(\) should return list\<string\> but returns non\-empty\-array\<int\<0, max\>, string\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Method App\\Entity\\User\:\:getUserIdentifier\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Call to protected method getEntityManager\(\) of class Doctrine\\ORM\\EntityRepository\<App\\Entity\\Author\>\.$#'
+			identifier: method.protected
+			count: 2
+			path: src/Form/AuthorAutocompleteType.php
+
+		-
+			message: '#^Class App\\Form\\AuthorAutocompleteType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types\: TData$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Form/AuthorAutocompleteType.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Form/AuthorAutocompleteType.php
+
+		-
+			message: '#^Class App\\Form\\ComicSeriesType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types\: TData$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Form/ComicSeriesType.php
+
+		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findByStatus\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findWithFilters\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:search\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, Closure\(App\\Entity\\ComicSeries\)\: array\{authors\: string, coverUrl\: string\|null, currentIssue\: int\|null, currentIssueComplete\: bool, description\: string\|null, id\: int\|null, isbn\: string\|null, isWishlist\: bool, lastBought\: int\|null, lastBoughtComplete\: bool, lastDownloaded\: int\|null, lastDownloadedComplete\: bool, missingIssues\: string\|null, onNas\: bool, ownedIssues\: string\|null, publishedCount\: int\|null, publishedCountComplete\: bool, publishedDate\: string\|null, publisher\: string\|null, status\: ''buying''\|''finished''\|''stopped''\|''wishlist'', title\: string\|null, type\: ''bd''\|''comics''\|''livre''\|''manga'', updatedAt\: non\-falsy\-string\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between null and bool will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Cannot access offset ''authors'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Cannot access offset ''description'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Cannot access offset ''imageLinks'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Cannot access offset ''publishedDate'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Cannot access offset ''publisher'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Cannot access offset ''smallThumbnail'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Cannot access offset ''thumbnail'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Method App\\Service\\IsbnLookupService\:\:lookup\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Method App\\Service\\IsbnLookupService\:\:lookup\(\) should return array\{title\?\: string, authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\|null but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Method App\\Service\\IsbnLookupService\:\:lookupGoogleBooks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Method App\\Service\\IsbnLookupService\:\:lookupOpenLibrary\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Method App\\Service\\IsbnLookupService\:\:mergeGoogleBooksItems\(\) should return array\<string, string\|null\> but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Parameter \#1 \$data of method App\\Service\\IsbnLookupService\:\:isComplete\(\) expects array\<string, string\|null\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/IsbnLookupService.php
+
+		-
+			message: '#^Offset ''authors'' might not exist on array\{title\: ''Google Book Title'', authors\?\: string, publisher\: ''OL Publisher'', publishedDate\?\: string, description\: ''Une description de…'', thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''authors'' might not exist on array\{title\: ''L\\''Agent 212'', authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''authors'' might not exist on array\{title\: ''Test Book'', authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''description'' might not exist on array\{title\: ''Google Book Title'', authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''description'' might not exist on array\{title\: ''L\\''Agent 212'', authors\: ''Raoul Cauvin,…'', publisher\: ''Dupuis'', publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''description'' might not exist on array\{title\: ''Test Book'', authors\: ''John Doe'', publisher\: ''Great Publisher'', publishedDate\: ''2020\-01\-01'', description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''publishedDate'' might not exist on array\{title\: ''Google Book Title'', authors\: ''Author Name'', publisher\: ''OL Publisher'', publishedDate\?\: string, description\: ''Une description de…'', thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''publishedDate'' might not exist on array\{title\: ''Open Library Book'', authors\?\: string, publisher\: ''Open Publisher'', publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''publishedDate'' might not exist on array\{title\: ''Test Book'', authors\: ''John Doe'', publisher\: ''Great Publisher'', publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''publisher'' might not exist on array\{title\: ''Google Book Title'', authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\: ''Une description de…'', thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''publisher'' might not exist on array\{title\: ''L\\''Agent 212'', authors\: ''Raoul Cauvin,…'', publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''publisher'' might not exist on array\{title\: ''Open Library Book'', authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''publisher'' might not exist on array\{title\: ''Test Book'', authors\: ''John Doe'', publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''sources'' might not exist on array\{title\: ''Google Book Title'', authors\: ''Author Name'', publisher\: ''OL Publisher'', publishedDate\: ''2022'', description\: ''Une description de…'', thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''sources'' might not exist on array\{title\: ''Open Library Book'', authors\?\: string, publisher\: ''Open Publisher'', publishedDate\: ''January 2021'', description\?\: string, thumbnail\: ''https\://covers…'', sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''sources'' might not exist on array\{title\: ''Test Book'', authors\: ''John Doe'', publisher\: ''Great Publisher'', publishedDate\: ''2020\-01\-01'', description\: ''A great book'', thumbnail\: ''https\://example\.com…'', sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''thumbnail'' might not exist on array\{title\: ''Open Library Book'', authors\?\: string, publisher\: ''Open Publisher'', publishedDate\: ''January 2021'', description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''thumbnail'' might not exist on array\{title\: ''Test Book'', authors\: ''John Doe'', publisher\: ''Great Publisher'', publishedDate\: ''2020\-01\-01'', description\: ''A great book'', thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''thumbnail'' might not exist on array\{title\?\: string, authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Offset ''title'' might not exist on array\{title\?\: string, authors\?\: string, publisher\?\: string, publishedDate\?\: string, description\?\: string, thumbnail\?\: string, sources\?\: array\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 4
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$body of class Symfony\\Component\\HttpClient\\Response\\MockResponse constructor expects iterable\<string\|Throwable\>\|string, string\|false given\.$#'
+			identifier: argument.type
+			count: 11
+			path: tests/Service/IsbnLookupServiceTest.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/bootstrap.php

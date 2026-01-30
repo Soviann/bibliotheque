@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\ComicSeries;
@@ -43,6 +45,7 @@ class ImportExcelCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        /** @var string $filePath */
         $filePath = $input->getArgument('file');
 
         if (!\file_exists($filePath)) {
@@ -59,7 +62,7 @@ class ImportExcelCommand extends Command
         foreach (self::SHEET_TYPE_MAP as $sheetName => $comicType) {
             $sheet = $spreadsheet->getSheetByName($sheetName);
 
-            if ($sheet === null) {
+            if (null === $sheet) {
                 $io->warning(\sprintf('Onglet "%s" non trouvé, ignoré.', $sheetName));
                 continue;
             }
@@ -70,11 +73,11 @@ class ImportExcelCommand extends Command
             $imported = 0;
 
             // Ignorer la ligne d'en-tête
-            for ($i = 1; $i < \count($data); $i++) {
+            for ($i = 1; $i < \count($data); ++$i) {
                 $row = $data[$i];
-                $title = \trim((string) ($row[0] ?? ''));
+                $title = \is_scalar($row[0]) ? \trim((string) $row[0]) : '';
 
-                if ($title === '') {
+                if ('' === $title) {
                     continue;
                 }
 
@@ -103,7 +106,7 @@ class ImportExcelCommand extends Command
                 $comic->setIsWishlist(false);
 
                 $this->entityManager->persist($comic);
-                $imported++;
+                ++$imported;
             }
 
             $this->entityManager->flush();
@@ -118,7 +121,7 @@ class ImportExcelCommand extends Command
 
     private function determineStatus(?string $value): ComicStatus
     {
-        if ($value === null) {
+        if (null === $value) {
             return ComicStatus::BUYING;
         }
 
@@ -134,13 +137,13 @@ class ImportExcelCommand extends Command
 
     private function determineOnNas(?string $value): bool
     {
-        if ($value === null) {
+        if (null === $value) {
             return false;
         }
 
         $value = \mb_strtolower(\trim($value));
 
-        return $value !== '' && $value !== 'non';
+        return '' !== $value && 'non' !== $value;
     }
 
     /**
@@ -148,17 +151,17 @@ class ImportExcelCommand extends Command
      */
     private function parseIntegerValue(mixed $value): array
     {
-        if ($value === null) {
+        if (null === $value) {
             return [null, false];
         }
 
-        $value = \trim((string) $value);
+        $value = \is_scalar($value) ? \trim((string) $value) : '';
 
-        if ($value === '') {
+        if ('' === $value) {
             return [null, false];
         }
 
-        if (\mb_strtolower($value) === 'fini') {
+        if ('fini' === \mb_strtolower($value)) {
             return [null, true];
         }
 

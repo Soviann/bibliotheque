@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Enum\ComicStatus;
@@ -47,9 +49,9 @@ class HomeController extends AbstractController
         ]);
 
         // Available statuses for library (exclude wishlist status)
-        $statuses = array_filter(
+        $statuses = \array_filter(
             ComicStatus::cases(),
-            fn (ComicStatus $s) => $s !== ComicStatus::WISHLIST
+            static fn (ComicStatus $s) => ComicStatus::WISHLIST !== $s
         );
 
         return $this->render('home/index.html.twig', [

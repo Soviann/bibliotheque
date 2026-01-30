@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\User;
@@ -37,7 +39,9 @@ class CreateUserCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
+        /** @var string $email */
         $email = $input->getArgument('email');
+        /** @var string $password */
         $password = $input->getArgument('password');
 
         $user = new User();

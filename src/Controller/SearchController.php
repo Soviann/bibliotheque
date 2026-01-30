@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Repository\ComicSeriesRepository;
@@ -16,7 +18,7 @@ class SearchController extends AbstractController
         $query = $request->query->get('q', '');
         $comics = [];
 
-        if ($query !== '') {
+        if ('' !== $query) {
             $comics = $comicSeriesRepository->search($query);
         }
 

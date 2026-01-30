@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\ComicSeries;
@@ -27,6 +29,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
      *     status?: ComicStatus|null,
      *     type?: ComicType|null,
      * } $filters
+     *
      * @return ComicSeries[]
      */
     public function findWithFilters(array $filters = []): array
@@ -52,7 +55,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
         }
 
         // NAS filter
-        if (isset($filters['onNas']) && $filters['onNas'] !== null) {
+        if (isset($filters['onNas']) && null !== $filters['onNas']) {
             $qb->andWhere('c.onNas = :onNas')
                 ->setParameter('onNas', $filters['onNas']);
         }
@@ -60,7 +63,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
         // Search filter (titre ou ISBN)
         if (!empty($filters['search'])) {
             $qb->andWhere('c.title LIKE :search OR c.isbn LIKE :search')
-                ->setParameter('search', '%' . $filters['search'] . '%');
+                ->setParameter('search', '%'.$filters['search'].'%');
         }
 
         // Sorting
@@ -90,6 +93,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
     /**
      * @return ComicSeries[]
+     *
      * @deprecated Use findWithFilters instead
      */
     public function findLibrary(?ComicType $type = null): array
@@ -102,6 +106,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
     /**
      * @return ComicSeries[]
+     *
      * @deprecated Use findWithFilters instead
      */
     public function findWishlist(?ComicType $type = null): array
@@ -121,7 +126,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.title LIKE :query OR c.isbn LIKE :query')
-            ->setParameter('query', '%' . $query . '%')
+            ->setParameter('query', '%'.$query.'%')
             ->orderBy('c.title', 'ASC')
             ->getQuery()
             ->getResult();
@@ -150,7 +155,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return \array_map(fn (ComicSeries $comic) => [
+        return \array_map(static fn (ComicSeries $comic) => [
             'authors' => $comic->getAuthorsAsString(),
             'coverUrl' => $comic->getCoverUrl(),
             'currentIssue' => $comic->getCurrentIssue(),

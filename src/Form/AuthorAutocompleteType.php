@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use App\Entity\Author;
@@ -45,14 +47,14 @@ class AuthorAutocompleteType extends AbstractType
 
                 // Sinon, c'est un nouveau nom d'auteur à créer
                 $name = \trim($value);
-                if ($name === '') {
+                if ('' === $name) {
                     continue;
                 }
 
                 // Vérifie si l'auteur existe déjà par son nom
                 $author = $this->authorRepository->findOneBy(['name' => $name]);
 
-                if ($author === null) {
+                if (null === $author) {
                     // Crée le nouvel auteur
                     $author = new Author();
                     $author->setName($name);
@@ -74,7 +76,7 @@ class AuthorAutocompleteType extends AbstractType
             'choice_label' => 'name',
             'multiple' => true,
             'placeholder' => 'Rechercher un auteur...',
-            'query_builder' => fn (EntityRepository $repository): QueryBuilder => $repository
+            'query_builder' => static fn (EntityRepository $repository): QueryBuilder => $repository
                 ->createQueryBuilder('a')
                 ->orderBy('a.name', 'ASC'),
             'tom_select_options' => [

@@ -9,6 +9,16 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **PHP CS Fixer** : Configuration avec ruleset Symfony et règles strictes
+  - `declare(strict_types=1)` obligatoire
+  - `native_function_invocation` pour préfixer les fonctions natives
+  - `ordered_class_elements` pour l'ordre des éléments de classe
+  - `ordered_imports` pour le tri alphabétique des imports
+
+- **PHPStan niveau 9** : Analyse statique stricte avec extension Symfony
+  - Configuration dans `phpstan.neon`
+  - Baseline générée pour les erreurs existantes
+
 - **Tests IsbnLookupService** : Suite de tests unitaires pour le service de recherche ISBN
   - Tests de recherche Google Books et Open Library
   - Tests de fusion des résultats des deux APIs

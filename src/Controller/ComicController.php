@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Form\ComicSeriesType;
-use App\Repository\ComicSeriesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -68,7 +69,7 @@ class ComicController extends AbstractController
     #[Route('/{id}/delete', name: 'app_comic_delete', methods: ['POST'])]
     public function delete(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $comic->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$comic->getId(), $request->request->getString('_token'))) {
             $wasWishlist = $comic->isWishlist();
             $entityManager->remove($comic);
             $entityManager->flush();
@@ -86,7 +87,7 @@ class ComicController extends AbstractController
     #[Route('/{id}/to-library', name: 'app_comic_to_library', methods: ['POST'])]
     public function toLibrary(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('to-library' . $comic->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('to-library'.$comic->getId(), $request->request->getString('_token'))) {
             $comic->setIsWishlist(false);
             $comic->setStatus(ComicStatus::BUYING);
             $entityManager->flush();

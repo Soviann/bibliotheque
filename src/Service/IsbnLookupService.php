@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
@@ -29,9 +31,9 @@ class IsbnLookupService
     public function lookup(string $isbn): ?array
     {
         // Nettoie l'ISBN (supprime les tirets et espaces)
-        $isbn = \preg_replace('/[\s-]/', '', $isbn);
+        $isbn = \preg_replace('/[\s-]/', '', $isbn) ?? '';
 
-        if (empty($isbn)) {
+        if ('' === $isbn) {
             return null;
         }
 
@@ -40,7 +42,7 @@ class IsbnLookupService
         $openLibraryResult = $this->lookupOpenLibrary($isbn);
 
         // Si aucune API n'a de résultat
-        if ($googleResult === null && $openLibraryResult === null) {
+        if (null === $googleResult && null === $openLibraryResult) {
             return null;
         }
 
@@ -51,15 +53,20 @@ class IsbnLookupService
     /**
      * Fusionne les résultats des deux API.
      * Privilégie Google Books, complète avec Open Library pour les champs manquants.
+     *
+     * @param array<string, mixed>|null $google
+     * @param array<string, mixed>|null $openLibrary
+     *
+     * @return array<string, mixed>
      */
     private function mergeResults(?array $google, ?array $openLibrary): array
     {
         $sources = [];
 
-        if ($google !== null) {
+        if (null !== $google) {
             $sources[] = 'google_books';
         }
-        if ($openLibrary !== null) {
+        if (null !== $openLibrary) {
             $sources[] = 'open_library';
         }
 
@@ -83,13 +90,13 @@ class IsbnLookupService
      * Sélectionne la meilleure valeur entre deux sources.
      * Privilégie la première valeur non vide, sinon la seconde.
      */
-    private function selectBestValue(?string $primary, ?string $secondary): ?string
+    private function selectBestValue(mixed $primary, mixed $secondary): ?string
     {
-        if ($primary !== null && $primary !== '') {
+        if (\is_string($primary) && '' !== $primary) {
             return $primary;
         }
 
-        return $secondary;
+        return \is_string($secondary) ? $secondary : null;
     }
 
     /**
@@ -101,7 +108,7 @@ class IsbnLookupService
         try {
             $response = $this->httpClient->request('GET', self::GOOGLE_BOOKS_API, [
                 'query' => [
-                    'q' => 'isbn:' . $isbn,
+                    'q' => 'isbn:'.$isbn,
                     'maxResults' => 10,
                 ],
                 'timeout' => 10,
@@ -129,7 +136,9 @@ class IsbnLookupService
      * Fusionne les données de plusieurs résultats Google Books.
      * Prend la première valeur non vide pour chaque champ.
      *
-     * @param array<int, array{volumeInfo?: array}> $items
+     * @param array<int, array<string, mixed>> $items
+     *
+     * @return array<string, string|null>
      */
     private function mergeGoogleBooksItems(array $items): array
     {
@@ -147,34 +156,34 @@ class IsbnLookupService
             $volumeInfo = $item['volumeInfo'] ?? [];
 
             // Auteurs
-            if ($result['authors'] === null && !empty($volumeInfo['authors'])) {
+            if (null === $result['authors'] && !empty($volumeInfo['authors'])) {
                 $result['authors'] = \implode(', ', $volumeInfo['authors']);
             }
 
             // Description
-            if ($result['description'] === null && !empty($volumeInfo['description'])) {
+            if (null === $result['description'] && !empty($volumeInfo['description'])) {
                 $result['description'] = $volumeInfo['description'];
             }
 
             // Date de publication
-            if ($result['publishedDate'] === null && !empty($volumeInfo['publishedDate'])) {
+            if (null === $result['publishedDate'] && !empty($volumeInfo['publishedDate'])) {
                 $result['publishedDate'] = $volumeInfo['publishedDate'];
             }
 
             // Éditeur
-            if ($result['publisher'] === null && !empty($volumeInfo['publisher'])) {
+            if (null === $result['publisher'] && !empty($volumeInfo['publisher'])) {
                 $result['publisher'] = $volumeInfo['publisher'];
             }
 
             // Thumbnail
-            if ($result['thumbnail'] === null) {
+            if (null === $result['thumbnail']) {
                 $result['thumbnail'] = $volumeInfo['imageLinks']['thumbnail']
                     ?? $volumeInfo['imageLinks']['smallThumbnail']
                     ?? null;
             }
 
             // Titre
-            if ($result['title'] === null && !empty($volumeInfo['title'])) {
+            if (null === $result['title'] && !empty($volumeInfo['title'])) {
                 $result['title'] = $volumeInfo['title'];
             }
 
@@ -189,15 +198,17 @@ class IsbnLookupService
 
     /**
      * Vérifie si toutes les données sont remplies.
+     *
+     * @param array<string, string|null> $data
      */
     private function isComplete(array $data): bool
     {
-        return $data['authors'] !== null
-            && $data['description'] !== null
-            && $data['publishedDate'] !== null
-            && $data['publisher'] !== null
-            && $data['thumbnail'] !== null
-            && $data['title'] !== null;
+        return null !== $data['authors']
+            && null !== $data['description']
+            && null !== $data['publishedDate']
+            && null !== $data['publisher']
+            && null !== $data['thumbnail']
+            && null !== $data['title'];
     }
 
     /**
@@ -206,11 +217,11 @@ class IsbnLookupService
     private function lookupOpenLibrary(string $isbn): ?array
     {
         try {
-            $response = $this->httpClient->request('GET', self::OPEN_LIBRARY_API . $isbn . '.json', [
+            $response = $this->httpClient->request('GET', self::OPEN_LIBRARY_API.$isbn.'.json', [
                 'timeout' => 10,
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return null;
             }
 
@@ -276,7 +287,7 @@ class IsbnLookupService
     private function fetchOpenLibraryAuthor(string $authorKey): ?string
     {
         try {
-            $response = $this->httpClient->request('GET', 'https://openlibrary.org' . $authorKey . '.json', [
+            $response = $this->httpClient->request('GET', 'https://openlibrary.org'.$authorKey.'.json', [
                 'timeout' => 5,
             ]);
 

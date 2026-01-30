@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use App\Entity\ComicSeries;
@@ -102,7 +104,7 @@ class ComicSeriesType extends AbstractType
             ])
             ->add('status', EnumType::class, [
                 'class' => ComicStatus::class,
-                'choice_label' => fn (ComicStatus $status) => $status->getLabel(),
+                'choice_label' => static fn (ComicStatus $status) => $status->getLabel(),
                 'label' => 'Statut',
             ])
             ->add('title', TextType::class, [
@@ -110,7 +112,7 @@ class ComicSeriesType extends AbstractType
             ])
             ->add('type', EnumType::class, [
                 'class' => ComicType::class,
-                'choice_label' => fn (ComicType $type) => $type->getLabel(),
+                'choice_label' => static fn (ComicType $type) => $type->getLabel(),
                 'label' => 'Type',
             ])
         ;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Author;
@@ -25,7 +27,7 @@ class AuthorRepository extends ServiceEntityRepository
 
         $author = $this->findOneBy(['name' => $name]);
 
-        if ($author === null) {
+        if (null === $author) {
             $author = new Author();
             $author->setName($name);
             $this->getEntityManager()->persist($author);
@@ -38,6 +40,7 @@ class AuthorRepository extends ServiceEntityRepository
      * Trouve ou crée plusieurs auteurs à partir d'une liste de noms.
      *
      * @param string[] $names
+     *
      * @return Author[]
      */
     public function findOrCreateMultiple(array $names): array
@@ -46,7 +49,7 @@ class AuthorRepository extends ServiceEntityRepository
 
         foreach ($names as $name) {
             $name = \trim($name);
-            if ($name !== '') {
+            if ('' !== $name) {
                 $authors[] = $this->findOrCreate($name);
             }
         }
