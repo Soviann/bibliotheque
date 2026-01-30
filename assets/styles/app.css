@@ -161,6 +161,7 @@ body {
     flex: 1;
     padding: var(--md-spacing-md);
     padding-bottom: calc(var(--md-spacing-md) + var(--fab-size) + var(--md-spacing-md));
+    width: 100%;
 }
 
 /* Page Header */
@@ -1131,6 +1132,11 @@ body {
         display: inline-flex;
         padding-bottom: 0;
     }
+
+    /* Form container desktop layout */
+    .form-container {
+        max-width: 100%;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -1580,6 +1586,8 @@ body {
     background-color: var(--md-surface);
     border-radius: var(--md-radius-md);
     box-shadow: var(--md-elevation-1);
+    margin: 0 auto;
+    max-width: 600px;
     padding: var(--md-spacing-lg);
 }
 
@@ -1756,5 +1764,161 @@ body {
     .comic-detail-actions .btn {
         justify-content: center;
         width: 100%;
+    }
+}
+
+/* Tomes Grid (Show Page) */
+.tomes-grid-container {
+    margin-top: var(--md-spacing-lg);
+}
+
+.tomes-grid-container h3 {
+    color: var(--md-text-high);
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: var(--md-spacing-sm);
+}
+
+.tomes-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--md-spacing-md);
+    margin-bottom: var(--md-spacing-md);
+}
+
+.legend-item {
+    align-items: center;
+    color: var(--md-text-medium);
+    display: flex;
+    font-size: 0.75rem;
+    gap: var(--md-spacing-xs);
+}
+
+.legend-dot {
+    border-radius: 50%;
+    height: 10px;
+    width: 10px;
+}
+
+.legend-dot--bought {
+    background-color: #1565c0;
+}
+
+.legend-dot--nas {
+    background-color: #512da8;
+}
+
+.tomes-grid {
+    display: grid;
+    gap: var(--md-spacing-sm);
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+}
+
+.tome-cell {
+    align-items: center;
+    background-color: var(--md-background);
+    border: 1px solid var(--md-divider);
+    border-radius: var(--md-radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    min-height: 50px;
+    padding: var(--md-spacing-xs);
+    position: relative;
+    transition: all 0.2s;
+}
+
+.tome-cell--bought {
+    background-color: #e3f2fd;
+    border-color: #1565c0;
+}
+
+.tome-cell--nas {
+    border-left: 3px solid #512da8;
+}
+
+.tome-cell--bought.tome-cell--nas {
+    background-color: #e3f2fd;
+    border-color: #1565c0;
+    border-left: 3px solid #512da8;
+}
+
+.tome-cell-number {
+    color: var(--md-text-high);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.tome-cell-icons {
+    align-items: center;
+    display: flex;
+    gap: 2px;
+}
+
+.tome-icon {
+    align-items: center;
+    border-radius: 50%;
+    display: flex;
+    height: 18px;
+    justify-content: center;
+    width: 18px;
+}
+
+.tome-icon svg {
+    fill: currentColor;
+}
+
+.tome-icon--bought {
+    background-color: #1565c0;
+    color: #ffffff;
+}
+
+.tome-icon--nas {
+    background-color: #512da8;
+    color: #ffffff;
+}
+
+/* Comic Detail desktop layout */
+@media (min-width: 768px) {
+    .comic-detail {
+        max-width: 100%;
+        padding: var(--md-spacing-xl);
+        width: 100%;
+    }
+
+    .comic-detail-header {
+        flex-direction: row;
+    }
+
+    .comic-detail-cover {
+        width: 250px;
+    }
+
+    .comic-detail-info h1 {
+        font-size: 2rem;
+        text-align: left;
+    }
+
+    .comic-detail-badges {
+        justify-content: flex-start;
+    }
+
+    .comic-detail-authors,
+    .comic-detail-publisher,
+    .comic-detail-date {
+        text-align: left;
+    }
+
+    .comic-detail-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .comic-detail-actions {
+        flex-direction: row;
+    }
+
+    .comic-detail-actions .btn {
+        width: auto;
     }
 }

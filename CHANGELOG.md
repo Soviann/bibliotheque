@@ -12,6 +12,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 - **Page de détail** : Affichage détaillé d'une série accessible en cliquant sur la carte
   - Vue formatée avec couverture, badges, auteurs, éditeur et date
   - Section description et statistiques de la collection
+  - Grille des tomes avec indicateurs visuels (acheté, sur NAS)
   - Boutons Modifier et Supprimer
   - Lien de retour vers la page précédente
   - Design responsive (mobile et desktop)
@@ -26,6 +27,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Prototype de formulaire pour nouveaux tomes
 
 ### Changed
+
+- **Layout desktop** : Amélioration de l'affichage sur écrans larges
+  - Page de détail et formulaire prennent toute la largeur disponible
+  - Statistiques de collection sur 4 colonnes
+  - Grille des tomes avec indicateurs visuels (acheté, sur NAS)
 
 - **ImportExcelCommand** : Mise à jour pour le nouveau schéma avec tomes
   - Création automatique des tomes pour chaque série
