@@ -16,6 +16,14 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/comic')]
 class ComicController extends AbstractController
 {
+    #[Route('/{id}', name: 'app_comic_show', methods: ['GET'], priority: -1)]
+    public function show(ComicSeries $comic): Response
+    {
+        return $this->render('comic/show.html.twig', [
+            'comic' => $comic,
+        ]);
+    }
+
     #[Route('/new', name: 'app_comic_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {

@@ -1544,3 +1544,217 @@ body {
         align-self: flex-end;
     }
 }
+
+/* Comic Card Link */
+.comic-card-link {
+    color: inherit;
+    display: block;
+    flex: 1;
+    text-decoration: none;
+}
+
+.comic-card-link:hover {
+    text-decoration: none;
+}
+
+/* Back Link */
+.back-link {
+    align-items: center;
+    color: var(--md-primary);
+    display: inline-flex;
+    font-weight: 500;
+    gap: var(--md-spacing-xs);
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.back-link svg {
+    fill: currentColor;
+}
+
+/* Comic Detail Page */
+.comic-detail {
+    background-color: var(--md-surface);
+    border-radius: var(--md-radius-md);
+    box-shadow: var(--md-elevation-1);
+    padding: var(--md-spacing-lg);
+}
+
+.comic-detail-header {
+    display: flex;
+    gap: var(--md-spacing-lg);
+    margin-bottom: var(--md-spacing-lg);
+}
+
+.comic-detail-cover {
+    flex-shrink: 0;
+    width: 200px;
+}
+
+.comic-detail-cover img {
+    border-radius: var(--md-radius-sm);
+    box-shadow: var(--md-elevation-2);
+    display: block;
+    height: auto;
+    width: 100%;
+}
+
+.comic-detail-info {
+    flex: 1;
+}
+
+.comic-detail-info h1 {
+    color: var(--md-text-high);
+    font-size: 1.75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: var(--md-spacing-md);
+}
+
+.comic-detail-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--md-spacing-sm);
+    margin-bottom: var(--md-spacing-md);
+}
+
+.comic-detail-authors,
+.comic-detail-publisher,
+.comic-detail-date {
+    color: var(--md-text-medium);
+    margin-bottom: var(--md-spacing-sm);
+}
+
+.comic-detail-authors strong,
+.comic-detail-publisher strong,
+.comic-detail-date strong {
+    color: var(--md-text-high);
+}
+
+.comic-detail-section {
+    border-top: 1px solid var(--md-divider);
+    margin-top: var(--md-spacing-lg);
+    padding-top: var(--md-spacing-lg);
+}
+
+.comic-detail-section h2 {
+    color: var(--md-text-high);
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: var(--md-spacing-md);
+}
+
+.comic-detail-description {
+    color: var(--md-text-medium);
+    line-height: 1.6;
+}
+
+.comic-detail-stats {
+    display: grid;
+    gap: var(--md-spacing-md);
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.stat-item {
+    background-color: var(--md-background);
+    border-radius: var(--md-radius-sm);
+    padding: var(--md-spacing-md);
+}
+
+.stat-item-full {
+    grid-column: 1 / -1;
+}
+
+.stat-label {
+    color: var(--md-text-medium);
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-bottom: var(--md-spacing-xs);
+    text-transform: uppercase;
+}
+
+.stat-value {
+    color: var(--md-text-high);
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+.stat-value.warning {
+    color: var(--md-error);
+}
+
+.comic-detail-actions {
+    border-top: 1px solid var(--md-divider);
+    display: flex;
+    gap: var(--md-spacing-md);
+    margin-top: var(--md-spacing-lg);
+    padding-top: var(--md-spacing-lg);
+}
+
+.comic-detail-actions .btn {
+    align-items: center;
+    display: inline-flex;
+    gap: var(--md-spacing-sm);
+}
+
+.comic-detail-actions .btn svg {
+    fill: currentColor;
+}
+
+.btn-primary {
+    background-color: var(--md-primary);
+    color: var(--md-on-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--md-primary-variant);
+}
+
+/* Responsive Comic Detail */
+@media (max-width: 600px) {
+    .comic-detail {
+        padding: var(--md-spacing-md);
+    }
+
+    .comic-detail-header {
+        flex-direction: column;
+    }
+
+    .comic-detail-cover {
+        margin: 0 auto;
+        max-width: 200px;
+        width: 100%;
+    }
+
+    .comic-detail-info h1 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    .comic-detail-badges {
+        justify-content: center;
+    }
+
+    .comic-detail-authors,
+    .comic-detail-publisher,
+    .comic-detail-date {
+        text-align: center;
+    }
+
+    .comic-detail-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .comic-detail-actions {
+        flex-direction: column;
+    }
+
+    .comic-detail-actions .btn {
+        justify-content: center;
+        width: 100%;
+    }
+}

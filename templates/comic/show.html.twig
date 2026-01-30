@@ -1,0 +1,138 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ comic.title }} - Ma Bibliotheque BD{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <a href="{{ app.request.headers.get('referer') ?: path('app_home') }}" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        Retour
+    </a>
+</div>
+
+<div class="comic-detail">
+    <div class="comic-detail-header">
+        {% if comic.coverImage %}
+            <div class="comic-detail-cover">
+                <img src="{{ vich_uploader_asset(comic, 'coverFile') }}" alt="Couverture de {{ comic.title }}">
+            </div>
+        {% elseif comic.coverUrl %}
+            <div class="comic-detail-cover">
+                <img src="{{ comic.coverUrl }}" alt="Couverture de {{ comic.title }}">
+            </div>
+        {% endif %}
+
+        <div class="comic-detail-info">
+            <h1>{{ comic.title }}</h1>
+
+            <div class="comic-detail-badges">
+                <span class="status-badge status-{{ comic.status.value }}">{{ comic.status.label }}</span>
+                <span class="type-badge type-badge-{{ comic.type.value }}">{{ comic.type.label }}</span>
+                {% set hasNasTome = comic.tomes|filter(t => t.onNas)|length > 0 %}
+                {% if hasNasTome %}
+                    <span class="type-badge type-badge-nas">NAS</span>
+                {% endif %}
+            </div>
+
+            {% if comic.authors|length > 0 %}
+                <p class="comic-detail-authors">
+                    <strong>Auteur{{ comic.authors|length > 1 ? 's' : '' }} :</strong>
+                    {{ comic.authors|map(a => a.name)|join(', ') }}
+                </p>
+            {% endif %}
+
+            {% if comic.publisher %}
+                <p class="comic-detail-publisher">
+                    <strong>Editeur :</strong> {{ comic.publisher }}
+                </p>
+            {% endif %}
+
+            {% if comic.publishedDate %}
+                <p class="comic-detail-date">
+                    <strong>Date de parution :</strong> {{ comic.publishedDate|date('d/m/Y') }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if comic.description %}
+        <div class="comic-detail-section">
+            <h2>Description</h2>
+            <p class="comic-detail-description">{{ comic.description|nl2br }}</p>
+        </div>
+    {% endif %}
+
+    <div class="comic-detail-section">
+        <h2>Collection</h2>
+        <div class="comic-detail-stats">
+            {% set currentIssue = comic.currentIssue %}
+            {% if currentIssue or comic.currentIssueComplete %}
+                <div class="stat-item">
+                    <span class="stat-label">Possede</span>
+                    <span class="stat-value">{% if comic.currentIssueComplete %}Complet{% else %}{{ currentIssue }}{% endif %}</span>
+                </div>
+            {% endif %}
+
+            {% set lastBought = comic.lastBought %}
+            {% if lastBought or comic.lastBoughtComplete %}
+                <div class="stat-item">
+                    <span class="stat-label">Dernier achat</span>
+                    <span class="stat-value">{% if comic.lastBoughtComplete %}Complet{% else %}{{ lastBought }}{% endif %}</span>
+                </div>
+            {% endif %}
+
+            {% if comic.latestPublishedIssue or comic.latestPublishedIssueComplete %}
+                <div class="stat-item">
+                    <span class="stat-label">Parus</span>
+                    <span class="stat-value">{% if comic.latestPublishedIssueComplete %}{{ comic.latestPublishedIssue }} (termine){% else %}{{ comic.latestPublishedIssue }}{% endif %}</span>
+                </div>
+            {% endif %}
+
+            {% set lastDownloaded = comic.lastDownloaded %}
+            {% if lastDownloaded or comic.lastDownloadedComplete %}
+                <div class="stat-item">
+                    <span class="stat-label">Telecharge</span>
+                    <span class="stat-value">{% if comic.lastDownloadedComplete %}Complet{% else %}{{ lastDownloaded }}{% endif %}</span>
+                </div>
+            {% endif %}
+
+            {% set ownedNumbers = comic.ownedTomesNumbers %}
+            {% if ownedNumbers|length > 0 %}
+                <div class="stat-item stat-item-full">
+                    <span class="stat-label">Tomes possedes</span>
+                    <span class="stat-value">{{ ownedNumbers|join(', ') }}</span>
+                </div>
+            {% endif %}
+
+            {% set missingNumbers = comic.missingTomesNumbers %}
+            {% if missingNumbers|length > 0 %}
+                <div class="stat-item stat-item-full">
+                    <span class="stat-label">Tomes manquants</span>
+                    <span class="stat-value warning">{{ missingNumbers|join(', ') }}</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="comic-detail-actions">
+        <a href="{{ path('app_comic_edit', {id: comic.id}) }}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            </svg>
+            Modifier
+        </a>
+
+        <form action="{{ path('app_comic_delete', {id: comic.id}) }}" method="post" class="inline-form" onsubmit="return confirm('Supprimer cette serie ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comic.id) }}">
+            <button type="submit" class="btn btn-danger">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                Supprimer
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

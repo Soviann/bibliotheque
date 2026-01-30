@@ -9,6 +9,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Page de détail** : Affichage détaillé d'une série accessible en cliquant sur la carte
+  - Vue formatée avec couverture, badges, auteurs, éditeur et date
+  - Section description et statistiques de la collection
+  - Boutons Modifier et Supprimer
+  - Lien de retour vers la page précédente
+  - Design responsive (mobile et desktop)
+
 - **Entité Tome** : Nouvelle entité pour gérer les tomes individuels d'une série
   - Champs : numéro, titre, ISBN, acheté, téléchargé, sur NAS
   - Upload de couverture par tome via VichUploader
