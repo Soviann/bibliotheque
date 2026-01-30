@@ -29,12 +29,35 @@ class ApiController extends AbstractController
     public function isbnLookup(Request $request, IsbnLookupService $isbnLookupService): JsonResponse
     {
         $isbn = $request->query->get('isbn', '');
+        $type = $request->query->get('type');
 
         if (empty($isbn)) {
             return $this->json(['error' => 'ISBN requis'], 400);
         }
 
-        $result = $isbnLookupService->lookup($isbn);
+        $result = $isbnLookupService->lookup($isbn, $type);
+
+        if (null === $result) {
+            return $this->json(['error' => 'Aucun résultat trouvé'], 404);
+        }
+
+        return $this->json($result);
+    }
+
+    /**
+     * Recherche les informations par titre.
+     */
+    #[Route('/title-lookup', name: 'api_title_lookup', methods: ['GET'])]
+    public function titleLookup(Request $request, IsbnLookupService $isbnLookupService): JsonResponse
+    {
+        $title = $request->query->get('title', '');
+        $type = $request->query->get('type');
+
+        if (empty($title)) {
+            return $this->json(['error' => 'Titre requis'], 400);
+        }
+
+        $result = $isbnLookupService->lookupByTitle($title, $type);
 
         if (null === $result) {
             return $this->json(['error' => 'Aucun résultat trouvé'], 404);

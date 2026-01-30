@@ -9,13 +9,36 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Recherche par titre** : Nouveau bouton de recherche à côté du champ titre
+  - Recherche sur AniList si le type "manga" est sélectionné
+  - Recherche sur Google Books pour les autres types
+  - Pré-remplit auteurs, éditeur, date, description et couverture
+  - Détection automatique des one-shots via `seriesInfo` de Google Books
+  - Endpoint `GET /api/title-lookup?title=XXX&type=YYY`
+
+- **Détection automatique one-shot** : Détection via Google Books (`seriesInfo`) et AniList (`format`, `volumes`, `status`)
+  - Google Books : si `seriesInfo` est absent, le livre est détecté comme one-shot
+  - AniList : si `format` vaut `ONE_SHOT` OU si `volumes = 1` et `status = FINISHED`
+  - La case "One-shot" est cochée automatiquement
+  - Un tome avec le numéro 1 est créé automatiquement
+  - L'ISBN est retourné dans les résultats de recherche par ISBN
+
+- **Champ Type en premier** : Le type est maintenant le premier champ du formulaire pour conditionner la recherche API
+
 - **Flag One-Shot** : Nouveau champ `isOneShot` sur `ComicSeries` pour distinguer les tomes uniques (intégrales, one-shots) des séries multi-tomes
   - Checkbox dans le formulaire
   - Création automatique d'un tome avec numéro 1 si la collection est vide
   - Blocage de la collection à une seule entrée (bouton "Ajouter" et boutons "Supprimer" masqués)
   - Pré-remplissage automatique : `latestPublishedIssue = 1` et `latestPublishedIssueComplete = true`
+  - Bouton de recherche ISBN sur le tome pour pré-remplir les champs de la série via les API
   - Badge "Tome unique" sur la page de détail
   - Affichage simplifié sur les cartes (pas de détail des tomes)
+
+### Changed
+
+- **Recherche ISBN** : Le type n'est plus déduit automatiquement, il faut le sélectionner avant la recherche
+  - Si type = manga, AniList est utilisé pour enrichir les données
+  - Sinon, seuls Google Books et Open Library sont interrogés
 
 - **Page de détail** : Affichage détaillé d'une série accessible en cliquant sur la carte
   - Vue formatée avec couverture, badges, auteurs, éditeur et date

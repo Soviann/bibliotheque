@@ -4,87 +4,18 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Enum\ComicType;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * Service de recherche d'informations sur un livre/BD/manga par ISBN.
- * Interroge Google Books, Open Library et AniList (pour les mangas), puis fusionne les résultats.
+ * Service de recherche d'informations sur un livre/BD/manga par ISBN ou titre.
+ * Interroge Google Books, Open Library et AniList (pour les mangas).
  */
 class IsbnLookupService
 {
     private const ANILIST_API = 'https://graphql.anilist.co';
     private const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
     private const OPEN_LIBRARY_API = 'https://openlibrary.org/isbn/';
-
-    /**
-     * Éditeurs de BD franco-belge.
-     */
-    private const BD_PUBLISHERS = [
-        'ankama',
-        'bamboo',
-        'casterman',
-        'dargaud',
-        'delcourt',
-        'dupuis',
-        'fluide glacial',
-        'futuropolis',
-        'glénat',
-        'glenat',
-        'humanoïdes associés',
-        'kennes',
-        'le lombard',
-        'lombard',
-        'paquet',
-        'rue de sèvres',
-        'sarbacane',
-        'soleil',
-        'vents d\'ouest',
-    ];
-
-    /**
-     * Éditeurs de comics US.
-     */
-    private const COMICS_PUBLISHERS = [
-        'dark horse',
-        'dc comics',
-        'image comics',
-        'marvel',
-        'panini comics',
-        'panini',
-        'urban comics',
-        'vestron',
-    ];
-
-    /**
-     * Éditeurs de mangas.
-     */
-    private const MANGA_PUBLISHERS = [
-        'akata',
-        'black box',
-        'casterman manga',
-        'crunchyroll',
-        'doki-doki',
-        'glénat manga',
-        'glenat manga',
-        'isan manga',
-        'j\'ai lu',
-        'kana',
-        'kazé',
-        'kaze',
-        'ki-oon',
-        'komikku',
-        'kurokawa',
-        'mangetsu',
-        'meian',
-        'nobi nobi',
-        'ototo',
-        'pika',
-        'soleil manga',
-        'taifu comics',
-        'tonkam',
-    ];
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -94,11 +25,14 @@ class IsbnLookupService
 
     /**
      * Recherche les informations d'un livre par ISBN.
-     * Interroge les API et fusionne les résultats pour maximiser les données.
+     * Si le type est "manga", utilise AniList en priorité.
+     *
+     * @param string      $isbn L'ISBN à rechercher
+     * @param string|null $type Le type sélectionné (manga, bd, comics, livre)
      *
      * @return array<string, mixed>|null Les données du livre ou null si non trouvé
      */
-    public function lookup(string $isbn): ?array
+    public function lookup(string $isbn, ?string $type = null): ?array
     {
         // Nettoie l'ISBN (supprime les tirets et espaces)
         $isbn = \preg_replace('/[\s-]/', '', $isbn) ?? '';
@@ -119,21 +53,106 @@ class IsbnLookupService
         // Fusionne les résultats Google Books et Open Library
         $mergedResult = $this->mergeResults($googleResult, $openLibraryResult);
 
-        // Si on a un titre, tente d'enrichir avec AniList (pour les mangas)
-        $anilistFound = false;
-        $title = $mergedResult['title'] ?? null;
-        if (\is_string($title) && '' !== $title) {
-            $anilistResult = $this->lookupAniList($title);
-            if (null !== $anilistResult) {
-                $mergedResult = $this->mergeWithAniList($mergedResult, $anilistResult);
-                $anilistFound = true;
+        // Si le type est manga, enrichit avec AniList
+        if ('manga' === $type) {
+            $title = $mergedResult['title'] ?? null;
+            if (\is_string($title) && '' !== $title) {
+                $anilistResult = $this->lookupAniList($title);
+                if (null !== $anilistResult) {
+                    $mergedResult = $this->mergeWithAniList($mergedResult, $anilistResult);
+                }
             }
         }
 
-        // Déduit le type (manga, bd, comics) à partir des sources et de l'éditeur
-        $mergedResult['type'] = $this->deduceType($mergedResult, $anilistFound);
+        // Ajoute l'ISBN recherché dans les résultats
+        $mergedResult['isbn'] = $isbn;
 
         return $mergedResult;
+    }
+
+    /**
+     * Recherche les informations par titre.
+     * Si le type est "manga", utilise AniList en priorité.
+     *
+     * @param string      $title Le titre à rechercher
+     * @param string|null $type  Le type sélectionné (manga, bd, comics, livre)
+     *
+     * @return array<string, mixed>|null Les données ou null si non trouvé
+     */
+    public function lookupByTitle(string $title, ?string $type = null): ?array
+    {
+        $title = \trim($title);
+
+        if ('' === $title) {
+            return null;
+        }
+
+        // Si le type est manga, cherche sur AniList en priorité
+        if ('manga' === $type) {
+            $anilistResult = $this->lookupAniList($title);
+            if (null !== $anilistResult) {
+                return [
+                    'authors' => $anilistResult['authors'] ?? null,
+                    'description' => $anilistResult['description'] ?? null,
+                    'isOneShot' => $anilistResult['isOneShot'] ?? false,
+                    'publishedDate' => $anilistResult['publishedDate'] ?? null,
+                    'sources' => ['anilist'],
+                    'thumbnail' => $anilistResult['thumbnail'] ?? null,
+                    'title' => $anilistResult['title'] ?? $title,
+                ];
+            }
+        }
+
+        // Sinon, cherche sur Google Books par titre
+        $googleResult = $this->lookupGoogleBooksByTitle($title);
+
+        if (null === $googleResult) {
+            return null;
+        }
+
+        return [
+            'authors' => $googleResult['authors'] ?? null,
+            'description' => $googleResult['description'] ?? null,
+            'isOneShot' => $googleResult['isOneShot'] ?? null,
+            'publishedDate' => $googleResult['publishedDate'] ?? null,
+            'publisher' => $googleResult['publisher'] ?? null,
+            'sources' => ['google_books'],
+            'thumbnail' => $googleResult['thumbnail'] ?? null,
+            'title' => $googleResult['title'] ?? $title,
+        ];
+    }
+
+    /**
+     * Recherche sur Google Books API par titre.
+     *
+     * @return array<string, string|null>|null
+     */
+    private function lookupGoogleBooksByTitle(string $title): ?array
+    {
+        try {
+            $response = $this->httpClient->request('GET', self::GOOGLE_BOOKS_API, [
+                'query' => [
+                    'q' => $title,
+                    'maxResults' => 10,
+                ],
+                'timeout' => 10,
+            ]);
+
+            $data = $response->toArray();
+
+            if (empty($data['items'])) {
+                return null;
+            }
+
+            return $this->mergeGoogleBooksItems($data['items']);
+        } catch (\Throwable $e) {
+            $this->logger->warning('Erreur lors de la recherche Google Books pour le titre "{title}": {error}', [
+                'error' => $e->getMessage(),
+                'title' => $title,
+            ]);
+
+            return null;
+        }
     }
 
     /**
@@ -168,6 +187,9 @@ class IsbnLookupService
 
             $result[$field] = $this->selectBestValue($googleValue, $openLibraryValue);
         }
+
+        // isOneShot vient uniquement de Google Books
+        $result['isOneShot'] = $google['isOneShot'] ?? null;
 
         return $result;
     }
@@ -231,6 +253,7 @@ class IsbnLookupService
         $result = [
             'authors' => null,
             'description' => null,
+            'isOneShot' => null,
             'publishedDate' => null,
             'publisher' => null,
             'source' => 'google_books',
@@ -271,6 +294,11 @@ class IsbnLookupService
             // Titre
             if (null === $result['title'] && !empty($volumeInfo['title'])) {
                 $result['title'] = $volumeInfo['title'];
+            }
+
+            // Détection one-shot : si seriesInfo est absent, c'est probablement un one-shot
+            if (null === $result['isOneShot'] && \is_array($volumeInfo)) {
+                $result['isOneShot'] = !\array_key_exists('seriesInfo', $volumeInfo) || null === $volumeInfo['seriesInfo'];
             }
 
             // Arrête si toutes les données sont remplies
@@ -427,6 +455,9 @@ class IsbnLookupService
                         native
                         romaji
                     }
+                    format
+                    volumes
+                    status
                     description(asHtml: false)
                     coverImage {
                         extraLarge
@@ -495,9 +526,18 @@ class IsbnLookupService
                 $description = \html_entity_decode($description, \ENT_QUOTES | \ENT_HTML5, 'UTF-8');
             }
 
+            // Détecte si c'est un one-shot via AniList :
+            // - format === 'ONE_SHOT'
+            // - OU volumes === 1 ET status === 'FINISHED' (tome unique terminé)
+            $format = $media['format'] ?? null;
+            $volumes = $media['volumes'] ?? null;
+            $status = $media['status'] ?? null;
+            $isOneShot = 'ONE_SHOT' === $format || (1 === $volumes && 'FINISHED' === $status);
+
             return [
                 'authors' => $authors,
                 'description' => $description,
+                'isOneShot' => $isOneShot,
                 'publishedDate' => $publishedDate,
                 'source' => 'anilist',
                 'thumbnail' => $thumbnail,
@@ -597,51 +637,11 @@ class IsbnLookupService
             $current['thumbnail'] = $anilist['thumbnail'];
         }
 
+        // Pour isOneShot, AniList est plus fiable que Google Books pour les mangas
+        if (isset($anilist['isOneShot'])) {
+            $current['isOneShot'] = $anilist['isOneShot'];
+        }
+
         return $current;
-    }
-
-    /**
-     * Déduit le type (manga, bd, comics) à partir des données disponibles.
-     * Priorité : AniList (manga) > Éditeur connu > null.
-     *
-     * @param array<string, mixed> $data
-     */
-    private function deduceType(array $data, bool $anilistFound): ?string
-    {
-        // Si AniList a trouvé un résultat, c'est un manga
-        if ($anilistFound) {
-            return ComicType::MANGA->value;
-        }
-
-        // Sinon, on déduit à partir de l'éditeur
-        $publisher = $data['publisher'] ?? null;
-        if (!\is_string($publisher) || '' === $publisher) {
-            return null;
-        }
-
-        $publisherLower = \mb_strtolower($publisher);
-
-        // Vérifie si l'éditeur est connu pour les mangas
-        foreach (self::MANGA_PUBLISHERS as $mangaPublisher) {
-            if (\str_contains($publisherLower, $mangaPublisher)) {
-                return ComicType::MANGA->value;
-            }
-        }
-
-        // Vérifie si l'éditeur est connu pour les comics
-        foreach (self::COMICS_PUBLISHERS as $comicsPublisher) {
-            if (\str_contains($publisherLower, $comicsPublisher)) {
-                return ComicType::COMICS->value;
-            }
-        }
-
-        // Vérifie si l'éditeur est connu pour les BD
-        foreach (self::BD_PUBLISHERS as $bdPublisher) {
-            if (\str_contains($publisherLower, $bdPublisher)) {
-                return ComicType::BD->value;
-            }
-        }
-
-        return null;
     }
 }

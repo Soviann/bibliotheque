@@ -1,8 +1,29 @@
 {{ form_start(form, {attr: {class: 'comic-form', 'data-controller': 'comic-form tomes-collection'}}) }}
+    {# Type en premier pour conditionner la recherche API #}
     <div class="form-row">
         <div class="mdc-text-field">
+            <label for="{{ form.type.vars.id }}">Type</label>
+            {{ form_widget(form.type, {attr: {'data-comic-form-target': 'type'}}) }}
+            {{ form_errors(form.type) }}
+        </div>
+
+        <div class="mdc-text-field">
+            <label for="{{ form.status.vars.id }}">Statut</label>
+            {{ form_widget(form.status) }}
+            {{ form_errors(form.status) }}
+        </div>
+    </div>
+
+    {# Recherche par titre #}
+    <div class="form-row">
+        <div class="mdc-text-field mdc-text-field--with-button">
             <label for="{{ form.title.vars.id }}">Titre de la serie</label>
-            {{ form_widget(form.title, {attr: {'data-comic-form-target': 'title'}}) }}
+            <div class="input-with-button">
+                {{ form_widget(form.title, {attr: {'data-comic-form-target': 'title'}}) }}
+                <button type="button" class="btn btn-secondary btn-icon" data-action="comic-form#lookupByTitle" data-comic-form-target="lookupTitleButton" title="Rechercher via le titre">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                </button>
+            </div>
             {{ form_errors(form.title) }}
         </div>
     </div>
@@ -54,20 +75,6 @@
         <label for="{{ form.description.vars.id }}">Description</label>
         {{ form_widget(form.description, {attr: {'data-comic-form-target': 'description'}}) }}
         {{ form_errors(form.description) }}
-    </div>
-
-    <div class="form-row">
-        <div class="mdc-text-field">
-            <label for="{{ form.type.vars.id }}">Type</label>
-            {{ form_widget(form.type, {attr: {'data-comic-form-target': 'type'}}) }}
-            {{ form_errors(form.type) }}
-        </div>
-
-        <div class="mdc-text-field">
-            <label for="{{ form.status.vars.id }}">Statut</label>
-            {{ form_widget(form.status) }}
-            {{ form_errors(form.status) }}
-        </div>
     </div>
 
     <div class="form-row" data-comic-form-target="publishedIssueRow">
@@ -127,7 +134,10 @@
                             {{ form_widget(tome.title, {attr: {placeholder: 'Titre (optionnel)'}}) }}
                         </div>
                         <div class="tome-isbn">
-                            {{ form_widget(tome.isbn, {attr: {placeholder: 'ISBN'}}) }}
+                            {{ form_widget(tome.isbn, {attr: {placeholder: 'ISBN', class: 'tome-isbn-input'}}) }}
+                            <button type="button" class="btn btn-icon btn-secondary tome-isbn-lookup" data-action="comic-form#lookupTomeIsbn" title="Rechercher via ISBN" style="display: none;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                            </button>
                         </div>
                         <div class="tome-checkboxes">
                             <label class="tome-checkbox">
@@ -161,7 +171,10 @@
                         <input type="text" name="{{ form.tomes.vars.full_name }}[__name__][title]" placeholder="Titre (optionnel)">
                     </div>
                     <div class="tome-isbn">
-                        <input type="text" name="{{ form.tomes.vars.full_name }}[__name__][isbn]" placeholder="ISBN">
+                        <input type="text" name="{{ form.tomes.vars.full_name }}[__name__][isbn]" placeholder="ISBN" class="tome-isbn-input">
+                        <button type="button" class="btn btn-icon btn-secondary tome-isbn-lookup" data-action="comic-form#lookupTomeIsbn" title="Rechercher via ISBN" style="display: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                        </button>
                     </div>
                     <div class="tome-checkboxes">
                         <label class="tome-checkbox">

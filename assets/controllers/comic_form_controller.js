@@ -13,6 +13,7 @@ export default class extends Controller {
         'latestPublishedIssueComplete',
         'lookupButton',
         'lookupStatus',
+        'lookupTitleButton',
         'publishedDate',
         'publishedIssueRow',
         'publisher',
@@ -28,6 +29,7 @@ export default class extends Controller {
         authors: 'Auteur(s)',
         coverUrl: 'Couverture',
         description: 'Description',
+        isOneShot: 'One-shot',
         publishedDate: 'Date de publication',
         publisher: 'Éditeur',
         title: 'Titre',
@@ -76,6 +78,12 @@ export default class extends Controller {
             const removeButtons = this.tomesSectionTarget.querySelectorAll('.tome-remove');
             removeButtons.forEach(btn => {
                 btn.style.display = isOneShot ? 'none' : '';
+            });
+
+            // Affiche/masque les boutons de recherche ISBN
+            const isbnLookupButtons = this.tomesSectionTarget.querySelectorAll('.tome-isbn-lookup');
+            isbnLookupButtons.forEach(btn => {
+                btn.style.display = isOneShot ? '' : 'none';
             });
         }
 
@@ -133,6 +141,203 @@ export default class extends Controller {
         }
 
         this.tomesListTarget.appendChild(entryElement);
+
+        // Affiche le bouton de recherche ISBN si one-shot est coché
+        if (this.hasIsOneShotTarget && this.isOneShotTarget.checked) {
+            const isbnLookupButton = entryElement.querySelector('.tome-isbn-lookup');
+            if (isbnLookupButton) {
+                isbnLookupButton.style.display = '';
+            }
+        }
+    }
+
+    /**
+     * Recherche les informations du livre par ISBN du tome (pour les one-shots).
+     */
+    async lookupTomeIsbn(event) {
+        const button = event.currentTarget;
+        const tomeEntry = button.closest('.tome-entry');
+        const isbnInput = tomeEntry.querySelector('.tome-isbn-input');
+        const isbn = isbnInput ? isbnInput.value.trim() : '';
+
+        if (!isbn) {
+            this.showFlashError('Veuillez saisir un ISBN');
+            isbnInput?.focus();
+            return;
+        }
+
+        // Récupère le type sélectionné
+        const type = this.hasTypeTarget ? this.typeTarget.value : null;
+
+        button.disabled = true;
+
+        try {
+            const url = `/api/isbn-lookup?isbn=${encodeURIComponent(isbn)}${type ? `&type=${type}` : ''}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) {
+                this.showFlashError(data.error || 'Erreur lors de la recherche');
+                return;
+            }
+
+            // Liste des champs remplis
+            const filledFields = [];
+
+            // Remplit les champs de la série
+            if (this.fillField('title', data.title)) filledFields.push('title');
+            if (this.fillAuthors(data.authors)) filledFields.push('authors');
+            if (this.fillField('publisher', data.publisher)) filledFields.push('publisher');
+            if (this.fillField('publishedDate', data.publishedDate)) filledFields.push('publishedDate');
+            if (this.fillField('description', data.description)) filledFields.push('description');
+            if (this.fillField('coverUrl', data.thumbnail)) filledFields.push('coverUrl');
+
+            // Gère le one-shot détecté (coche la case si pas déjà cochée)
+            if (data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
+                this.isOneShotTarget.checked = true;
+                this.applyOneShotState(true);
+                filledFields.push('isOneShot');
+            }
+
+            // Affiche les sources utilisées
+            const sourceLabels = {
+                'anilist': 'AniList',
+                'google_books': 'Google Books',
+                'open_library': 'Open Library',
+            };
+            const sourceNames = (data.sources || []).map(s => sourceLabels[s] || s);
+            const sourcesText = sourceNames.join(' + ');
+
+            if (filledFields.length > 0) {
+                this.showFlashNotification(filledFields, sourcesText);
+            } else {
+                this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})`);
+            }
+        } catch (error) {
+            this.showFlashError('Erreur de connexion');
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    /**
+     * Recherche les informations par titre via l'API.
+     */
+    async lookupByTitle() {
+        if (!this.hasTitleTarget) {
+            return;
+        }
+
+        const title = this.titleTarget.value.trim();
+
+        if (!title) {
+            this.showFlashError('Veuillez saisir un titre');
+            this.titleTarget.focus();
+            return;
+        }
+
+        // Récupère le type sélectionné
+        const type = this.hasTypeTarget ? this.typeTarget.value : null;
+
+        if (this.hasLookupTitleButtonTarget) {
+            this.lookupTitleButtonTarget.disabled = true;
+        }
+
+        try {
+            const url = `/api/title-lookup?title=${encodeURIComponent(title)}${type ? `&type=${type}` : ''}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) {
+                this.showFlashError(data.error || 'Erreur lors de la recherche');
+                return;
+            }
+
+            // Liste des champs remplis
+            const filledFields = [];
+
+            // Remplit les champs (ne remplace pas le titre car l'utilisateur l'a saisi)
+            if (this.fillAuthors(data.authors)) filledFields.push('authors');
+            if (this.fillField('publisher', data.publisher)) filledFields.push('publisher');
+            if (this.fillField('publishedDate', data.publishedDate)) filledFields.push('publishedDate');
+            if (this.fillField('description', data.description)) filledFields.push('description');
+            if (this.fillField('coverUrl', data.thumbnail)) filledFields.push('coverUrl');
+
+            // Gère le one-shot détecté
+            if (data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
+                this.isOneShotTarget.checked = true;
+                this.applyOneShotState(true);
+                filledFields.push('isOneShot');
+            }
+
+            // Affiche les sources utilisées
+            const sourceLabels = {
+                'anilist': 'AniList',
+                'google_books': 'Google Books',
+                'open_library': 'Open Library',
+            };
+            const sourceNames = (data.sources || []).map(s => sourceLabels[s] || s);
+            const sourcesText = sourceNames.join(' + ');
+
+            if (filledFields.length > 0) {
+                this.showFlashNotification(filledFields, sourcesText);
+            } else {
+                this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})`);
+            }
+        } catch (error) {
+            this.showFlashError('Erreur de connexion');
+        } finally {
+            if (this.hasLookupTitleButtonTarget) {
+                this.lookupTitleButtonTarget.disabled = false;
+            }
+        }
+    }
+
+    /**
+     * Affiche une notification flash d'erreur.
+     */
+    showFlashError(message) {
+        this.showFlashMessage(message, 'error');
+    }
+
+    /**
+     * Affiche une notification flash d'info.
+     */
+    showFlashInfo(message) {
+        this.showFlashMessage(message, 'info');
+    }
+
+    /**
+     * Affiche une notification flash générique.
+     */
+    showFlashMessage(message, type) {
+        const existing = document.querySelector('.api-lookup-flash');
+        if (existing) {
+            existing.remove();
+        }
+
+        const flash = document.createElement('div');
+        flash.className = `api-lookup-flash api-lookup-flash--${type}`;
+        flash.innerHTML = `
+            <div class="api-lookup-flash__content">
+                <span>${message}</span>
+            </div>
+            <button type="button" class="api-lookup-flash__close" aria-label="Fermer">&times;</button>
+        `;
+
+        flash.querySelector('.api-lookup-flash__close').addEventListener('click', () => {
+            flash.classList.add('api-lookup-flash--hiding');
+            setTimeout(() => flash.remove(), 300);
+        });
+
+        this.element.insertBefore(flash, this.element.firstChild);
+
+        setTimeout(() => {
+            if (flash.parentNode) {
+                flash.classList.add('api-lookup-flash--hiding');
+                setTimeout(() => flash.remove(), 300);
+            }
+        }, 5000);
     }
 
     /**

@@ -707,6 +707,24 @@ body {
     margin-bottom: var(--md-spacing-lg);
 }
 
+.mdc-text-field--with-button {
+    flex: 1;
+}
+
+.input-with-button {
+    display: flex;
+    gap: var(--md-spacing-xs);
+}
+
+.input-with-button input {
+    flex: 1;
+}
+
+.input-with-button .btn-icon {
+    flex-shrink: 0;
+    padding: var(--md-spacing-sm);
+}
+
 /* Checkbox Field */
 .mdc-checkbox-field {
     align-items: center;
@@ -1300,6 +1318,24 @@ body {
     animation: slideUp 0.3s ease-in forwards;
 }
 
+.api-lookup-flash--error {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border-color: #f44336;
+}
+
+.api-lookup-flash--error .api-lookup-flash__content {
+    color: #c62828;
+}
+
+.api-lookup-flash--info {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-color: #ff9800;
+}
+
+.api-lookup-flash--info .api-lookup-flash__content {
+    color: #e65100;
+}
+
 @keyframes slideDown {
     from {
         opacity: 0;
@@ -1470,10 +1506,14 @@ body {
 }
 
 .tome-isbn {
-    width: 140px;
+    display: flex;
+    gap: var(--md-spacing-xs);
+    width: 180px;
 }
 
 .tome-isbn input {
+    flex: 1;
+    min-width: 0;
     background-color: transparent;
     border: 1px solid var(--md-divider);
     border-radius: var(--md-radius-sm);
@@ -1487,6 +1527,15 @@ body {
 
 .tome-isbn input:focus {
     border-color: var(--md-primary);
+}
+
+.tome-isbn-lookup {
+    flex-shrink: 0;
+    padding: var(--md-spacing-xs);
+}
+
+.tome-isbn-lookup svg {
+    display: block;
 }
 
 .tome-checkboxes {
