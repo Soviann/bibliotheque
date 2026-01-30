@@ -299,12 +299,547 @@ class IsbnLookupServiceTest extends TestCase
         ]));
 
         $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode(['data' => ['Media' => null]]));
 
-        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
         $service = new IsbnLookupService($mockClient, new NullLogger());
 
         $result = $service->lookup('1234567890');
 
         self::assertSame('https://example.com/small.jpg', $result['thumbnail']);
+    }
+
+    /**
+     * Teste l'enrichissement des données manga avec AniList.
+     * Utilise l'ISBN 2382880309 (Solo Leveling Tome 2).
+     */
+    public function testLookupEnrichesWithAniList(): void
+    {
+        // Google Books retourne des données basiques
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => ['thumbnail' => 'https://books.google.com/small.jpg'],
+                        'publishedDate' => '2021',
+                        'publisher' => 'Kbooks',
+                        'title' => 'Solo Leveling Tome 2',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        // AniList retourne des données enrichies
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [
+                        'extraLarge' => 'https://anilist.co/cover-xl.jpg',
+                        'large' => 'https://anilist.co/cover-l.jpg',
+                    ],
+                    'description' => 'Depuis qu\'il s\'est éveillé, Jinwoo a accès au Système...',
+                    'staff' => [
+                        'edges' => [
+                            [
+                                'node' => ['name' => ['full' => 'Chugong']],
+                                'role' => 'Original Story',
+                            ],
+                            [
+                                'node' => ['name' => ['full' => 'DUBU']],
+                                'role' => 'Art',
+                            ],
+                        ],
+                    ],
+                    'startDate' => [
+                        'day' => 4,
+                        'month' => 3,
+                        'year' => 2018,
+                    ],
+                    'title' => [
+                        'english' => 'Solo Leveling',
+                        'native' => '나 혼자만 레벨업',
+                        'romaji' => 'Na Honjaman Level Up',
+                    ],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('2382880309');
+
+        self::assertNotNull($result);
+        // Titre vient de Google Books (prioritaire)
+        self::assertSame('Solo Leveling Tome 2', $result['title']);
+        // Éditeur vient de Google Books
+        self::assertSame('Kbooks', $result['publisher']);
+        // Description vient d'AniList (Google Books n'en avait pas)
+        self::assertSame('Depuis qu\'il s\'est éveillé, Jinwoo a accès au Système...', $result['description']);
+        // Couverture AniList remplace celle de Google (meilleure qualité)
+        self::assertSame('https://anilist.co/cover-xl.jpg', $result['thumbnail']);
+        // Les trois sources sont mentionnées
+        self::assertContains('google_books', $result['sources']);
+        self::assertContains('anilist', $result['sources']);
+    }
+
+    /**
+     * Teste que AniList complète les auteurs manquants.
+     */
+    public function testLookupAniListCompletesAuthors(): void
+    {
+        // Google Books sans auteurs
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'Kana',
+                        'title' => 'My Hero Academia',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        // AniList avec auteurs
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://anilist.co/mha.jpg'],
+                    'staff' => [
+                        'edges' => [
+                            [
+                                'node' => ['name' => ['full' => 'Kouhei Horikoshi']],
+                                'role' => 'Story & Art',
+                            ],
+                        ],
+                    ],
+                    'startDate' => ['year' => 2014],
+                    'title' => ['english' => 'My Hero Academia'],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('9782505063391');
+
+        self::assertNotNull($result);
+        // Auteur complété par AniList
+        self::assertSame('Kouhei Horikoshi', $result['authors']);
+        self::assertContains('anilist', $result['sources']);
+    }
+
+    /**
+     * Teste que AniList ne remplace pas les données existantes (sauf thumbnail).
+     */
+    public function testLookupAniListDoesNotOverwriteExistingData(): void
+    {
+        // Google Books avec description
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Auteur Google'],
+                        'description' => 'Description de Google Books',
+                        'publishedDate' => '2020-01-15',
+                        'title' => 'Test Manga',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        // AniList avec des données différentes
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://anilist.co/cover.jpg'],
+                    'description' => 'Description AniList différente',
+                    'staff' => [
+                        'edges' => [
+                            [
+                                'node' => ['name' => ['full' => 'Auteur AniList']],
+                                'role' => 'Story',
+                            ],
+                        ],
+                    ],
+                    'startDate' => ['year' => 2019],
+                    'title' => ['english' => 'Test Manga'],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        // Les données Google Books sont conservées (pas remplacées par AniList)
+        self::assertSame('Description de Google Books', $result['description']);
+        self::assertSame('Auteur Google', $result['authors']);
+        self::assertSame('2020-01-15', $result['publishedDate']);
+        // Mais la couverture AniList est utilisée (meilleure qualité)
+        self::assertSame('https://anilist.co/cover.jpg', $result['thumbnail']);
+    }
+
+    /**
+     * Teste le formatage des dates AniList.
+     */
+    public function testLookupAniListDateFormatting(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'title' => 'Test Manga',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        // AniList avec date complète
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://anilist.co/cover.jpg'],
+                    'startDate' => [
+                        'day' => 5,
+                        'month' => 3,
+                        'year' => 2018,
+                    ],
+                    'title' => ['romaji' => 'Test Manga'],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        // Date formatée en YYYY-MM-DD
+        self::assertSame('2018-03-05', $result['publishedDate']);
+    }
+
+    /**
+     * Teste que AniList n'est pas appelé si aucun titre n'est trouvé.
+     */
+    public function testLookupDoesNotCallAniListWithoutTitle(): void
+    {
+        $googleResponse = new MockResponse(\json_encode(['items' => []]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $requestCount = 0;
+        $mockClient = new MockHttpClient(static function () use (&$requestCount, $googleResponse, $openLibraryResponse) {
+            ++$requestCount;
+
+            return 1 === $requestCount ? $googleResponse : $openLibraryResponse;
+        });
+
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+        $result = $service->lookup('0000000000');
+
+        self::assertNull($result);
+        // Seulement 2 appels (Google Books + Open Library), pas AniList
+        self::assertSame(2, $requestCount);
+    }
+
+    /**
+     * Teste la gestion des erreurs AniList.
+     */
+    public function testLookupHandlesAniListErrors(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => ['thumbnail' => 'https://google.com/cover.jpg'],
+                        'title' => 'Test Manga',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse('', ['http_code' => 500]);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        // Les données Google Books sont retournées malgré l'erreur AniList
+        self::assertSame('Test Manga', $result['title']);
+        self::assertSame('https://google.com/cover.jpg', $result['thumbnail']);
+        // AniList n'est pas dans les sources
+        self::assertNotContains('anilist', $result['sources']);
+    }
+
+    /**
+     * Teste l'extraction des auteurs AniList avec différents rôles.
+     */
+    public function testLookupAniListExtractsMultipleAuthors(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'title' => 'Test Manga',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        // AniList avec plusieurs auteurs
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://anilist.co/cover.jpg'],
+                    'staff' => [
+                        'edges' => [
+                            [
+                                'node' => ['name' => ['full' => 'Writer Name']],
+                                'role' => 'Story',
+                            ],
+                            [
+                                'node' => ['name' => ['full' => 'Artist Name']],
+                                'role' => 'Art',
+                            ],
+                            [
+                                'node' => ['name' => ['full' => 'Editor Name']],
+                                'role' => 'Editor', // Non-auteur, doit être filtré
+                            ],
+                        ],
+                    ],
+                    'title' => ['english' => 'Test Manga'],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        // Seuls Story et Art sont inclus, pas Editor
+        self::assertSame('Writer Name, Artist Name', $result['authors']);
+    }
+
+    /**
+     * Teste que le type est déduit comme "manga" quand AniList trouve un résultat.
+     */
+    public function testLookupDeducesTypeMangaFromAniList(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'Éditeur Inconnu',
+                        'title' => 'One Piece',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://anilist.co/onepiece.jpg'],
+                    'title' => ['english' => 'One Piece'],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('manga', $result['type']);
+    }
+
+    /**
+     * Teste que le type est déduit comme "manga" à partir de l'éditeur.
+     */
+    public function testLookupDeducesTypeMangaFromPublisher(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'Kana',
+                        'title' => 'Naruto',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('manga', $result['type']);
+    }
+
+    /**
+     * Teste que le type est déduit comme "bd" à partir de l'éditeur.
+     */
+    public function testLookupDeducesTypeBdFromPublisher(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'Dupuis',
+                        'title' => 'Spirou et Fantasio',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('bd', $result['type']);
+    }
+
+    /**
+     * Teste que le type est déduit comme "comics" à partir de l'éditeur.
+     */
+    public function testLookupDeducesTypeComicsFromPublisher(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'Panini Comics',
+                        'title' => 'Spider-Man',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('comics', $result['type']);
+    }
+
+    /**
+     * Teste que le type est null quand l'éditeur est inconnu.
+     */
+    public function testLookupReturnsNullTypeForUnknownPublisher(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'Éditions Inconnues',
+                        'title' => 'Livre Mystère',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertNull($result['type']);
+    }
+
+    /**
+     * Teste la détection avec des éditeurs en minuscules/majuscules mélangées.
+     */
+    public function testLookupDeducesTypeWithCaseInsensitivePublisher(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'URBAN COMICS',
+                        'title' => 'Batman',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('comics', $result['type']);
+    }
+
+    /**
+     * Teste la détection avec un éditeur contenant le nom (ex: "Éditions Glénat").
+     */
+    public function testLookupDeducesTypeWithPartialPublisherMatch(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'publisher' => 'Éditions Glénat',
+                        'title' => 'Titeuf',
+                    ],
+                ],
+            ],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('bd', $result['type']);
     }
 }

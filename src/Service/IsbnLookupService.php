@@ -4,17 +4,87 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Enum\ComicType;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Service de recherche d'informations sur un livre/BD/manga par ISBN.
- * Interroge Google Books et Open Library, puis fusionne les résultats.
+ * Interroge Google Books, Open Library et AniList (pour les mangas), puis fusionne les résultats.
  */
 class IsbnLookupService
 {
+    private const ANILIST_API = 'https://graphql.anilist.co';
     private const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
     private const OPEN_LIBRARY_API = 'https://openlibrary.org/isbn/';
+
+    /**
+     * Éditeurs de BD franco-belge.
+     */
+    private const BD_PUBLISHERS = [
+        'ankama',
+        'bamboo',
+        'casterman',
+        'dargaud',
+        'delcourt',
+        'dupuis',
+        'fluide glacial',
+        'futuropolis',
+        'glénat',
+        'glenat',
+        'humanoïdes associés',
+        'kennes',
+        'le lombard',
+        'lombard',
+        'paquet',
+        'rue de sèvres',
+        'sarbacane',
+        'soleil',
+        'vents d\'ouest',
+    ];
+
+    /**
+     * Éditeurs de comics US.
+     */
+    private const COMICS_PUBLISHERS = [
+        'dark horse',
+        'dc comics',
+        'image comics',
+        'marvel',
+        'panini comics',
+        'panini',
+        'urban comics',
+        'vestron',
+    ];
+
+    /**
+     * Éditeurs de mangas.
+     */
+    private const MANGA_PUBLISHERS = [
+        'akata',
+        'black box',
+        'casterman manga',
+        'crunchyroll',
+        'doki-doki',
+        'glénat manga',
+        'glenat manga',
+        'isan manga',
+        'j\'ai lu',
+        'kana',
+        'kazé',
+        'kaze',
+        'ki-oon',
+        'komikku',
+        'kurokawa',
+        'mangetsu',
+        'meian',
+        'nobi nobi',
+        'ototo',
+        'pika',
+        'soleil manga',
+        'taifu comics',
+        'tonkam',
+    ];
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -24,9 +94,9 @@ class IsbnLookupService
 
     /**
      * Recherche les informations d'un livre par ISBN.
-     * Interroge les deux API et fusionne les résultats pour maximiser les données.
+     * Interroge les API et fusionne les résultats pour maximiser les données.
      *
-     * @return array{title?: string, authors?: string, publisher?: string, publishedDate?: string, description?: string, thumbnail?: string, sources?: array}|null
+     * @return array<string, mixed>|null Les données du livre ou null si non trouvé
      */
     public function lookup(string $isbn): ?array
     {
@@ -37,7 +107,7 @@ class IsbnLookupService
             return null;
         }
 
-        // Interroge les deux API
+        // Interroge Google Books et Open Library par ISBN
         $googleResult = $this->lookupGoogleBooks($isbn);
         $openLibraryResult = $this->lookupOpenLibrary($isbn);
 
@@ -46,8 +116,24 @@ class IsbnLookupService
             return null;
         }
 
-        // Fusionne les résultats (Google Books prioritaire, Open Library complète)
-        return $this->mergeResults($googleResult, $openLibraryResult);
+        // Fusionne les résultats Google Books et Open Library
+        $mergedResult = $this->mergeResults($googleResult, $openLibraryResult);
+
+        // Si on a un titre, tente d'enrichir avec AniList (pour les mangas)
+        $anilistFound = false;
+        $title = $mergedResult['title'] ?? null;
+        if (\is_string($title) && '' !== $title) {
+            $anilistResult = $this->lookupAniList($title);
+            if (null !== $anilistResult) {
+                $mergedResult = $this->mergeWithAniList($mergedResult, $anilistResult);
+                $anilistFound = true;
+            }
+        }
+
+        // Déduit le type (manga, bd, comics) à partir des sources et de l'éditeur
+        $mergedResult['type'] = $this->deduceType($mergedResult, $anilistFound);
+
+        return $mergedResult;
     }
 
     /**
@@ -297,5 +383,265 @@ class IsbnLookupService
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /**
+     * Nettoie le titre pour la recherche AniList.
+     * Supprime les suffixes de volume/tome courants.
+     */
+    private function cleanTitleForAniList(string $title): string
+    {
+        // Supprime les suffixes de volume/tome (Tome 2, Vol. 3, T. 1, Volume 10, etc.)
+        $patterns = [
+            '/\s*[-–—]\s*(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
+            '/\s+(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
+            '/\s*#\d+.*$/u',
+            '/\s*\(\d+\)\s*$/u',
+            '/\s+\d+\s*$/u',
+        ];
+
+        $cleaned = $title;
+        foreach ($patterns as $pattern) {
+            $cleaned = \preg_replace($pattern, '', $cleaned) ?? $cleaned;
+        }
+
+        return \trim($cleaned);
+    }
+
+    /**
+     * Recherche sur AniList API (GraphQL) par titre.
+     * Ne retourne que les mangas (pas les animes).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function lookupAniList(string $title): ?array
+    {
+        // Nettoie le titre pour améliorer les chances de match
+        $searchTitle = $this->cleanTitleForAniList($title);
+
+        $query = <<<'GRAPHQL'
+            query ($search: String) {
+                Media(search: $search, type: MANGA) {
+                    title {
+                        english
+                        native
+                        romaji
+                    }
+                    description(asHtml: false)
+                    coverImage {
+                        extraLarge
+                        large
+                    }
+                    startDate {
+                        day
+                        month
+                        year
+                    }
+                    staff(sort: RELEVANCE, perPage: 10) {
+                        edges {
+                            role
+                            node {
+                                name {
+                                    full
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            GRAPHQL;
+
+        try {
+            $response = $this->httpClient->request('POST', self::ANILIST_API, [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'query' => $query,
+                    'variables' => ['search' => $searchTitle],
+                ],
+                'timeout' => 10,
+            ]);
+
+            $data = $response->toArray();
+            $media = $data['data']['Media'] ?? null;
+
+            if (null === $media) {
+                return null;
+            }
+
+            // Extrait les auteurs (mangaka) depuis le staff
+            $authors = $this->extractAniListAuthors($media['staff']['edges'] ?? []);
+
+            // Sélectionne le meilleur titre disponible
+            $anilistTitle = $media['title']['english']
+                ?? $media['title']['romaji']
+                ?? $media['title']['native']
+                ?? null;
+
+            // Sélectionne la meilleure image de couverture
+            $thumbnail = $media['coverImage']['extraLarge']
+                ?? $media['coverImage']['large']
+                ?? null;
+
+            // Formate la date de publication
+            $publishedDate = $this->formatAniListDate($media['startDate'] ?? []);
+
+            // Nettoie la description (supprime les balises HTML résiduelles)
+            $description = $media['description'] ?? null;
+            if (null !== $description) {
+                $description = \strip_tags($description);
+                $description = \html_entity_decode($description, \ENT_QUOTES | \ENT_HTML5, 'UTF-8');
+            }
+
+            return [
+                'authors' => $authors,
+                'description' => $description,
+                'publishedDate' => $publishedDate,
+                'source' => 'anilist',
+                'thumbnail' => $thumbnail,
+                'title' => $anilistTitle,
+            ];
+        } catch (\Throwable $e) {
+            $this->logger->warning('Erreur lors de la recherche AniList pour le titre "{title}" (recherche: "{search}"): {error}', [
+                'error' => $e->getMessage(),
+                'search' => $searchTitle,
+                'title' => $title,
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Extrait les noms des auteurs depuis les données staff d'AniList.
+     * Filtre pour ne garder que les rôles d'auteur (Story, Art, Story & Art).
+     *
+     * @param array<int, array<string, mixed>> $staffEdges
+     */
+    private function extractAniListAuthors(array $staffEdges): ?string
+    {
+        $authorRoles = ['Art', 'Original Creator', 'Original Story', 'Story', 'Story & Art'];
+        $authors = [];
+
+        foreach ($staffEdges as $edge) {
+            $role = $edge['role'] ?? '';
+            if (\in_array($role, $authorRoles, true)) {
+                $node = $edge['node'] ?? null;
+                $nameData = \is_array($node) ? ($node['name'] ?? null) : null;
+                $name = \is_array($nameData) ? ($nameData['full'] ?? null) : null;
+                if (\is_string($name) && !\in_array($name, $authors, true)) {
+                    $authors[] = $name;
+                }
+            }
+        }
+
+        return \count($authors) > 0 ? \implode(', ', $authors) : null;
+    }
+
+    /**
+     * Formate une date AniList en chaîne lisible.
+     *
+     * @param array{year?: int|null, month?: int|null, day?: int|null} $date
+     */
+    private function formatAniListDate(array $date): ?string
+    {
+        $year = $date['year'] ?? null;
+        $month = $date['month'] ?? null;
+        $day = $date['day'] ?? null;
+
+        if (null === $year) {
+            return null;
+        }
+
+        if (null !== $month && null !== $day) {
+            return \sprintf('%04d-%02d-%02d', $year, $month, $day);
+        }
+
+        if (null !== $month) {
+            return \sprintf('%04d-%02d', $year, $month);
+        }
+
+        return (string) $year;
+    }
+
+    /**
+     * Fusionne les résultats existants avec les données AniList.
+     * AniList complète les champs manquants et peut remplacer la couverture si elle est de meilleure qualité.
+     *
+     * @param array<string, mixed> $current
+     * @param array<string, mixed> $anilist
+     *
+     * @return array<string, mixed>
+     */
+    private function mergeWithAniList(array $current, array $anilist): array
+    {
+        // Ajoute AniList aux sources
+        $sources = \is_array($current['sources'] ?? null) ? $current['sources'] : [];
+        $sources[] = 'anilist';
+        $current['sources'] = $sources;
+
+        // Champs à compléter (AniList ne remplace pas, il complète)
+        $fieldsToComplete = ['authors', 'description', 'publishedDate'];
+
+        foreach ($fieldsToComplete as $field) {
+            if (empty($current[$field]) && !empty($anilist[$field])) {
+                $current[$field] = $anilist[$field];
+            }
+        }
+
+        // Pour la couverture, AniList a souvent de meilleures images (plus grandes)
+        // On remplace si AniList a une image et que l'actuelle vient de Google/OpenLibrary
+        if (!empty($anilist['thumbnail'])) {
+            $current['thumbnail'] = $anilist['thumbnail'];
+        }
+
+        return $current;
+    }
+
+    /**
+     * Déduit le type (manga, bd, comics) à partir des données disponibles.
+     * Priorité : AniList (manga) > Éditeur connu > null.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function deduceType(array $data, bool $anilistFound): ?string
+    {
+        // Si AniList a trouvé un résultat, c'est un manga
+        if ($anilistFound) {
+            return ComicType::MANGA->value;
+        }
+
+        // Sinon, on déduit à partir de l'éditeur
+        $publisher = $data['publisher'] ?? null;
+        if (!\is_string($publisher) || '' === $publisher) {
+            return null;
+        }
+
+        $publisherLower = \mb_strtolower($publisher);
+
+        // Vérifie si l'éditeur est connu pour les mangas
+        foreach (self::MANGA_PUBLISHERS as $mangaPublisher) {
+            if (\str_contains($publisherLower, $mangaPublisher)) {
+                return ComicType::MANGA->value;
+            }
+        }
+
+        // Vérifie si l'éditeur est connu pour les comics
+        foreach (self::COMICS_PUBLISHERS as $comicsPublisher) {
+            if (\str_contains($publisherLower, $comicsPublisher)) {
+                return ComicType::COMICS->value;
+            }
+        }
+
+        // Vérifie si l'éditeur est connu pour les BD
+        foreach (self::BD_PUBLISHERS as $bdPublisher) {
+            if (\str_contains($publisherLower, $bdPublisher)) {
+                return ComicType::BD->value;
+            }
+        }
+
+        return null;
     }
 }
