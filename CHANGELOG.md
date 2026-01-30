@@ -66,6 +66,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Gitignore** : Alignement sur les recommandations Symfony
+  - Ajout de `compose.override.yaml` (configurations Docker locales)
+  - Ajout de `.symfony.local.yaml` (Symfony CLI)
+  - Ajout des dossiers IDE (`.idea/`, `.vscode/`)
+  - Réorganisation en sections thématiques
 - **Formulaire ComicSeries** : Réorganisation avec les nouveaux champs
 - **Repository ComicSeriesRepository** : Recherche étendue à l'ISBN
 - **API `/api/comics`** : Inclut les nouveaux champs dans la réponse

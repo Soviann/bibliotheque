@@ -1,4 +1,3 @@
-
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -18,9 +17,6 @@
 /public/uploads/
 ###< vich/uploader-bundle ###
 
-.DS_Store
-.claude/
-
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
@@ -30,3 +26,21 @@
 /.php-cs-fixer.php
 /.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
+
+###> symfony/docker ###
+/compose.override.yaml
+###< symfony/docker ###
+
+###> symfony/cli ###
+/.symfony.local.yaml
+###< symfony/cli ###
+
+###> ide ###
+/.idea/
+/.vscode/
+###< ide ###
+
+###> local ###
+.DS_Store
+.claude/
+###< local ###
