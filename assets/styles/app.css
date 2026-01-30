@@ -1234,3 +1234,313 @@ body {
         padding-bottom: max(var(--md-spacing-sm), env(safe-area-inset-bottom));
     }
 }
+
+/* API Lookup Flash Notification */
+.api-lookup-flash {
+    animation: slideDown 0.3s ease-out;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid var(--md-primary);
+    border-radius: var(--md-radius-md);
+    box-shadow: var(--md-elevation-2);
+    display: flex;
+    align-items: center;
+    gap: var(--md-spacing-md);
+    justify-content: space-between;
+    margin-bottom: var(--md-spacing-lg);
+    padding: var(--md-spacing-md);
+}
+
+.api-lookup-flash__content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--md-spacing-xs) var(--md-spacing-sm);
+}
+
+.api-lookup-flash__content strong {
+    color: var(--md-primary-variant);
+    font-size: 0.875rem;
+}
+
+.api-lookup-flash__fields {
+    color: var(--md-text-high);
+    font-size: 0.875rem;
+}
+
+.api-lookup-flash__close {
+    background: none;
+    border: none;
+    color: var(--md-text-medium);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+    height: 32px;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
+    width: 32px;
+}
+
+.api-lookup-flash__close:hover {
+    color: var(--md-text-high);
+}
+
+.api-lookup-flash--hiding {
+    animation: slideUp 0.3s ease-in forwards;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* Field filled by API highlight */
+.field-filled-by-api {
+    animation: highlightPulse 0.5s ease-out;
+    background-color: #e8f5e9 !important;
+    border-color: var(--md-success) !important;
+    box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.2);
+    transition: all 0.3s ease-out;
+}
+
+.field-filled-by-api:not(.field-filled-by-api) {
+    background-color: transparent;
+    border-color: var(--md-divider);
+    box-shadow: none;
+}
+
+@keyframes highlightPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(0, 200, 83, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.2);
+    }
+}
+
+/* Tomes Section */
+.tomes-section {
+    background-color: var(--md-background);
+    border: 1px solid var(--md-divider);
+    border-radius: var(--md-radius-md);
+    margin-bottom: var(--md-spacing-lg);
+    padding: var(--md-spacing-md);
+}
+
+.tomes-section legend {
+    color: var(--md-text-high);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0 var(--md-spacing-sm);
+}
+
+.tomes-summary {
+    background-color: var(--md-surface);
+    border-radius: var(--md-radius-sm);
+    margin-bottom: var(--md-spacing-md);
+    padding: var(--md-spacing-sm) var(--md-spacing-md);
+}
+
+.tomes-summary:empty {
+    display: none;
+}
+
+.tomes-summary-row {
+    align-items: center;
+    display: flex;
+    font-size: 0.875rem;
+    gap: var(--md-spacing-sm);
+    padding: var(--md-spacing-xs) 0;
+}
+
+.tomes-summary-label {
+    color: var(--md-text-medium);
+    font-weight: 500;
+}
+
+.tomes-summary-value {
+    color: var(--md-text-high);
+}
+
+.tomes-summary-value.warning {
+    color: var(--md-error);
+}
+
+.tomes-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--md-spacing-sm);
+}
+
+.tome-entry {
+    background-color: var(--md-surface);
+    border: 1px solid var(--md-divider);
+    border-radius: var(--md-radius-sm);
+    padding: var(--md-spacing-sm) var(--md-spacing-md);
+    transition: all 0.2s;
+}
+
+.tome-entry:hover {
+    border-color: var(--md-primary);
+}
+
+.tome-entry--removing {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.tome-fields {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--md-spacing-sm);
+}
+
+.tome-number {
+    width: 60px;
+}
+
+.tome-number-input {
+    background-color: transparent;
+    border: 1px solid var(--md-divider);
+    border-radius: var(--md-radius-sm);
+    font-family: inherit;
+    font-size: 0.875rem;
+    height: 36px;
+    outline: none;
+    padding: 0 var(--md-spacing-sm);
+    text-align: center;
+    width: 100%;
+}
+
+.tome-number-input:focus {
+    border-color: var(--md-primary);
+}
+
+.tome-title {
+    flex: 1;
+    min-width: 120px;
+}
+
+.tome-title input {
+    background-color: transparent;
+    border: 1px solid var(--md-divider);
+    border-radius: var(--md-radius-sm);
+    font-family: inherit;
+    font-size: 0.875rem;
+    height: 36px;
+    outline: none;
+    padding: 0 var(--md-spacing-sm);
+    width: 100%;
+}
+
+.tome-title input:focus {
+    border-color: var(--md-primary);
+}
+
+.tome-isbn {
+    width: 140px;
+}
+
+.tome-isbn input {
+    background-color: transparent;
+    border: 1px solid var(--md-divider);
+    border-radius: var(--md-radius-sm);
+    font-family: inherit;
+    font-size: 0.875rem;
+    height: 36px;
+    outline: none;
+    padding: 0 var(--md-spacing-sm);
+    width: 100%;
+}
+
+.tome-isbn input:focus {
+    border-color: var(--md-primary);
+}
+
+.tome-checkboxes {
+    align-items: center;
+    display: flex;
+    gap: var(--md-spacing-md);
+}
+
+.tome-checkbox {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: var(--md-spacing-xs);
+    white-space: nowrap;
+}
+
+.tome-checkbox input {
+    accent-color: var(--md-primary);
+    cursor: pointer;
+    height: 16px;
+    width: 16px;
+}
+
+.tome-checkbox span {
+    color: var(--md-text-medium);
+    font-size: 0.75rem;
+}
+
+.tome-remove {
+    flex-shrink: 0;
+    height: 32px;
+    min-width: 32px;
+    width: 32px;
+}
+
+.tome-remove:hover {
+    background-color: rgba(176, 0, 32, 0.08);
+}
+
+.tomes-actions {
+    margin-top: var(--md-spacing-md);
+}
+
+.tomes-actions .btn {
+    gap: var(--md-spacing-xs);
+}
+
+/* Responsive tomes */
+@media (max-width: 600px) {
+    .tome-fields {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tome-number,
+    .tome-isbn {
+        width: 100%;
+    }
+
+    .tome-checkboxes {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .tome-remove {
+        align-self: flex-end;
+    }
+}

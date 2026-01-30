@@ -1,21 +1,9 @@
-{{ form_start(form, {attr: {class: 'comic-form', 'data-controller': 'comic-form'}}) }}
+{{ form_start(form, {attr: {class: 'comic-form', 'data-controller': 'comic-form tomes-collection'}}) }}
     <div class="form-row">
         <div class="mdc-text-field">
             <label for="{{ form.title.vars.id }}">Titre de la serie</label>
             {{ form_widget(form.title, {attr: {'data-comic-form-target': 'title'}}) }}
             {{ form_errors(form.title) }}
-        </div>
-
-        <div class="mdc-text-field isbn-field">
-            <label for="{{ form.isbn.vars.id }}">ISBN</label>
-            <div class="isbn-input-group">
-                {{ form_widget(form.isbn, {attr: {placeholder: 'Ex: 978-2-505-00123-4', 'data-comic-form-target': 'isbn'}}) }}
-                <button type="button" class="btn btn-icon" data-comic-form-target="lookupButton" data-action="comic-form#lookupIsbn" title="Rechercher par ISBN">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-                </button>
-            </div>
-            <span class="lookup-status" data-comic-form-target="lookupStatus"></span>
-            {{ form_errors(form.isbn) }}
         </div>
     </div>
 
@@ -71,7 +59,7 @@
     <div class="form-row">
         <div class="mdc-text-field">
             <label for="{{ form.type.vars.id }}">Type</label>
-            {{ form_widget(form.type) }}
+            {{ form_widget(form.type, {attr: {'data-comic-form-target': 'type'}}) }}
             {{ form_errors(form.type) }}
         </div>
 
@@ -84,81 +72,121 @@
 
     <div class="form-row">
         <div class="input-group-with-checkbox">
-            <label class="input-label" for="{{ form.currentIssue.vars.id }}">Numero actuel possede</label>
+            <label class="input-label" for="{{ form.latestPublishedIssue.vars.id }}">Dernier tome paru</label>
             <div class="input-row">
-                {{ form_widget(form.currentIssue) }}
+                {{ form_widget(form.latestPublishedIssue) }}
                 <label class="checkbox-inline">
-                    {{ form_widget(form.currentIssueComplete) }}
-                    <span>Complet</span>
+                    {{ form_widget(form.latestPublishedIssueComplete) }}
+                    <span>Serie terminee</span>
                 </label>
             </div>
-            {{ form_errors(form.currentIssue) }}
-        </div>
-
-        <div class="input-group-with-checkbox">
-            <label class="input-label" for="{{ form.lastBought.vars.id }}">Dernier numero achete</label>
-            <div class="input-row">
-                {{ form_widget(form.lastBought) }}
-                <label class="checkbox-inline">
-                    {{ form_widget(form.lastBoughtComplete) }}
-                    <span>Complet</span>
-                </label>
-            </div>
-            {{ form_errors(form.lastBought) }}
-        </div>
-    </div>
-
-    <div class="form-row">
-        <div class="input-group-with-checkbox">
-            <label class="input-label" for="{{ form.publishedCount.vars.id }}">Nombre de parutions</label>
-            <div class="input-row">
-                {{ form_widget(form.publishedCount) }}
-                <label class="checkbox-inline">
-                    {{ form_widget(form.publishedCountComplete) }}
-                    <span>Complet</span>
-                </label>
-            </div>
-            {{ form_errors(form.publishedCount) }}
-        </div>
-
-        <div class="input-group-with-checkbox">
-            <label class="input-label" for="{{ form.lastDownloaded.vars.id }}">Dernier telecharge</label>
-            <div class="input-row">
-                {{ form_widget(form.lastDownloaded) }}
-                <label class="checkbox-inline">
-                    {{ form_widget(form.lastDownloadedComplete) }}
-                    <span>Complet</span>
-                </label>
-            </div>
-            {{ form_errors(form.lastDownloaded) }}
-        </div>
-    </div>
-
-    <div class="form-row">
-        <div class="mdc-text-field">
-            <label for="{{ form.ownedIssues.vars.id }}">Tomes possedes (si non consecutifs)</label>
-            {{ form_widget(form.ownedIssues, {attr: {placeholder: 'Ex: 8, 9, 16-18, 20'}}) }}
-            {{ form_errors(form.ownedIssues) }}
-        </div>
-
-        <div class="mdc-text-field">
-            <label for="{{ form.missingIssues.vars.id }}">Tomes manquants</label>
-            {{ form_widget(form.missingIssues, {attr: {placeholder: 'Ex: 0, 3, 5'}}) }}
-            {{ form_errors(form.missingIssues) }}
+            {{ form_errors(form.latestPublishedIssue) }}
         </div>
     </div>
 
     <div class="checkboxes-row">
         <div class="mdc-checkbox-field">
-            {{ form_widget(form.onNas) }}
-            <label for="{{ form.onNas.vars.id }}">Present sur le NAS</label>
-        </div>
-
-        <div class="mdc-checkbox-field">
             {{ form_widget(form.isWishlist) }}
             <label for="{{ form.isWishlist.vars.id }}">Dans la liste de souhaits</label>
         </div>
     </div>
+
+    {# Section Tomes #}
+    <fieldset class="tomes-section">
+        <legend>Tomes</legend>
+
+        <div class="tomes-summary" data-tomes-collection-target="summary">
+            {% set ownedNumbers = form.vars.data.ownedTomesNumbers %}
+            {% set missingNumbers = form.vars.data.missingTomesNumbers %}
+            {% if ownedNumbers|length > 0 %}
+                <div class="tomes-summary-row">
+                    <span class="tomes-summary-label">Possedes :</span>
+                    <span class="tomes-summary-value">{{ ownedNumbers|join(', ') }}</span>
+                </div>
+            {% endif %}
+            {% if missingNumbers|length > 0 %}
+                <div class="tomes-summary-row">
+                    <span class="tomes-summary-label">Manquants :</span>
+                    <span class="tomes-summary-value warning">{{ missingNumbers|join(', ') }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="tomes-list" data-tomes-collection-target="list">
+            {% for tome in form.tomes %}
+                <div class="tome-entry" data-tomes-collection-target="entry">
+                    <div class="tome-fields">
+                        <div class="tome-number">
+                            {{ form_widget(tome.number, {attr: {class: 'tome-number-input'}}) }}
+                        </div>
+                        <div class="tome-title">
+                            {{ form_widget(tome.title, {attr: {placeholder: 'Titre (optionnel)'}}) }}
+                        </div>
+                        <div class="tome-isbn">
+                            {{ form_widget(tome.isbn, {attr: {placeholder: 'ISBN'}}) }}
+                        </div>
+                        <div class="tome-checkboxes">
+                            <label class="tome-checkbox">
+                                {{ form_widget(tome.bought) }}
+                                <span>Achete</span>
+                            </label>
+                            <label class="tome-checkbox">
+                                {{ form_widget(tome.downloaded) }}
+                                <span>DL</span>
+                            </label>
+                            <label class="tome-checkbox">
+                                {{ form_widget(tome.onNas) }}
+                                <span>NAS</span>
+                            </label>
+                        </div>
+                        <button type="button" class="btn btn-icon btn-danger tome-remove" data-action="tomes-collection#removeTome" title="Supprimer ce tome">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <template data-tomes-collection-target="prototype">
+            <div class="tome-entry" data-tomes-collection-target="entry">
+                <div class="tome-fields">
+                    <div class="tome-number">
+                        <input type="number" name="{{ form.tomes.vars.full_name }}[__name__][number]" class="tome-number-input" min="0" placeholder="N°" required>
+                    </div>
+                    <div class="tome-title">
+                        <input type="text" name="{{ form.tomes.vars.full_name }}[__name__][title]" placeholder="Titre (optionnel)">
+                    </div>
+                    <div class="tome-isbn">
+                        <input type="text" name="{{ form.tomes.vars.full_name }}[__name__][isbn]" placeholder="ISBN">
+                    </div>
+                    <div class="tome-checkboxes">
+                        <label class="tome-checkbox">
+                            <input type="checkbox" name="{{ form.tomes.vars.full_name }}[__name__][bought]" value="1">
+                            <span>Achete</span>
+                        </label>
+                        <label class="tome-checkbox">
+                            <input type="checkbox" name="{{ form.tomes.vars.full_name }}[__name__][downloaded]" value="1">
+                            <span>DL</span>
+                        </label>
+                        <label class="tome-checkbox">
+                            <input type="checkbox" name="{{ form.tomes.vars.full_name }}[__name__][onNas]" value="1">
+                            <span>NAS</span>
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-danger tome-remove" data-action="tomes-collection#removeTome" title="Supprimer ce tome">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </template>
+
+        <div class="tomes-actions">
+            <button type="button" class="btn btn-outlined" data-action="tomes-collection#addTome">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+                Ajouter un tome
+            </button>
+        </div>
+    </fieldset>
 
     <div class="form-actions">
         <a href="{{ app.request.headers.get('referer') ?: path('app_home') }}" class="btn btn-text">Annuler</a>

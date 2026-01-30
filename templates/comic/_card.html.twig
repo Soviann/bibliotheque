@@ -15,47 +15,53 @@
         </div>
 
         <div class="comic-info">
-            {% if comic.currentIssue or comic.currentIssueComplete %}
+            {% set currentIssue = comic.currentIssue %}
+            {% if currentIssue or comic.currentIssueComplete %}
                 <div class="comic-info-row">
                     <span class="comic-info-label">Possede</span>
-                    <span class="comic-info-value">{% if comic.currentIssueComplete %}Complet{% else %}{{ comic.currentIssue }}{% endif %}</span>
+                    <span class="comic-info-value">{% if comic.currentIssueComplete %}Complet{% else %}{{ currentIssue }}{% endif %}</span>
                 </div>
             {% endif %}
-            {% if comic.lastBought or comic.lastBoughtComplete %}
+            {% set lastBought = comic.lastBought %}
+            {% if lastBought or comic.lastBoughtComplete %}
                 <div class="comic-info-row">
                     <span class="comic-info-label">Dernier achat</span>
-                    <span class="comic-info-value">{% if comic.lastBoughtComplete %}Complet{% else %}{{ comic.lastBought }}{% endif %}</span>
+                    <span class="comic-info-value">{% if comic.lastBoughtComplete %}Complet{% else %}{{ lastBought }}{% endif %}</span>
                 </div>
             {% endif %}
-            {% if comic.publishedCount or comic.publishedCountComplete %}
+            {% if comic.latestPublishedIssue or comic.latestPublishedIssueComplete %}
                 <div class="comic-info-row">
                     <span class="comic-info-label">Parus</span>
-                    <span class="comic-info-value">{% if comic.publishedCountComplete %}Complet{% else %}{{ comic.publishedCount }}{% endif %}</span>
+                    <span class="comic-info-value">{% if comic.latestPublishedIssueComplete %}{{ comic.latestPublishedIssue }} (termine){% else %}{{ comic.latestPublishedIssue }}{% endif %}</span>
                 </div>
             {% endif %}
-            {% if comic.lastDownloaded or comic.lastDownloadedComplete %}
+            {% set lastDownloaded = comic.lastDownloaded %}
+            {% if lastDownloaded or comic.lastDownloadedComplete %}
                 <div class="comic-info-row">
                     <span class="comic-info-label">Telecharge</span>
-                    <span class="comic-info-value">{% if comic.lastDownloadedComplete %}Complet{% else %}{{ comic.lastDownloaded }}{% endif %}</span>
+                    <span class="comic-info-value">{% if comic.lastDownloadedComplete %}Complet{% else %}{{ lastDownloaded }}{% endif %}</span>
                 </div>
             {% endif %}
-            {% if comic.ownedIssues %}
+            {% set ownedNumbers = comic.ownedTomesNumbers %}
+            {% if ownedNumbers|length > 0 %}
                 <div class="comic-info-row">
                     <span class="comic-info-label">Tomes</span>
-                    <span class="comic-info-value">{{ comic.ownedIssues }}</span>
+                    <span class="comic-info-value">{{ ownedNumbers|join(', ') }}</span>
                 </div>
             {% endif %}
-            {% if comic.missingIssues %}
+            {% set missingNumbers = comic.missingTomesNumbers %}
+            {% if missingNumbers|length > 0 %}
                 <div class="comic-info-row">
                     <span class="comic-info-label">Manquants</span>
-                    <span class="comic-info-value warning">{{ comic.missingIssues }}</span>
+                    <span class="comic-info-value warning">{{ missingNumbers|join(', ') }}</span>
                 </div>
             {% endif %}
         </div>
 
         <div class="type-badges">
             <span class="type-badge type-badge-{{ comic.type.value }}">{{ comic.type.label }}</span>
-            {% if comic.onNas %}
+            {% set hasNasTome = comic.tomes|filter(t => t.onNas)|length > 0 %}
+            {% if hasNasTome %}
                 <span class="type-badge type-badge-nas">NAS</span>
             {% endif %}
         </div>

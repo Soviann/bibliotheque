@@ -35,45 +35,21 @@ class ComicSeries
     #[ORM\Column(type: Types::STRING, length: 20, enumType: ComicType::class)]
     private ComicType $type = ComicType::BD;
 
+    /**
+     * Dernier tome paru (numéro du dernier tome publié).
+     */
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero]
-    private ?int $currentIssue = null;
+    private ?int $latestPublishedIssue = null;
 
+    /**
+     * Indique si la série est terminée (plus aucun tome à paraître).
+     */
     #[ORM\Column]
-    private bool $currentIssueComplete = false;
-
-    #[ORM\Column(nullable: true)]
-    #[Assert\PositiveOrZero]
-    private ?int $lastBought = null;
-
-    #[ORM\Column]
-    private bool $lastBoughtComplete = false;
-
-    #[ORM\Column(nullable: true)]
-    #[Assert\PositiveOrZero]
-    private ?int $lastDownloaded = null;
-
-    #[ORM\Column]
-    private bool $lastDownloadedComplete = false;
-
-    #[ORM\Column(nullable: true)]
-    #[Assert\PositiveOrZero]
-    private ?int $publishedCount = null;
-
-    #[ORM\Column]
-    private bool $publishedCountComplete = false;
-
-    #[ORM\Column]
-    private bool $onNas = false;
+    private bool $latestPublishedIssueComplete = false;
 
     #[ORM\Column]
     private bool $isWishlist = false;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $missingIssues = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $ownedIssues = null;
 
     /**
      * Auteur(s) de la série.
@@ -117,12 +93,6 @@ class ComicSeries
     private ?string $description = null;
 
     /**
-     * Numéro ISBN-10 ou ISBN-13.
-     */
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $isbn = null;
-
-    /**
      * Date de publication.
      */
     #[ORM\Column(length: 50, nullable: true)]
@@ -134,6 +104,15 @@ class ComicSeries
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $publisher = null;
 
+    /**
+     * Tomes de la série.
+     *
+     * @var Collection<int, Tome>
+     */
+    #[ORM\OneToMany(targetEntity: Tome::class, mappedBy: 'comicSeries', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['number' => 'ASC'])]
+    private Collection $tomes;
+
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
@@ -141,6 +120,7 @@ class ComicSeries
     {
         $this->authors = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
+        $this->tomes = new ArrayCollection();
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -226,6 +206,39 @@ class ComicSeries
         return $this;
     }
 
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    /**
+     * Retourne le dernier numéro de tome possédé (maximum des tomes de la collection).
+     */
+    public function getCurrentIssue(): ?int
+    {
+        if ($this->tomes->isEmpty()) {
+            return null;
+        }
+
+        $numbers = \array_filter(
+            $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
+            static fn (?int $n): bool => null !== $n
+        );
+
+        if ([] === $numbers) {
+            return null;
+        }
+
+        return \max($numbers);
+    }
+
     public function getDescription(): ?string
     {
         return $this->description;
@@ -243,16 +256,92 @@ class ComicSeries
         return $this->id;
     }
 
-    public function getIsbn(): ?string
+    /**
+     * Retourne le dernier numéro de tome acheté.
+     */
+    public function getLastBought(): ?int
     {
-        return $this->isbn;
+        $boughtTomes = $this->tomes->filter(static fn (Tome $t) => $t->isBought());
+
+        if ($boughtTomes->isEmpty()) {
+            return null;
+        }
+
+        $numbers = \array_filter(
+            $boughtTomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
+            static fn (?int $n): bool => null !== $n
+        );
+
+        if ([] === $numbers) {
+            return null;
+        }
+
+        return \max($numbers);
     }
 
-    public function setIsbn(?string $isbn): static
+    /**
+     * Retourne le dernier numéro de tome téléchargé.
+     */
+    public function getLastDownloaded(): ?int
     {
-        $this->isbn = $isbn;
+        $downloadedTomes = $this->tomes->filter(static fn (Tome $t) => $t->isDownloaded());
+
+        if ($downloadedTomes->isEmpty()) {
+            return null;
+        }
+
+        $numbers = \array_filter(
+            $downloadedTomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
+            static fn (?int $n): bool => null !== $n
+        );
+
+        if ([] === $numbers) {
+            return null;
+        }
+
+        return \max($numbers);
+    }
+
+    public function getLatestPublishedIssue(): ?int
+    {
+        return $this->latestPublishedIssue;
+    }
+
+    public function setLatestPublishedIssue(?int $latestPublishedIssue): static
+    {
+        $this->latestPublishedIssue = $latestPublishedIssue;
 
         return $this;
+    }
+
+    /**
+     * Retourne les numéros des tomes manquants (entre 1 et latestPublishedIssue).
+     *
+     * @return int[]
+     */
+    public function getMissingTomesNumbers(): array
+    {
+        if (null === $this->latestPublishedIssue || $this->latestPublishedIssue <= 0) {
+            return [];
+        }
+
+        $ownedNumbers = $this->getOwnedTomesNumbers();
+        $allNumbers = \range(1, $this->latestPublishedIssue);
+
+        return \array_values(\array_diff($allNumbers, $ownedNumbers));
+    }
+
+    /**
+     * Retourne les numéros des tomes possédés.
+     *
+     * @return int[]
+     */
+    public function getOwnedTomesNumbers(): array
+    {
+        return \array_filter(
+            $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
+            static fn (?int $n): bool => null !== $n
+        );
     }
 
     public function getPublishedDate(): ?string
@@ -279,6 +368,18 @@ class ComicSeries
         return $this;
     }
 
+    public function getStatus(): ComicStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(ComicStatus $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
     public function getTitle(): ?string
     {
         return $this->title;
@@ -291,14 +392,31 @@ class ComicSeries
         return $this;
     }
 
-    public function getStatus(): ComicStatus
+    /**
+     * @return Collection<int, Tome>
+     */
+    public function getTomes(): Collection
     {
-        return $this->status;
+        return $this->tomes;
     }
 
-    public function setStatus(ComicStatus $status): static
+    public function addTome(Tome $tome): static
     {
-        $this->status = $status;
+        if (!$this->tomes->contains($tome)) {
+            $this->tomes->add($tome);
+            $tome->setComicSeries($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTome(Tome $tome): static
+    {
+        if ($this->tomes->removeElement($tome)) {
+            if ($tome->getComicSeries() === $this) {
+                $tome->setComicSeries(null);
+            }
+        }
 
         return $this;
     }
@@ -315,110 +433,68 @@ class ComicSeries
         return $this;
     }
 
-    public function getCurrentIssue(): ?int
+    public function getUpdatedAt(): \DateTimeImmutable
     {
-        return $this->currentIssue;
+        return $this->updatedAt;
     }
 
-    public function setCurrentIssue(?int $currentIssue): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
-        $this->currentIssue = $currentIssue;
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
 
+    /**
+     * Indique si le dernier tome possédé correspond au dernier tome paru.
+     */
     public function isCurrentIssueComplete(): bool
     {
-        return $this->currentIssueComplete;
+        $currentIssue = $this->getCurrentIssue();
+
+        if (null === $currentIssue || null === $this->latestPublishedIssue) {
+            return false;
+        }
+
+        return $currentIssue >= $this->latestPublishedIssue;
     }
 
-    public function setCurrentIssueComplete(bool $currentIssueComplete): static
-    {
-        $this->currentIssueComplete = $currentIssueComplete;
-
-        return $this;
-    }
-
-    public function getLastBought(): ?int
-    {
-        return $this->lastBought;
-    }
-
-    public function setLastBought(?int $lastBought): static
-    {
-        $this->lastBought = $lastBought;
-
-        return $this;
-    }
-
+    /**
+     * Indique si le dernier tome acheté correspond au dernier tome paru.
+     */
     public function isLastBoughtComplete(): bool
     {
-        return $this->lastBoughtComplete;
+        $lastBought = $this->getLastBought();
+
+        if (null === $lastBought || null === $this->latestPublishedIssue) {
+            return false;
+        }
+
+        return $lastBought >= $this->latestPublishedIssue;
     }
 
-    public function setLastBoughtComplete(bool $lastBoughtComplete): static
-    {
-        $this->lastBoughtComplete = $lastBoughtComplete;
-
-        return $this;
-    }
-
-    public function getLastDownloaded(): ?int
-    {
-        return $this->lastDownloaded;
-    }
-
-    public function setLastDownloaded(?int $lastDownloaded): static
-    {
-        $this->lastDownloaded = $lastDownloaded;
-
-        return $this;
-    }
-
+    /**
+     * Indique si le dernier tome téléchargé correspond au dernier tome paru.
+     */
     public function isLastDownloadedComplete(): bool
     {
-        return $this->lastDownloadedComplete;
+        $lastDownloaded = $this->getLastDownloaded();
+
+        if (null === $lastDownloaded || null === $this->latestPublishedIssue) {
+            return false;
+        }
+
+        return $lastDownloaded >= $this->latestPublishedIssue;
     }
 
-    public function setLastDownloadedComplete(bool $lastDownloadedComplete): static
+    public function isLatestPublishedIssueComplete(): bool
     {
-        $this->lastDownloadedComplete = $lastDownloadedComplete;
-
-        return $this;
+        return $this->latestPublishedIssueComplete;
     }
 
-    public function getPublishedCount(): ?int
+    public function setLatestPublishedIssueComplete(bool $latestPublishedIssueComplete): static
     {
-        return $this->publishedCount;
-    }
-
-    public function setPublishedCount(?int $publishedCount): static
-    {
-        $this->publishedCount = $publishedCount;
-
-        return $this;
-    }
-
-    public function isPublishedCountComplete(): bool
-    {
-        return $this->publishedCountComplete;
-    }
-
-    public function setPublishedCountComplete(bool $publishedCountComplete): static
-    {
-        $this->publishedCountComplete = $publishedCountComplete;
-
-        return $this;
-    }
-
-    public function isOnNas(): bool
-    {
-        return $this->onNas;
-    }
-
-    public function setOnNas(bool $onNas): static
-    {
-        $this->onNas = $onNas;
+        $this->latestPublishedIssueComplete = $latestPublishedIssueComplete;
 
         return $this;
     }
@@ -431,54 +507,6 @@ class ComicSeries
     public function setIsWishlist(bool $isWishlist): static
     {
         $this->isWishlist = $isWishlist;
-
-        return $this;
-    }
-
-    public function getMissingIssues(): ?string
-    {
-        return $this->missingIssues;
-    }
-
-    public function setMissingIssues(?string $missingIssues): static
-    {
-        $this->missingIssues = $missingIssues;
-
-        return $this;
-    }
-
-    public function getOwnedIssues(): ?string
-    {
-        return $this->ownedIssues;
-    }
-
-    public function setOwnedIssues(?string $ownedIssues): static
-    {
-        $this->ownedIssues = $ownedIssues;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): \DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
 
         return $this;
     }

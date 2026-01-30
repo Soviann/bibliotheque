@@ -9,6 +9,43 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Entité Tome** : Nouvelle entité pour gérer les tomes individuels d'une série
+  - Champs : numéro, titre, ISBN, acheté, téléchargé, sur NAS
+  - Upload de couverture par tome via VichUploader
+  - Interface dynamique avec ajout/suppression de tomes dans le formulaire
+
+- **Collection de tomes** : Contrôleur Stimulus pour la gestion dynamique des tomes
+  - Ajout/suppression de tomes sans rechargement de page
+  - Prototype de formulaire pour nouveaux tomes
+
+### Changed
+
+- **ImportExcelCommand** : Mise à jour pour le nouveau schéma avec tomes
+  - Création automatique des tomes pour chaque série
+  - Marquage des tomes achetés, téléchargés et sur NAS
+  - Option `--dry-run` pour simuler l'import
+  - Gestion des valeurs multiples (ex: "3, 4")
+
+- **ComicSeries** : Refactoring des champs de suivi des tomes
+  - `publishedCount` → `latestPublishedIssue` (dernier tome paru)
+  - `publishedCountComplete` → `latestPublishedIssueComplete` (série terminée)
+  - Calcul automatique depuis la collection de tomes :
+    - `getCurrentIssue()` : dernier numéro possédé
+    - `getLastBought()` : dernier numéro acheté
+    - `getLastDownloaded()` : dernier numéro téléchargé
+    - `getOwnedTomesNumbers()` : numéros des tomes possédés
+    - `getMissingTomesNumbers()` : numéros manquants (1 à latestPublishedIssue)
+    - `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()` : comparaison avec latestPublishedIssue
+
+### Removed
+
+- **ComicSeries** : Champs déplacés vers l'entité Tome ou calculés dynamiquement
+  - `currentIssue`, `currentIssueComplete`
+  - `lastBought`, `lastBoughtComplete`
+  - `lastDownloaded`, `lastDownloadedComplete`
+  - `missingIssues`, `ownedIssues`
+  - `onNas`, `isbn`
+
 - **PHP CS Fixer** : Configuration avec ruleset Symfony et règles strictes
   - `declare(strict_types=1)` obligatoire
   - `native_function_invocation` pour préfixer les fonctions natives
@@ -29,9 +66,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Recherche par ISBN en plus du titre
   - Affichage dans le formulaire d'édition
 
-- **Recherche ISBN via API** : Intégration de Google Books et Open Library
-  - Service `IsbnLookupService` pour interroger les deux API
-  - Fusion des résultats (Google Books prioritaire, Open Library en complément)
+- **Recherche ISBN via API** : Intégration de Google Books, Open Library et AniList
+  - Service `IsbnLookupService` pour interroger les trois API
+  - Fusion des résultats (Google Books prioritaire, Open Library puis AniList en complément)
+  - AniList enrichit les données pour les mangas (recherche par titre, couvertures HD)
+  - Nettoyage intelligent des titres pour AniList (supprime "Tome X", "Vol. X", etc.)
+  - Déduction automatique du type (manga, bd, comics) via AniList ou éditeur connu
+  - Préremplissage de tous les champs incluant le type
+  - Notification flash listant les champs préremplis et les sources utilisées
+  - Mise en surbrillance visuelle des champs modifiés par l'API
   - Endpoint `GET /api/isbn-lookup?isbn=XXX`
   - Bouton de recherche dans le formulaire avec préremplissage automatique
 
@@ -41,6 +84,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - `publishedDate` : Date de publication
   - `description` : Résumé/description
   - `coverUrl` : URL de la couverture
+  - `type` : Type déduit automatiquement (manga si AniList, sinon basé sur l'éditeur)
 
 - **Entité Author** : Gestion des auteurs comme entités distinctes
   - Table `author` avec nom unique

@@ -34,7 +34,8 @@ class ComicSeriesRepository extends ServiceEntityRepository
      */
     public function findWithFilters(array $filters = []): array
     {
-        $qb = $this->createQueryBuilder('c');
+        $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.tomes', 't');
 
         // Wishlist filter (required)
         if (isset($filters['isWishlist'])) {
@@ -54,17 +55,25 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 ->setParameter('status', $filters['status']);
         }
 
-        // NAS filter
+        // NAS filter (vérifie si au moins un tome est sur le NAS)
         if (isset($filters['onNas']) && null !== $filters['onNas']) {
-            $qb->andWhere('c.onNas = :onNas')
-                ->setParameter('onNas', $filters['onNas']);
+            if ($filters['onNas']) {
+                $qb->andWhere('t.onNas = :onNas')
+                    ->setParameter('onNas', true);
+            } else {
+                // Séries sans aucun tome sur NAS
+                $qb->andWhere('NOT EXISTS (SELECT t2.id FROM App\Entity\Tome t2 WHERE t2.comicSeries = c AND t2.onNas = true)');
+            }
         }
 
-        // Search filter (titre ou ISBN)
+        // Search filter (titre uniquement, ISBN est maintenant sur les tomes)
         if (!empty($filters['search'])) {
-            $qb->andWhere('c.title LIKE :search OR c.isbn LIKE :search')
+            $qb->andWhere('c.title LIKE :search OR t.isbn LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
+
+        // Distinct pour éviter les doublons à cause du JOIN
+        $qb->distinct();
 
         // Sorting
         $sort = $filters['sort'] ?? 'title_asc';
@@ -118,15 +127,17 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Recherche par titre ou ISBN.
+     * Recherche par titre ou ISBN de tome.
      *
      * @return ComicSeries[]
      */
     public function search(string $query): array
     {
         return $this->createQueryBuilder('c')
-            ->andWhere('c.title LIKE :query OR c.isbn LIKE :query')
+            ->leftJoin('c.tomes', 't')
+            ->andWhere('c.title LIKE :query OR t.isbn LIKE :query')
             ->setParameter('query', '%'.$query.'%')
+            ->distinct()
             ->orderBy('c.title', 'ASC')
             ->getQuery()
             ->getResult();
@@ -146,39 +157,44 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array<string, mixed>
+     * @return list<array<string, mixed>>
      */
     public function findAllForApi(): array
     {
+        /** @var ComicSeries[] $comics */
         $comics = $this->createQueryBuilder('c')
             ->orderBy('c.title', 'ASC')
             ->getQuery()
             ->getResult();
 
-        return \array_map(static fn (ComicSeries $comic) => [
-            'authors' => $comic->getAuthorsAsString(),
-            'coverUrl' => $comic->getCoverUrl(),
-            'currentIssue' => $comic->getCurrentIssue(),
-            'currentIssueComplete' => $comic->isCurrentIssueComplete(),
-            'description' => $comic->getDescription(),
-            'id' => $comic->getId(),
-            'isbn' => $comic->getIsbn(),
-            'isWishlist' => $comic->isWishlist(),
-            'lastBought' => $comic->getLastBought(),
-            'lastBoughtComplete' => $comic->isLastBoughtComplete(),
-            'lastDownloaded' => $comic->getLastDownloaded(),
-            'lastDownloadedComplete' => $comic->isLastDownloadedComplete(),
-            'missingIssues' => $comic->getMissingIssues(),
-            'onNas' => $comic->isOnNas(),
-            'ownedIssues' => $comic->getOwnedIssues(),
-            'publishedCount' => $comic->getPublishedCount(),
-            'publishedCountComplete' => $comic->isPublishedCountComplete(),
-            'publishedDate' => $comic->getPublishedDate(),
-            'publisher' => $comic->getPublisher(),
-            'status' => $comic->getStatus()->value,
-            'title' => $comic->getTitle(),
-            'type' => $comic->getType()->value,
-            'updatedAt' => $comic->getUpdatedAt()->format('c'),
-        ], $comics);
+        $result = [];
+        foreach ($comics as $comic) {
+            $result[] = [
+                'authors' => $comic->getAuthorsAsString(),
+                'coverUrl' => $comic->getCoverUrl(),
+                'currentIssue' => $comic->getCurrentIssue(),
+                'currentIssueComplete' => $comic->isCurrentIssueComplete(),
+                'description' => $comic->getDescription(),
+                'id' => $comic->getId(),
+                'isWishlist' => $comic->isWishlist(),
+                'lastBought' => $comic->getLastBought(),
+                'lastBoughtComplete' => $comic->isLastBoughtComplete(),
+                'lastDownloaded' => $comic->getLastDownloaded(),
+                'lastDownloadedComplete' => $comic->isLastDownloadedComplete(),
+                'latestPublishedIssue' => $comic->getLatestPublishedIssue(),
+                'latestPublishedIssueComplete' => $comic->isLatestPublishedIssueComplete(),
+                'missingTomesNumbers' => $comic->getMissingTomesNumbers(),
+                'ownedTomesNumbers' => $comic->getOwnedTomesNumbers(),
+                'publishedDate' => $comic->getPublishedDate(),
+                'publisher' => $comic->getPublisher(),
+                'status' => $comic->getStatus()->value,
+                'title' => $comic->getTitle(),
+                'tomesCount' => $comic->getTomes()->count(),
+                'type' => $comic->getType()->value,
+                'updatedAt' => $comic->getUpdatedAt()->format('c'),
+            ];
+        }
+
+        return $result;
     }
 }
