@@ -16,3 +16,8 @@
 
 .DS_Store
 .claude/
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###

@@ -93,11 +93,67 @@ public/
 - **MUST** declare all method/function arguments on a single line. **Exception**: constructors with property promotion — each promoted parameter on its own line
 - **MUST** sort alphabetically: property assignments in constructor body, associative array keys, YAML keys at each level
 
+## Frontend & JavaScript
+
+**Symfony UX est obligatoire** pour tout développement frontend interactif.
+
+Avant de créer un contrôleur Stimulus custom ou d'écrire du JavaScript, vérifier si un package Symfony UX existe :
+- Documentation : https://ux.symfony.com/
+- Liste des packages : https://ux.symfony.com/packages
+
+### Packages Symfony UX à utiliser en priorité
+
+| Besoin | Package Symfony UX |
+|--------|-------------------|
+| Autocomplétion, tags, select amélioré | `symfony/ux-autocomplete` |
+| Graphiques / charts | `symfony/ux-chartjs` |
+| Recadrage d'images | `symfony/ux-cropperjs` |
+| Suppression sans rechargement | `symfony/ux-live-component` |
+| Formulaires dynamiques (ajax) | `symfony/ux-live-component` |
+| Notifications toast | `symfony/ux-notify` |
+| Composants PHP rendus côté serveur | `symfony/ux-twig-component` |
+| Toggle, onglets, modales | `symfony/ux-toggle-password`, composants Stimulus UX |
+| Upload avec preview | `symfony/ux-dropzone` |
+| Lazy loading d'images | `symfony/ux-lazy-image` |
+| Traductions JS | `symfony/ux-translator` |
+| Icônes | `symfony/ux-icons` |
+
+### Installation d'un package UX
+
+```bash
+ddev composer require symfony/ux-autocomplete  # Exemple
+```
+
+### Quand créer un contrôleur Stimulus custom ?
+
+Uniquement si :
+1. Aucun package Symfony UX ne couvre le besoin
+2. Le besoin est très spécifique au projet et non réutilisable
+3. Le package UX existant ne peut pas être étendu pour le cas d'usage
+
 ## Git
 
 - Commits: follow [Conventional Commits](https://www.conventionalcommits.org/)
   - Format: `<type>(scope): description`
   - Types: `feat`, `fix`, `chore`, `refactor`, `docs`
+
+## Changelog
+
+**Le fichier `CHANGELOG.md` doit être mis à jour à chaque modification du projet.**
+
+Après avoir effectué des modifications (ajout de fonctionnalité, correction de bug, refactoring, etc.), ajouter une entrée dans `CHANGELOG.md` :
+
+1. Ouvrir `CHANGELOG.md` à la racine du projet
+2. Ajouter l'entrée dans la section `[Unreleased]` sous la catégorie appropriée :
+   - `### Added` : nouvelles fonctionnalités
+   - `### Changed` : modifications de fonctionnalités existantes
+   - `### Deprecated` : fonctionnalités qui seront supprimées
+   - `### Removed` : fonctionnalités supprimées
+   - `### Fixed` : corrections de bugs
+   - `### Security` : corrections de vulnérabilités
+3. Format d'une entrée : `- **Nom court** : Description de la modification`
+
+Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## Development Notes
 

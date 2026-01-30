@@ -9,7 +9,9 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -18,6 +20,14 @@ class ComicSeriesType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('authors', AuthorAutocompleteType::class, [
+                'label' => 'Auteur(s)',
+                'required' => false,
+            ])
+            ->add('coverUrl', UrlType::class, [
+                'label' => 'URL de la couverture',
+                'required' => false,
+            ])
             ->add('currentIssue', IntegerType::class, [
                 'attr' => ['min' => 0],
                 'label' => 'Numéro actuel possédé',
@@ -25,6 +35,16 @@ class ComicSeriesType extends AbstractType
             ])
             ->add('currentIssueComplete', CheckboxType::class, [
                 'label' => 'Complet',
+                'required' => false,
+            ])
+            ->add('description', TextareaType::class, [
+                'attr' => ['rows' => 4],
+                'label' => 'Description',
+                'required' => false,
+            ])
+            ->add('isbn', TextType::class, [
+                'attr' => ['placeholder' => 'Ex: 978-2-505-00123-4'],
+                'label' => 'ISBN',
                 'required' => false,
             ])
             ->add('isWishlist', CheckboxType::class, [
@@ -70,6 +90,14 @@ class ComicSeriesType extends AbstractType
             ])
             ->add('publishedCountComplete', CheckboxType::class, [
                 'label' => 'Complet',
+                'required' => false,
+            ])
+            ->add('publishedDate', TextType::class, [
+                'label' => 'Date de publication',
+                'required' => false,
+            ])
+            ->add('publisher', TextType::class, [
+                'label' => 'Éditeur',
                 'required' => false,
             ])
             ->add('status', EnumType::class, [

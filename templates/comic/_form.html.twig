@@ -1,8 +1,56 @@
-{{ form_start(form, {attr: {class: 'comic-form'}}) }}
-    <div class="mdc-text-field">
-        <label for="{{ form.title.vars.id }}">Titre de la serie</label>
-        {{ form_widget(form.title) }}
-        {{ form_errors(form.title) }}
+{{ form_start(form, {attr: {class: 'comic-form', 'data-controller': 'comic-form'}}) }}
+    <div class="form-row">
+        <div class="mdc-text-field">
+            <label for="{{ form.title.vars.id }}">Titre de la serie</label>
+            {{ form_widget(form.title, {attr: {'data-comic-form-target': 'title'}}) }}
+            {{ form_errors(form.title) }}
+        </div>
+
+        <div class="mdc-text-field isbn-field">
+            <label for="{{ form.isbn.vars.id }}">ISBN</label>
+            <div class="isbn-input-group">
+                {{ form_widget(form.isbn, {attr: {placeholder: 'Ex: 978-2-505-00123-4', 'data-comic-form-target': 'isbn'}}) }}
+                <button type="button" class="btn btn-icon" data-comic-form-target="lookupButton" data-action="comic-form#lookupIsbn" title="Rechercher par ISBN">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                </button>
+            </div>
+            <span class="lookup-status" data-comic-form-target="lookupStatus"></span>
+            {{ form_errors(form.isbn) }}
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="mdc-text-field mdc-text-field--autocomplete" data-comic-form-target="authorsWrapper">
+            <label for="{{ form.authors.vars.id }}">Auteur(s)</label>
+            {{ form_widget(form.authors) }}
+            {{ form_errors(form.authors) }}
+        </div>
+
+        <div class="mdc-text-field">
+            <label for="{{ form.publisher.vars.id }}">Editeur</label>
+            {{ form_widget(form.publisher, {attr: {'data-comic-form-target': 'publisher'}}) }}
+            {{ form_errors(form.publisher) }}
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="mdc-text-field">
+            <label for="{{ form.publishedDate.vars.id }}">Date de publication</label>
+            {{ form_widget(form.publishedDate, {attr: {'data-comic-form-target': 'publishedDate'}}) }}
+            {{ form_errors(form.publishedDate) }}
+        </div>
+
+        <div class="mdc-text-field">
+            <label for="{{ form.coverUrl.vars.id }}">URL de la couverture</label>
+            {{ form_widget(form.coverUrl, {attr: {'data-comic-form-target': 'coverUrl'}}) }}
+            {{ form_errors(form.coverUrl) }}
+        </div>
+    </div>
+
+    <div class="mdc-text-field mdc-text-field--full-width">
+        <label for="{{ form.description.vars.id }}">Description</label>
+        {{ form_widget(form.description, {attr: {'data-comic-form-target': 'description'}}) }}
+        {{ form_errors(form.description) }}
     </div>
 
     <div class="form-row">

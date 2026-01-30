@@ -656,13 +656,35 @@ body {
 }
 
 .mdc-text-field input:focus,
-.mdc-text-field select:focus {
+.mdc-text-field select:focus,
+.mdc-text-field textarea:focus {
     border-bottom-color: var(--md-primary);
     border-bottom-width: 2px;
 }
 
-.mdc-text-field input::placeholder {
+.mdc-text-field input::placeholder,
+.mdc-text-field textarea::placeholder {
     color: var(--md-text-disabled);
+}
+
+.mdc-text-field textarea {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--md-divider);
+    color: var(--md-text-high);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+    min-height: 100px;
+    outline: none;
+    padding: var(--md-spacing-sm) 0;
+    resize: vertical;
+    transition: border-color 0.2s;
+    width: 100%;
+}
+
+.mdc-text-field--full-width {
+    margin-bottom: var(--md-spacing-lg);
 }
 
 /* Checkbox Field */
@@ -881,6 +903,149 @@ body {
     right: 0;
     text-align: center;
     z-index: 99;
+}
+
+/* ISBN Lookup */
+.isbn-field {
+    flex: 1;
+}
+
+.isbn-input-group {
+    align-items: center;
+    display: flex;
+    gap: var(--md-spacing-sm);
+}
+
+.isbn-input-group input {
+    flex: 1;
+}
+
+.btn-icon {
+    align-items: center;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    color: var(--md-primary);
+    cursor: pointer;
+    display: flex;
+    flex-shrink: 0;
+    height: 40px;
+    justify-content: center;
+    min-width: 40px;
+    padding: 0;
+    transition: background-color 0.2s;
+    width: 40px;
+}
+
+.btn-icon:hover {
+    background-color: rgba(25, 118, 210, 0.08);
+}
+
+.btn-icon:disabled {
+    color: var(--md-text-disabled);
+    cursor: not-allowed;
+}
+
+.btn-icon:disabled:hover {
+    background-color: transparent;
+}
+
+.lookup-status {
+    display: block;
+    font-size: 0.75rem;
+    margin-top: var(--md-spacing-xs);
+    min-height: 1rem;
+}
+
+.lookup-status--loading {
+    color: var(--md-text-medium);
+}
+
+.lookup-status--success {
+    color: var(--md-success);
+}
+
+.lookup-status--error {
+    color: var(--md-error);
+}
+
+/* Tom Select / Autocomplete customization */
+.mdc-text-field--autocomplete .ts-wrapper {
+    width: 100%;
+}
+
+.mdc-text-field--autocomplete .ts-control {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--md-divider);
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 48px;
+    padding: var(--md-spacing-sm) 0;
+}
+
+.mdc-text-field--autocomplete .ts-control:focus-within {
+    border-bottom-color: var(--md-primary);
+    border-bottom-width: 2px;
+    box-shadow: none;
+}
+
+.mdc-text-field--autocomplete .ts-control input {
+    color: var(--md-text-high);
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.mdc-text-field--autocomplete .ts-control input::placeholder {
+    color: var(--md-text-disabled);
+}
+
+/* Tags dans Tom Select */
+.mdc-text-field--autocomplete .ts-control .item {
+    background-color: var(--md-primary);
+    border: none;
+    border-radius: var(--md-radius-full);
+    color: var(--md-on-primary);
+    font-size: 0.875rem;
+    margin: 2px 4px 2px 0;
+    padding: 4px 8px 4px 12px;
+}
+
+.mdc-text-field--autocomplete .ts-control .item .remove {
+    border: none;
+    color: var(--md-on-primary);
+    font-size: 1rem;
+    margin-left: 4px;
+}
+
+.mdc-text-field--autocomplete .ts-control .item .remove:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Dropdown Tom Select */
+.mdc-text-field--autocomplete .ts-dropdown {
+    background-color: var(--md-surface);
+    border: none;
+    border-radius: var(--md-radius-sm);
+    box-shadow: var(--md-elevation-3);
+    margin-top: 4px;
+}
+
+.mdc-text-field--autocomplete .ts-dropdown .option {
+    color: var(--md-text-high);
+    font-size: 0.875rem;
+    padding: var(--md-spacing-sm) var(--md-spacing-md);
+}
+
+.mdc-text-field--autocomplete .ts-dropdown .option:hover,
+.mdc-text-field--autocomplete .ts-dropdown .option.active {
+    background-color: rgba(25, 118, 210, 0.08);
+    color: var(--md-primary);
+}
+
+.mdc-text-field--autocomplete .ts-dropdown .create {
+    color: var(--md-primary);
+    font-style: italic;
 }
 
 /* Desktop styles */

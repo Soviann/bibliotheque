@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -68,14 +70,54 @@ class ComicSeries
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $ownedIssues = null;
 
+    /**
+     * Auteur(s) de la série.
+     *
+     * @var Collection<int, Author>
+     */
+    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'comicSeries')]
+    #[ORM\JoinTable(name: 'comic_series_author')]
+    private Collection $authors;
+
+    /**
+     * URL de la couverture.
+     */
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $coverUrl = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
+
+    /**
+     * Description ou résumé.
+     */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
+    /**
+     * Numéro ISBN-10 ou ISBN-13.
+     */
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $isbn = null;
+
+    /**
+     * Date de publication.
+     */
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $publishedDate = null;
+
+    /**
+     * Éditeur.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $publisher = null;
 
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
+        $this->authors = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -86,9 +128,101 @@ class ComicSeries
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    /**
+     * @return Collection<int, Author>
+     */
+    public function getAuthors(): Collection
+    {
+        return $this->authors;
+    }
+
+    public function addAuthor(Author $author): static
+    {
+        if (!$this->authors->contains($author)) {
+            $this->authors->add($author);
+        }
+
+        return $this;
+    }
+
+    public function removeAuthor(Author $author): static
+    {
+        $this->authors->removeElement($author);
+
+        return $this;
+    }
+
+    /**
+     * Retourne les noms des auteurs sous forme de chaîne.
+     */
+    public function getAuthorsAsString(): string
+    {
+        return \implode(', ', $this->authors->map(fn (Author $a) => $a->getName())->toArray());
+    }
+
+    public function getCoverUrl(): ?string
+    {
+        return $this->coverUrl;
+    }
+
+    public function setCoverUrl(?string $coverUrl): static
+    {
+        $this->coverUrl = $coverUrl;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getIsbn(): ?string
+    {
+        return $this->isbn;
+    }
+
+    public function setIsbn(?string $isbn): static
+    {
+        $this->isbn = $isbn;
+
+        return $this;
+    }
+
+    public function getPublishedDate(): ?string
+    {
+        return $this->publishedDate;
+    }
+
+    public function setPublishedDate(?string $publishedDate): static
+    {
+        $this->publishedDate = $publishedDate;
+
+        return $this;
+    }
+
+    public function getPublisher(): ?string
+    {
+        return $this->publisher;
+    }
+
+    public function setPublisher(?string $publisher): static
+    {
+        $this->publisher = $publisher;
+
+        return $this;
     }
 
     public function getTitle(): ?string

@@ -57,9 +57,9 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 ->setParameter('onNas', $filters['onNas']);
         }
 
-        // Search filter
+        // Search filter (titre ou ISBN)
         if (!empty($filters['search'])) {
-            $qb->andWhere('c.title LIKE :search')
+            $qb->andWhere('c.title LIKE :search OR c.isbn LIKE :search')
                 ->setParameter('search', '%' . $filters['search'] . '%');
         }
 
@@ -113,12 +113,14 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Recherche par titre ou ISBN.
+     *
      * @return ComicSeries[]
      */
     public function search(string $query): array
     {
         return $this->createQueryBuilder('c')
-            ->andWhere('c.title LIKE :query')
+            ->andWhere('c.title LIKE :query OR c.isbn LIKE :query')
             ->setParameter('query', '%' . $query . '%')
             ->orderBy('c.title', 'ASC')
             ->getQuery()
@@ -149,9 +151,13 @@ class ComicSeriesRepository extends ServiceEntityRepository
             ->getResult();
 
         return \array_map(fn (ComicSeries $comic) => [
+            'authors' => $comic->getAuthorsAsString(),
+            'coverUrl' => $comic->getCoverUrl(),
             'currentIssue' => $comic->getCurrentIssue(),
             'currentIssueComplete' => $comic->isCurrentIssueComplete(),
+            'description' => $comic->getDescription(),
             'id' => $comic->getId(),
+            'isbn' => $comic->getIsbn(),
             'isWishlist' => $comic->isWishlist(),
             'lastBought' => $comic->getLastBought(),
             'lastBoughtComplete' => $comic->isLastBoughtComplete(),
@@ -162,6 +168,8 @@ class ComicSeriesRepository extends ServiceEntityRepository
             'ownedIssues' => $comic->getOwnedIssues(),
             'publishedCount' => $comic->getPublishedCount(),
             'publishedCountComplete' => $comic->isPublishedCountComplete(),
+            'publishedDate' => $comic->getPublishedDate(),
+            'publisher' => $comic->getPublisher(),
             'status' => $comic->getStatus()->value,
             'title' => $comic->getTitle(),
             'type' => $comic->getType()->value,
