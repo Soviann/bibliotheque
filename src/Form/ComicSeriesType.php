@@ -45,6 +45,10 @@ class ComicSeriesType extends AbstractType
                 'label' => 'Description',
                 'required' => false,
             ])
+            ->add('isOneShot', CheckboxType::class, [
+                'label' => 'One-shot (tome unique)',
+                'required' => false,
+            ])
             ->add('isWishlist', CheckboxType::class, [
                 'label' => 'Dans la liste de souhaits',
                 'required' => false,

@@ -9,6 +9,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Flag One-Shot** : Nouveau champ `isOneShot` sur `ComicSeries` pour distinguer les tomes uniques (intégrales, one-shots) des séries multi-tomes
+  - Checkbox dans le formulaire
+  - Création automatique d'un tome avec numéro 1 si la collection est vide
+  - Blocage de la collection à une seule entrée (bouton "Ajouter" et boutons "Supprimer" masqués)
+  - Pré-remplissage automatique : `latestPublishedIssue = 1` et `latestPublishedIssueComplete = true`
+  - Badge "Tome unique" sur la page de détail
+  - Affichage simplifié sur les cartes (pas de détail des tomes)
+
 - **Page de détail** : Affichage détaillé d'une série accessible en cliquant sur la carte
   - Vue formatée avec couverture, badges, auteurs, éditeur et date
   - Section description et statistiques de la collection

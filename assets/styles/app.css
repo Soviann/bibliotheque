@@ -471,6 +471,11 @@ body {
     color: #512da8;
 }
 
+.type-badge-oneshot {
+    background-color: #e0f2f1;
+    color: #00695c;
+}
+
 /* Card Actions */
 .comic-card-actions {
     border-top: 1px solid var(--md-divider);

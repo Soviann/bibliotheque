@@ -16,46 +16,55 @@
             </div>
 
             <div class="comic-info">
-                {% set currentIssue = comic.currentIssue %}
-                {% if currentIssue or comic.currentIssueComplete %}
+                {% if comic.oneShot %}
+                    {# Pour les one-shots, affichage simplifié #}
                     <div class="comic-info-row">
-                        <span class="comic-info-label">Possede</span>
-                        <span class="comic-info-value">{% if comic.currentIssueComplete %}Complet{% else %}{{ currentIssue }}{% endif %}</span>
+                        <span class="comic-info-label">Type</span>
+                        <span class="comic-info-value">Tome unique</span>
                     </div>
-                {% endif %}
-                {% set lastBought = comic.lastBought %}
-                {% if lastBought or comic.lastBoughtComplete %}
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Dernier achat</span>
-                        <span class="comic-info-value">{% if comic.lastBoughtComplete %}Complet{% else %}{{ lastBought }}{% endif %}</span>
-                    </div>
-                {% endif %}
-                {% if comic.latestPublishedIssue or comic.latestPublishedIssueComplete %}
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Parus</span>
-                        <span class="comic-info-value">{% if comic.latestPublishedIssueComplete %}{{ comic.latestPublishedIssue }} (termine){% else %}{{ comic.latestPublishedIssue }}{% endif %}</span>
-                    </div>
-                {% endif %}
-                {% set lastDownloaded = comic.lastDownloaded %}
-                {% if lastDownloaded or comic.lastDownloadedComplete %}
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Telecharge</span>
-                        <span class="comic-info-value">{% if comic.lastDownloadedComplete %}Complet{% else %}{{ lastDownloaded }}{% endif %}</span>
-                    </div>
-                {% endif %}
-                {% set ownedNumbers = comic.ownedTomesNumbers %}
-                {% if ownedNumbers|length > 0 %}
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Tomes</span>
-                        <span class="comic-info-value">{{ ownedNumbers|join(', ') }}</span>
-                    </div>
-                {% endif %}
-                {% set missingNumbers = comic.missingTomesNumbers %}
-                {% if missingNumbers|length > 0 %}
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Manquants</span>
-                        <span class="comic-info-value warning">{{ missingNumbers|join(', ') }}</span>
-                    </div>
+                {% else %}
+                    {# Pour les séries multi-tomes #}
+                    {% set currentIssue = comic.currentIssue %}
+                    {% if currentIssue or comic.currentIssueComplete %}
+                        <div class="comic-info-row">
+                            <span class="comic-info-label">Possede</span>
+                            <span class="comic-info-value">{% if comic.currentIssueComplete %}Complet{% else %}{{ currentIssue }}{% endif %}</span>
+                        </div>
+                    {% endif %}
+                    {% set lastBought = comic.lastBought %}
+                    {% if lastBought or comic.lastBoughtComplete %}
+                        <div class="comic-info-row">
+                            <span class="comic-info-label">Dernier achat</span>
+                            <span class="comic-info-value">{% if comic.lastBoughtComplete %}Complet{% else %}{{ lastBought }}{% endif %}</span>
+                        </div>
+                    {% endif %}
+                    {% if comic.latestPublishedIssue or comic.latestPublishedIssueComplete %}
+                        <div class="comic-info-row">
+                            <span class="comic-info-label">Parus</span>
+                            <span class="comic-info-value">{% if comic.latestPublishedIssueComplete %}{{ comic.latestPublishedIssue }} (termine){% else %}{{ comic.latestPublishedIssue }}{% endif %}</span>
+                        </div>
+                    {% endif %}
+                    {% set lastDownloaded = comic.lastDownloaded %}
+                    {% if lastDownloaded or comic.lastDownloadedComplete %}
+                        <div class="comic-info-row">
+                            <span class="comic-info-label">Telecharge</span>
+                            <span class="comic-info-value">{% if comic.lastDownloadedComplete %}Complet{% else %}{{ lastDownloaded }}{% endif %}</span>
+                        </div>
+                    {% endif %}
+                    {% set ownedNumbers = comic.ownedTomesNumbers %}
+                    {% if ownedNumbers|length > 0 %}
+                        <div class="comic-info-row">
+                            <span class="comic-info-label">Tomes</span>
+                            <span class="comic-info-value">{{ ownedNumbers|join(', ') }}</span>
+                        </div>
+                    {% endif %}
+                    {% set missingNumbers = comic.missingTomesNumbers %}
+                    {% if missingNumbers|length > 0 %}
+                        <div class="comic-info-row">
+                            <span class="comic-info-label">Manquants</span>
+                            <span class="comic-info-value warning">{{ missingNumbers|join(', ') }}</span>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </div>
 

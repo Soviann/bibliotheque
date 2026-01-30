@@ -70,13 +70,13 @@
         </div>
     </div>
 
-    <div class="form-row">
+    <div class="form-row" data-comic-form-target="publishedIssueRow">
         <div class="input-group-with-checkbox">
             <label class="input-label" for="{{ form.latestPublishedIssue.vars.id }}">Dernier tome paru</label>
             <div class="input-row">
-                {{ form_widget(form.latestPublishedIssue) }}
+                {{ form_widget(form.latestPublishedIssue, {attr: {'data-comic-form-target': 'latestPublishedIssue'}}) }}
                 <label class="checkbox-inline">
-                    {{ form_widget(form.latestPublishedIssueComplete) }}
+                    {{ form_widget(form.latestPublishedIssueComplete, {attr: {'data-comic-form-target': 'latestPublishedIssueComplete'}}) }}
                     <span>Serie terminee</span>
                 </label>
             </div>
@@ -86,13 +86,17 @@
 
     <div class="checkboxes-row">
         <div class="mdc-checkbox-field">
+            {{ form_widget(form.isOneShot, {attr: {'data-comic-form-target': 'isOneShot', 'data-action': 'change->comic-form#toggleOneShot'}}) }}
+            <label for="{{ form.isOneShot.vars.id }}">One-shot (tome unique)</label>
+        </div>
+        <div class="mdc-checkbox-field">
             {{ form_widget(form.isWishlist) }}
             <label for="{{ form.isWishlist.vars.id }}">Dans la liste de souhaits</label>
         </div>
     </div>
 
     {# Section Tomes #}
-    <fieldset class="tomes-section">
+    <fieldset class="tomes-section" data-comic-form-target="tomesSection">
         <legend>Tomes</legend>
 
         <div class="tomes-summary" data-tomes-collection-target="summary">
@@ -112,7 +116,7 @@
             {% endif %}
         </div>
 
-        <div class="tomes-list" data-tomes-collection-target="list">
+        <div class="tomes-list" data-tomes-collection-target="list" data-comic-form-target="tomesList">
             {% for tome in form.tomes %}
                 <div class="tome-entry" data-tomes-collection-target="entry">
                     <div class="tome-fields">
@@ -147,7 +151,7 @@
             {% endfor %}
         </div>
 
-        <template data-tomes-collection-target="prototype">
+        <template data-tomes-collection-target="prototype" data-comic-form-target="tomesPrototype">
             <div class="tome-entry" data-tomes-collection-target="entry">
                 <div class="tome-fields">
                     <div class="tome-number">
@@ -180,8 +184,8 @@
             </div>
         </template>
 
-        <div class="tomes-actions">
-            <button type="button" class="btn btn-outlined" data-action="tomes-collection#addTome">
+        <div class="tomes-actions" data-comic-form-target="tomesActions">
+            <button type="button" class="btn btn-outlined" data-action="tomes-collection#addTome" data-comic-form-target="addTomeButton">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
                 Ajouter un tome
             </button>

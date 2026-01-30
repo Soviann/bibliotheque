@@ -2,16 +2,24 @@ import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
     static targets = [
+        'addTomeButton',
         'authors',
         'authorsWrapper',
         'coverUrl',
         'description',
         'isbn',
+        'isOneShot',
+        'latestPublishedIssue',
+        'latestPublishedIssueComplete',
         'lookupButton',
         'lookupStatus',
         'publishedDate',
+        'publishedIssueRow',
         'publisher',
         'title',
+        'tomesList',
+        'tomesPrototype',
+        'tomesSection',
         'type',
     ];
 
@@ -35,6 +43,96 @@ export default class extends Controller {
                 title.classList.add('error');
             }
         });
+
+        // Applique l'état initial du one-shot
+        if (this.hasIsOneShotTarget) {
+            this.applyOneShotState(this.isOneShotTarget.checked);
+        }
+    }
+
+    /**
+     * Bascule l'affichage one-shot quand la checkbox change.
+     */
+    toggleOneShot(event) {
+        this.applyOneShotState(event.target.checked);
+    }
+
+    /**
+     * Applique l'état one-shot : gère la collection de tomes et pré-remplit les valeurs.
+     */
+    applyOneShotState(isOneShot) {
+        // Masque la ligne "Dernier tome paru"
+        if (this.hasPublishedIssueRowTarget) {
+            this.publishedIssueRowTarget.style.display = isOneShot ? 'none' : '';
+        }
+
+        // Masque/affiche le bouton "Ajouter un tome"
+        if (this.hasAddTomeButtonTarget) {
+            this.addTomeButtonTarget.style.display = isOneShot ? 'none' : '';
+        }
+
+        // Masque/affiche les boutons de suppression des tomes
+        if (this.hasTomesSectionTarget) {
+            const removeButtons = this.tomesSectionTarget.querySelectorAll('.tome-remove');
+            removeButtons.forEach(btn => {
+                btn.style.display = isOneShot ? 'none' : '';
+            });
+        }
+
+        // Pré-remplit les valeurs pour un one-shot
+        if (isOneShot) {
+            if (this.hasLatestPublishedIssueTarget) {
+                this.latestPublishedIssueTarget.value = '1';
+            }
+            if (this.hasLatestPublishedIssueCompleteTarget) {
+                this.latestPublishedIssueCompleteTarget.checked = true;
+            }
+
+            // Ajoute un tome avec le numéro 1 si la collection est vide
+            this.ensureOneShotTome();
+        }
+    }
+
+    /**
+     * S'assure qu'un tome avec le numéro 1 existe pour un one-shot.
+     */
+    ensureOneShotTome() {
+        if (!this.hasTomesListTarget || !this.hasTomesPrototypeTarget) {
+            return;
+        }
+
+        // Vérifie si la collection est vide
+        const existingEntries = this.tomesListTarget.querySelectorAll('[data-tomes-collection-target="entry"]');
+        if (existingEntries.length > 0) {
+            // Un tome existe déjà, on met juste le numéro à 1
+            const numberInput = existingEntries[0].querySelector('.tome-number-input');
+            if (numberInput && !numberInput.value) {
+                numberInput.value = '1';
+            }
+            return;
+        }
+
+        // Crée un nouveau tome à partir du prototype
+        const prototype = this.tomesPrototypeTarget.innerHTML;
+        const newEntry = prototype.replace(/__name__/g, '0');
+
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = newEntry;
+        const entryElement = wrapper.firstElementChild;
+
+        // Pré-remplit le numéro à 1
+        const numberInput = entryElement.querySelector('.tome-number-input');
+        if (numberInput) {
+            numberInput.value = '1';
+        }
+
+        // Masque le bouton de suppression
+        const removeButton = entryElement.querySelector('.tome-remove');
+        if (removeButton) {
+            removeButton.style.display = 'none';
+        }
+
+        this.tomesListTarget.appendChild(entryElement);
     }
 
     /**

@@ -48,6 +48,12 @@ class ComicSeries
     #[ORM\Column]
     private bool $latestPublishedIssueComplete = false;
 
+    /**
+     * Indique si c'est un one-shot (tome unique, intégrale).
+     */
+    #[ORM\Column]
+    private bool $isOneShot = false;
+
     #[ORM\Column]
     private bool $isWishlist = false;
 
@@ -495,6 +501,18 @@ class ComicSeries
     public function setLatestPublishedIssueComplete(bool $latestPublishedIssueComplete): static
     {
         $this->latestPublishedIssueComplete = $latestPublishedIssueComplete;
+
+        return $this;
+    }
+
+    public function isOneShot(): bool
+    {
+        return $this->isOneShot;
+    }
+
+    public function setIsOneShot(bool $isOneShot): static
+    {
+        $this->isOneShot = $isOneShot;
 
         return $this;
     }
