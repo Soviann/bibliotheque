@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wishlist - Ma Bibliotheque BD{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>Liste de souhaits</h1>
+    <p class="text-subtitle">{{ comics|length }} serie(s)</p>
+</div>
+
+{% include 'components/_filters.html.twig' with {
+    route: 'app_wishlist',
+    currentType: currentType,
+    currentNas: currentNas,
+    currentSort: currentSort,
+    currentSearch: currentSearch,
+    types: types
+} %}
+
+<turbo-frame id="comics-list">
+    {% if comics|length > 0 %}
+        <div class="cards-grid">
+            {% for comic in comics %}
+                {% include 'comic/_card.html.twig' with {comic: comic, showToLibrary: true} %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Aucune serie trouvee dans la liste de souhaits.</p>
+        </div>
+    {% endif %}
+</turbo-frame>
+{% endblock %}

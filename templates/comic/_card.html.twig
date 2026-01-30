@@ -1,0 +1,70 @@
+<div class="comic-card">
+    <div class="comic-card-content">
+        <div class="comic-card-title">
+            <h3>{{ comic.title }}</h3>
+            <span class="status-badge status-{{ comic.status.value }}">{{ comic.status.label }}</span>
+        </div>
+
+        <div class="comic-info">
+            {% if comic.currentIssue or comic.currentIssueComplete %}
+                <div class="comic-info-row">
+                    <span class="comic-info-label">Possede</span>
+                    <span class="comic-info-value">{% if comic.currentIssueComplete %}Complet{% else %}{{ comic.currentIssue }}{% endif %}</span>
+                </div>
+            {% endif %}
+            {% if comic.lastBought or comic.lastBoughtComplete %}
+                <div class="comic-info-row">
+                    <span class="comic-info-label">Dernier achat</span>
+                    <span class="comic-info-value">{% if comic.lastBoughtComplete %}Complet{% else %}{{ comic.lastBought }}{% endif %}</span>
+                </div>
+            {% endif %}
+            {% if comic.publishedCount or comic.publishedCountComplete %}
+                <div class="comic-info-row">
+                    <span class="comic-info-label">Parus</span>
+                    <span class="comic-info-value">{% if comic.publishedCountComplete %}Complet{% else %}{{ comic.publishedCount }}{% endif %}</span>
+                </div>
+            {% endif %}
+            {% if comic.lastDownloaded or comic.lastDownloadedComplete %}
+                <div class="comic-info-row">
+                    <span class="comic-info-label">Telecharge</span>
+                    <span class="comic-info-value">{% if comic.lastDownloadedComplete %}Complet{% else %}{{ comic.lastDownloaded }}{% endif %}</span>
+                </div>
+            {% endif %}
+            {% if comic.ownedIssues %}
+                <div class="comic-info-row">
+                    <span class="comic-info-label">Tomes</span>
+                    <span class="comic-info-value">{{ comic.ownedIssues }}</span>
+                </div>
+            {% endif %}
+            {% if comic.missingIssues %}
+                <div class="comic-info-row">
+                    <span class="comic-info-label">Manquants</span>
+                    <span class="comic-info-value warning">{{ comic.missingIssues }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="type-badges">
+            <span class="type-badge type-badge-{{ comic.type.value }}">{{ comic.type.label }}</span>
+            {% if comic.onNas %}
+                <span class="type-badge type-badge-nas">NAS</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="comic-card-actions">
+        <a href="{{ path('app_comic_edit', {id: comic.id}) }}" class="btn btn-text" data-turbo-frame="_top">Modifier</a>
+
+        {% if showToLibrary %}
+            <form action="{{ path('app_comic_to_library', {id: comic.id}) }}" method="post" class="inline-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('to-library' ~ comic.id) }}">
+                <button type="submit" class="btn btn-success">Ajouter</button>
+            </form>
+        {% endif %}
+
+        <form action="{{ path('app_comic_delete', {id: comic.id}) }}" method="post" class="inline-form" onsubmit="return confirm('Supprimer cette serie ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comic.id) }}">
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+        </form>
+    </div>
+</div>

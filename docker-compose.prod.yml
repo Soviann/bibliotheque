@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      - APP_ENV=prod
+      - APP_SECRET=${APP_SECRET}
+      - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    volumes:
+      - app_var:/var/www/html/var
+
+  db:
+    image: mariadb:10.11
+    environment:
+      - MYSQL_DATABASE=bibliotheque
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=biblio
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  app_var:
+  db_data:

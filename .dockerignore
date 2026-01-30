@@ -1,0 +1,14 @@
+.ddev/
+.env.local
+.env.*.local
+.git/
+.gitignore
+.idea/
+docker-compose*.yml
+Dockerfile
+node_modules/
+public/bundles/
+README.md
+tests/
+var/
+vendor/
