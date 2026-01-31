@@ -8,6 +8,23 @@ Application Symfony de gestion de bibliothèque BD/Comics/Mangas avec mode PWA.
 
 **Stack technique** : Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX.
 
+## Maintenance de ce fichier
+
+**Obligatoire** : ce fichier doit refléter l'état actuel du code. Mettre à jour la section "Architecture détaillée" après chaque modification structurelle :
+
+| Type de modification | Action requise |
+|---------------------|----------------|
+| Nouvelle entité | Ajouter dans "Entités Doctrine" avec propriétés et relations |
+| Modification entité | Mettre à jour propriétés/relations/méthodes concernées |
+| Suppression entité | Retirer de la documentation |
+| Nouvel enum | Ajouter dans "Enums" avec toutes les valeurs |
+| Nouveau service | Ajouter dans "Services" avec rôle et méthodes publiques |
+| Nouveau contrôleur/route | Ajouter dans "Contrôleurs et routes" |
+| Nouvelle commande console | Ajouter dans "Commandes console" |
+| Nouvelle intégration externe | Ajouter dans "Intégrations externes" |
+
+**Ne pas documenter** : modifications mineures (renommage variable, refactoring interne, corrections de bugs sans changement d'API).
+
 ## Commandes
 
 **Toutes les commandes s'exécutent via DDEV** :
@@ -159,7 +176,153 @@ src/
 └── Service/          # Services métier
 templates/            # Templates Twig
 assets/controllers/   # Contrôleurs Stimulus
+tests/                # Tests PHPUnit
+features/             # Tests Behat (Gherkin)
 ```
+
+## Architecture détaillée
+
+Cette section documente le code existant pour éviter les explorations répétitives.
+
+### Entités Doctrine
+
+#### ComicSeries (`src/Entity/ComicSeries.php`)
+Entité principale représentant une série BD/Comics/Manga/Livre.
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `title` | string(255) | Titre de la série |
+| `status` | ComicStatus | Statut (BUYING, FINISHED, STOPPED, WISHLIST) |
+| `type` | ComicType | Type (BD, COMICS, LIVRE, MANGA) |
+| `latestPublishedIssue` | int\|null | Dernier numéro paru |
+| `latestPublishedIssueComplete` | bool | Série terminée par l'éditeur |
+| `isOneShot` | bool | One-shot (volume unique) |
+| `isWishlist` | bool | Dans la liste de souhaits |
+| `description` | text\|null | Description |
+| `publishedDate` | string\|null | Date de publication |
+| `publisher` | string\|null | Éditeur |
+| `coverImage` | string\|null | Fichier image uploadé (VichUploader) |
+| `coverUrl` | string\|null | URL de couverture externe |
+
+**Relations :**
+- `authors` : ManyToMany → Author
+- `tomes` : OneToMany → Tome (cascade persist/remove, orphanRemoval)
+
+**Méthodes utiles :**
+- `getCurrentIssue()` : numéro max possédé
+- `getLastBought()` : dernier tome acheté
+- `getLastDownloaded()` : dernier tome téléchargé
+- `getMissingTomesNumbers()` : tomes manquants
+- `isCurrentIssueComplete()` : série complète ?
+
+#### Tome (`src/Entity/Tome.php`)
+Volume individuel d'une série.
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `number` | int | Numéro du tome (≥ 0) |
+| `bought` | bool | Acheté |
+| `downloaded` | bool | Téléchargé |
+| `onNas` | bool | Sur le NAS |
+| `isbn` | string\|null | ISBN |
+| `title` | string\|null | Titre spécifique du tome |
+
+**Relation :** `comicSeries` : ManyToOne → ComicSeries
+
+#### Author (`src/Entity/Author.php`)
+Auteur (scénariste, dessinateur, mangaka).
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `name` | string(255) | Nom (unique) |
+
+**Relation :** `comicSeries` : ManyToMany → ComicSeries
+
+#### User (`src/Entity/User.php`)
+Utilisateur pour l'authentification.
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `email` | string(180) | Email (unique, identifiant) |
+| `password` | string | Mot de passe hashé |
+| `roles` | array | Rôles (ROLE_USER inclus par défaut) |
+
+### Enums
+
+#### ComicStatus (`src/Enum/ComicStatus.php`)
+```php
+BUYING = 'buying'      // "En cours d'achat"
+FINISHED = 'finished'  // "Terminée"
+STOPPED = 'stopped'    // "Arrêtée"
+WISHLIST = 'wishlist'  // "Liste de souhaits"
+```
+
+#### ComicType (`src/Enum/ComicType.php`)
+```php
+BD = 'bd'
+COMICS = 'comics'
+LIVRE = 'livre'
+MANGA = 'manga'
+```
+
+### Services
+
+#### IsbnLookupService (`src/Service/IsbnLookupService.php`)
+Recherche d'informations via APIs externes.
+
+**APIs utilisées :**
+- Google Books (ISBN + titre)
+- Open Library (ISBN, enrichissement auteur/éditeur)
+- AniList (GraphQL, mangas uniquement, détection one-shot)
+
+**Méthodes publiques :**
+- `lookup(string $isbn, ?string $type): ?array` — recherche par ISBN
+- `lookupByTitle(string $title, ?string $type): ?array` — recherche par titre
+
+**Retour :** `['title', 'authors', 'description', 'publishedDate', 'publisher', 'isbn', 'thumbnail', 'isOneShot', 'sources']`
+
+### Contrôleurs et routes
+
+| Route | Méthode | Contrôleur | Description |
+|-------|---------|------------|-------------|
+| `/` | GET | HomeController::index | Liste bibliothèque (filtres: type, status, nas, q, sort) |
+| `/comic/{id}` | GET | ComicController::show | Détail série |
+| `/comic/new` | GET/POST | ComicController::new | Création série |
+| `/comic/{id}/edit` | GET/POST | ComicController::edit | Édition série |
+| `/comic/{id}/delete` | POST | ComicController::delete | Suppression (CSRF) |
+| `/comic/{id}/to-library` | POST | ComicController::toLibrary | Wishlist → Bibliothèque |
+| `/wishlist` | GET | WishlistController::index | Liste de souhaits |
+| `/search` | GET | SearchController::index | Recherche (param: q) |
+| `/login` | GET | SecurityController::login | Connexion |
+| `/logout` | GET | SecurityController::logout | Déconnexion |
+| `/offline` | GET | OfflineController | Page offline PWA |
+| `/api/comics` | GET | ApiController::comics | JSON toutes les séries |
+| `/api/isbn-lookup` | GET | ApiController::isbnLookup | Recherche ISBN (params: isbn, type) |
+| `/api/title-lookup` | GET | ApiController::titleLookup | Recherche titre (params: title, type) |
+
+### Repositories
+
+#### ComicSeriesRepository
+- `findWithFilters(array $filters)` : filtrage avancé (isWishlist, type, status, onNas, search, sort)
+- `search(string $query)` : recherche titre ou ISBN tome
+- `findAllForApi()` : données sérialisées pour API/PWA
+
+#### AuthorRepository
+- `findOrCreate(string $name)` : trouve ou crée un auteur
+- `findOrCreateMultiple(array $names)` : batch création
+
+### Commandes console
+
+| Commande | Usage |
+|----------|-------|
+| `app:create-user` | `ddev exec bin/console app:create-user <email> <password>` |
+| `app:import-excel` | `ddev exec bin/console app:import-excel <file> [--dry-run]` |
+
+### Intégrations externes
+
+- **VichUploaderBundle** : upload des couvertures
+- **PWA** : mode offline via `/offline` et `/api/comics`
+- **APIs** : Google Books, Open Library, AniList (GraphQL)
 
 ## Déploiement
 
