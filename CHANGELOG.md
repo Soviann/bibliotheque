@@ -7,6 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Tests PWA et offline** : Couverture de tests pour le fonctionnement hors ligne
+  - `OfflineControllerTest` : 10 tests fonctionnels pour la page `/offline` (accessibilité, contenu, boutons, meta tags, script JS)
+  - `ApiControllerTest` : 4 nouveaux tests pour les réponses 404 et le paramètre type des endpoints ISBN/title lookup
+  - `OfflineModeTest` : 5 nouveaux tests Panther pour le manifest PWA, les caches et le Service Worker
+
 ### Changed
 
 - **APP_SECRET** : Remplacement du secret codé en dur par un placeholder, à définir dans `.env.local`

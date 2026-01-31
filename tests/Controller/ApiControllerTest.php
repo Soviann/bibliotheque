@@ -223,4 +223,72 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         $em->remove($seriesA);
         $em->flush();
     }
+
+    /**
+     * Teste l'API ISBN lookup retourne 404 quand aucun résultat n'est trouvé.
+     *
+     * Note: Ce test utilise un ISBN invalide qui ne sera trouvé dans aucune API externe.
+     */
+    public function testIsbnLookupReturns404WhenNoResult(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // ISBN invalide qui ne sera pas trouvé
+        $client->request('GET', '/api/isbn-lookup?isbn=0000000000000');
+
+        self::assertResponseStatusCodeSame(404);
+
+        $response = $client->getResponse();
+        $data = \json_decode($response->getContent(), true);
+
+        self::assertSame('Aucun résultat trouvé', $data['error']);
+    }
+
+    /**
+     * Teste l'API title lookup retourne 404 quand aucun résultat n'est trouvé.
+     *
+     * Note: Ce test utilise un titre improbable qui ne sera trouvé dans aucune API externe.
+     */
+    public function testTitleLookupReturns404WhenNoResult(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // Titre improbable avec caractères spéciaux qui ne sera pas trouvé
+        $client->request('GET', '/api/title-lookup?title='.\urlencode('zzz###qqqxxx$$$999'));
+
+        self::assertResponseStatusCodeSame(404);
+
+        $response = $client->getResponse();
+        $data = \json_decode($response->getContent(), true);
+
+        self::assertSame('Aucun résultat trouvé', $data['error']);
+    }
+
+    /**
+     * Teste que l'API ISBN lookup accepte le paramètre type.
+     */
+    public function testIsbnLookupAcceptsTypeParameter(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // On teste juste que le paramètre est accepté sans erreur
+        $client->request('GET', '/api/isbn-lookup?isbn=0000000000000&type=manga');
+
+        // 404 est attendu (pas de résultat) mais pas 400 (mauvaise requête)
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * Teste que l'API title lookup accepte le paramètre type.
+     */
+    public function testTitleLookupAcceptsTypeParameter(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // On teste juste que le paramètre est accepté sans erreur
+        $client->request('GET', '/api/title-lookup?title='.\urlencode('zzz###qqqxxx$$$888').'&type=bd');
+
+        // 404 est attendu (pas de résultat) mais pas 400 (mauvaise requête)
+        self::assertResponseStatusCodeSame(404);
+    }
 }
