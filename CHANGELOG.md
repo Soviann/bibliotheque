@@ -11,6 +11,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **Version PHP minimum** : Passage de PHP 8.2 à PHP 8.3 pour aligner `composer.json` avec la stack technique du projet
 
+- **PWA** : Migration vers `spomky-labs/pwa-bundle` pour une gestion déclarative de la PWA
+  - Manifest généré automatiquement depuis `config/packages/pwa.yaml`
+  - Service Worker généré via Workbox (stratégies de cache, Google Fonts, etc.)
+  - Icônes générées automatiquement avec versioning
+  - Page de fallback offline (`/offline`) affichée quand une page n'est pas en cache
+  - Remplacement du contrôleur Stimulus `offline` par `pwa--connection-status` du bundle
+  - Suppression des fichiers manuels `public/sw.js` et `assets/manifest.json`
+
 ### Added
 
 - **Recherche par titre** : Nouveau bouton de recherche à côté du champ titre

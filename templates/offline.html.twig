@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+        <title>Hors ligne - Ma Bibliotheque BD</title>
+        <link rel="icon" href="{{ asset('favicon.png') }}">
+        <meta name="theme-color" content="#1976d2">
+        <style>
+            :root {
+                --md-primary: #1976d2;
+                --md-background: #fafafa;
+                --md-surface: #ffffff;
+                --md-on-surface: #1c1b1f;
+                --md-on-surface-variant: #49454f;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                align-items: center;
+                background-color: var(--md-background);
+                color: var(--md-on-surface);
+                display: flex;
+                flex-direction: column;
+                font-family: 'Roboto', system-ui, sans-serif;
+                justify-content: center;
+                min-height: 100vh;
+                padding: 1rem;
+                text-align: center;
+            }
+
+            .offline-icon {
+                fill: var(--md-primary);
+                height: 96px;
+                margin-bottom: 1.5rem;
+                width: 96px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                font-weight: 500;
+                margin-bottom: 0.5rem;
+            }
+
+            p {
+                color: var(--md-on-surface-variant);
+                font-size: 1rem;
+                line-height: 1.5;
+                max-width: 400px;
+            }
+
+            .buttons {
+                display: flex;
+                gap: 1rem;
+                margin-top: 1.5rem;
+            }
+
+            .btn {
+                border: none;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 0.875rem;
+                font-weight: 500;
+                letter-spacing: 0.1px;
+                padding: 0.75rem 1.5rem;
+            }
+
+            .btn-primary {
+                background-color: var(--md-primary);
+                color: white;
+            }
+
+            .btn-secondary {
+                background-color: transparent;
+                border: 1px solid var(--md-primary);
+                color: var(--md-primary);
+            }
+
+            .btn:hover {
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <svg class="offline-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M23.64 7c-.45-.34-4.93-4-11.64-4-1.5 0-2.89.19-4.15.48L18.18 13.8 23.64 7zm-6.6 8.22L3.27 1.44 2 2.72l2.05 2.06C1.91 5.76.59 6.82.36 7l11.63 14.49.01.01.01-.01 3.9-4.86 3.32 3.32 1.27-1.27-3.46-3.46z"/>
+        </svg>
+        <h1>Vous etes hors ligne</h1>
+        <p>Impossible de charger cette page. Verifiez votre connexion internet et reessayez.</p>
+        <div class="buttons">
+            <button class="btn btn-secondary" onclick="history.back()">Retour</button>
+            <button class="btn btn-primary" id="retry-btn">Reessayer</button>
+        </div>
+
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const targetUrl = params.get('url') || '/';
+
+            document.getElementById('retry-btn').addEventListener('click', () => {
+                if (navigator.onLine) {
+                    window.location.href = targetUrl;
+                } else {
+                    alert('Toujours hors ligne. Verifiez votre connexion.');
+                }
+            });
+
+            // Redirige automatiquement quand la connexion revient
+            window.addEventListener('online', () => {
+                window.location.href = targetUrl;
+            });
+        </script>
+    </body>
+</html>

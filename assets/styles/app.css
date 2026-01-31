@@ -934,6 +934,7 @@ body {
     background-color: var(--md-warning);
     bottom: var(--bottom-nav-height);
     color: #000;
+    display: none;
     font-size: 0.875rem;
     left: 0;
     padding: var(--md-spacing-sm);
@@ -941,6 +942,10 @@ body {
     right: 0;
     text-align: center;
     z-index: 99;
+}
+
+body[data-connection-status="OFFLINE"] .offline-indicator {
+    display: block;
 }
 
 /* ISBN Lookup */

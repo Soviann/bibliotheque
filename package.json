@@ -1,0 +1,26 @@
+{
+  "name": "html",
+  "version": "1.0.0",
+  "description": "Application web de gestion de collection de BD, Comics, Mangas et Livres avec support hors-ligne (PWA).",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Soviann/bibliotheqe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Soviann/bibliotheqe/issues"
+  },
+  "homepage": "https://github.com/Soviann/bibliotheqe#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.1"
+  }
+}

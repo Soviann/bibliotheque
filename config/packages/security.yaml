@@ -30,6 +30,9 @@ security:
 
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/manifest\.webmanifest$, roles: PUBLIC_ACCESS }
+        - { path: ^/offline, roles: PUBLIC_ACCESS }
+        - { path: ^/sw\.js$, roles: PUBLIC_ACCESS }
         - { path: ^/, roles: ROLE_USER }
 
 when@test:

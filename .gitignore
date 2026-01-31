@@ -13,6 +13,14 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 
+###> spomky-labs/pwa-bundle ###
+/public/idb/
+/public/manifest.webmanifest
+/public/pwa/
+/public/sw.js
+/public/workbox/
+###< spomky-labs/pwa-bundle ###
+
 ###> vich/uploader-bundle ###
 /public/uploads/
 ###< vich/uploader-bundle ###
@@ -39,6 +47,14 @@
 /.idea/
 /.vscode/
 ###< ide ###
+
+###> node ###
+/node_modules/
+###< node ###
+
+###> playwright ###
+/test-results/
+###< playwright ###
 
 ###> local ###
 .DS_Store

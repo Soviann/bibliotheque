@@ -5,11 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <title>{% block title %}Ma Bibliotheque BD{% endblock %}</title>
         <link rel="icon" href="{{ asset('favicon.png') }}">
-        <link rel="manifest" href="{{ asset('manifest.json') }}">
-        <meta name="theme-color" content="#1976d2">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="BibliotheQue">
+        {{ pwa() }}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -21,7 +17,10 @@
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
     </head>
-    <body {{ stimulus_controller('offline') }}>
+    <body {{ stimulus_controller('pwa--connection-status', {
+        onlineMessage: '',
+        offlineMessage: 'Mode hors ligne'
+    }) }} data-pwa--connection-status-target="attribute">
         <div class="app-container">
             {% if app.user %}
             {# Top App Bar - Desktop only #}
@@ -78,23 +77,8 @@
             </nav>
             {% endif %}
 
-            <div id="offline-indicator" class="offline-indicator" data-offline-target="indicator" hidden>
-                Mode hors ligne
-            </div>
+            <div id="offline-indicator" class="offline-indicator" data-pwa--connection-status-target="message"></div>
         </div>
 
-        <script>
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js')
-                        .then(registration => {
-                            console.log('SW registered:', registration.scope);
-                        })
-                        .catch(error => {
-                            console.log('SW registration failed:', error);
-                        });
-                });
-            }
-        </script>
     </body>
 </html>

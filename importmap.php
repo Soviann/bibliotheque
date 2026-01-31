@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Returns the importmap for this application.
  *
@@ -51,5 +49,14 @@ return [
     'tom-select/dist/css/tom-select.bootstrap5.css' => [
         'version' => '2.4.3',
         'type' => 'css',
+    ],
+    'idb' => [
+        'version' => '8.0.3',
+    ],
+    'idb-keyval' => [
+        'version' => '6.2.2',
+    ],
+    '@spomky-labs/pwa/helpers' => [
+        'path' => './vendor/spomky-labs/pwa-bundle/assets/src/helpers.js',
     ],
 ];
