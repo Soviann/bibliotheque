@@ -9,6 +9,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **APP_SECRET** : Remplacement du secret codé en dur par un placeholder, à définir dans `.env.local`
+
 - **Version PHP minimum** : Passage de PHP 8.2 à PHP 8.3 pour aligner `composer.json` avec la stack technique du projet
 
 - **PWA** : Migration vers `spomky-labs/pwa-bundle` pour une gestion déclarative de la PWA
