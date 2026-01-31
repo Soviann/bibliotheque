@@ -7,37 +7,97 @@ import './stimulus_bootstrap.js';
  */
 import './styles/app.css';
 
-// Gestion des erreurs réseau pour Turbo (mode hors ligne)
-document.addEventListener('turbo:fetch-request-error', async (event) => {
-    event.preventDefault();
+/**
+ * Injecte le HTML d'une page et réinitialise l'indicateur de connexion.
+ * @param {string} html - Le contenu HTML à injecter
+ * @param {string} url - L'URL à afficher dans la barre d'adresse
+ * @param {boolean} pushState - Si true, ajoute à l'historique ; si false, remplace l'état actuel
+ */
+async function injectPageContent(html, url, pushState = true) {
+    document.documentElement.innerHTML = html;
 
-    // Récupère l'URL cible depuis l'événement
-    const targetUrl = event.detail?.request?.url || null;
-
-    if (targetUrl) {
-        // Vérifie si la page est dans le cache des pages
-        const cache = await caches.open('bibliotheque-pages');
-        const cachedResponse = await cache.match(targetUrl);
-
-        if (cachedResponse) {
-            // Page en cache : injecte le contenu directement depuis le cache
-            const html = await cachedResponse.text();
-            document.documentElement.innerHTML = html;
-            history.pushState({}, '', targetUrl);
-            return;
-        }
+    if (pushState) {
+        history.pushState({ cachedPage: true }, '', url);
+    } else {
+        history.replaceState({ cachedPage: true }, '', url);
     }
 
-    // Page pas en cache : charge la page offline depuis le cache du SW
+    // Réinitialise l'indicateur de connexion après injection du HTML
+    // Le contrôleur Stimulus pwa--connection-status est perdu lors du remplacement innerHTML
+    updateOfflineIndicator();
+}
+
+/**
+ * Met à jour l'indicateur de connexion manuellement.
+ * Nécessaire car le contrôleur Stimulus n'est pas réinitialisé après innerHTML.
+ */
+function updateOfflineIndicator() {
+    const indicator = document.getElementById('offline-indicator');
+    if (indicator) {
+        if (navigator.onLine) {
+            indicator.textContent = '';
+            indicator.style.display = 'none';
+        } else {
+            indicator.textContent = 'Mode hors ligne';
+            indicator.style.display = '';
+        }
+    }
+}
+
+/**
+ * Charge une page depuis le cache ou affiche la page offline.
+ * @param {string} url - L'URL de la page à charger
+ * @param {boolean} pushState - Si true, ajoute à l'historique
+ * @returns {Promise<boolean>} - true si une page a été chargée
+ */
+async function loadPageFromCache(url, pushState = true) {
+    // Vérifie si la page est dans le cache
+    const cache = await caches.open('bibliotheque-pages');
+    const cachedResponse = await cache.match(url);
+
+    if (cachedResponse) {
+        const html = await cachedResponse.text();
+        await injectPageContent(html, url, pushState);
+        return true;
+    }
+
+    // Page pas en cache : charge la page offline
     const offlineCache = await caches.open('offline');
     const offlineResponse = await offlineCache.match('/offline');
 
     if (offlineResponse) {
         const html = await offlineResponse.text();
-        document.documentElement.innerHTML = html;
-        history.pushState({}, '', '/offline');
+        await injectPageContent(html, '/offline', pushState);
     } else {
-        // Fallback: navigation classique
         window.location.href = '/offline';
     }
+
+    return false;
+}
+
+// Gestion des erreurs réseau pour Turbo (mode hors ligne)
+document.addEventListener('turbo:fetch-request-error', async (event) => {
+    event.preventDefault();
+
+    const targetUrl = event.detail?.request?.url || null;
+
+    if (targetUrl) {
+        await loadPageFromCache(targetUrl, true);
+    } else {
+        await loadPageFromCache('/offline', true);
+    }
+});
+
+// Gestion du retour arrière (popstate) en mode hors ligne
+window.addEventListener('popstate', async (event) => {
+    // Ne gère que si on est hors ligne
+    if (navigator.onLine) {
+        return;
+    }
+
+    // Récupère l'URL actuelle (celle vers laquelle on navigue)
+    const targetUrl = window.location.href;
+
+    // Charge la page depuis le cache sans ajouter à l'historique
+    await loadPageFromCache(targetUrl, false);
 });

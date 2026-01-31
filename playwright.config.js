@@ -8,7 +8,7 @@ module.exports = defineConfig({
         timeout: 5000
     },
     use: {
-        baseURL: 'https://bibliotheque.ddev.site',
+        baseURL: 'https://test.bibliotheque.ddev.site',
         ignoreHTTPSErrors: true,
         trace: 'on-first-retry',
         // Accepte les certificats auto-signés

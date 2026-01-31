@@ -338,3 +338,224 @@ test.describe('Navigation hors ligne sur pages visitees', () => {
         expect(pagesServedFromCache).toBeGreaterThan(0);
     });
 });
+
+test.describe('Indicateur hors ligne persistant', () => {
+
+    test('indicateur hors ligne visible apres retour de page offline vers page cachee', async ({ page, context }) => {
+        // Ce test vérifie que l'indicateur "Mode hors ligne" reste visible
+        // après être passé par la page offline puis retourné sur une page en cache.
+
+        // 1. Connexion et installation du SW
+        await login(page);
+        await waitForServiceWorker(page);
+
+        // 2. Visite l'accueil pour le mettre en cache
+        await page.goto(`${BASE_URL}/`);
+        await page.waitForLoadState('networkidle');
+
+        // 3. Vérifie que l'accueil est en cache
+        const homeInCache = await page.evaluate(async () => {
+            const cache = await caches.open('bibliotheque-pages');
+            const keys = await cache.keys();
+            return keys.some(req => {
+                const url = new URL(req.url);
+                return url.pathname === '/';
+            });
+        });
+        expect(homeInCache).toBe(true);
+
+        // 4. Active le mode offline
+        await context.setOffline(true);
+
+        // 5. Navigation vers une page NON cachée (devrait afficher page offline)
+        await page.goto(`${BASE_URL}/search?q=nonexistent`, { waitUntil: 'commit' }).catch(() => {});
+        await page.waitForTimeout(2000);
+
+        // Vérifie qu'on est sur la page offline
+        const offlineContent = await page.content();
+        expect(offlineContent).toContain('Vous etes hors ligne');
+
+        // 6. Retour sur l'accueil (page en cache) via navigation Turbo
+        // Simule un clic sur le lien ou utilise history.back()
+        const homeLink = page.locator('a[href="/"]').first();
+        if (await homeLink.isVisible()) {
+            await homeLink.click();
+        } else {
+            // La page offline a un bouton "Retour" qui fait history.back()
+            await page.click('.btn-secondary'); // Bouton "Retour"
+        }
+        await page.waitForTimeout(2000);
+
+        // 7. Vérifie qu'on affiche l'accueil (pas la page offline fallback)
+        const homeContent = await page.content();
+        expect(homeContent).not.toContain('Vous etes hors ligne');
+
+        // 8. POINT CRUCIAL : Vérifie que l'indicateur "Mode hors ligne" est visible
+        const offlineIndicator = page.locator('#offline-indicator');
+        await expect(offlineIndicator).toBeVisible();
+        await expect(offlineIndicator).toContainText('Mode hors ligne');
+    });
+
+    test('indicateur hors ligne visible sur page cachee apres navigation Turbo depuis page offline', async ({ page, context }) => {
+        // Variante : navigation Turbo vers page cachée après avoir été sur page offline
+
+        // 1. Connexion et installation du SW
+        await login(page);
+        await waitForServiceWorker(page);
+
+        // 2. Visite wishlist pour la mettre en cache
+        await page.goto(`${BASE_URL}/wishlist`);
+        await page.waitForLoadState('networkidle');
+
+        // 3. Visite l'accueil pour le mettre en cache aussi
+        await page.goto(`${BASE_URL}/`);
+        await page.waitForLoadState('networkidle');
+
+        // 4. Active le mode offline
+        await context.setOffline(true);
+
+        // 5. Tente de naviguer vers une page non cachée via Turbo (recherche)
+        const searchLink = page.locator('a[href="/search"]').first();
+        if (await searchLink.isVisible()) {
+            await searchLink.click();
+            await page.waitForTimeout(2000);
+
+            // Devrait afficher la page offline
+            let content = await page.content();
+            const isOnOfflinePage = content.includes('Vous etes hors ligne');
+
+            if (isOnOfflinePage) {
+                // 6. Navigation vers page cachée (wishlist)
+                const wishlistLink = page.locator('a[href="/wishlist"]').first();
+                if (await wishlistLink.isVisible()) {
+                    await wishlistLink.click();
+                } else {
+                    await page.goto(`${BASE_URL}/wishlist`, { waitUntil: 'commit' }).catch(() => {});
+                }
+                await page.waitForTimeout(2000);
+
+                // 7. Vérifie qu'on n'est PAS sur la page offline fallback
+                content = await page.content();
+                expect(content).not.toContain('Vous etes hors ligne');
+
+                // 8. Vérifie que l'indicateur "Mode hors ligne" est visible
+                const offlineIndicator = page.locator('#offline-indicator');
+                await expect(offlineIndicator).toBeVisible();
+                await expect(offlineIndicator).toContainText('Mode hors ligne');
+            } else {
+                // La page recherche était peut-être en cache, skip ce test
+                test.skip();
+            }
+        } else {
+            test.skip();
+        }
+    });
+
+    test('indicateur hors ligne visible apres history.back() depuis page offline', async ({ page, context }) => {
+        // Ce test simule le scénario exact rapporté :
+        // 1. Page en cache avec indicateur → 2. Page offline → 3. history.back() → indicateur absent
+
+        // 1. Connexion et installation du SW
+        await login(page);
+        await waitForServiceWorker(page);
+
+        // 2. Visite l'accueil pour le mettre en cache
+        await page.goto(`${BASE_URL}/`);
+        await page.waitForLoadState('networkidle');
+
+        // 3. Visite la page recherche pour avoir une page dans l'historique
+        await page.goto(`${BASE_URL}/search`);
+        await page.waitForLoadState('networkidle');
+
+        // 4. Retourne sur l'accueil (maintenant dans l'historique)
+        await page.goto(`${BASE_URL}/`);
+        await page.waitForLoadState('networkidle');
+
+        // 5. Active le mode offline
+        await context.setOffline(true);
+
+        // 6. Attendre que l'événement offline soit détecté
+        await page.waitForTimeout(1000);
+
+        // 7. Vérifie que l'indicateur est visible
+        const indicatorBefore = page.locator('#offline-indicator');
+        await expect(indicatorBefore).toBeVisible();
+        await expect(indicatorBefore).toContainText('Mode hors ligne');
+
+        // 8. Navigation vers une page NON cachée (déclenche turbo:fetch-request-error)
+        // La page /comic/999 n'existe pas et n'est pas en cache
+        await page.goto(`${BASE_URL}/comic/999`, { waitUntil: 'commit' }).catch(() => {});
+        await page.waitForTimeout(2000);
+
+        // 9. Vérifie qu'on est sur la page offline
+        let content = await page.content();
+        expect(content).toContain('Vous etes hors ligne');
+
+        // 10. Retour avec history.back()
+        await page.goBack();
+        await page.waitForTimeout(2000);
+
+        // 11. Vérifie qu'on est revenu sur l'accueil (pas la page offline)
+        content = await page.content();
+        const isBackOnHome = !content.includes('Vous etes hors ligne');
+        expect(isBackOnHome).toBe(true);
+
+        // 12. POINT CRUCIAL : L'indicateur "Mode hors ligne" doit être visible
+        const indicatorAfter = page.locator('#offline-indicator');
+        await expect(indicatorAfter).toBeVisible();
+        await expect(indicatorAfter).toContainText('Mode hors ligne');
+    });
+
+    test('indicateur hors ligne visible apres navigation Turbo vers page offline puis retour via lien', async ({ page, context }) => {
+        // Scénario avec clics sur liens (navigation Turbo réelle) :
+        // 1. Accueil (en cache) → 2. Clic vers page non cachée (page offline) → 3. Clic sur lien vers page cachée → indicateur ?
+
+        // 1. Connexion et installation du SW
+        await login(page);
+        await waitForServiceWorker(page);
+
+        // 2. Visite l'accueil et la wishlist pour les mettre en cache
+        await page.goto(`${BASE_URL}/`);
+        await page.waitForLoadState('networkidle');
+        await page.goto(`${BASE_URL}/wishlist`);
+        await page.waitForLoadState('networkidle');
+
+        // 3. Retour sur l'accueil
+        await page.goto(`${BASE_URL}/`);
+        await page.waitForLoadState('networkidle');
+
+        // 4. Active le mode offline
+        await context.setOffline(true);
+        await page.waitForTimeout(1000);
+
+        // 5. Vérifie l'indicateur avant navigation
+        const indicatorBefore = page.locator('#offline-indicator');
+        await expect(indicatorBefore).toBeVisible();
+        await expect(indicatorBefore).toContainText('Mode hors ligne');
+
+        // 6. Clic sur le lien Recherche (page non cachée) - Navigation Turbo
+        const searchLink = page.locator('a[href="/search"]').first();
+        await searchLink.click();
+        await page.waitForTimeout(3000);
+
+        // 7. On devrait être sur la page offline (via injection HTML dans app.js)
+        let content = await page.content();
+        const isOnOfflinePage = content.includes('Vous etes hors ligne');
+        expect(isOnOfflinePage).toBe(true);
+
+        // 8. Navigation vers page cachée (wishlist) depuis la page offline
+        // Note: la page offline n'a pas de navigation, on utilise goBack via le navigateur
+        await page.goBack();
+        await page.waitForTimeout(3000);
+
+        // 9. Vérifie qu'on est revenu sur une page cachée (accueil)
+        content = await page.content();
+        const isBackOnCachedPage = !content.includes('Vous etes hors ligne');
+        expect(isBackOnCachedPage).toBe(true);
+
+        // 10. POINT CRUCIAL : L'indicateur doit être visible après retour
+        const indicatorAfterReturn = page.locator('#offline-indicator');
+        await expect(indicatorAfterReturn).toBeVisible();
+        await expect(indicatorAfterReturn).toContainText('Mode hors ligne');
+    });
+});

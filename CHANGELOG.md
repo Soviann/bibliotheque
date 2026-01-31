@@ -7,6 +7,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Indicateur hors ligne persistant** : Correction de l'affichage de l'indicateur "Mode hors ligne" après retour depuis la page offline
+  - L'indicateur disparaissait après navigation vers une page non cachée puis retour sur une page cachée
+  - Ajout d'un gestionnaire `popstate` pour gérer le retour arrière en mode offline
+  - Fonction `updateOfflineIndicator()` pour réinitialiser manuellement l'indicateur après injection HTML
+  - 4 nouveaux tests Playwright couvrant les scénarios de navigation offline
+
 ### Added
 
 - **Documentation complète** : Dossier `docs/` avec documentation catégorisée
