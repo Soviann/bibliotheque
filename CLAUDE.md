@@ -34,6 +34,59 @@ Ces règles sont **obligatoires** pour tout code PHP écrit ou modifié :
 6. **Documentation en français** : PHPDoc, commentaires inline
 7. **Standards Symfony** : https://symfony.com/doc/current/contributing/code/standards.html
 
+## Méthodologie TDD (Test-Driven Development)
+
+**Obligatoire** : tout développement de fonctionnalité ou correction de bug suit le cycle TDD.
+
+### Cycle Red-Green-Refactor
+
+Pour chaque nouvelle fonctionnalité ou bug à corriger :
+
+1. **RED** — Écrire le test en premier
+   - Créer le fichier de test avant le code de production
+   - Le test décrit le comportement attendu
+   - Exécuter le test : il **doit échouer** (rouge)
+
+2. **GREEN** — Écrire le minimum de code pour faire passer le test
+   - Implémenter uniquement ce qui est nécessaire
+   - Ne pas anticiper les besoins futurs
+   - Exécuter le test : il **doit passer** (vert)
+
+3. **REFACTOR** — Améliorer le code sans changer le comportement
+   - Nettoyer, simplifier, éliminer les duplications
+   - Les tests doivent rester verts après refactoring
+
+### Application pratique
+
+```bash
+# 1. Créer/modifier le test
+# tests/Service/MonServiceTest.php
+
+# 2. Exécuter le test (doit échouer)
+ddev exec bin/phpunit tests/Service/MonServiceTest.php
+
+# 3. Implémenter le code
+# src/Service/MonService.php
+
+# 4. Exécuter le test (doit passer)
+ddev exec bin/phpunit tests/Service/MonServiceTest.php
+
+# 5. Refactoriser si nécessaire, relancer les tests
+```
+
+### Types de tests
+
+- **Tests unitaires** (`tests/`) : services, entités, logique métier
+- **Tests fonctionnels** (`tests/Controller/`) : contrôleurs, requêtes HTTP
+- **Tests Behat** (`features/`) : scénarios utilisateur end-to-end
+
+### Exceptions au TDD
+
+Le TDD n'est **pas requis** pour :
+- Modifications de templates Twig uniquement
+- Fichiers de configuration (YAML, .env)
+- Migrations Doctrine (générées automatiquement)
+
 ## Outils de qualité
 
 **Après chaque modification de code PHP**, exécuter sur les fichiers modifiés :
