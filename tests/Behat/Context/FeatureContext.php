@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Behat\Context;
 
 use Behat\Behat\Context\Context;
+use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\RawMinkContext;
@@ -14,6 +15,25 @@ use Behat\MinkExtension\Context\RawMinkContext;
  */
 final class FeatureContext extends RawMinkContext implements Context
 {
+    /**
+     * Préchauffage de la session Selenium avant chaque scénario JavaScript.
+     * Cela évite les timeouts lors de la création de la première session.
+     *
+     * @BeforeScenario @javascript
+     */
+    public function warmupSeleniumSession(BeforeScenarioScope $scope): void
+    {
+        // Force l'initialisation de la session en accédant à une page
+        try {
+            $session = $this->getSession();
+            if (!$session->isStarted()) {
+                $session->start();
+            }
+        } catch (\Exception $e) {
+            // Si la session ne peut pas démarrer, on laisse le scénario échouer naturellement
+        }
+    }
+
     /**
      * Attend qu'un élément soit visible sur la page.
      *
