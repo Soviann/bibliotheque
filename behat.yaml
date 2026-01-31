@@ -1,0 +1,76 @@
+default:
+    suites:
+        default:
+            contexts:
+                - App\Tests\Behat\Context\AuthenticationContext
+                - App\Tests\Behat\Context\ComicSeriesContext
+                - App\Tests\Behat\Context\DatabaseContext
+                - App\Tests\Behat\Context\FeatureContext
+                - App\Tests\Behat\Context\FormContext
+                - App\Tests\Behat\Context\NavigationContext
+            paths:
+                - tests/Behat/Features
+
+    extensions:
+        FriendsOfBehat\SymfonyExtension:
+            bootstrap: tests/bootstrap.php
+            kernel:
+                class: App\Kernel
+                environment: test
+                debug: true
+        Behat\MinkExtension:
+            base_url: 'https://bibliotheque.ddev.site'
+            default_session: symfony
+            sessions:
+                symfony:
+                    symfony: ~
+                selenium2:
+                    selenium2:
+                        wd_host: 'http://ddev-bibliotheque-chrome:4444/wd/hub'
+                        capabilities:
+                            browserName: chrome
+                            extra_capabilities:
+                                'goog:chromeOptions':
+                                    args:
+                                        - '--headless'
+                                        - '--disable-gpu'
+                                        - '--no-sandbox'
+                                        - '--disable-dev-shm-usage'
+
+javascript:
+    suites:
+        default:
+            contexts:
+                - App\Tests\Behat\Context\AuthenticationContext
+                - App\Tests\Behat\Context\ComicSeriesContext
+                - App\Tests\Behat\Context\DatabaseContext
+                - App\Tests\Behat\Context\FeatureContext
+                - App\Tests\Behat\Context\FormContext
+                - App\Tests\Behat\Context\NavigationContext
+            paths:
+                - tests/Behat/Features
+
+    extensions:
+        FriendsOfBehat\SymfonyExtension:
+            bootstrap: tests/bootstrap.php
+            kernel:
+                class: App\Kernel
+                environment: test
+                debug: true
+        Behat\MinkExtension:
+            base_url: 'https://bibliotheque.ddev.site'
+            default_session: selenium2
+            javascript_session: selenium2
+            sessions:
+                selenium2:
+                    selenium2:
+                        wd_host: 'http://ddev-bibliotheque-chrome:4444/wd/hub'
+                        capabilities:
+                            browserName: chrome
+                            extra_capabilities:
+                                'goog:chromeOptions':
+                                    args:
+                                        - '--headless'
+                                        - '--disable-gpu'
+                                        - '--no-sandbox'
+                                        - '--disable-dev-shm-usage'

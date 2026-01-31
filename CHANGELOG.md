@@ -21,6 +21,23 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Suite de tests Behat** : Tests d'interface web avec BrowserKit et Selenium
+  - 9 fichiers de features en français couvrant : authentification, création/édition/suppression de séries, filtrage, wishlist, recherche, one-shots et gestion des tomes
+  - 6 contextes Behat : `FeatureContext`, `AuthenticationContext`, `ComicSeriesContext`, `NavigationContext`, `FormContext`, `DatabaseContext`
+  - Profile `default` avec BrowserKit pour les tests rapides sans JavaScript
+  - Profile `javascript` avec Selenium2 via DDEV Chrome pour les tests interactifs
+  - Reset automatique de la base de données avant chaque scénario
+
+- **Suite de tests complète** : 240 tests avec 585 assertions (unitaires, fonctionnels et d'intégration)
+  - Tests des entités (83 tests) : `User`, `Author`, `Tome`, `ComicSeries` avec logique métier (`getCurrentIssue`, `getMissingTomesNumbers`, etc.)
+  - Tests des enums (14 tests) : `ComicStatus`, `ComicType` (valeurs, labels, conversions)
+  - Tests des contrôleurs (54 tests) : `HomeController`, `ComicController`, `SearchController`, `WishlistController`, `ApiController`, `SecurityController` avec authentification et CSRF
+  - Tests des repositories (22 tests) : `ComicSeriesRepository` (filtres, recherche, tri), `AuthorRepository` (findOrCreate, findOrCreateMultiple)
+  - Tests des formulaires (29 tests) : `TomeType`, `ComicSeriesType`, `AuthorAutocompleteType` avec validation et binding
+  - Tests des commandes (10 tests) : `CreateUserCommand`, `ImportExcelCommand` avec hachage de mot de passe
+  - Tests des services (17 tests) : `IsbnLookupService` avec mocks HTTP pour Google Books, Open Library et AniList
+  - Classe de base `AuthenticatedWebTestCase` pour les tests de contrôleurs protégés
+
 - **Recherche par titre** : Nouveau bouton de recherche à côté du champ titre
   - Recherche sur AniList si le type "manga" est sélectionné
   - Recherche sur Google Books pour les autres types
