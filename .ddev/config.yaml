@@ -2,6 +2,9 @@ name: bibliotheque
 type: php
 docroot: public
 php_version: "8.3"
+webimage_extra_packages:
+  - build-essential
+  - zsh
 webserver_type: nginx-fpm
 database:
   type: mariadb
