@@ -9,10 +9,26 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Documentation complète** : Dossier `docs/` avec documentation catégorisée
+  - `docs/installation/` : Guide d'installation et configuration DDEV
+  - `docs/fonctionnalites/` : Gestion de collection, recherche ISBN, mode PWA
+  - `docs/architecture/` : Architecture, entités Doctrine, services
+  - `docs/api/` : Documentation des endpoints REST
+  - `docs/tests/` : Guide d'exécution et écriture des tests
+  - `docs/developpement/` : Standards de code et workflow TDD
+  - `docs/deploiement/` : Guide de mise en production Docker
+  - README.md mis à jour avec liens vers la documentation
+
 - **Tests PWA et offline** : Couverture de tests pour le fonctionnement hors ligne
   - `OfflineControllerTest` : 10 tests fonctionnels pour la page `/offline` (accessibilité, contenu, boutons, meta tags, script JS)
   - `ApiControllerTest` : 4 nouveaux tests pour les réponses 404 et le paramètre type des endpoints ISBN/title lookup
   - `OfflineModeTest` : 5 nouveaux tests Panther pour le manifest PWA, les caches et le Service Worker
+  - `offline.spec.js` : 11 tests Playwright pour la navigation hors ligne
+    - Service Worker installé et actif
+    - Cache offline contient la page `/offline`
+    - Pages visitées accessibles en mode offline (accueil, wishlist)
+    - Navigation Turbo vers pages cachées
+    - API `/api/comics` accessible en mode offline après visite
 
 ### Changed
 
