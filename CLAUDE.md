@@ -96,6 +96,24 @@ ddev exec bin/phpunit tests/Service/MonServiceTest.php
 - **Tests unitaires** (`tests/`) : services, entités, logique métier
 - **Tests fonctionnels** (`tests/Controller/`) : contrôleurs, requêtes HTTP
 - **Tests Behat** (`features/`) : scénarios utilisateur end-to-end
+- **Tests Playwright** (`tests/playwright/`) : tests E2E navigateur
+
+### Environnement de test (OBLIGATOIRE)
+
+**Tous les tests doivent utiliser l'environnement de test dédié**, jamais l'environnement de développement :
+
+| Type de test | Base de données | Hostname |
+|--------------|-----------------|----------|
+| PHPUnit / Panther | `db_test` (suffixe automatique Doctrine) | `https://test.bibliotheque.ddev.site` |
+| Playwright | `db_test` | `https://test.bibliotheque.ddev.site` |
+
+**Configuration obligatoire dans les tests :**
+
+1. **Tests PHPUnit/Panther** : utiliser l'environnement `test` ou `panther` (configuré dans `.env.test`)
+2. **Tests Playwright** : configurer `baseURL: 'https://test.bibliotheque.ddev.site'` dans `playwright.config.js`
+3. **Tests avec client HTTP** : toujours cibler le hostname de test, jamais `bibliotheque.ddev.site`
+
+**Pourquoi ?** La base `db_test` est isolée et peut être vidée/recréée sans affecter les données de développement. Le hostname `test.bibliotheque.ddev.site` pointe vers l'environnement Symfony `test`.
 
 ### Exceptions au TDD
 
