@@ -8,6 +8,12 @@ Application Symfony de gestion de bibliothèque BD/Comics/Mangas avec mode PWA.
 
 **Stack technique** : Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX.
 
+**Contexte** : Claude est le seul développeur sur ce projet. Implications :
+
+- **Pas de revue de code externe** → rigueur maximale sur l'auto-vérification (tests, PHPStan, CS-Fixer)
+- **Continuité entre sessions** → ce fichier et les tests sont la seule mémoire du projet ; les maintenir à jour
+- **Responsabilité complète** → chaque erreur non détectée restera dans le code ; ne jamais prendre de raccourcis
+
 ## Principe fondamental : ne pas réinventer la roue
 
 **Obligatoire avant toute implémentation** : vérifier si une solution existante, éprouvée et maintenue, répond au besoin.
