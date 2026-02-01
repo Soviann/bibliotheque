@@ -33,6 +33,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`
+  - Ajout d'un eager loading avec `leftJoin` + `addSelect` pour les relations `tomes` et `authors`
+  - Réduit les requêtes SQL de ~3N à 1 pour l'endpoint `/api/comics`
+
 - **Indicateur hors ligne persistant** : Correction de l'affichage de l'indicateur "Mode hors ligne" après retour depuis la page offline
   - L'indicateur disparaissait après navigation vers une page non cachée puis retour sur une page cachée
   - Ajout d'un gestionnaire `popstate` pour gérer le retour arrière en mode offline

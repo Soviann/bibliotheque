@@ -157,12 +157,21 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne toutes les séries avec leurs relations pour l'API PWA.
+     *
+     * Utilise un eager loading avec leftJoin + addSelect pour éviter
+     * le problème N+1 (une requête par série pour chaque relation).
+     *
      * @return list<array<string, mixed>>
      */
     public function findAllForApi(): array
     {
         /** @var ComicSeries[] $comics */
         $comics = $this->createQueryBuilder('c')
+            ->leftJoin('c.authors', 'a')
+            ->addSelect('a')
+            ->leftJoin('c.tomes', 't')
+            ->addSelect('t')
             ->orderBy('c.title', 'ASC')
             ->getQuery()
             ->getResult();
