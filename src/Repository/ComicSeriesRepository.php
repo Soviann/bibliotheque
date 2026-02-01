@@ -106,32 +106,6 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return ComicSeries[]
-     *
-     * @deprecated Use findWithFilters instead
-     */
-    public function findLibrary(?ComicType $type = null): array
-    {
-        return $this->findWithFilters([
-            'isWishlist' => false,
-            'type' => $type,
-        ]);
-    }
-
-    /**
-     * @return ComicSeries[]
-     *
-     * @deprecated Use findWithFilters instead
-     */
-    public function findWishlist(?ComicType $type = null): array
-    {
-        return $this->findWithFilters([
-            'isWishlist' => true,
-            'type' => $type,
-        ]);
-    }
-
-    /**
      * Recherche par titre ou ISBN de tome.
      *
      * @return ComicSeries[]

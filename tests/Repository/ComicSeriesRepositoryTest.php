@@ -380,50 +380,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
     }
 
     /**
-     * Teste findLibrary (méthode dépréciée).
-     */
-    public function testFindLibrary(): void
-    {
-        $library = $this->createSeries('Library Deprecated Test', false, ComicType::MANGA);
-        $wishlist = $this->createSeries('Wishlist Deprecated Test', true, ComicType::MANGA);
-        $this->em->flush();
-
-        $results = $this->repository->findLibrary(ComicType::MANGA);
-
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
-
-        self::assertContains('Library Deprecated Test', $titles);
-        self::assertNotContains('Wishlist Deprecated Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($library);
-        $this->em->remove($wishlist);
-        $this->em->flush();
-    }
-
-    /**
-     * Teste findWishlist (méthode dépréciée).
-     */
-    public function testFindWishlist(): void
-    {
-        $library = $this->createSeries('Library Wish Test', false, ComicType::COMICS);
-        $wishlist = $this->createSeries('Wishlist Wish Test', true, ComicType::COMICS);
-        $this->em->flush();
-
-        $results = $this->repository->findWishlist(ComicType::COMICS);
-
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
-
-        self::assertContains('Wishlist Wish Test', $titles);
-        self::assertNotContains('Library Wish Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($library);
-        $this->em->remove($wishlist);
-        $this->em->flush();
-    }
-
-    /**
      * Crée et persiste une série pour les tests.
      * Note: isWishlist est dérivé du statut (WISHLIST → isWishlist=true).
      */

@@ -177,13 +177,14 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Extraire la logique d'extraction des filtres depuis la requête (`type`, `nas`, `search`, `sort`) pour éviter la duplication entre les deux contrôleurs.
 - **Statut** : ✅ Terminé - DTO `ComicFilters` créé avec `#[MapQueryString]` (approche Symfony native plutôt qu'un service custom). Le DTO gère la conversion des paramètres query string vers les types attendus (enum via `tryFrom()`, booléen, etc.).
 
-### 5.4 Supprimer le code mort
+### 5.4 ~~Supprimer le code mort~~ ✅
 
 - **Priorité** : BASSE
 - **Fichiers** :
   - `assets/controllers/hello_controller.js` (template par défaut, non utilisé)
   - `src/Repository/ComicSeriesRepository.php` : méthodes `findLibrary()` et `findWishlist()` marquées `@deprecated`
 - **Description** : Vérifier qu'aucune référence n'existe avant suppression.
+- **Statut** : ✅ Terminé - Fichier hello_controller.js supprimé, méthodes findLibrary() et findWishlist() retirées du repository avec leurs tests
 
 ---
 

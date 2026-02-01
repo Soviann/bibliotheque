@@ -51,6 +51,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Removed
 
+- **Code mort supprimé** : Nettoyage du code non utilisé
+  - `assets/controllers/hello_controller.js` : template par défaut Stimulus non utilisé
+  - `ComicSeriesRepository::findLibrary()` et `::findWishlist()` : méthodes dépréciées remplacées par `findWithFilters()`
+
 - **Onglet Recherche** : Suppression du lien "Recherche" dans la navigation (desktop et mobile)
   - La recherche est maintenant intégrée dans les pages Bibliothèque et Wishlist via les filtres
 
