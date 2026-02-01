@@ -365,4 +365,5 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
 }

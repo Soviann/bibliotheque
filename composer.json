@@ -14,6 +14,7 @@
         "doctrine/orm": "^3.6",
         "knpuniversity/oauth2-client-bundle": "^2.20",
         "league/oauth2-google": "^4.1",
+        "nelmio/security-bundle": "^3.8",
         "phpoffice/phpspreadsheet": "^5.4",
         "spomky-labs/pwa-bundle": "*",
         "symfony/asset": "^7.2",

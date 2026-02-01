@@ -54,6 +54,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Message d'erreur explicite : "Cet email est déjà utilisé."
   - Complète la contrainte unique en base de données avec une validation applicative
 
+- **Headers de sécurité HTTP** : Installation de `nelmio/security-bundle`
+  - `X-Content-Type-Options: nosniff` - empêche le sniffing MIME
+  - `X-Frame-Options: DENY` - protège contre le clickjacking
+  - `Referrer-Policy: strict-origin-when-cross-origin` - contrôle les informations de referer
+  - `Content-Security-Policy` - CSP basique autorisant self, inline, et polices Google
+  - 4 tests fonctionnels vérifiant la présence des headers
+
 ### Fixed
 
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`

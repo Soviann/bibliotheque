@@ -61,11 +61,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Ajouter l'attribut `#[UniqueEntity('email', message: 'Cet email est déjà utilisé.')]` sur la classe User pour avoir une validation Symfony en plus de la contrainte base de données.
 - **Statut** : ✅ Terminé
 
-### 2.5 Ajouter les headers de sécurité HTTP
+### 2.5 ~~Ajouter les headers de sécurité HTTP~~ ✅
 
 - **Priorité** : MOYENNE
 - **Action** : Installer `nelmio/security-bundle` ou créer un EventSubscriber
 - **Description** : Ajouter les headers : `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, et une CSP basique.
+- **Statut** : ✅ Terminé - Installation de nelmio/security-bundle avec configuration CSP
 
 ---
 
