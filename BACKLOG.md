@@ -163,11 +163,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
   - Modifier les contrôleurs pour importer ces fonctions.
 - **Statut** : ✅ Terminé - Modules créés, contrôleurs refactorisés (~200 lignes de code dupliqué éliminées)
 
-### 5.2 Refactorer les méthodes dupliquées dans ComicSeries
+### 5.2 ~~Refactorer les méthodes dupliquées dans ComicSeries~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichier** : `src/Entity/ComicSeries.php`
 - **Description** : Extraire une méthode privée `getMaxTomeNumber(?callable $filter): ?int` et l'utiliser dans `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`. Extraire une méthode privée `isIssueComplete(?int $issue): bool` et l'utiliser dans `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`.
+- **Statut** : ✅ Terminé - Méthodes privées créées, 6 méthodes publiques refactorisées
 
 ### 5.3 Créer un service FilterExtractor
 

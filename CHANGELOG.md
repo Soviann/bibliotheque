@@ -40,6 +40,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - `assets/utils/card-renderer.js` : `renderCard()` avec options configurables
   - Élimination de ~200 lignes de code dupliqué entre `library_controller.js` et `search_controller.js`
 
+- **Refactoring ComicSeries** : Extraction de méthodes privées pour éliminer la duplication
+  - `getMaxTomeNumber(?Closure $filter)` : utilisée par `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`
+  - `isIssueComplete(?int $issue)` : utilisée par `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`
+
 ### Removed
 
 - **Onglet Recherche** : Suppression du lien "Recherche" dans la navigation (desktop et mobile)

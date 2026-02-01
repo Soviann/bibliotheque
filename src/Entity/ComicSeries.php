@@ -226,13 +226,7 @@ class ComicSeries
      */
     public function getCurrentIssue(): ?int
     {
-        if ($this->tomes->isEmpty()) {
-            return null;
-        }
-
-        $numbers = $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
-
-        return [] === $numbers ? null : \max($numbers);
+        return $this->getMaxTomeNumber();
     }
 
     public function getDescription(): ?string
@@ -257,15 +251,7 @@ class ComicSeries
      */
     public function getLastBought(): ?int
     {
-        $boughtTomes = $this->tomes->filter(static fn (Tome $t) => $t->isBought());
-
-        if ($boughtTomes->isEmpty()) {
-            return null;
-        }
-
-        $numbers = $boughtTomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
-
-        return [] === $numbers ? null : \max($numbers);
+        return $this->getMaxTomeNumber(static fn (Tome $t) => $t->isBought());
     }
 
     /**
@@ -273,15 +259,7 @@ class ComicSeries
      */
     public function getLastDownloaded(): ?int
     {
-        $downloadedTomes = $this->tomes->filter(static fn (Tome $t) => $t->isDownloaded());
-
-        if ($downloadedTomes->isEmpty()) {
-            return null;
-        }
-
-        $numbers = $downloadedTomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
-
-        return [] === $numbers ? null : \max($numbers);
+        return $this->getMaxTomeNumber(static fn (Tome $t) => $t->isDownloaded());
     }
 
     public function getLatestPublishedIssue(): ?int
@@ -429,13 +407,7 @@ class ComicSeries
      */
     public function isCurrentIssueComplete(): bool
     {
-        $currentIssue = $this->getCurrentIssue();
-
-        if (null === $currentIssue || null === $this->latestPublishedIssue) {
-            return false;
-        }
-
-        return $currentIssue >= $this->latestPublishedIssue;
+        return $this->isIssueComplete($this->getCurrentIssue());
     }
 
     /**
@@ -443,13 +415,7 @@ class ComicSeries
      */
     public function isLastBoughtComplete(): bool
     {
-        $lastBought = $this->getLastBought();
-
-        if (null === $lastBought || null === $this->latestPublishedIssue) {
-            return false;
-        }
-
-        return $lastBought >= $this->latestPublishedIssue;
+        return $this->isIssueComplete($this->getLastBought());
     }
 
     /**
@@ -457,13 +423,7 @@ class ComicSeries
      */
     public function isLastDownloadedComplete(): bool
     {
-        $lastDownloaded = $this->getLastDownloaded();
-
-        if (null === $lastDownloaded || null === $this->latestPublishedIssue) {
-            return false;
-        }
-
-        return $lastDownloaded >= $this->latestPublishedIssue;
+        return $this->isIssueComplete($this->getLastDownloaded());
     }
 
     public function isLatestPublishedIssueComplete(): bool
@@ -497,5 +457,35 @@ class ComicSeries
     public function isWishlist(): bool
     {
         return ComicStatus::WISHLIST === $this->status;
+    }
+
+    /**
+     * Retourne le numéro maximum des tomes, optionnellement filtrés.
+     *
+     * @param \Closure(Tome, int): bool|null $filter Filtre optionnel à appliquer
+     */
+    private function getMaxTomeNumber(?\Closure $filter = null): ?int
+    {
+        $tomes = null !== $filter ? $this->tomes->filter($filter) : $this->tomes;
+
+        if ($tomes->isEmpty()) {
+            return null;
+        }
+
+        $numbers = $tomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
+
+        return [] === $numbers ? null : \max($numbers);
+    }
+
+    /**
+     * Vérifie si un numéro de tome atteint ou dépasse le dernier paru.
+     */
+    private function isIssueComplete(?int $issue): bool
+    {
+        if (null === $issue || null === $this->latestPublishedIssue) {
+            return false;
+        }
+
+        return $issue >= $this->latestPublishedIssue;
     }
 }
