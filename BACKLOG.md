@@ -79,11 +79,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Envelopper les appels `$entityManager->flush()` dans des try/catch pour gérer `UniqueConstraintViolationException` et afficher un message flash approprié au lieu d'une erreur 500.
 - **Statut** : ✅ Terminé - Try/catch sur DriverException dans new(), edit() et delete() avec message flash d'erreur
 
-### 3.2 Améliorer le feedback pour CSRF invalide
+### 3.2 ~~Améliorer le feedback pour CSRF invalide~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichier** : `src/Controller/ComicController.php` (méthodes `delete`, `toLibrary`)
 - **Description** : Quand le token CSRF est invalide, ajouter un message flash d'erreur au lieu de rediriger silencieusement. L'utilisateur doit savoir que son action n'a pas été effectuée.
+- **Statut** : ✅ Terminé - Message flash d'erreur "Token de sécurité invalide" avec early return
 
 ### 3.3 Vérifier les doublons dans CreateUserCommand
 

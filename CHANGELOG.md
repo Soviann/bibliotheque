@@ -67,6 +67,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Try/catch sur `DriverException` dans `ComicController::new()`, `edit()` et `delete()`
   - Message d'erreur utilisateur au lieu d'une erreur 500
 
+- **Feedback CSRF invalide** : Message flash d'erreur affiché quand le token CSRF est invalide
+  - `ComicController::delete()` et `toLibrary()` affichent "Token de sécurité invalide"
+  - L'utilisateur sait maintenant que son action n'a pas été effectuée
+
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`
   - Ajout d'un eager loading avec `leftJoin` + `addSelect` pour les relations `tomes` et `authors`
   - Réduit les requêtes SQL de ~3N à 1 pour l'endpoint `/api/comics`

@@ -86,21 +86,25 @@ class ComicController extends AbstractController
     #[Route('/{id}/delete', name: 'app_comic_delete', methods: ['POST'])]
     public function delete(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$comic->getId(), $request->request->getString('_token'))) {
-            $wasWishlist = $comic->isWishlist();
+        if (!$this->isCsrfTokenValid('delete'.$comic->getId(), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
 
-            try {
-                $entityManager->remove($comic);
-                $entityManager->flush();
+            return $this->redirectToRoute('app_home');
+        }
 
-                $this->addFlash('success', 'La série a été supprimée avec succès.');
+        $wasWishlist = $comic->isWishlist();
 
-                if ($wasWishlist) {
-                    return $this->redirectToRoute('app_wishlist');
-                }
-            } catch (DriverException) {
-                $this->addFlash('error', 'Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+        try {
+            $entityManager->remove($comic);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'La série a été supprimée avec succès.');
+
+            if ($wasWishlist) {
+                return $this->redirectToRoute('app_wishlist');
             }
+        } catch (DriverException) {
+            $this->addFlash('error', 'Une erreur est survenue lors de la suppression. Veuillez réessayer.');
         }
 
         return $this->redirectToRoute('app_home');
@@ -109,13 +113,17 @@ class ComicController extends AbstractController
     #[Route('/{id}/to-library', name: 'app_comic_to_library', methods: ['POST'])]
     public function toLibrary(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('to-library'.$comic->getId(), $request->request->getString('_token'))) {
-            $comic->setIsWishlist(false);
-            $comic->setStatus(ComicStatus::BUYING);
-            $entityManager->flush();
+        if (!$this->isCsrfTokenValid('to-library'.$comic->getId(), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
 
-            $this->addFlash('success', 'La série a été déplacée vers la bibliothèque.');
+            return $this->redirectToRoute('app_home');
         }
+
+        $comic->setIsWishlist(false);
+        $comic->setStatus(ComicStatus::BUYING);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'La série a été déplacée vers la bibliothèque.');
 
         return $this->redirectToRoute('app_home');
     }

@@ -212,9 +212,9 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     }
 
     /**
-     * Teste la suppression d'une série avec CSRF invalide.
+     * Teste la suppression d'une série avec CSRF invalide affiche un message d'erreur.
      */
-    public function testDeleteActionWithInvalidCsrf(): void
+    public function testDeleteActionWithInvalidCsrfShowsErrorFlash(): void
     {
         $client = $this->createAuthenticatedClient();
         $container = static::getContainer();
@@ -233,6 +233,12 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         ]);
 
         self::assertResponseRedirects('/');
+
+        // Suivre la redirection pour voir le message flash
+        $client->followRedirect();
+
+        // Vérifier qu'un message flash d'erreur est affiché
+        self::assertSelectorExists('.alert-error');
 
         // Vérifier que la série n'a PAS été supprimée
         $stillExists = $em->getRepository(ComicSeries::class)->find($seriesId);
@@ -320,9 +326,9 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     }
 
     /**
-     * Teste le déplacement avec CSRF invalide ne fait rien.
+     * Teste le déplacement avec CSRF invalide affiche un message d'erreur.
      */
-    public function testToLibraryWithInvalidCsrf(): void
+    public function testToLibraryWithInvalidCsrfShowsErrorFlash(): void
     {
         $client = $this->createAuthenticatedClient();
         $container = static::getContainer();
@@ -344,8 +350,19 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseRedirects('/');
 
-        // Rafraîchir et vérifier que rien n'a changé
-        $em->refresh($series);
+        // Suivre la redirection pour voir le message flash
+        $client->followRedirect();
+
+        // Vérifier qu'un message flash d'erreur est affiché
+        self::assertSelectorExists('.alert-error');
+
+        // Recharger l'entity manager après followRedirect (kernel rebooted)
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        // Recharger l'entité et vérifier que rien n'a changé
+        $series = $em->getRepository(ComicSeries::class)->find($seriesId);
+        self::assertNotNull($series);
         self::assertTrue($series->isWishlist());
         self::assertSame(ComicStatus::WISHLIST, $series->getStatus());
 
