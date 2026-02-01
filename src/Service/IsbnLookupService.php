@@ -491,7 +491,26 @@ class IsbnLookupService
             $data = $response->toArray();
 
             return $data['name'] ?? null;
-        } catch (\Throwable) {
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->debug('Erreur réseau lors de la récupération de l\'auteur Open Library "{key}": {error}', [
+                'error' => $e->getMessage(),
+                'key' => $authorKey,
+            ]);
+
+            return null;
+        } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $this->logger->debug('Erreur HTTP lors de la récupération de l\'auteur Open Library "{key}": {error}', [
+                'error' => $e->getMessage(),
+                'key' => $authorKey,
+            ]);
+
+            return null;
+        } catch (DecodingExceptionInterface $e) {
+            $this->logger->debug('Réponse JSON invalide pour l\'auteur Open Library "{key}": {error}', [
+                'error' => $e->getMessage(),
+                'key' => $authorKey,
+            ]);
+
             return null;
         }
     }

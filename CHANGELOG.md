@@ -42,6 +42,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - `ClientExceptionInterface/ServerExceptionInterface` : erreurs HTTP (4xx, 5xx) → log warning
   - `DecodingExceptionInterface` : réponses JSON invalides → log error
   - Permet un monitoring plus précis des problèmes d'intégration API
+  - Ajout du logging dans `fetchOpenLibraryAuthor()` qui avalait les exceptions silencieusement
 
 - **Indicateur hors ligne persistant** : Correction de l'affichage de l'indicateur "Mode hors ligne" après retour depuis la page offline
   - L'indicateur disparaissait après navigation vers une page non cachée puis retour sur une page cachée

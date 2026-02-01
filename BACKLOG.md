@@ -22,11 +22,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
   - Créer une exception custom `IsbnLookupException` si nécessaire.
 - **Statut** : ✅ Terminé - Catches spécifiques ajoutés sans exception custom (pas nécessaire car les méthodes retournent null en cas d'erreur)
 
-### 1.3 Ajouter le logging dans `fetchOpenLibraryAuthor()`
+### 1.3 ~~Ajouter le logging dans `fetchOpenLibraryAuthor()`~~ ✅
 
 - **Priorité** : CRITIQUE
 - **Fichier** : `src/Service/IsbnLookupService.php:447-449`
 - **Description** : Le catch block actuel avale silencieusement toutes les exceptions sans aucun log. Ajouter un log `debug` ou `warning` pour tracer les erreurs de récupération des auteurs Open Library.
+- **Statut** : ✅ Terminé - Logs debug ajoutés avec catches spécifiques
 
 ---
 
