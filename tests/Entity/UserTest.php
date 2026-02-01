@@ -13,6 +13,28 @@ use PHPUnit\Framework\TestCase;
 class UserTest extends TestCase
 {
     /**
+     * Teste que la classe User a l'attribut UniqueEntity sur l'email.
+     */
+    public function testUserHasUniqueEntityConstraintOnEmail(): void
+    {
+        $reflectionClass = new \ReflectionClass(User::class);
+        $attributes = $reflectionClass->getAttributes();
+
+        $hasUniqueEntity = false;
+        foreach ($attributes as $attribute) {
+            if (\str_contains($attribute->getName(), 'UniqueEntity')) {
+                $hasUniqueEntity = true;
+                $arguments = $attribute->getArguments();
+                // Vérifie que c'est sur le champ email
+                self::assertContains('email', $arguments);
+                break;
+            }
+        }
+
+        self::assertTrue($hasUniqueEntity, 'User devrait avoir une contrainte UniqueEntity sur email');
+    }
+
+    /**
      * Teste que ROLE_USER est toujours présent dans les rôles.
      */
     public function testGetRolesAlwaysContainsRoleUser(): void

@@ -54,11 +54,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Le header `Referer` est utilisé directement sans validation. Créer une Twig Extension ou une méthode helper qui valide que l'URL de referer commence par le host de l'application avant de l'utiliser.
 - **Statut** : ✅ Terminé - Nouvelle extension Twig `safe_referer()` avec 9 tests unitaires
 
-### 2.4 Ajouter `UniqueEntity` sur l'entité User
+### 2.4 ~~Ajouter `UniqueEntity` sur l'entité User~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichier** : `src/Entity/User.php`
 - **Description** : Ajouter l'attribut `#[UniqueEntity('email', message: 'Cet email est déjà utilisé.')]` sur la classe User pour avoir une validation Symfony en plus de la contrainte base de données.
+- **Statut** : ✅ Terminé
 
 ### 2.5 Ajouter les headers de sécurité HTTP
 

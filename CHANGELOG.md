@@ -50,6 +50,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Mise à jour des templates `comic/show.html.twig` et `comic/_form.html.twig`
   - 9 tests unitaires couvrant les différents scénarios
 
+- **Contrainte UniqueEntity sur User** : Ajout de la validation Symfony pour l'email
+  - Message d'erreur explicite : "Cet email est déjà utilisé."
+  - Complète la contrainte unique en base de données avec une validation applicative
+
 ### Fixed
 
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`
