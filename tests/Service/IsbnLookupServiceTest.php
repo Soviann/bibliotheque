@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Enum\ComicType;
 use App\Service\IsbnLookupService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -369,8 +370,8 @@ class IsbnLookupServiceTest extends TestCase
         $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
         $service = new IsbnLookupService($mockClient, new NullLogger());
 
-        // Le second paramètre 'manga' déclenche l'appel à AniList
-        $result = $service->lookup('2382880309', 'manga');
+        // Le second paramètre ComicType::MANGA déclenche l'appel à AniList
+        $result = $service->lookup('2382880309', ComicType::MANGA);
 
         self::assertNotNull($result);
         // Titre vient de Google Books (prioritaire)
@@ -427,8 +428,8 @@ class IsbnLookupServiceTest extends TestCase
         $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
         $service = new IsbnLookupService($mockClient, new NullLogger());
 
-        // Le second paramètre 'manga' déclenche l'appel à AniList
-        $result = $service->lookup('9782505063391', 'manga');
+        // Le second paramètre ComicType::MANGA déclenche l'appel à AniList
+        $result = $service->lookup('9782505063391', ComicType::MANGA);
 
         self::assertNotNull($result);
         // Auteur complété par AniList
@@ -480,8 +481,8 @@ class IsbnLookupServiceTest extends TestCase
         $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
         $service = new IsbnLookupService($mockClient, new NullLogger());
 
-        // Le second paramètre 'manga' déclenche l'appel à AniList
-        $result = $service->lookup('1234567890', 'manga');
+        // Le second paramètre ComicType::MANGA déclenche l'appel à AniList
+        $result = $service->lookup('1234567890', ComicType::MANGA);
 
         self::assertNotNull($result);
         // Les données Google Books sont conservées (pas remplacées par AniList)
@@ -527,8 +528,8 @@ class IsbnLookupServiceTest extends TestCase
         $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
         $service = new IsbnLookupService($mockClient, new NullLogger());
 
-        // Le second paramètre 'manga' déclenche l'appel à AniList
-        $result = $service->lookup('1234567890', 'manga');
+        // Le second paramètre ComicType::MANGA déclenche l'appel à AniList
+        $result = $service->lookup('1234567890', ComicType::MANGA);
 
         self::assertNotNull($result);
         // Date formatée en YYYY-MM-DD
@@ -636,8 +637,8 @@ class IsbnLookupServiceTest extends TestCase
         $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
         $service = new IsbnLookupService($mockClient, new NullLogger());
 
-        // Le second paramètre 'manga' déclenche l'appel à AniList
-        $result = $service->lookup('1234567890', 'manga');
+        // Le second paramètre ComicType::MANGA déclenche l'appel à AniList
+        $result = $service->lookup('1234567890', ComicType::MANGA);
 
         self::assertNotNull($result);
         // Seuls Story et Art sont inclus, pas Editor

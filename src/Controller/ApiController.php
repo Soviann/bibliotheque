@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\IsbnLookupService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +30,8 @@ class ApiController extends AbstractController
     public function isbnLookup(Request $request, IsbnLookupService $isbnLookupService): JsonResponse
     {
         $isbn = $request->query->get('isbn', '');
-        $type = $request->query->get('type');
+        $typeString = $request->query->get('type');
+        $type = \is_string($typeString) ? ComicType::tryFrom($typeString) : null;
 
         if (empty($isbn)) {
             return $this->json(['error' => 'ISBN requis'], 400);
@@ -51,7 +53,8 @@ class ApiController extends AbstractController
     public function titleLookup(Request $request, IsbnLookupService $isbnLookupService): JsonResponse
     {
         $title = $request->query->get('title', '');
-        $type = $request->query->get('type');
+        $typeString = $request->query->get('type');
+        $type = \is_string($typeString) ? ComicType::tryFrom($typeString) : null;
 
         if (empty($title)) {
             return $this->json(['error' => 'Titre requis'], 400);

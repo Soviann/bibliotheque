@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Enum\ComicType;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -32,12 +33,12 @@ class IsbnLookupService
      * Recherche les informations d'un livre par ISBN.
      * Si le type est "manga", utilise AniList en priorité.
      *
-     * @param string      $isbn L'ISBN à rechercher
-     * @param string|null $type Le type sélectionné (manga, bd, comics, livre)
+     * @param string         $isbn L'ISBN à rechercher
+     * @param ComicType|null $type Le type sélectionné
      *
      * @return array<string, mixed>|null Les données du livre ou null si non trouvé
      */
-    public function lookup(string $isbn, ?string $type = null): ?array
+    public function lookup(string $isbn, ?ComicType $type = null): ?array
     {
         // Nettoie l'ISBN (supprime les tirets et espaces)
         $isbn = \preg_replace('/[\s-]/', '', $isbn) ?? '';
@@ -59,7 +60,7 @@ class IsbnLookupService
         $mergedResult = $this->mergeResults($googleResult, $openLibraryResult);
 
         // Si le type est manga, enrichit avec AniList
-        if ('manga' === $type) {
+        if (ComicType::MANGA === $type) {
             $title = $mergedResult['title'] ?? null;
             if (\is_string($title) && '' !== $title) {
                 $anilistResult = $this->lookupAniList($title);
@@ -79,12 +80,12 @@ class IsbnLookupService
      * Recherche les informations par titre.
      * Si le type est "manga", utilise AniList en priorité.
      *
-     * @param string      $title Le titre à rechercher
-     * @param string|null $type  Le type sélectionné (manga, bd, comics, livre)
+     * @param string         $title Le titre à rechercher
+     * @param ComicType|null $type  Le type sélectionné
      *
      * @return array<string, mixed>|null Les données ou null si non trouvé
      */
-    public function lookupByTitle(string $title, ?string $type = null): ?array
+    public function lookupByTitle(string $title, ?ComicType $type = null): ?array
     {
         $title = \trim($title);
 
@@ -93,7 +94,7 @@ class IsbnLookupService
         }
 
         // Si le type est manga, cherche sur AniList en priorité
-        if ('manga' === $type) {
+        if (ComicType::MANGA === $type) {
             $anilistResult = $this->lookupAniList($title);
             if (null !== $anilistResult) {
                 return [
