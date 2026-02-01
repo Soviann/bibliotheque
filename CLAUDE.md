@@ -120,6 +120,20 @@ Ces règles sont **obligatoires** pour tout code PHP écrit ou modifié :
 6. **Documentation en français** : PHPDoc, commentaires inline
 7. **Standards Symfony** : https://symfony.com/doc/current/contributing/code/standards.html
 
+## Validation des entités
+
+Pour valider les contraintes d'une entité avant persist, utiliser `ValidatorInterface` plutôt qu'une recherche manuelle. Cela réutilise les contraintes définies sur l'entité (`UniqueEntity`, `NotBlank`, etc.) :
+
+```php
+$errors = $this->validator->validate($entity);
+if (\count($errors) > 0) {
+    foreach ($errors as $error) {
+        // Adapter selon le contexte : addFlash(), $io->error(), throw, etc.
+    }
+    // Ne pas persister, retourner une erreur
+}
+```
+
 ## TDD : Mode de développement obligatoire
 
 **Le TDD est le mode de fonctionnement par défaut.** Chaque développement commence par un test.
@@ -203,6 +217,17 @@ Le TDD n'est **pas requis** pour :
 
 **Attention** : si un template Twig contient de la logique complexe, extraire cette logique dans un service et tester ce service.
 
+### Tests des exceptions Doctrine
+
+Pour tester les `DriverException` (UniqueConstraintViolation, etc.) en test unitaire, créer une vraie instance car `Driver\Exception` étend `Throwable` et ne peut pas être mockée :
+
+```php
+$driverException = new class('Message', 1062) extends \Exception implements DriverExceptionInterface {
+    public function getSQLState(): string { return '23000'; }
+};
+$exception = new UniqueConstraintViolationException($driverException, null);
+```
+
 ## Outils de qualité
 
 **Après chaque modification de code PHP**, exécuter dans cet ordre :
@@ -252,6 +277,8 @@ Corps optionnel
 **Exemple** : `feat(isbn): add ISBN lookup via Google Books API`
 
 **Ne pas inclure** de trailer `Co-Authored-By`.
+
+**Rebase avec fixup automatique** : `GIT_SEQUENCE_EDITOR=: git rebase -i --autosquash <commit>~1`
 
 ## Changelog
 
