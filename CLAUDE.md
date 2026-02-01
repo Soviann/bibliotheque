@@ -8,6 +8,42 @@ Application Symfony de gestion de bibliothèque BD/Comics/Mangas avec mode PWA.
 
 **Stack technique** : Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX.
 
+## Principe fondamental : ne pas réinventer la roue
+
+**Obligatoire avant toute implémentation** : vérifier si une solution existante, éprouvée et maintenue, répond au besoin.
+
+### Ordre de recherche
+
+1. **Composant natif du framework** — Symfony, Doctrine, ou l'écosystème utilisé
+2. **Bundle/package officiel** — extensions maintenues par l'équipe du framework
+3. **Librairie tierce populaire** — solutions communautaires largement adoptées
+4. **Implémentation custom** — uniquement si aucune solution existante ne convient
+
+### Critères de sélection d'une librairie tierce
+
+| Critère | Exigence |
+|---------|----------|
+| Maintenance | Commits récents (< 6 mois), issues traitées |
+| Popularité | Nombre d'étoiles/téléchargements significatif |
+| Compatibilité | Compatible avec la stack actuelle (PHP 8.3, Symfony 7.x) |
+| Documentation | Documentation claire et à jour |
+| Licence | Licence compatible (MIT, Apache, BSD) |
+
+### Ressources de recherche
+
+| Technologie | Où chercher |
+|-------------|-------------|
+| PHP/Symfony | Packagist, Symfony Flex recipes, symfony.com/bundles |
+| JavaScript | npm, Symfony UX (https://ux.symfony.com) |
+| CSS | npm, CDN populaires |
+| Général | GitHub, documentation officielle du framework |
+
+### Application
+
+- **Ne jamais implémenter** une fonctionnalité standard (authentification, upload, pagination, validation, etc.) sans avoir vérifié les solutions existantes
+- **Documenter le choix** : si une librairie est écartée, noter pourquoi dans le commit ou le PR
+- **Préférer la simplicité** : une librairie légère et ciblée vaut mieux qu'une usine à gaz
+
 ## Maintenance de ce fichier
 
 **Obligatoire** : ce fichier doit refléter l'état actuel du code. Mettre à jour la section "Architecture détaillée" après chaque modification structurelle :
@@ -168,13 +204,14 @@ ddev exec bin/phpunit tests/MonTest.php
 
 ## Frontend & JavaScript
 
-**Symfony UX est obligatoire.** Avant d'écrire du JavaScript custom :
+Appliquer le principe "ne pas réinventer la roue" (voir section dédiée).
 
-1. Vérifier si un package Symfony UX existe : https://ux.symfony.com/packages
-2. Installer le package UX si disponible : `ddev composer require symfony/ux-xxx`
-3. Créer un contrôleur Stimulus custom **uniquement si** aucun package UX ne couvre le besoin
+**Priorité pour JavaScript** :
+1. Package Symfony UX : https://ux.symfony.com/packages
+2. Librairie npm éprouvée
+3. Contrôleur Stimulus custom (dernier recours)
 
-**Packages UX courants** :
+**Packages UX installés ou à privilégier** :
 - Autocomplétion/tags : `symfony/ux-autocomplete`
 - Composants dynamiques : `symfony/ux-live-component`
 - Charts : `symfony/ux-chartjs`
