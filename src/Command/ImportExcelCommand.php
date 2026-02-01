@@ -10,6 +10,7 @@ use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -76,7 +77,14 @@ class ImportExcelCommand extends Command
             $io->warning('Mode simulation activé (--dry-run). Aucune donnée ne sera persistée.');
         }
 
-        $spreadsheet = IOFactory::load($filePath);
+        try {
+            $spreadsheet = IOFactory::load($filePath);
+        } catch (ReaderException $e) {
+            $io->error(\sprintf('Impossible de lire le fichier Excel : %s', $e->getMessage()));
+
+            return Command::FAILURE;
+        }
+
         $totalImported = 0;
         $totalTomes = 0;
 

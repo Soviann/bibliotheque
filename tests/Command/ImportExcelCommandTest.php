@@ -430,7 +430,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testEmptyRowsAreIgnored(): void
     {
-        $title = 'Test Non Empty '.uniqid();
+        $title = 'Test Non Empty '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 ['', '', '', '', '', '', ''],
@@ -452,5 +452,32 @@ class ImportExcelCommandTest extends KernelTestCase
         // Nettoyer
         $this->em->remove($series);
         $this->em->flush();
+    }
+
+    /**
+     * Teste qu'un fichier corrompu affiche un message d'erreur clair.
+     */
+    public function testCorruptedFileShowsErrorMessage(): void
+    {
+        // Créer un fichier avec un header ZIP invalide pour simuler un XLSX corrompu
+        $corruptedFilePath = \sys_get_temp_dir().'/corrupted_'.\uniqid().'.xlsx';
+        \file_put_contents($corruptedFilePath, "PK\x03\x04".\str_repeat("\x00", 100));
+
+        try {
+            $application = new Application(self::$kernel);
+            $command = $application->find('app:import-excel');
+            $commandTester = new CommandTester($command);
+
+            $exitCode = $commandTester->execute(['file' => $corruptedFilePath]);
+
+            // La commande doit échouer avec un message d'erreur clair
+            self::assertSame(1, $exitCode);
+            $output = $commandTester->getDisplay();
+            self::assertStringContainsString('impossible', \mb_strtolower($output));
+        } finally {
+            if (\file_exists($corruptedFilePath)) {
+                \unlink($corruptedFilePath);
+            }
+        }
     }
 }

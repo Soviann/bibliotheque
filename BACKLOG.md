@@ -93,11 +93,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Avant de créer l'utilisateur, vérifier si l'email existe déjà avec `UserRepository::findOneBy()`. Afficher un message d'erreur clair au lieu de laisser une exception Doctrine remonter.
 - **Statut** : ✅ Terminé - Utilisation du Validator Symfony pour vérifier les contraintes UniqueEntity
 
-### 3.4 Gérer les erreurs de lecture Excel dans ImportExcelCommand
+### 3.4 ~~Gérer les erreurs de lecture Excel dans ImportExcelCommand~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichier** : `src/Command/ImportExcelCommand.php:79`
 - **Description** : Envelopper `IOFactory::load($filePath)` dans un try/catch pour gérer `SpreadsheetReaderException` et afficher un message d'erreur lisible si le fichier est corrompu ou dans un format non supporté.
+- **Statut** : ✅ Terminé - Try/catch sur Reader\Exception avec message d'erreur clair
 
 ### 3.5 Corriger le null-safe sur `getUpdatedAt()` dans findAllForApi
 

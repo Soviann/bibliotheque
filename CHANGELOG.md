@@ -76,6 +76,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Réutilise la contrainte UniqueEntity existante sur User
   - Retourne FAILURE au lieu de laisser remonter une exception Doctrine
 
+- **Gestion fichier Excel corrompu** : Message d'erreur clair si le fichier ne peut pas être lu
+  - Try/catch sur `Reader\Exception` dans `ImportExcelCommand`
+  - Affiche "Impossible de lire le fichier Excel" avec le message d'erreur original
+
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`
   - Ajout d'un eager loading avec `leftJoin` + `addSelect` pour les relations `tomes` et `authors`
   - Réduit les requêtes SQL de ~3N à 1 pour l'endpoint `/api/comics`
