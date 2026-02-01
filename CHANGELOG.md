@@ -44,6 +44,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - `getMaxTomeNumber(?Closure $filter)` : utilisée par `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`
   - `isIssueComplete(?int $issue)` : utilisée par `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`
 
+- **DTO ComicFilters avec #[MapQueryString]** : Nouveau DTO pour les filtres de recherche
+  - Remplace l'extraction manuelle des paramètres dans les contrôleurs
+  - Utilise les attributs Symfony pour le mapping automatique des query strings
+  - Gestion gracieuse des valeurs enum invalides via `tryFrom()` (retourne null)
+
 ### Removed
 
 - **Onglet Recherche** : Suppression du lien "Recherche" dans la navigation (desktop et mobile)

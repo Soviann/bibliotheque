@@ -170,11 +170,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Extraire une méthode privée `getMaxTomeNumber(?callable $filter): ?int` et l'utiliser dans `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`. Extraire une méthode privée `isIssueComplete(?int $issue): bool` et l'utiliser dans `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`.
 - **Statut** : ✅ Terminé - Méthodes privées créées, 6 méthodes publiques refactorisées
 
-### 5.3 Créer un service FilterExtractor
+### 5.3 ~~Extraire la logique de filtrage dans un DTO~~ ✅
 
 - **Priorité** : BASSE
 - **Fichiers** : `src/Controller/HomeController.php`, `src/Controller/WishlistController.php`
-- **Description** : Extraire la logique d'extraction des filtres depuis la requête (`type`, `nas`, `search`, `sort`) dans un service `FilterExtractor` pour éviter la duplication entre les deux contrôleurs.
+- **Description** : Extraire la logique d'extraction des filtres depuis la requête (`type`, `nas`, `search`, `sort`) pour éviter la duplication entre les deux contrôleurs.
+- **Statut** : ✅ Terminé - DTO `ComicFilters` créé avec `#[MapQueryString]` (approche Symfony native plutôt qu'un service custom). Le DTO gère la conversion des paramètres query string vers les types attendus (enum via `tryFrom()`, booléen, etc.).
 
 ### 5.4 Supprimer le code mort
 

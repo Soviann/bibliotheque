@@ -469,6 +469,28 @@ DTO pour les auteurs.
 |-----------|------|-------------|
 | `name` | string | Nom (non-nullable, `Assert\NotBlank`) |
 
+#### ComicFilters (`src/Dto/ComicFilters.php`)
+DTO pour les filtres de recherche des séries, utilisé avec `#[MapQueryString]`.
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `nas` | ?string | Filtre NAS ('1', '0', ou null) |
+| `q` | ?string | Terme de recherche |
+| `sort` | string | Tri (défaut: 'title_asc') |
+| `status` | ?string | Statut (string pour `tryFrom()`) |
+| `type` | ?string | Type (string pour `tryFrom()`) |
+
+**Méthodes :**
+- `getOnNas(): ?bool` — convertit nas en booléen
+- `getSearch(): ?string` — retourne q (null si vide)
+- `getStatus(): ?ComicStatus` — convertit via `tryFrom()` (null si invalide)
+- `getType(): ?ComicType` — convertit via `tryFrom()` (null si invalide)
+
+**Usage dans contrôleur :**
+```php
+public function index(#[MapQueryString] ComicFilters $filters): Response
+```
+
 ### DataTransformers
 
 #### AuthorToInputTransformer (`src/Form/DataTransformer/AuthorToInputTransformer.php`)
