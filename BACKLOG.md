@@ -11,7 +11,7 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Ajouter un eager loading avec `leftJoin` + `addSelect` pour les relations `tomes` et `authors` dans la méthode `findAllForApi()`. Cette méthode est utilisée par l'API PWA et génère actuellement ~3N requêtes SQL.
 - **Statut** : ✅ Terminé
 
-### 1.2 Remplacer les `catch (\Throwable)` par des catches spécifiques dans IsbnLookupService
+### 1.2 ~~Remplacer les `catch (\Throwable)` par des catches spécifiques dans IsbnLookupService~~ ✅
 
 - **Priorité** : CRITIQUE
 - **Fichier** : `src/Service/IsbnLookupService.php` (lignes 149, 234-241, 424-431, 582-590)
@@ -20,6 +20,7 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
   - `HttpExceptionInterface` pour les erreurs HTTP (log warning + return null)
   - `\JsonException` pour les réponses invalides (log error + throw exception custom)
   - Créer une exception custom `IsbnLookupException` si nécessaire.
+- **Statut** : ✅ Terminé - Catches spécifiques ajoutés sans exception custom (pas nécessaire car les méthodes retournent null en cas d'erreur)
 
 ### 1.3 Ajouter le logging dans `fetchOpenLibraryAuthor()`
 

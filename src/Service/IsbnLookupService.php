@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -146,8 +151,22 @@ class IsbnLookupService
             }
 
             return $this->mergeGoogleBooksItems($data['items']);
-        } catch (\Throwable $e) {
-            $this->logger->warning('Erreur lors de la recherche Google Books pour le titre "{title}": {error}', [
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->error('Erreur réseau lors de la recherche Google Books pour le titre "{title}": {error}', [
+                'error' => $e->getMessage(),
+                'title' => $title,
+            ]);
+
+            return null;
+        } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $this->logger->warning('Erreur HTTP lors de la recherche Google Books pour le titre "{title}": {error}', [
+                'error' => $e->getMessage(),
+                'title' => $title,
+            ]);
+
+            return null;
+        } catch (DecodingExceptionInterface $e) {
+            $this->logger->error('Réponse JSON invalide de Google Books pour le titre "{title}": {error}', [
                 'error' => $e->getMessage(),
                 'title' => $title,
             ]);
@@ -231,8 +250,22 @@ class IsbnLookupService
 
             // Fusionne les informations de tous les résultats pour maximiser les données
             return $this->mergeGoogleBooksItems($data['items']);
-        } catch (\Throwable $e) {
-            $this->logger->warning('Erreur lors de la recherche Google Books pour ISBN {isbn}: {error}', [
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->error('Erreur réseau lors de la recherche Google Books pour ISBN {isbn}: {error}', [
+                'error' => $e->getMessage(),
+                'isbn' => $isbn,
+            ]);
+
+            return null;
+        } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $this->logger->warning('Erreur HTTP lors de la recherche Google Books pour ISBN {isbn}: {error}', [
+                'error' => $e->getMessage(),
+                'isbn' => $isbn,
+            ]);
+
+            return null;
+        } catch (DecodingExceptionInterface $e) {
+            $this->logger->error('Réponse JSON invalide de Google Books pour ISBN {isbn}: {error}', [
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
             ]);
@@ -421,8 +454,22 @@ class IsbnLookupService
                 'thumbnail' => $thumbnail,
                 'title' => $data['title'],
             ];
-        } catch (\Throwable $e) {
-            $this->logger->warning('Erreur lors de la recherche Open Library pour ISBN {isbn}: {error}', [
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->error('Erreur réseau lors de la recherche Open Library pour ISBN {isbn}: {error}', [
+                'error' => $e->getMessage(),
+                'isbn' => $isbn,
+            ]);
+
+            return null;
+        } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $this->logger->warning('Erreur HTTP lors de la recherche Open Library pour ISBN {isbn}: {error}', [
+                'error' => $e->getMessage(),
+                'isbn' => $isbn,
+            ]);
+
+            return null;
+        } catch (DecodingExceptionInterface $e) {
+            $this->logger->error('Réponse JSON invalide de Open Library pour ISBN {isbn}: {error}', [
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
             ]);
@@ -579,8 +626,24 @@ class IsbnLookupService
                 'thumbnail' => $thumbnail,
                 'title' => $anilistTitle,
             ];
-        } catch (\Throwable $e) {
-            $this->logger->warning('Erreur lors de la recherche AniList pour le titre "{title}" (recherche: "{search}"): {error}', [
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->error('Erreur réseau lors de la recherche AniList pour le titre "{title}" (recherche: "{search}"): {error}', [
+                'error' => $e->getMessage(),
+                'search' => $searchTitle,
+                'title' => $title,
+            ]);
+
+            return null;
+        } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $this->logger->warning('Erreur HTTP lors de la recherche AniList pour le titre "{title}" (recherche: "{search}"): {error}', [
+                'error' => $e->getMessage(),
+                'search' => $searchTitle,
+                'title' => $title,
+            ]);
+
+            return null;
+        } catch (DecodingExceptionInterface $e) {
+            $this->logger->error('Réponse JSON invalide de AniList pour le titre "{title}" (recherche: "{search}"): {error}', [
                 'error' => $e->getMessage(),
                 'search' => $searchTitle,
                 'title' => $title,

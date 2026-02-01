@@ -37,6 +37,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Ajout d'un eager loading avec `leftJoin` + `addSelect` pour les relations `tomes` et `authors`
   - Réduit les requêtes SQL de ~3N à 1 pour l'endpoint `/api/comics`
 
+- **Gestion des erreurs IsbnLookupService** : Remplacement des `catch (\Throwable)` par des catches spécifiques
+  - `TransportExceptionInterface` : erreurs réseau (timeout, DNS) → log error
+  - `ClientExceptionInterface/ServerExceptionInterface` : erreurs HTTP (4xx, 5xx) → log warning
+  - `DecodingExceptionInterface` : réponses JSON invalides → log error
+  - Permet un monitoring plus précis des problèmes d'intégration API
+
 - **Indicateur hors ligne persistant** : Correction de l'affichage de l'indicateur "Mode hors ligne" après retour depuis la page offline
   - L'indicateur disparaissait après navigation vers une page non cachée puis retour sur une page cachée
   - Ajout d'un gestionnaire `popstate` pour gérer le retour arrière en mode offline
