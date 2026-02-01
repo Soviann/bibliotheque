@@ -31,6 +31,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 - **Onglet Recherche** : Suppression du lien "Recherche" dans la navigation (desktop et mobile)
   - La recherche est maintenant intégrée dans les pages Bibliothèque et Wishlist via les filtres
 
+### Added
+
+- **Rate limiting authentification** : Protection contre les attaques par force brute
+  - Limite de 5 tentatives de connexion par intervalle de 15 minutes
+  - Ajout du composant `symfony/rate-limiter`
+  - 4 tests couvrant les scénarios : blocage après limite, connexion réussie avant limite, blocage même avec bon mot de passe, réinitialisation après connexion réussie
+
 ### Fixed
 
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`

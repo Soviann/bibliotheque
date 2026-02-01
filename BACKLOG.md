@@ -33,11 +33,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 
 ## Sprint 2 — Sécurité
 
-### 2.1 Ajouter le rate limiting sur l'authentification
+### 2.1 ~~Ajouter le rate limiting sur l'authentification~~ ✅
 
 - **Priorité** : HAUTE
 - **Fichier** : `config/packages/security.yaml`
 - **Description** : Ajouter la configuration `login_throttling` dans le firewall `main` avec `max_attempts: 5` et `interval: '15 minutes'`.
+- **Statut** : ✅ Terminé - Ajout de symfony/rate-limiter et configuration login_throttling
 
 ### 2.2 Empêcher le chargement des fixtures en production
 
