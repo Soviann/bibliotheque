@@ -31,6 +31,7 @@
                     value="{{ currentSearch }}"
                     placeholder="Rechercher..."
                     class="search-filter-input"
+                    {{ stimulus_target('library', 'searchInput') }}
                 >
                 {% if currentSearch %}
                     <a href="{{ path(route, {

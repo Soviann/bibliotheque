@@ -169,13 +169,17 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
         $result = [];
         foreach ($comics as $comic) {
+            $hasNasTome = $comic->getTomes()->exists(static fn (int $key, \App\Entity\Tome $t): bool => $t->isOnNas());
+
             $result[] = [
                 'authors' => $comic->getAuthorsAsString(),
                 'coverUrl' => $comic->getCoverUrl(),
                 'currentIssue' => $comic->getCurrentIssue(),
                 'currentIssueComplete' => $comic->isCurrentIssueComplete(),
                 'description' => $comic->getDescription(),
+                'hasNasTome' => $hasNasTome,
                 'id' => $comic->getId(),
+                'isOneShot' => $comic->isOneShot(),
                 'isWishlist' => $comic->isWishlist(),
                 'lastBought' => $comic->getLastBought(),
                 'lastBoughtComplete' => $comic->isLastBoughtComplete(),
@@ -188,9 +192,11 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 'publishedDate' => $comic->getPublishedDate(),
                 'publisher' => $comic->getPublisher(),
                 'status' => $comic->getStatus()->value,
+                'statusLabel' => $comic->getStatus()->getLabel(),
                 'title' => $comic->getTitle(),
                 'tomesCount' => $comic->getTomes()->count(),
                 'type' => $comic->getType()->value,
+                'typeLabel' => $comic->getType()->getLabel(),
                 'updatedAt' => $comic->getUpdatedAt()->format('c'),
             ];
         }

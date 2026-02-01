@@ -7,6 +7,23 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Filtrage et recherche hors ligne** : Toute l'interface de filtrage fonctionne sans requête HTTP
+  - Nouveau contrôleur Stimulus `library_controller.js` pour les pages Bibliothèque et Wishlist
+  - Filtrage côté client par type, statut, NAS, tri et recherche texte
+  - Contrôleur `search_controller.js` pour la page de recherche dédiée
+  - Chargement des données depuis `/api/comics` avec cache localStorage
+  - Recherche instantanée sur titre, auteurs et description
+  - Normalisation des accents pour une recherche insensible aux diacritiques
+  - Fonctionne en mode offline grâce au cache local
+  - Ajout des champs `hasNasTome`, `isOneShot`, `statusLabel` et `typeLabel` dans l'API
+
+### Removed
+
+- **Onglet Recherche** : Suppression du lien "Recherche" dans la navigation (desktop et mobile)
+  - La recherche est maintenant intégrée dans les pages Bibliothèque et Wishlist via les filtres
+
 ### Fixed
 
 - **Indicateur hors ligne persistant** : Correction de l'affichage de l'indicateur "Mode hors ligne" après retour depuis la page offline
