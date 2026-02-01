@@ -9,6 +9,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Pré-cache automatique des pages** : Les pages principales sont mises en cache automatiquement après la connexion
+  - Nouveau contrôleur Stimulus `cache_warmer_controller.js`
+  - Pré-charge `/api/comics`, `/`, `/wishlist` et `/comic/new` en arrière-plan
+  - Utilise directement l'API Cache du navigateur pour une mise en cache fiable
+  - Les pages sont immédiatement disponibles en mode hors ligne après connexion
+  - 3 nouveaux tests Playwright pour valider le pré-cache automatique
+
 - **Filtrage et recherche hors ligne** : Toute l'interface de filtrage fonctionne sans requête HTTP
   - Nouveau contrôleur Stimulus `library_controller.js` pour les pages Bibliothèque et Wishlist
   - Filtrage côté client par type, statut, NAS, tri et recherche texte

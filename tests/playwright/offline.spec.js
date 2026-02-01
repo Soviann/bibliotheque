@@ -339,6 +339,86 @@ test.describe('Navigation hors ligne sur pages visitees', () => {
     });
 });
 
+test.describe('Pre-cache automatique apres connexion', () => {
+
+    test('pages principales sont pre-cachees automatiquement apres connexion', async ({ page }) => {
+        // 1. Connexion
+        await login(page);
+        await waitForServiceWorker(page);
+
+        // 2. Vérifier qu'on est bien sur la page d'accueil (pas sur login)
+        expect(page.url()).not.toContain('/login');
+
+        // 3. Vérifier que le contrôleur cache-warmer est présent sur la page
+        const cacheWarmerPresent = await page.evaluate(() => {
+            const cacheWarmerElement = document.querySelector('[data-controller*="cache-warmer"]');
+            return {
+                hasController: cacheWarmerElement !== null,
+                urls: cacheWarmerElement?.getAttribute('data-cache-warmer-urls-value')
+            };
+        });
+        expect(cacheWarmerPresent.hasController).toBe(true);
+
+        // 4. Attendre que le cache warmer s'exécute (délai de 1s + temps d'exécution)
+        await page.waitForTimeout(5000);
+
+        // 5. Vérifier que les pages sont dans le cache bibliotheque-pages
+        const cachedPages = await page.evaluate(async () => {
+            const cache = await caches.open('bibliotheque-pages');
+            const keys = await cache.keys();
+            return keys.map(req => new URL(req.url).pathname);
+        });
+
+        // Les pages suivantes doivent être pré-cachées :
+        expect(cachedPages).toContain('/');
+        expect(cachedPages).toContain('/wishlist');
+        expect(cachedPages).toContain('/comic/new');
+    });
+
+    test('API comics est pre-cachee automatiquement apres connexion', async ({ page }) => {
+        // 1. Connexion
+        await login(page);
+        await waitForServiceWorker(page);
+
+        // 2. Attendre que le cache warmer s'exécute
+        await page.waitForTimeout(3000);
+
+        // 3. Vérifier que l'API est dans le cache bibliotheque-api
+        const apiInCache = await page.evaluate(async () => {
+            const cache = await caches.open('bibliotheque-api');
+            const keys = await cache.keys();
+            return keys.some(req => req.url.includes('/api/comics'));
+        });
+
+        expect(apiInCache).toBe(true);
+    });
+
+    test('pages pre-cachees sont accessibles en mode offline sans visite prealable', async ({ page, context }) => {
+        // 1. Connexion
+        await login(page);
+        await waitForServiceWorker(page);
+
+        // 2. Attendre que le cache warmer s'exécute
+        await page.waitForTimeout(3000);
+
+        // 3. Aller sur une page neutre (pas les pages pré-cachées)
+        await page.goto(`${BASE_URL}/offline`);
+        await page.waitForTimeout(500);
+
+        // 4. Activer le mode offline
+        await context.setOffline(true);
+
+        // 5. Naviguer vers /wishlist (qui n'a PAS été visitée manuellement, mais doit être pré-cachée)
+        await page.goto(`${BASE_URL}/wishlist`, { waitUntil: 'commit' }).catch(() => {});
+        await page.waitForTimeout(2000);
+
+        // 6. Vérifier qu'on n'affiche PAS la page offline fallback
+        const content = await page.content();
+        const isOfflineFallback = content.includes('Vous etes hors ligne');
+        expect(isOfflineFallback).toBe(false);
+    });
+});
+
 test.describe('Indicateur hors ligne persistant', () => {
 
     test('indicateur hors ligne visible apres retour de page offline vers page cachee', async ({ page, context }) => {
@@ -533,12 +613,11 @@ test.describe('Indicateur hors ligne persistant', () => {
         await expect(indicatorBefore).toBeVisible();
         await expect(indicatorBefore).toContainText('Mode hors ligne');
 
-        // 6. Clic sur le lien Recherche (page non cachée) - Navigation Turbo
-        const searchLink = page.locator('a[href="/search"]').first();
-        await searchLink.click();
+        // 6. Navigation vers une page non cachée - Navigation directe
+        await page.goto(`${BASE_URL}/comic/99999`, { waitUntil: 'commit' }).catch(() => {});
         await page.waitForTimeout(3000);
 
-        // 7. On devrait être sur la page offline (via injection HTML dans app.js)
+        // 7. On devrait être sur la page offline (via fallback SW)
         let content = await page.content();
         const isOnOfflinePage = content.includes('Vous etes hors ligne');
         expect(isOnOfflinePage).toBe(true);

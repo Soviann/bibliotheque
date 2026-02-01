@@ -21,6 +21,11 @@
         onlineMessage: '',
         offlineMessage: 'Mode hors ligne'
     }) }} data-pwa--connection-status-target="attribute">
+        {% if app.user %}
+        <div {{ stimulus_controller('cache-warmer', {
+            urls: [path('api_comics'), path('app_home'), path('app_wishlist'), path('app_comic_new')]
+        }) }} hidden></div>
+        {% endif %}
         <div class="app-container">
             {% if app.user %}
             {# Top App Bar - Desktop only #}
