@@ -204,6 +204,12 @@ Ces idées sont conservées pour référence mais ne doivent pas être implémen
 - **Description** : Mettre en place un framework de test JavaScript (Jest ou Vitest) pour tester les contrôleurs Stimulus et les utilitaires JS. Couvrirait notamment : `library_controller.js`, `search_controller.js`, et les futurs modules utilitaires (cf. tâche 5.1).
 - **Raison du report** : Le code JS actuel est relativement simple et couvert indirectement par les tests E2E Playwright.
 
+### D.3 Mode hors-ligne avec synchronisation différée
+
+- **Priorité** : DIFFÉRÉE
+- **Description** : Permettre la modification et l'ajout d'entrées (séries, tomes) en mode hors-ligne. Les modifications seraient stockées localement (IndexedDB ou localStorage) puis synchronisées automatiquement avec le serveur lors de la récupération de la connexion internet. Nécessite : détection de l'état de connexion, file d'attente des opérations, gestion des conflits, feedback utilisateur sur l'état de synchronisation.
+- **Raison du report** : Fonctionnalité complexe nécessitant une architecture PWA avancée (Service Worker avec Background Sync API), gestion des conflits de données, et tests approfondis des scénarios edge-case.
+
 ---
 
 ## Récapitulatif
