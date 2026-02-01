@@ -83,7 +83,7 @@ class ComicSeriesType extends AbstractType
             ])
             ->add('status', EnumType::class, [
                 'class' => ComicStatus::class,
-                'choice_label' => static fn (ComicStatus $status) => $status->getLabel(),
+                'choice_label' => static fn (ComicStatus $status): string => $status->getLabel(),
                 'label' => 'Statut',
             ])
             ->add('title', TextType::class, [
@@ -101,7 +101,7 @@ class ComicSeriesType extends AbstractType
             ])
             ->add('type', EnumType::class, [
                 'class' => ComicType::class,
-                'choice_label' => static fn (ComicType $type) => $type->getLabel(),
+                'choice_label' => static fn (ComicType $type): string => $type->getLabel(),
                 'label' => 'Type',
             ])
         ;

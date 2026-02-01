@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Behat\Context;
 
 use Behat\Behat\Context\Context;
+use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\RawMinkContext;
 
@@ -128,10 +129,10 @@ final class NavigationContext extends RawMinkContext implements Context
             $searchField->setValue($query);
 
             // Soumet le formulaire ou déclenche la recherche
-            /** @var \Behat\Mink\Element\NodeElement|null $form */
+            /** @var NodeElement|null $form */
             $form = $searchField->getParent();
             while (null !== $form && 'form' !== $form->getTagName()) {
-                /** @var \Behat\Mink\Element\NodeElement|null $form */
+                /** @var NodeElement|null $form */
                 $form = $form->getParent();
             }
 

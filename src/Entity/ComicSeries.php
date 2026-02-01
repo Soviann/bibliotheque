@@ -162,7 +162,7 @@ class ComicSeries
      */
     public function getAuthorsAsString(): string
     {
-        return \implode(', ', $this->authors->map(static fn (Author $a) => $a->getName())->toArray());
+        return \implode(', ', $this->authors->map(static fn (Author $a): string => $a->getName())->toArray());
     }
 
     public function getCoverFile(): ?File
@@ -177,7 +177,7 @@ class ComicSeries
     {
         $this->coverFile = $coverFile;
 
-        if (null !== $coverFile) {
+        if ($coverFile instanceof File) {
             // Met à jour updatedAt pour que Doctrine détecte le changement
             $this->updatedAt = new \DateTimeImmutable();
         }
@@ -251,7 +251,7 @@ class ComicSeries
      */
     public function getLastBought(): ?int
     {
-        return $this->getMaxTomeNumber(static fn (Tome $t) => $t->isBought());
+        return $this->getMaxTomeNumber(static fn (Tome $t): bool => $t->isBought());
     }
 
     /**
@@ -259,7 +259,7 @@ class ComicSeries
      */
     public function getLastDownloaded(): ?int
     {
-        return $this->getMaxTomeNumber(static fn (Tome $t) => $t->isDownloaded());
+        return $this->getMaxTomeNumber(static fn (Tome $t): bool => $t->isDownloaded());
     }
 
     public function getLatestPublishedIssue(): ?int
@@ -298,7 +298,7 @@ class ComicSeries
      */
     public function getOwnedTomesNumbers(): array
     {
-        return $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
+        return $this->tomes->map(static fn (Tome $t): int => $t->getNumber())->toArray();
     }
 
     public function getPublishedDate(): ?string
@@ -369,10 +369,8 @@ class ComicSeries
 
     public function removeTome(Tome $tome): static
     {
-        if ($this->tomes->removeElement($tome)) {
-            if ($tome->getComicSeries() === $this) {
-                $tome->setComicSeries(null);
-            }
+        if ($this->tomes->removeElement($tome) && $tome->getComicSeries() === $this) {
+            $tome->setComicSeries(null);
         }
 
         return $this;
@@ -462,17 +460,17 @@ class ComicSeries
     /**
      * Retourne le numéro maximum des tomes, optionnellement filtrés.
      *
-     * @param \Closure(Tome, int): bool|null $filter Filtre optionnel à appliquer
+     * @param \Closure(Tome, int):bool|null $filter Filtre optionnel à appliquer
      */
     private function getMaxTomeNumber(?\Closure $filter = null): ?int
     {
-        $tomes = null !== $filter ? $this->tomes->filter($filter) : $this->tomes;
+        $tomes = $filter instanceof \Closure ? $this->tomes->filter($filter) : $this->tomes;
 
         if ($tomes->isEmpty()) {
             return null;
         }
 
-        $numbers = $tomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
+        $numbers = $tomes->map(static fn (Tome $t): int => $t->getNumber())->toArray();
 
         return [] === $numbers ? null : \max($numbers);
     }

@@ -12,6 +12,7 @@ use Doctrine\DBAL\Driver\Exception as DriverExceptionInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
@@ -79,19 +80,15 @@ class ComicControllerUnitTest extends TestCase
         $controller = new ComicController($mapper);
 
         // Configuration du container
-        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static function (string $id): bool {
-            return \in_array($id, ['form.factory', 'twig', 'router', 'request_stack'], true);
-        });
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => \in_array($id, ['form.factory', 'twig', 'router', 'request_stack'], true));
         $container->method('get')->willReturnCallback(
-            static function (string $id) use ($formFactory, $twig, $urlGenerator, $requestStack) {
-                return match ($id) {
-                    'form.factory' => $formFactory,
-                    'twig' => $twig,
-                    'router' => $urlGenerator,
-                    'request_stack' => $requestStack,
-                    default => null,
-                };
+            static fn (string $id) => match ($id) {
+                'form.factory' => $formFactory,
+                'twig' => $twig,
+                'router' => $urlGenerator,
+                'request_stack' => $requestStack,
+                default => null,
             }
         );
 
@@ -155,19 +152,15 @@ class ComicControllerUnitTest extends TestCase
 
         $controller = new ComicController($mapper);
 
-        $container = $this->createMock(\Psr\Container\ContainerInterface::class);
-        $container->method('has')->willReturnCallback(static function (string $id): bool {
-            return \in_array($id, ['form.factory', 'twig', 'router', 'request_stack'], true);
-        });
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => \in_array($id, ['form.factory', 'twig', 'router', 'request_stack'], true));
         $container->method('get')->willReturnCallback(
-            static function (string $id) use ($formFactory, $twig, $urlGenerator, $requestStack) {
-                return match ($id) {
-                    'form.factory' => $formFactory,
-                    'twig' => $twig,
-                    'router' => $urlGenerator,
-                    'request_stack' => $requestStack,
-                    default => null,
-                };
+            static fn (string $id) => match ($id) {
+                'form.factory' => $formFactory,
+                'twig' => $twig,
+                'router' => $urlGenerator,
+                'request_stack' => $requestStack,
+                default => null,
             }
         );
 

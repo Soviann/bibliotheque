@@ -77,7 +77,7 @@ class ComicSeriesInput
      */
     public function getOwnedTomesNumbers(): array
     {
-        return \array_map(static fn (TomeInput $t) => $t->number, $this->tomes);
+        return \array_map(static fn (TomeInput $t): int => $t->number, $this->tomes);
     }
 
     /**

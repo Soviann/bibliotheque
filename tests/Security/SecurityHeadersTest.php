@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Security;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Tests pour les headers de sécurité HTTP.
@@ -17,7 +18,7 @@ class SecurityHeadersTest extends WebTestCase
     public function testResponseHasXContentTypeOptionsHeader(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseHeaderSame('X-Content-Type-Options', 'nosniff');
     }
@@ -28,7 +29,7 @@ class SecurityHeadersTest extends WebTestCase
     public function testResponseHasXFrameOptionsHeader(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseHeaderSame('X-Frame-Options', 'DENY');
     }
@@ -39,7 +40,7 @@ class SecurityHeadersTest extends WebTestCase
     public function testResponseHasReferrerPolicyHeader(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseHasHeader('Referrer-Policy');
     }
@@ -50,7 +51,7 @@ class SecurityHeadersTest extends WebTestCase
     public function testResponseHasContentSecurityPolicyHeader(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseHasHeader('Content-Security-Policy');
     }

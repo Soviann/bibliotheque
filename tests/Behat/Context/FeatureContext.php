@@ -29,7 +29,7 @@ final class FeatureContext extends RawMinkContext implements Context
             if (!$session->isStarted()) {
                 $session->start();
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Si la session ne peut pas démarrer, on laisse le scénario échouer naturellement
         }
     }
@@ -69,9 +69,7 @@ final class FeatureContext extends RawMinkContext implements Context
      */
     public function jAttendsDeVoir(string $text): void
     {
-        $this->spin(function () use ($text): bool {
-            return \str_contains($this->getSession()->getPage()->getText(), $text);
-        });
+        $this->spin(fn (): bool => \str_contains($this->getSession()->getPage()->getText(), $text));
     }
 
     /**

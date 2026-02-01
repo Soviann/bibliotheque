@@ -545,7 +545,7 @@ class ComicSeriesTest extends TestCase
         $series = new ComicSeries();
         $oldUpdatedAt = $series->getUpdatedAt();
 
-        $series->setCoverFile(null);
+        $series->setCoverFile();
 
         self::assertEquals($oldUpdatedAt, $series->getUpdatedAt());
     }

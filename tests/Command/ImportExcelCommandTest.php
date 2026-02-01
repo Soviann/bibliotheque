@@ -26,7 +26,7 @@ class ImportExcelCommandTest extends KernelTestCase
     {
         self::bootKernel();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
-        $this->testFilePath = \sys_get_temp_dir().'/test_import_'.uniqid().'.xlsx';
+        $this->testFilePath = \sys_get_temp_dir().'/test_import_'.\uniqid().'.xlsx';
     }
 
     protected function tearDown(): void
@@ -35,45 +35,6 @@ class ImportExcelCommandTest extends KernelTestCase
             \unlink($this->testFilePath);
         }
         parent::tearDown();
-    }
-
-    /**
-     * Crée un fichier Excel de test.
-     *
-     * @param array<string, array<int, array<int, mixed>>> $sheets
-     */
-    private function createTestExcel(array $sheets): void
-    {
-        $spreadsheet = new Spreadsheet();
-        $spreadsheet->removeSheetByIndex(0);
-
-        foreach ($sheets as $sheetName => $data) {
-            $sheet = $spreadsheet->createSheet();
-            $sheet->setTitle($sheetName);
-
-            // En-têtes
-            $sheet->setCellValue('A1', 'Titre');
-            $sheet->setCellValue('B1', 'Buy?');
-            $sheet->setCellValue('C1', 'Last bought');
-            $sheet->setCellValue('D1', 'Current');
-            $sheet->setCellValue('E1', 'Parution');
-            $sheet->setCellValue('F1', 'Last dled');
-            $sheet->setCellValue('G1', 'On NAS?');
-
-            // Données
-            $row = 2;
-            foreach ($data as $rowData) {
-                $col = 'A';
-                foreach ($rowData as $value) {
-                    $sheet->setCellValue($col.$row, $value);
-                    ++$col;
-                }
-                ++$row;
-            }
-        }
-
-        $writer = new Xlsx($spreadsheet);
-        $writer->save($this->testFilePath);
     }
 
     /**
@@ -98,7 +59,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testImportBdSeries(): void
     {
-        $title = 'Test BD Import '.uniqid();
+        $title = 'Test BD Import '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'oui', '3', '5', '10', '2', 'oui'],
@@ -129,7 +90,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testImportMangaSeries(): void
     {
-        $title = 'Test Manga Import '.uniqid();
+        $title = 'Test Manga Import '.\uniqid();
         $this->createTestExcel([
             'Mangas' => [
                 [$title, 'oui', '5', '5', '8', '5', 'non'],
@@ -157,7 +118,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testImportComicsSeries(): void
     {
-        $title = 'Test Comics Import '.uniqid();
+        $title = 'Test Comics Import '.\uniqid();
         $this->createTestExcel([
             'Comics' => [
                 [$title, 'oui', '2', '2', '5', '', ''],
@@ -185,7 +146,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testImportLivreSeries(): void
     {
-        $title = 'Test Livre Import '.uniqid();
+        $title = 'Test Livre Import '.\uniqid();
         $this->createTestExcel([
             'Livre' => [
                 [$title, 'fini', 'fini', 'fini', 'fini', '', ''],
@@ -214,7 +175,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testStatusNonIsStopped(): void
     {
-        $title = 'Test Stopped Import '.uniqid();
+        $title = 'Test Stopped Import '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'non', '3', '3', '10', '', ''],
@@ -241,7 +202,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testDryRunDoesNotPersist(): void
     {
-        $title = 'Test DryRun Import '.uniqid();
+        $title = 'Test DryRun Import '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'oui', '3', '3', '10', '', ''],
@@ -270,7 +231,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testTomesBoughtFlag(): void
     {
-        $title = 'Test Bought Flag '.uniqid();
+        $title = 'Test Bought Flag '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'oui', '3', '5', '5', '', ''],
@@ -305,7 +266,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testTomesDownloadedFlag(): void
     {
-        $title = 'Test Downloaded Flag '.uniqid();
+        $title = 'Test Downloaded Flag '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'oui', '5', '5', '5', '2', ''],
@@ -340,7 +301,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testTomesOnNasFlag(): void
     {
-        $title = 'Test OnNas Flag '.uniqid();
+        $title = 'Test OnNas Flag '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'oui', '3', '3', '3', '', 'oui'],
@@ -371,7 +332,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testCommaSeparatedValues(): void
     {
-        $title = 'Test Comma Values '.uniqid();
+        $title = 'Test Comma Values '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'oui', '3, 5', '5', '5', '', ''],
@@ -400,7 +361,7 @@ class ImportExcelCommandTest extends KernelTestCase
      */
     public function testMissingSheetIsIgnored(): void
     {
-        $title = 'Test Only BD '.uniqid();
+        $title = 'Test Only BD '.\uniqid();
         $this->createTestExcel([
             'BD' => [
                 [$title, 'oui', '1', '1', '1', '', ''],
@@ -419,7 +380,7 @@ class ImportExcelCommandTest extends KernelTestCase
 
         // Nettoyer
         $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => $title]);
-        if ($series) {
+        if ($series instanceof ComicSeries) {
             $this->em->remove($series);
             $this->em->flush();
         }
@@ -479,5 +440,44 @@ class ImportExcelCommandTest extends KernelTestCase
                 \unlink($corruptedFilePath);
             }
         }
+    }
+
+    /**
+     * Crée un fichier Excel de test.
+     *
+     * @param array<string, array<int, array<int, mixed>>> $sheets
+     */
+    private function createTestExcel(array $sheets): void
+    {
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->removeSheetByIndex(0);
+
+        foreach ($sheets as $sheetName => $data) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle($sheetName);
+
+            // En-têtes
+            $sheet->setCellValue('A1', 'Titre');
+            $sheet->setCellValue('B1', 'Buy?');
+            $sheet->setCellValue('C1', 'Last bought');
+            $sheet->setCellValue('D1', 'Current');
+            $sheet->setCellValue('E1', 'Parution');
+            $sheet->setCellValue('F1', 'Last dled');
+            $sheet->setCellValue('G1', 'On NAS?');
+
+            // Données
+            $row = 2;
+            foreach ($data as $rowData) {
+                $col = 'A';
+                foreach ($rowData as $value) {
+                    $sheet->setCellValue($col.$row, $value);
+                    ++$col;
+                }
+                ++$row;
+            }
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($this->testFilePath);
     }
 }

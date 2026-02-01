@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 #[UniqueEntity('name')]
-class Author
+class Author implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

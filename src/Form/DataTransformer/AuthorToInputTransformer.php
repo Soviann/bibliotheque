@@ -38,7 +38,7 @@ class AuthorToInputTransformer implements DataTransformerInterface
         }
 
         return \array_values(\array_filter(\array_map(
-            fn (AuthorInput $input) => $this->authorRepository->findOneBy(['name' => $input->name]),
+            fn (AuthorInput $input): ?object => $this->authorRepository->findOneBy(['name' => $input->name]),
             $value
         )));
     }
@@ -59,7 +59,7 @@ class AuthorToInputTransformer implements DataTransformerInterface
         $authors = $value instanceof Collection ? $value->toArray() : $value;
 
         return \array_values(\array_map(
-            fn (Author $author) => $this->mapper->map($author, AuthorInput::class),
+            fn (Author $author): object => $this->mapper->map($author, AuthorInput::class),
             $authors
         ));
     }

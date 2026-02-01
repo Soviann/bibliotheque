@@ -7,6 +7,7 @@ namespace App\Tests\Controller;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Tests fonctionnels pour ComicController.
@@ -28,7 +29,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $client->request('GET', '/comic/'.$series->getId());
+        $client->request(Request::METHOD_GET, '/comic/'.$series->getId());
 
         self::assertResponseIsSuccessful();
 
@@ -44,7 +45,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/comic/new');
+        $client->request(Request::METHOD_GET, '/comic/new');
 
         self::assertResponseIsSuccessful();
     }
@@ -59,7 +60,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         /** @var EntityManagerInterface $em */
         $em = $container->get(EntityManagerInterface::class);
 
-        $crawler = $client->request('GET', '/comic/new');
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
 
         $form = $crawler->selectButton('Enregistrer')->form([
             'comic_series[title]' => 'New Test Series',
@@ -92,7 +93,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         /** @var EntityManagerInterface $em */
         $em = $container->get(EntityManagerInterface::class);
 
-        $crawler = $client->request('GET', '/comic/new');
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
 
         $form = $crawler->selectButton('Enregistrer')->form([
             'comic_series[title]' => 'New Wishlist Series',
@@ -128,7 +129,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $client->request('GET', '/comic/'.$series->getId().'/edit');
+        $client->request(Request::METHOD_GET, '/comic/'.$series->getId().'/edit');
 
         self::assertResponseIsSuccessful();
 
@@ -154,7 +155,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         $seriesId = $series->getId();
 
-        $crawler = $client->request('GET', '/comic/'.$seriesId.'/edit');
+        $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesId.'/edit');
 
         $form = $crawler->selectButton('Enregistrer')->form([
             'comic_series[title]' => 'Modified Title',
@@ -193,13 +194,13 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $seriesId = $series->getId();
 
         // Charger la page qui contient le formulaire de suppression
-        $crawler = $client->request('GET', '/comic/'.$seriesId);
+        $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesId);
 
         // Extraire le token CSRF du formulaire de suppression dans la page
         $deleteForm = $crawler->filter('form[action$="/delete"]');
         $csrfToken = $deleteForm->filter('input[name="_token"]')->attr('value');
 
-        $client->request('POST', '/comic/'.$seriesId.'/delete', [
+        $client->request(Request::METHOD_POST, '/comic/'.$seriesId.'/delete', [
             '_token' => $csrfToken,
         ]);
 
@@ -228,7 +229,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         $seriesId = $series->getId();
 
-        $client->request('POST', '/comic/'.$seriesId.'/delete', [
+        $client->request(Request::METHOD_POST, '/comic/'.$seriesId.'/delete', [
             '_token' => 'invalid_token',
         ]);
 
@@ -268,13 +269,13 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $seriesId = $series->getId();
 
         // Charger la page qui contient le formulaire de suppression
-        $crawler = $client->request('GET', '/comic/'.$seriesId);
+        $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesId);
 
         // Extraire le token CSRF du formulaire de suppression dans la page
         $deleteForm = $crawler->filter('form[action$="/delete"]');
         $csrfToken = $deleteForm->filter('input[name="_token"]')->attr('value');
 
-        $client->request('POST', '/comic/'.$seriesId.'/delete', [
+        $client->request(Request::METHOD_POST, '/comic/'.$seriesId.'/delete', [
             '_token' => $csrfToken,
         ]);
 
@@ -300,13 +301,13 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $seriesId = $series->getId();
 
         // Charger la page wishlist qui contient le formulaire de déplacement vers bibliothèque
-        $crawler = $client->request('GET', '/wishlist');
+        $crawler = $client->request(Request::METHOD_GET, '/wishlist');
 
         // Extraire le token CSRF du formulaire to-library de notre série dans la page
         $toLibraryForm = $crawler->filter('form[action="/comic/'.$seriesId.'/to-library"]');
         $csrfToken = $toLibraryForm->filter('input[name="_token"]')->attr('value');
 
-        $client->request('POST', '/comic/'.$seriesId.'/to-library', [
+        $client->request(Request::METHOD_POST, '/comic/'.$seriesId.'/to-library', [
             '_token' => $csrfToken,
         ]);
 
@@ -342,7 +343,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         $seriesId = $series->getId();
 
-        $client->request('POST', '/comic/'.$seriesId.'/to-library', [
+        $client->request(Request::METHOD_POST, '/comic/'.$seriesId.'/to-library', [
             '_token' => 'invalid_token',
         ]);
 
@@ -376,7 +377,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/comic/99999');
+        $client->request(Request::METHOD_GET, '/comic/99999');
 
         self::assertResponseStatusCodeSame(404);
     }

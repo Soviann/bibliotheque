@@ -7,6 +7,7 @@ namespace App\Tests\Controller;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Tests fonctionnels pour WishlistController.
@@ -20,7 +21,7 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/wishlist');
+        $client->request(Request::METHOD_GET, '/wishlist');
 
         self::assertResponseIsSuccessful();
     }
@@ -32,7 +33,7 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/wishlist?type=manga');
+        $client->request(Request::METHOD_GET, '/wishlist?type=manga');
 
         self::assertResponseIsSuccessful();
     }
@@ -44,10 +45,10 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/wishlist?nas=1');
+        $client->request(Request::METHOD_GET, '/wishlist?nas=1');
         self::assertResponseIsSuccessful();
 
-        $client->request('GET', '/wishlist?nas=0');
+        $client->request(Request::METHOD_GET, '/wishlist?nas=0');
         self::assertResponseIsSuccessful();
     }
 
@@ -58,7 +59,7 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/wishlist?q=test');
+        $client->request(Request::METHOD_GET, '/wishlist?q=test');
 
         self::assertResponseIsSuccessful();
     }
@@ -73,7 +74,7 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
         $sortOptions = ['title_asc', 'title_desc', 'updated_asc', 'updated_desc'];
 
         foreach ($sortOptions as $sort) {
-            $client->request('GET', '/wishlist?sort='.$sort);
+            $client->request(Request::METHOD_GET, '/wishlist?sort='.$sort);
             self::assertResponseIsSuccessful();
         }
     }
@@ -101,7 +102,7 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
 
         $em->flush();
 
-        $crawler = $client->request('GET', '/wishlist');
+        $crawler = $client->request(Request::METHOD_GET, '/wishlist');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Wishlist Series Test', $crawler->text());
@@ -120,7 +121,7 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/wishlist?type=bd&sort=title_desc&q=asterix');
+        $client->request(Request::METHOD_GET, '/wishlist?type=bd&sort=title_desc&q=asterix');
 
         self::assertResponseIsSuccessful();
     }
@@ -132,7 +133,7 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/wishlist?type=invalid');
+        $client->request(Request::METHOD_GET, '/wishlist?type=invalid');
 
         self::assertResponseIsSuccessful();
     }

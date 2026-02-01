@@ -247,6 +247,75 @@ ddev exec vendor/bin/phpstan analyse src/MonFichier.php
 
 **Cibler uniquement les fichiers modifiés**, pas tout le projet.
 
+### Rector — Refactoring automatique
+
+Rector est un outil de refactoring automatique qui modernise le code PHP. La configuration (`rector.php`) est conservatrice et adaptée au projet.
+
+**Quand utiliser Rector :**
+
+| Situation | Action |
+|-----------|--------|
+| Modernisation PHP | Exécuter sur tout le projet pour appliquer les nouvelles fonctionnalités PHP 8.3 |
+| Refactoring majeur | Utiliser après un changement d'architecture pour harmoniser le code |
+| Code legacy à intégrer | Exécuter sur les nouveaux fichiers pour les aligner avec le style du projet |
+| Revue de code | Vérifier en dry-run si des améliorations automatiques sont possibles |
+
+**Quand NE PAS utiliser Rector :**
+
+- **Changements mineurs** : pour une correction de bug ou un petit ajout, Rector est superflu
+- **Code tiers** : ne jamais exécuter sur `vendor/`, les migrations ou les fixtures
+- **Sans relecture** : toujours vérifier les changements proposés avant de les appliquer
+
+**Commandes :**
+
+```bash
+# Voir les changements proposés (TOUJOURS commencer par ça)
+ddev exec vendor/bin/rector process --dry-run
+
+# Sur un fichier spécifique
+ddev exec vendor/bin/rector process src/MonFichier.php --dry-run
+
+# Appliquer les changements (après vérification du dry-run)
+ddev exec vendor/bin/rector process
+
+# Appliquer sur un fichier spécifique
+ddev exec vendor/bin/rector process src/MonFichier.php
+```
+
+**Workflow d'utilisation :**
+
+```
+1. Exécuter en dry-run
+   → Analyser les changements proposés
+   → Vérifier qu'ils ont du sens
+
+2. Appliquer les changements
+   → Rector modifie les fichiers
+
+3. Exécuter PHP-CS-Fixer
+   → Rector peut introduire des problèmes de formatage
+
+4. Exécuter les tests
+   → Valider que le comportement n'a pas changé
+
+5. Mettre à jour le baseline PHPStan si nécessaire
+   → ddev exec vendor/bin/phpstan analyse src tests --generate-baseline
+```
+
+**Configuration (`rector.php`) :**
+
+La configuration actuelle applique :
+- **PHP 8.3** : types sur les constantes, fonctionnalités modernes
+- **Dead code** : suppression de code mort (paramètres inutilisés, etc.)
+- **Code quality** : améliorations de lisibilité
+- **Type declarations** : ajout de types de retour sur les closures
+- **Symfony 7.4** : mises à jour spécifiques au framework
+
+Règles volontairement désactivées :
+- `#[Override]` : ajoute du bruit sans valeur
+- Injection constructeur : l'injection par action est valide en Symfony
+- Inline des préfixes de route : conserve la lisibilité
+
 ## Frontend & JavaScript
 
 Appliquer le principe "ne pas réinventer la roue" (voir section dédiée).

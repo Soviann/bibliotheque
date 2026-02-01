@@ -11,6 +11,7 @@ use App\Enum\ComicType;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -37,7 +38,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ImportExcelCommand extends Command
 {
-    private const SHEET_TYPE_MAP = [
+    private const array SHEET_TYPE_MAP = [
         'BD' => ComicType::BD,
         'Comics' => ComicType::COMICS,
         'Livre' => ComicType::LIVRE,
@@ -91,7 +92,7 @@ class ImportExcelCommand extends Command
         foreach (self::SHEET_TYPE_MAP as $sheetName => $comicType) {
             $sheet = $spreadsheet->getSheetByName($sheetName);
 
-            if (null === $sheet) {
+            if (!$sheet instanceof Worksheet) {
                 $io->warning(\sprintf('Onglet "%s" non trouvé, ignoré.', $sheetName));
                 continue;
             }
@@ -102,9 +103,10 @@ class ImportExcelCommand extends Command
             $data = $sheet->toArray();
             $imported = 0;
             $tomesCreated = 0;
+            $counter = \count($data);
 
             // Ignorer la ligne d'en-tête
-            for ($i = 1; $i < \count($data); ++$i) {
+            for ($i = 1; $i < $counter; ++$i) {
                 $row = $data[$i];
                 $title = \is_scalar($row[0]) ? \trim((string) $row[0]) : '';
 
@@ -112,7 +114,7 @@ class ImportExcelCommand extends Command
                     continue;
                 }
 
-                $result = $this->importRow($row, $comicType, $io);
+                $result = $this->importRow($row, $comicType);
 
                 if (null !== $result) {
                     if (!$dryRun) {
@@ -153,7 +155,7 @@ class ImportExcelCommand extends Command
      *
      * @return array{series: ComicSeries, tomesCount: int}|null
      */
-    private function importRow(array $row, ComicType $comicType, SymfonyStyle $io): ?array
+    private function importRow(array $row, ComicType $comicType): ?array
     {
         $title = \is_scalar($row[0]) ? \trim((string) $row[0]) : '';
 

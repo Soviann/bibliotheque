@@ -133,7 +133,7 @@ class CreateUserCommandTest extends KernelTestCase
 
         // Nettoyer
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($user) {
+        if ($user instanceof User) {
             $this->em->remove($user);
             $this->em->flush();
         }
@@ -159,7 +159,7 @@ class CreateUserCommandTest extends KernelTestCase
 
         // Nettoyer
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($user) {
+        if ($user instanceof User) {
             $this->em->remove($user);
             $this->em->flush();
         }
@@ -204,7 +204,7 @@ class CreateUserCommandTest extends KernelTestCase
 
         // Nettoyer
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($user) {
+        if ($user instanceof User) {
             $this->em->remove($user);
             $this->em->flush();
         }

@@ -34,7 +34,7 @@ class AuthorRepositoryTest extends KernelTestCase
      */
     public function testFindOrCreateWithNewAuthor(): void
     {
-        $authorName = 'New Author Unique Test '.uniqid();
+        $authorName = 'New Author Unique Test '.\uniqid();
 
         $author = $this->repository->findOrCreate($authorName);
 
@@ -51,7 +51,7 @@ class AuthorRepositoryTest extends KernelTestCase
      */
     public function testFindOrCreateWithExistingAuthor(): void
     {
-        $authorName = 'Existing Author Test '.uniqid();
+        $authorName = 'Existing Author Test '.\uniqid();
 
         // Créer l'auteur d'abord
         $existingAuthor = new Author();
@@ -77,7 +77,7 @@ class AuthorRepositoryTest extends KernelTestCase
      */
     public function testFindOrCreateTrimsName(): void
     {
-        $authorName = 'Trimmed Author Test '.uniqid();
+        $authorName = 'Trimmed Author Test '.\uniqid();
 
         // Créer avec espaces
         $author = $this->repository->findOrCreate('  '.$authorName.'  ');
@@ -98,7 +98,7 @@ class AuthorRepositoryTest extends KernelTestCase
      */
     public function testFindOrCreateMultiple(): void
     {
-        $suffix = uniqid();
+        $suffix = \uniqid();
         $names = [
             'Author One '.$suffix,
             'Author Two '.$suffix,
@@ -124,7 +124,7 @@ class AuthorRepositoryTest extends KernelTestCase
      */
     public function testFindOrCreateMultipleFiltersEmptyNames(): void
     {
-        $suffix = uniqid();
+        $suffix = \uniqid();
         $names = [
             'Valid Author '.$suffix,
             '',
@@ -135,7 +135,7 @@ class AuthorRepositoryTest extends KernelTestCase
         $authors = $this->repository->findOrCreateMultiple($names);
 
         self::assertCount(2, $authors);
-        $authorNames = \array_map(static fn (Author $a) => $a->getName(), $authors);
+        $authorNames = \array_map(static fn (Author $a): string => $a->getName(), $authors);
         self::assertContains('Valid Author '.$suffix, $authorNames);
         self::assertContains('Another Valid '.$suffix, $authorNames);
 
@@ -151,7 +151,7 @@ class AuthorRepositoryTest extends KernelTestCase
      */
     public function testFindOrCreateMultipleMixedExistingAndNew(): void
     {
-        $suffix = uniqid();
+        $suffix = \uniqid();
         $existingName = 'Existing Multi '.$suffix;
         $newName = 'New Multi '.$suffix;
 
@@ -167,7 +167,7 @@ class AuthorRepositoryTest extends KernelTestCase
         self::assertCount(2, $authors);
 
         // Vérifier que l'existant a le même ID
-        $existingFound = \array_filter($authors, static fn (Author $a) => $a->getName() === $existingName);
+        $existingFound = \array_filter($authors, static fn (Author $a): bool => $a->getName() === $existingName);
         self::assertCount(1, $existingFound);
         self::assertSame($existingId, \array_values($existingFound)[0]->getId());
 

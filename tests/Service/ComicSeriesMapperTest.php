@@ -219,7 +219,7 @@ class ComicSeriesMapperTest extends TestCase
 
         $this->objectMapper
             ->method('map')
-            ->willReturnCallback(static function ($source, string $target) use ($author, $authorInput, $tome, $tomeInput) {
+            ->willReturnCallback(static function ($source, string $target) use ($author, $authorInput, $tome, $tomeInput): AuthorInput|TomeInput|null {
                 if ($source === $author && AuthorInput::class === $target) {
                     return $authorInput;
                 }

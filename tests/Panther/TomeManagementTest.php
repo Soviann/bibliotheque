@@ -19,8 +19,8 @@ use Symfony\Component\Process\Process;
  */
 final class TomeManagementTest extends TestCase
 {
-    private const BASE_URL = 'https://test.bibliotheque.ddev.site';
-    private const SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
+    private const string BASE_URL = 'https://test.bibliotheque.ddev.site';
+    private const string SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
 
     private ?RemoteWebDriver $driver = null;
 
@@ -156,7 +156,7 @@ final class TomeManagementTest extends TestCase
      */
     private function getDriver(): RemoteWebDriver
     {
-        if (null === $this->driver) {
+        if (!$this->driver instanceof RemoteWebDriver) {
             throw new \RuntimeException('WebDriver non initialisé.');
         }
 

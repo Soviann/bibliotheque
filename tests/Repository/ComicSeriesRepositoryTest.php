@@ -44,8 +44,8 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         $libraryResults = $this->repository->findWithFilters(['isWishlist' => false]);
         $wishlistResults = $this->repository->findWithFilters(['isWishlist' => true]);
 
-        $libraryTitles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $libraryResults);
-        $wishlistTitles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $wishlistResults);
+        $libraryTitles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $libraryResults);
+        $wishlistTitles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $wishlistResults);
 
         self::assertContains('Library Series Filter Test', $libraryTitles);
         self::assertNotContains('Wishlist Series Filter Test', $libraryTitles);
@@ -72,7 +72,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
             'type' => ComicType::BD,
         ]);
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $bdResults);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $bdResults);
 
         self::assertContains('BD Series Test', $titles);
         self::assertNotContains('Manga Series Test', $titles);
@@ -97,7 +97,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
             'status' => ComicStatus::BUYING,
         ]);
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $buyingResults);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $buyingResults);
 
         self::assertContains('Buying Series Test', $titles);
         self::assertNotContains('Finished Series Test', $titles);
@@ -132,7 +132,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
             'onNas' => true,
         ]);
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertContains('On NAS Repo Test', $titles);
         self::assertNotContains('Not On NAS Repo Test', $titles);
@@ -167,7 +167,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
             'onNas' => false,
         ]);
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertNotContains('On NAS False Test', $titles);
         self::assertContains('Not On NAS False Test', $titles);
@@ -192,7 +192,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
             'search' => 'UniqueSearchRepo',
         ]);
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertContains('UniqueSearchRepoTestXYZ', $titles);
         self::assertNotContains('Other Series', $titles);
@@ -220,7 +220,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
             'search' => '978-2-999-88877-6',
         ]);
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertContains('ISBN Search Repo Test', $titles);
 
@@ -309,7 +309,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         $results = $this->repository->search('Unique Searchable');
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertContains('Unique Searchable Title XYZ', $titles);
 
@@ -329,7 +329,7 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         $results = $this->repository->findByStatus(ComicStatus::STOPPED);
 
-        $titles = \array_map(static fn (ComicSeries $s) => $s->getTitle(), $results);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertContains('Stopped Status Test', $titles);
         self::assertNotContains('Buying Status Test', $titles);

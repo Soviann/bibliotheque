@@ -9,6 +9,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Rector** : Outil de refactoring automatique PHP pour moderniser le code
+  - Configuration conservatrice dans `rector.php` adaptée au projet
+  - Règles PHP 8.3 (types sur constantes), dead code, code quality, Symfony 7.4
+  - Règles désactivées : `#[Override]`, injection constructeur, inline route prefix
+  - Application sur tout le codebase : 42 fichiers améliorés
+  - Documentation d'utilisation ajoutée dans CLAUDE.md
+
 - **Pré-cache automatique des pages** : Les pages principales sont mises en cache automatiquement après la connexion
   - Nouveau contrôleur Stimulus `cache_warmer_controller.js`
   - Pré-charge `/api/comics`, `/`, `/wishlist` et `/comic/new` en arrière-plan

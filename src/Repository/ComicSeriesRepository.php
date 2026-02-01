@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\ComicSeries;
+use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -82,25 +83,14 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
         // Sorting
         $sort = $filters['sort'] ?? 'title_asc';
-        switch ($sort) {
-            case 'title_desc':
-                $qb->orderBy('c.title', 'DESC');
-                break;
-            case 'updated_desc':
-                $qb->orderBy('c.updatedAt', 'DESC');
-                break;
-            case 'updated_asc':
-                $qb->orderBy('c.updatedAt', 'ASC');
-                break;
-            case 'status':
-                $qb->orderBy('c.status', 'ASC')
-                    ->addOrderBy('c.title', 'ASC');
-                break;
-            case 'title_asc':
-            default:
-                $qb->orderBy('c.title', 'ASC');
-                break;
-        }
+        match ($sort) {
+            'title_desc' => $qb->orderBy('c.title', 'DESC'),
+            'updated_desc' => $qb->orderBy('c.updatedAt', 'DESC'),
+            'updated_asc' => $qb->orderBy('c.updatedAt', 'ASC'),
+            'status' => $qb->orderBy('c.status', 'ASC')
+                ->addOrderBy('c.title', 'ASC'),
+            default => $qb->orderBy('c.title', 'ASC'),
+        };
 
         return $qb->getQuery()->getResult();
     }
@@ -157,7 +147,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
         $result = [];
         foreach ($comics as $comic) {
-            $hasNasTome = $comic->getTomes()->exists(static fn (int $key, \App\Entity\Tome $t): bool => $t->isOnNas());
+            $hasNasTome = $comic->getTomes()->exists(static fn (int $key, Tome $t): bool => $t->isOnNas());
 
             $result[] = [
                 'authors' => $comic->getAuthorsAsString(),

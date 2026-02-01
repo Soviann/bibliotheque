@@ -12,6 +12,7 @@ use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Repository\AuthorRepository;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\ObjectMapper\ObjectMapperInterface;
 
 /**
@@ -30,7 +31,7 @@ class ComicSeriesMapper
      */
     public function mapToEntity(ComicSeriesInput $input, ?ComicSeries $entity = null): ComicSeries
     {
-        $isNew = null === $entity;
+        $isNew = !$entity instanceof ComicSeries;
         $entity ??= new ComicSeries();
 
         // Mapping des propriétés scalaires
@@ -54,7 +55,7 @@ class ComicSeriesMapper
         $entity->setPublisher($input->publisher);
         $entity->setCoverUrl($input->coverUrl);
 
-        if (null !== $input->coverFile) {
+        if ($input->coverFile instanceof File) {
             $entity->setCoverFile($input->coverFile);
         }
 
@@ -95,13 +96,13 @@ class ComicSeriesMapper
 
         // Mapping des Authors
         $input->authors = \array_values(\array_map(
-            fn (Author $author) => $this->mapper->map($author, AuthorInput::class),
+            fn (Author $author): object => $this->mapper->map($author, AuthorInput::class),
             $entity->getAuthors()->toArray()
         ));
 
         // Mapping des Tomes
         $input->tomes = \array_values(\array_map(
-            fn (Tome $tome) => $this->mapper->map($tome, TomeInput::class),
+            fn (Tome $tome): object => $this->mapper->map($tome, TomeInput::class),
             $entity->getTomes()->toArray()
         ));
 
@@ -127,7 +128,7 @@ class ComicSeriesMapper
 
         // Édition : synchroniser la collection
         $existingTomes = $entity->getTomes()->toArray();
-        $inputNumbers = \array_map(static fn (TomeInput $t) => $t->number, $tomesInput);
+        $inputNumbers = \array_map(static fn (TomeInput $t): int => $t->number, $tomesInput);
 
         // Supprimer les tomes qui ne sont plus dans l'input
         foreach ($existingTomes as $tome) {
@@ -140,7 +141,7 @@ class ComicSeriesMapper
         foreach ($tomesInput as $tomeInput) {
             $existingTome = $this->findTomeByNumber($existingTomes, $tomeInput->number);
 
-            if (null !== $existingTome) {
+            if ($existingTome instanceof Tome) {
                 // Mise à jour
                 $existingTome->setBought($tomeInput->bought);
                 $existingTome->setDownloaded($tomeInput->downloaded);

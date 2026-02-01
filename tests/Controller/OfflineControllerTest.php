@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Tests fonctionnels pour OfflineController.
@@ -20,7 +22,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $client->request('GET', '/offline');
+        $client->request(Request::METHOD_GET, '/offline');
 
         self::assertResponseIsSuccessful();
     }
@@ -32,7 +34,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $client->request(Request::METHOD_GET, '/offline');
 
         self::assertSelectorTextContains('title', 'Hors ligne');
         self::assertSelectorTextContains('h1', 'Vous etes hors ligne');
@@ -45,7 +47,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $client->request(Request::METHOD_GET, '/offline');
 
         self::assertSelectorTextContains('p', 'Impossible de charger cette page');
         self::assertSelectorTextContains('p', 'connexion internet');
@@ -58,7 +60,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $crawler = $client->request(Request::METHOD_GET, '/offline');
 
         $backButton = $crawler->filter('.btn-secondary');
         self::assertCount(1, $backButton);
@@ -72,7 +74,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $crawler = $client->request(Request::METHOD_GET, '/offline');
 
         $retryButton = $crawler->filter('#retry-btn');
         self::assertCount(1, $retryButton);
@@ -86,7 +88,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $crawler = $client->request(Request::METHOD_GET, '/offline');
 
         $icon = $crawler->filter('.offline-icon');
         self::assertCount(1, $icon);
@@ -103,9 +105,9 @@ class OfflineControllerTest extends WebTestCase
         $container = static::getContainer();
         $em = $container->get('doctrine.orm.entity_manager');
 
-        $user = $em->getRepository(\App\Entity\User::class)->findOneBy(['email' => 'test@bibliotheque.local']);
+        $user = $em->getRepository(User::class)->findOneBy(['email' => 'test@bibliotheque.local']);
         if (!$user) {
-            $user = new \App\Entity\User();
+            $user = new User();
             $user->setEmail('test@bibliotheque.local');
             $user->setPassword('$2y$04$test');
             $user->setRoles(['ROLE_USER']);
@@ -115,7 +117,7 @@ class OfflineControllerTest extends WebTestCase
 
         $client->loginUser($user);
 
-        $client->request('GET', '/offline');
+        $client->request(Request::METHOD_GET, '/offline');
 
         self::assertResponseIsSuccessful();
     }
@@ -127,7 +129,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $crawler = $client->request(Request::METHOD_GET, '/offline');
 
         $themeColorMeta = $crawler->filter('meta[name="theme-color"]');
         self::assertCount(1, $themeColorMeta);
@@ -141,7 +143,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $crawler = $client->request(Request::METHOD_GET, '/offline');
 
         $viewportMeta = $crawler->filter('meta[name="viewport"]');
         self::assertCount(1, $viewportMeta);
@@ -157,7 +159,7 @@ class OfflineControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/offline');
+        $crawler = $client->request(Request::METHOD_GET, '/offline');
 
         $scripts = $crawler->filter('script');
         $scriptFound = false;

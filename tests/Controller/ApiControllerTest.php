@@ -7,6 +7,7 @@ namespace App\Tests\Controller;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Tests fonctionnels pour ApiController.
@@ -20,7 +21,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/api/comics');
+        $client->request(Request::METHOD_GET, '/api/comics');
 
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('content-type', 'application/json');
@@ -33,7 +34,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/api/comics');
+        $client->request(Request::METHOD_GET, '/api/comics');
 
         $response = $client->getResponse();
         $data = \json_decode($response->getContent(), true);
@@ -65,7 +66,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $client->request('GET', '/api/comics');
+        $client->request(Request::METHOD_GET, '/api/comics');
 
         $response = $client->getResponse();
         $data = \json_decode($response->getContent(), true);
@@ -115,7 +116,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/api/isbn-lookup');
+        $client->request(Request::METHOD_GET, '/api/isbn-lookup');
 
         self::assertResponseStatusCodeSame(400);
 
@@ -132,7 +133,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/api/isbn-lookup?isbn=');
+        $client->request(Request::METHOD_GET, '/api/isbn-lookup?isbn=');
 
         self::assertResponseStatusCodeSame(400);
 
@@ -149,7 +150,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/api/title-lookup');
+        $client->request(Request::METHOD_GET, '/api/title-lookup');
 
         self::assertResponseStatusCodeSame(400);
 
@@ -166,7 +167,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/api/title-lookup?title=');
+        $client->request(Request::METHOD_GET, '/api/title-lookup?title=');
 
         self::assertResponseStatusCodeSame(400);
 
@@ -197,7 +198,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
 
         $em->flush();
 
-        $client->request('GET', '/api/comics');
+        $client->request(Request::METHOD_GET, '/api/comics');
 
         $response = $client->getResponse();
         $data = \json_decode($response->getContent(), true);
@@ -234,7 +235,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         $client = $this->createAuthenticatedClient();
 
         // ISBN invalide qui ne sera pas trouvé
-        $client->request('GET', '/api/isbn-lookup?isbn=0000000000000');
+        $client->request(Request::METHOD_GET, '/api/isbn-lookup?isbn=0000000000000');
 
         self::assertResponseStatusCodeSame(404);
 
@@ -254,7 +255,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         $client = $this->createAuthenticatedClient();
 
         // Titre improbable avec caractères spéciaux qui ne sera pas trouvé
-        $client->request('GET', '/api/title-lookup?title='.\urlencode('zzz###qqqxxx$$$999'));
+        $client->request(Request::METHOD_GET, '/api/title-lookup?title='.\urlencode('zzz###qqqxxx$$$999'));
 
         self::assertResponseStatusCodeSame(404);
 
@@ -272,7 +273,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         $client = $this->createAuthenticatedClient();
 
         // On teste juste que le paramètre est accepté sans erreur
-        $client->request('GET', '/api/isbn-lookup?isbn=0000000000000&type=manga');
+        $client->request(Request::METHOD_GET, '/api/isbn-lookup?isbn=0000000000000&type=manga');
 
         // 404 est attendu (pas de résultat) mais pas 400 (mauvaise requête)
         self::assertResponseStatusCodeSame(404);
@@ -286,7 +287,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         $client = $this->createAuthenticatedClient();
 
         // On teste juste que le paramètre est accepté sans erreur
-        $client->request('GET', '/api/title-lookup?title='.\urlencode('zzz###qqqxxx$$$888').'&type=bd');
+        $client->request(Request::METHOD_GET, '/api/title-lookup?title='.\urlencode('zzz###qqqxxx$$$888').'&type=bd');
 
         // 404 est attendu (pas de résultat) mais pas 400 (mauvaise requête)
         self::assertResponseStatusCodeSame(404);

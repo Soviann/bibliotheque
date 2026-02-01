@@ -32,7 +32,7 @@ class HomeController extends AbstractController
         // Available statuses for library (exclude wishlist status)
         $statuses = \array_filter(
             ComicStatus::cases(),
-            static fn (ComicStatus $s) => ComicStatus::WISHLIST !== $s
+            static fn (ComicStatus $s): bool => ComicStatus::WISHLIST !== $s
         );
 
         return $this->render('home/index.html.twig', [

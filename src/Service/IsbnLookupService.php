@@ -19,9 +19,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class IsbnLookupService
 {
-    private const ANILIST_API = 'https://graphql.anilist.co';
-    private const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
-    private const OPEN_LIBRARY_API = 'https://openlibrary.org/isbn/';
+    private const string ANILIST_API = 'https://graphql.anilist.co';
+    private const string GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
+    private const string OPEN_LIBRARY_API = 'https://openlibrary.org/isbn/';
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -358,12 +358,7 @@ class IsbnLookupService
      */
     private function isComplete(array $data): bool
     {
-        return null !== $data['authors']
-            && null !== $data['description']
-            && null !== $data['publishedDate']
-            && null !== $data['publisher']
-            && null !== $data['thumbnail']
-            && null !== $data['title'];
+        return !\in_array(null, [$data['authors'], $data['description'], $data['publishedDate'], $data['publisher'], $data['thumbnail'], $data['title']], true);
     }
 
     /**

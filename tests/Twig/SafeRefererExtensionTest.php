@@ -131,7 +131,7 @@ class SafeRefererExtensionTest extends TestCase
     private function createExtension(?Request $request): SafeRefererExtension
     {
         $requestStack = new RequestStack();
-        if (null !== $request) {
+        if ($request instanceof Request) {
             $requestStack->push($request);
         }
 

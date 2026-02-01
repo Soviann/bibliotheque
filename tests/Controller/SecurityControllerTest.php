@@ -7,6 +7,8 @@ namespace App\Tests\Controller;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
@@ -21,7 +23,7 @@ class SecurityControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseIsSuccessful();
     }
@@ -33,7 +35,7 @@ class SecurityControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseIsSuccessful();
         // Vérifier la présence des champs de formulaire
@@ -62,7 +64,7 @@ class SecurityControllerTest extends WebTestCase
         $em->persist($user);
         $em->flush();
 
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => $email,
             '_password' => 'password123',
@@ -88,7 +90,7 @@ class SecurityControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => 'nonexistent@example.com',
             '_password' => 'wrongpassword',
@@ -128,7 +130,7 @@ class SecurityControllerTest extends WebTestCase
         $client->loginUser($user);
 
         // Accéder à la page de login
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         // Devrait rediriger vers la page d'accueil
         self::assertResponseRedirects('/');
@@ -163,7 +165,7 @@ class SecurityControllerTest extends WebTestCase
         $client->loginUser($user);
 
         // Se déconnecter
-        $client->request('GET', '/logout');
+        $client->request(Request::METHOD_GET, '/logout');
 
         // Devrait rediriger (géré par le firewall Symfony)
         self::assertResponseRedirects();
@@ -180,7 +182,7 @@ class SecurityControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => 'remembered@example.com',
             '_password' => 'wrongpassword',
@@ -204,13 +206,13 @@ class SecurityControllerTest extends WebTestCase
 
         // Vide le cache du rate limiter avant le test
         $container = static::getContainer();
-        /** @var \Symfony\Component\Cache\Adapter\AdapterInterface $cache */
+        /** @var AdapterInterface $cache */
         $cache = $container->get('cache.rate_limiter');
         $cache->clear();
 
         // Effectue 5 tentatives (max_attempts configuré)
         for ($i = 1; $i <= 5; ++$i) {
-            $crawler = $client->request('GET', '/login');
+            $crawler = $client->request(Request::METHOD_GET, '/login');
             $form = $crawler->selectButton('Se connecter')->form([
                 '_username' => $email,
                 '_password' => 'wrongpassword',
@@ -223,7 +225,7 @@ class SecurityControllerTest extends WebTestCase
         }
 
         // La 6ème tentative doit être bloquée
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => $email,
             '_password' => 'wrongpassword',
@@ -248,7 +250,7 @@ class SecurityControllerTest extends WebTestCase
         $hasher = $container->get(UserPasswordHasherInterface::class);
 
         // Vide le cache du rate limiter avant le test
-        /** @var \Symfony\Component\Cache\Adapter\AdapterInterface $cache */
+        /** @var AdapterInterface $cache */
         $cache = $container->get('cache.rate_limiter');
         $cache->clear();
 
@@ -263,7 +265,7 @@ class SecurityControllerTest extends WebTestCase
 
         // Effectue 3 tentatives échouées (en dessous de la limite de 5)
         for ($i = 1; $i <= 3; ++$i) {
-            $crawler = $client->request('GET', '/login');
+            $crawler = $client->request(Request::METHOD_GET, '/login');
             $form = $crawler->selectButton('Se connecter')->form([
                 '_username' => $email,
                 '_password' => 'wrongpassword',
@@ -274,7 +276,7 @@ class SecurityControllerTest extends WebTestCase
         }
 
         // La 4ème tentative avec le bon mot de passe doit réussir
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => $email,
             '_password' => 'correctpassword',
@@ -306,7 +308,7 @@ class SecurityControllerTest extends WebTestCase
         $hasher = $container->get(UserPasswordHasherInterface::class);
 
         // Vide le cache du rate limiter avant le test
-        /** @var \Symfony\Component\Cache\Adapter\AdapterInterface $cache */
+        /** @var AdapterInterface $cache */
         $cache = $container->get('cache.rate_limiter');
         $cache->clear();
 
@@ -321,7 +323,7 @@ class SecurityControllerTest extends WebTestCase
 
         // Effectue 5 tentatives échouées pour atteindre la limite
         for ($i = 1; $i <= 5; ++$i) {
-            $crawler = $client->request('GET', '/login');
+            $crawler = $client->request(Request::METHOD_GET, '/login');
             $form = $crawler->selectButton('Se connecter')->form([
                 '_username' => $email,
                 '_password' => 'wrongpassword',
@@ -331,7 +333,7 @@ class SecurityControllerTest extends WebTestCase
         }
 
         // La 6ème tentative avec le bon mot de passe doit quand même être bloquée
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => $email,
             '_password' => 'correctpassword',
@@ -368,7 +370,7 @@ class SecurityControllerTest extends WebTestCase
         $hasher = $container->get(UserPasswordHasherInterface::class);
 
         // Vide le cache du rate limiter avant le test
-        /** @var \Symfony\Component\Cache\Adapter\AdapterInterface $cache */
+        /** @var AdapterInterface $cache */
         $cache = $container->get('cache.rate_limiter');
         $cache->clear();
 
@@ -383,7 +385,7 @@ class SecurityControllerTest extends WebTestCase
 
         // Effectue 4 tentatives échouées
         for ($i = 1; $i <= 4; ++$i) {
-            $crawler = $client->request('GET', '/login');
+            $crawler = $client->request(Request::METHOD_GET, '/login');
             $form = $crawler->selectButton('Se connecter')->form([
                 '_username' => $email,
                 '_password' => 'wrongpassword',
@@ -393,7 +395,7 @@ class SecurityControllerTest extends WebTestCase
         }
 
         // Connexion réussie
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => $email,
             '_password' => 'correctpassword',
@@ -402,13 +404,13 @@ class SecurityControllerTest extends WebTestCase
         self::assertResponseRedirects('/');
 
         // Se déconnecter
-        $client->request('GET', '/logout');
+        $client->request(Request::METHOD_GET, '/logout');
         $client->followRedirect();
 
         // Après connexion réussie, le compteur est réinitialisé
         // On peut à nouveau faire 5 tentatives échouées avant blocage
         for ($i = 1; $i <= 5; ++$i) {
-            $crawler = $client->request('GET', '/login');
+            $crawler = $client->request(Request::METHOD_GET, '/login');
             $form = $crawler->selectButton('Se connecter')->form([
                 '_username' => $email,
                 '_password' => 'wrongpassword',
@@ -419,7 +421,7 @@ class SecurityControllerTest extends WebTestCase
         }
 
         // La 6ème tentative après reset doit être bloquée
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => $email,
             '_password' => 'wrongpassword',

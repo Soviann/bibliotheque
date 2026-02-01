@@ -8,6 +8,7 @@ use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Tests fonctionnels pour HomeController.
@@ -21,7 +22,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/');
+        $client->request(Request::METHOD_GET, '/');
 
         self::assertResponseIsSuccessful();
     }
@@ -33,7 +34,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/?type=manga');
+        $client->request(Request::METHOD_GET, '/?type=manga');
 
         self::assertResponseIsSuccessful();
     }
@@ -45,7 +46,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/?status=buying');
+        $client->request(Request::METHOD_GET, '/?status=buying');
 
         self::assertResponseIsSuccessful();
     }
@@ -57,10 +58,10 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/?nas=1');
+        $client->request(Request::METHOD_GET, '/?nas=1');
         self::assertResponseIsSuccessful();
 
-        $client->request('GET', '/?nas=0');
+        $client->request(Request::METHOD_GET, '/?nas=0');
         self::assertResponseIsSuccessful();
     }
 
@@ -71,7 +72,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/?q=naruto');
+        $client->request(Request::METHOD_GET, '/?q=naruto');
 
         self::assertResponseIsSuccessful();
     }
@@ -86,7 +87,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
         $sortOptions = ['title_asc', 'title_desc', 'updated_asc', 'updated_desc', 'status'];
 
         foreach ($sortOptions as $sort) {
-            $client->request('GET', '/?sort='.$sort);
+            $client->request(Request::METHOD_GET, '/?sort='.$sort);
             self::assertResponseIsSuccessful();
         }
     }
@@ -98,7 +99,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/?type=bd&status=buying&sort=title_desc&q=asterix');
+        $client->request(Request::METHOD_GET, '/?type=bd&status=buying&sort=title_desc&q=asterix');
 
         self::assertResponseIsSuccessful();
     }
@@ -110,7 +111,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/?type=invalid');
+        $client->request(Request::METHOD_GET, '/?type=invalid');
 
         self::assertResponseIsSuccessful();
     }
@@ -122,7 +123,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/?status=invalid');
+        $client->request(Request::METHOD_GET, '/?status=invalid');
 
         self::assertResponseIsSuccessful();
     }
@@ -150,7 +151,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
 
         $em->flush();
 
-        $crawler = $client->request('GET', '/');
+        $crawler = $client->request(Request::METHOD_GET, '/');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Test Library Series', $crawler->text());
@@ -192,7 +193,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
 
         $em->flush();
 
-        $crawler = $client->request('GET', '/?nas=1');
+        $crawler = $client->request(Request::METHOD_GET, '/?nas=1');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Series On NAS Test', $crawler->text());
@@ -211,7 +212,7 @@ class HomeControllerTest extends AuthenticatedWebTestCase
     {
         $client = static::createClient();
 
-        $client->request('GET', '/');
+        $client->request(Request::METHOD_GET, '/');
 
         self::assertResponseRedirects('/login');
     }

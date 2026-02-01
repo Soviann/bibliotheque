@@ -18,8 +18,8 @@ use Symfony\Component\Process\Process;
  */
 final class OfflineModeTest extends TestCase
 {
-    private const BASE_URL = 'https://test.bibliotheque.ddev.site';
-    private const SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
+    private const string BASE_URL = 'https://test.bibliotheque.ddev.site';
+    private const string SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
 
     private ?RemoteWebDriver $driver = null;
 
@@ -251,7 +251,7 @@ final class OfflineModeTest extends TestCase
         \sleep(2);
 
         // 3. Vérifier que l'API est dans le cache
-        $cacheCheck = $driver->executeAsyncScript("
+        $driver->executeAsyncScript("
             const callback = arguments[arguments.length - 1];
             caches.open('bibliotheque-api').then(cache => {
                 cache.match('/api/comics').then(response => {
@@ -291,7 +291,7 @@ final class OfflineModeTest extends TestCase
      */
     private function getDriver(): RemoteWebDriver
     {
-        if (null === $this->driver) {
+        if (!$this->driver instanceof RemoteWebDriver) {
             throw new \RuntimeException('WebDriver non initialisé.');
         }
 
@@ -356,7 +356,7 @@ final class OfflineModeTest extends TestCase
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // CDP non disponible, on continue
         }
     }

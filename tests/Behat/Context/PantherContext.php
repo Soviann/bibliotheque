@@ -7,10 +7,11 @@ namespace App\Tests\Behat\Context;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\AfterScenarioScope;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Mink\Driver\PantherDriver;
 use Behat\Mink\Mink;
 use Behat\Mink\Session;
 use Behat\MinkExtension\Context\MinkAwareContext;
-use Behat\Mink\Driver\PantherDriver;
+use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Symfony\Component\Panther\Client;
 
 /**
@@ -23,8 +24,6 @@ final class PantherContext implements Context, MinkAwareContext
 {
     private ?Mink $mink = null;
 
-    private array $minkParameters = [];
-
     private ?Client $pantherClient = null;
 
     public function setMink(Mink $mink): void
@@ -34,7 +33,7 @@ final class PantherContext implements Context, MinkAwareContext
 
     public function getMink(): Mink
     {
-        if (null === $this->mink) {
+        if (!$this->mink instanceof Mink) {
             throw new \RuntimeException('Mink n\'est pas initialisé.');
         }
 
@@ -43,7 +42,6 @@ final class PantherContext implements Context, MinkAwareContext
 
     public function setMinkParameters(array $parameters): void
     {
-        $this->minkParameters = $parameters;
     }
 
     /**
@@ -54,7 +52,7 @@ final class PantherContext implements Context, MinkAwareContext
     public function initializePanther(BeforeScenarioScope $scope): void
     {
         // Définit les capabilities Chrome
-        $desiredCapabilities = new \Facebook\WebDriver\Remote\DesiredCapabilities();
+        $desiredCapabilities = new DesiredCapabilities();
         $desiredCapabilities->setBrowserName('chrome');
         $desiredCapabilities->setCapability('goog:chromeOptions', [
             'args' => [
@@ -90,7 +88,7 @@ final class PantherContext implements Context, MinkAwareContext
      */
     public function closePanther(AfterScenarioScope $scope): void
     {
-        if (null !== $this->pantherClient) {
+        if ($this->pantherClient instanceof Client) {
             $this->pantherClient->quit();
             $this->pantherClient = null;
         }

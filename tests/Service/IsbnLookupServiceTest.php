@@ -206,7 +206,7 @@ class IsbnLookupServiceTest extends TestCase
         $responses = [$googleResponse, $openLibraryResponse];
         $requestedUrls = [];
 
-        $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$responses, &$requestedUrls) {
+        $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$responses, &$requestedUrls): ?MockResponse {
             $requestedUrls[] = $url;
 
             return \array_shift($responses);
@@ -545,7 +545,7 @@ class IsbnLookupServiceTest extends TestCase
         $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
 
         $requestCount = 0;
-        $mockClient = new MockHttpClient(static function () use (&$requestCount, $googleResponse, $openLibraryResponse) {
+        $mockClient = new MockHttpClient(static function () use (&$requestCount, $googleResponse, $openLibraryResponse): MockResponse {
             ++$requestCount;
 
             return 1 === $requestCount ? $googleResponse : $openLibraryResponse;

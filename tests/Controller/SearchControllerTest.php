@@ -7,6 +7,7 @@ namespace App\Tests\Controller;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Tests fonctionnels pour SearchController.
@@ -20,7 +21,7 @@ class SearchControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/search');
+        $client->request(Request::METHOD_GET, '/search');
 
         self::assertResponseIsSuccessful();
     }
@@ -32,7 +33,7 @@ class SearchControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $client->request('GET', '/search?q=');
+        $client->request(Request::METHOD_GET, '/search?q=');
 
         self::assertResponseIsSuccessful();
     }
@@ -52,7 +53,7 @@ class SearchControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $crawler = $client->request('GET', '/search?q=Unique+Search+Title');
+        $crawler = $client->request(Request::METHOD_GET, '/search?q=Unique+Search+Title');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Unique Search Title XYZ', $crawler->text());
@@ -83,7 +84,7 @@ class SearchControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $crawler = $client->request('GET', '/search?q=978-2-505-99999-9');
+        $crawler = $client->request(Request::METHOD_GET, '/search?q=978-2-505-99999-9');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Series With ISBN', $crawler->text());
@@ -100,7 +101,7 @@ class SearchControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $crawler = $client->request('GET', '/search?q=xyznonexistentquery123');
+        $client->request(Request::METHOD_GET, '/search?q=xyznonexistentquery123');
 
         self::assertResponseIsSuccessful();
         // La page devrait s'afficher mais sans résultats
@@ -121,7 +122,7 @@ class SearchControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $crawler = $client->request('GET', '/search?q=Shippuden');
+        $crawler = $client->request(Request::METHOD_GET, '/search?q=Shippuden');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Naruto Shippuden', $crawler->text());
@@ -146,7 +147,7 @@ class SearchControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $crawler = $client->request('GET', '/search?q=one+piece');
+        $crawler = $client->request(Request::METHOD_GET, '/search?q=one+piece');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('One Piece', $crawler->text());
