@@ -38,7 +38,6 @@ class ComicSeriesTypeTest extends KernelTestCase
             'coverUrl' => 'https://example.com/cover.jpg',
             'description' => 'Une description de la série',
             'isOneShot' => true,
-            'isWishlist' => false,
             'latestPublishedIssue' => 10,
             'latestPublishedIssueComplete' => false,
             'publishedDate' => '2023-01-15',
@@ -58,7 +57,6 @@ class ComicSeriesTypeTest extends KernelTestCase
         self::assertSame(ComicType::BD, $input->type);
         self::assertSame(ComicStatus::BUYING, $input->status);
         self::assertTrue($input->isOneShot);
-        self::assertFalse($input->isWishlist);
         self::assertSame(10, $input->latestPublishedIssue);
         self::assertSame('Dupuis', $input->publisher);
         self::assertSame('Une description de la série', $input->description);
@@ -77,7 +75,6 @@ class ComicSeriesTypeTest extends KernelTestCase
         self::assertTrue($form->has('coverUrl'));
         self::assertTrue($form->has('description'));
         self::assertTrue($form->has('isOneShot'));
-        self::assertTrue($form->has('isWishlist'));
         self::assertTrue($form->has('latestPublishedIssue'));
         self::assertTrue($form->has('latestPublishedIssueComplete'));
         self::assertTrue($form->has('publishedDate'));
@@ -110,7 +107,6 @@ class ComicSeriesTypeTest extends KernelTestCase
         self::assertFalse($form->get('coverUrl')->isRequired());
         self::assertFalse($form->get('description')->isRequired());
         self::assertFalse($form->get('isOneShot')->isRequired());
-        self::assertFalse($form->get('isWishlist')->isRequired());
         self::assertFalse($form->get('latestPublishedIssue')->isRequired());
         self::assertFalse($form->get('latestPublishedIssueComplete')->isRequired());
         self::assertFalse($form->get('publishedDate')->isRequired());

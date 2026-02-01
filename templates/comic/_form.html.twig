@@ -105,22 +105,19 @@
             {{ form_widget(form.isOneShot, {attr: {'data-comic-form-target': 'isOneShot', 'data-action': 'change->comic-form#toggleOneShot'}}) }}
             <label for="{{ form.isOneShot.vars.id }}">One-shot (tome unique)</label>
         </div>
-        <div class="mdc-checkbox-field">
-            {{ form_widget(form.isWishlist) }}
-            <label for="{{ form.isWishlist.vars.id }}">Dans la liste de souhaits</label>
-        </div>
     </div>
 
     {# Section Tomes #}
     <fieldset class="tomes-section" data-comic-form-target="tomesSection">
         <legend>Tomes</legend>
 
+        {% set ownedNumbers = form.vars.data.ownedTomesNumbers %}
+        {% set missingNumbers = form.vars.data.missingTomesNumbers %}
+        {% if ownedNumbers|length > 0 or missingNumbers|length > 0 %}
         <div class="tomes-summary" data-tomes-collection-target="summary">
-            {% set ownedNumbers = form.vars.data.ownedTomesNumbers %}
-            {% set missingNumbers = form.vars.data.missingTomesNumbers %}
             {% if ownedNumbers|length > 0 %}
                 <div class="tomes-summary-row">
-                    <span class="tomes-summary-label">Possedes :</span>
+                    <span class="tomes-summary-label">Possédés :</span>
                     <span class="tomes-summary-value">{{ ownedNumbers|join(', ') }}</span>
                 </div>
             {% endif %}
@@ -131,6 +128,7 @@
                 </div>
             {% endif %}
         </div>
+        {% endif %}
 
         <div class="tomes-list" data-tomes-collection-target="list" data-comic-form-target="tomesList">
             {% for tome in form.tomes %}
@@ -151,7 +149,7 @@
                         <div class="tome-checkboxes">
                             <label class="tome-checkbox">
                                 {{ form_widget(tome.bought) }}
-                                <span>Achete</span>
+                                <span>Acheté</span>
                             </label>
                             <label class="tome-checkbox">
                                 {{ form_widget(tome.downloaded) }}
@@ -188,7 +186,7 @@
                     <div class="tome-checkboxes">
                         <label class="tome-checkbox">
                             <input type="checkbox" name="{{ form.tomes.vars.full_name }}[__name__][bought]" value="1">
-                            <span>Achete</span>
+                            <span>Acheté</span>
                         </label>
                         <label class="tome-checkbox">
                             <input type="checkbox" name="{{ form.tomes.vars.full_name }}[__name__][downloaded]" value="1">

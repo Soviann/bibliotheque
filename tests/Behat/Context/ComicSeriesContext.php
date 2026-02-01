@@ -99,13 +99,13 @@ final class ComicSeriesContext extends RawMinkContext implements Context
     }
 
     /**
-     * Coche la case wishlist.
+     * Sélectionne le statut wishlist.
      *
      * @When je coche la case wishlist
      */
     public function jeCocheLaCaseWishlist(): void
     {
-        $this->getSession()->getPage()->checkField('comic_series_isWishlist');
+        $this->getSession()->getPage()->selectFieldOption('comic_series_status', 'wishlist');
     }
 
     /**

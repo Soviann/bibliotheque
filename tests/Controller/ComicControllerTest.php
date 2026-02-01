@@ -99,7 +99,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
             'comic_series[title]' => 'New Wishlist Series',
             'comic_series[type]' => 'manga',
             'comic_series[status]' => 'wishlist',
-            'comic_series[isWishlist]' => true,
         ]);
 
         $client->submit($form);

@@ -32,8 +32,6 @@ class ComicSeriesInput
 
     public bool $isOneShot = false;
 
-    public bool $isWishlist = false;
-
     public ?string $description = null;
 
     public ?string $publishedDate = null;

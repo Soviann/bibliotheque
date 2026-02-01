@@ -50,14 +50,16 @@
                 {% block body %}{% endblock %}
             </main>
 
-            {% if app.user %}
-            {# FAB - Add new comic #}
+            {% if app.user and app.request.attributes.get('_route') not in ['app_comic_new', 'app_comic_edit'] %}
+            {# FAB - Add new comic (hidden on form pages) #}
             <a href="{{ path('app_comic_new') }}" class="fab" aria-label="Ajouter une serie" data-turbo-frame="_top">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                 </svg>
             </a>
+            {% endif %}
 
+            {% if app.user %}
             {# Bottom Navigation - Mobile only #}
             <nav class="bottom-nav">
                 <a href="{{ path('app_home') }}" class="bottom-nav-item {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}">

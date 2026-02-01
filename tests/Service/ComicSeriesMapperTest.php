@@ -51,7 +51,6 @@ class ComicSeriesMapperTest extends TestCase
         $input->latestPublishedIssue = 10;
         $input->latestPublishedIssueComplete = false;
         $input->isOneShot = false;
-        $input->isWishlist = false;
         $input->description = 'A test description';
         $input->publishedDate = '2024-01-15';
         $input->publisher = 'Test Publisher';
@@ -241,7 +240,6 @@ class ComicSeriesMapperTest extends TestCase
         self::assertSame(10, $input->latestPublishedIssue);
         self::assertTrue($input->latestPublishedIssueComplete);
         self::assertFalse($input->isOneShot);
-        self::assertFalse($input->isWishlist);
         self::assertSame('A description', $input->description);
         self::assertSame('2024-01-15', $input->publishedDate);
         self::assertSame('Publisher', $input->publisher);
