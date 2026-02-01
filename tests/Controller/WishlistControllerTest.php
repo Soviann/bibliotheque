@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\ComicSeries;
+use App\Enum\ComicStatus;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -90,13 +91,12 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
         // Créer une série wishlist
         $wishlistSeries = new ComicSeries();
         $wishlistSeries->setTitle('Wishlist Series Test');
-        $wishlistSeries->setIsWishlist(true);
+        $wishlistSeries->setStatus(ComicStatus::WISHLIST);
         $em->persist($wishlistSeries);
 
-        // Créer une série bibliothèque
+        // Créer une série bibliothèque (statut BUYING par défaut)
         $librarySeries = new ComicSeries();
         $librarySeries->setTitle('Library Series Test');
-        $librarySeries->setIsWishlist(false);
         $em->persist($librarySeries);
 
         $em->flush();

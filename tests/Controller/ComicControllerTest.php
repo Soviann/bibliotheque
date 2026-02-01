@@ -261,7 +261,7 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         $series = new ComicSeries();
         $series->setTitle('Test Wishlist Delete');
-        $series->setIsWishlist(true);
+        $series->setStatus(ComicStatus::WISHLIST);
         $em->persist($series);
         $em->flush();
 
@@ -293,7 +293,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         $series = new ComicSeries();
         $series->setTitle('Test To Library Unique');
-        $series->setIsWishlist(true);
         $series->setStatus(ComicStatus::WISHLIST);
         $em->persist($series);
         $em->flush();
@@ -337,7 +336,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         $series = new ComicSeries();
         $series->setTitle('Test Invalid CSRF To Library');
-        $series->setIsWishlist(true);
         $series->setStatus(ComicStatus::WISHLIST);
         $em->persist($series);
         $em->flush();
@@ -382,5 +380,4 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
-
 }

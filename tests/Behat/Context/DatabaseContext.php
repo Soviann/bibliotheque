@@ -139,7 +139,7 @@ final class DatabaseContext implements Context
     public function uneSerieWishlistExiste(string $title): void
     {
         $comic = new ComicSeries();
-        $comic->setIsWishlist(true);
+        // isWishlist est calculé automatiquement à partir du statut
         $comic->setStatus(ComicStatus::WISHLIST);
         $comic->setTitle($title);
         $comic->setType(ComicType::BD);
@@ -164,7 +164,7 @@ final class DatabaseContext implements Context
         };
 
         $comic = new ComicSeries();
-        $comic->setIsWishlist(ComicStatus::WISHLIST === $statusEnum);
+        // isWishlist est calculé automatiquement à partir du statut
         $comic->setStatus($statusEnum);
         $comic->setTitle($title);
         $comic->setType(ComicType::BD);

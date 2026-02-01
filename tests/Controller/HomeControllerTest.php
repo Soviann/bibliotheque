@@ -6,6 +6,7 @@ namespace App\Tests\Controller;
 
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
+use App\Enum\ComicStatus;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -13,7 +14,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class HomeControllerTest extends AuthenticatedWebTestCase
 {
-
     /**
      * Teste que la page d'accueil est accessible.
      */
@@ -137,16 +137,15 @@ class HomeControllerTest extends AuthenticatedWebTestCase
         /** @var EntityManagerInterface $em */
         $em = $container->get(EntityManagerInterface::class);
 
-        // Créer une série dans la bibliothèque
+        // Créer une série dans la bibliothèque (statut BUYING par défaut)
         $librarySeries = new ComicSeries();
         $librarySeries->setTitle('Test Library Series');
-        $librarySeries->setIsWishlist(false);
         $em->persist($librarySeries);
 
         // Créer une série dans la wishlist
         $wishlistSeries = new ComicSeries();
         $wishlistSeries->setTitle('Test Wishlist Series');
-        $wishlistSeries->setIsWishlist(true);
+        $wishlistSeries->setStatus(ComicStatus::WISHLIST);
         $em->persist($wishlistSeries);
 
         $em->flush();
@@ -173,20 +172,18 @@ class HomeControllerTest extends AuthenticatedWebTestCase
         /** @var EntityManagerInterface $em */
         $em = $container->get(EntityManagerInterface::class);
 
-        // Série avec tome sur NAS
+        // Série avec tome sur NAS (statut BUYING par défaut)
         $seriesOnNas = new ComicSeries();
         $seriesOnNas->setTitle('Series On NAS Test');
-        $seriesOnNas->setIsWishlist(false);
         $tomeOnNas = new Tome();
         $tomeOnNas->setNumber(1);
         $tomeOnNas->setOnNas(true);
         $seriesOnNas->addTome($tomeOnNas);
         $em->persist($seriesOnNas);
 
-        // Série sans tome sur NAS
+        // Série sans tome sur NAS (statut BUYING par défaut)
         $seriesNotOnNas = new ComicSeries();
         $seriesNotOnNas->setTitle('Series Not On NAS Test');
-        $seriesNotOnNas->setIsWishlist(false);
         $tomeNotOnNas = new Tome();
         $tomeNotOnNas->setNumber(1);
         $tomeNotOnNas->setOnNas(false);

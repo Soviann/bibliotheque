@@ -141,11 +141,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Retirer le commentaire `/** @phpstan-ignore-next-line */` sur la propriété `$id`. Aucune autre entité n'a besoin de cette suppression.
 - **Statut** : ✅ Terminé - Commentaire supprimé, erreur ajoutée au baseline PHPStan
 
-### 4.4 Éliminer la duplication `isWishlist` / `ComicStatus::WISHLIST`
+### 4.4 ~~Éliminer la duplication `isWishlist` / `ComicStatus::WISHLIST`~~ ✅
 
 - **Priorité** : BASSE
 - **Fichier** : `src/Entity/ComicSeries.php`
 - **Description** : Supprimer la propriété `$isWishlist` et la remplacer par une méthode calculée : `public function isWishlist(): bool { return ComicStatus::WISHLIST === $this->status; }`. Créer une migration pour supprimer la colonne.
+- **Statut** : ✅ Terminé - Propriété supprimée, méthode calculée à partir du statut, migration créée (Version20260201132408), repository et mapper mis à jour
 
 ---
 

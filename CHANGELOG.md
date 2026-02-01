@@ -26,6 +26,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Fonctionne en mode offline grâce au cache local
   - Ajout des champs `hasNasTome`, `isOneShot`, `statusLabel` et `typeLabel` dans l'API
 
+### Changed
+
+- **Élimination de la duplication `isWishlist`** : La propriété `isWishlist` est maintenant calculée à partir du statut
+  - Suppression de la colonne `is_wishlist` en base de données (migration Version20260201132408)
+  - `isWishlist()` retourne `true` si `status === ComicStatus::WISHLIST`
+  - Le repository filtre désormais sur le statut au lieu de la colonne supprimée
+  - Le mapper gère la synchronisation entre le champ formulaire et le statut
+
 ### Removed
 
 - **Onglet Recherche** : Suppression du lien "Recherche" dans la navigation (desktop et mobile)

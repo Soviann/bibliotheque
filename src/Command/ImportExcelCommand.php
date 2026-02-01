@@ -167,7 +167,7 @@ class ImportExcelCommand extends Command
         $comic->setType($comicType);
         $statusValue = isset($row[1]) && \is_string($row[1]) ? $row[1] : null;
         $comic->setStatus($this->determineStatus($statusValue));
-        $comic->setIsWishlist(false);
+        // isWishlist est calculé automatiquement à partir du statut
 
         // Extraction des valeurs numériques
         [$lastBoughtValue, $lastBoughtComplete] = $this->parseIntegerValue($row[2] ?? null);

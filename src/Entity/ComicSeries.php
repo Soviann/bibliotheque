@@ -54,9 +54,6 @@ class ComicSeries
     #[ORM\Column]
     private bool $isOneShot = false;
 
-    #[ORM\Column]
-    private bool $isWishlist = false;
-
     /**
      * Auteur(s) de la série.
      *
@@ -493,15 +490,12 @@ class ComicSeries
         return $this;
     }
 
+    /**
+     * Indique si la série est dans la liste de souhaits.
+     * Calculé à partir du statut, pas d'une propriété séparée.
+     */
     public function isWishlist(): bool
     {
-        return $this->isWishlist;
-    }
-
-    public function setIsWishlist(bool $isWishlist): static
-    {
-        $this->isWishlist = $isWishlist;
-
-        return $this;
+        return ComicStatus::WISHLIST === $this->status;
     }
 }

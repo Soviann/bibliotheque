@@ -202,7 +202,7 @@ class ComicSeriesMapperTest extends TestCase
         $entity->setLatestPublishedIssue(10);
         $entity->setLatestPublishedIssueComplete(true);
         $entity->setIsOneShot(false);
-        $entity->setIsWishlist(false);
+        // isWishlist est calculé à partir du statut (BUYING → false)
         $entity->setDescription('A description');
         $entity->setPublishedDate('2024-01-15');
         $entity->setPublisher('Publisher');

@@ -37,10 +37,15 @@ class ComicSeriesRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('c')
             ->leftJoin('c.tomes', 't');
 
-        // Wishlist filter (required)
+        // Wishlist filter : isWishlist est calculé à partir du statut
         if (isset($filters['isWishlist'])) {
-            $qb->andWhere('c.isWishlist = :isWishlist')
-                ->setParameter('isWishlist', $filters['isWishlist']);
+            if ($filters['isWishlist']) {
+                $qb->andWhere('c.status = :wishlistStatus')
+                    ->setParameter('wishlistStatus', ComicStatus::WISHLIST);
+            } else {
+                $qb->andWhere('c.status != :wishlistStatus')
+                    ->setParameter('wishlistStatus', ComicStatus::WISHLIST);
+            }
         }
 
         // Type filter

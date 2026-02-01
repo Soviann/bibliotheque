@@ -128,7 +128,7 @@ class ComicController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $comic->setIsWishlist(false);
+        // Passer le statut à BUYING fait automatiquement que isWishlist() retourne false
         $comic->setStatus(ComicStatus::BUYING);
         $entityManager->flush();
 

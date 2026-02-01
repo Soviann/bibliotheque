@@ -10,6 +10,7 @@ use App\Dto\Input\TomeInput;
 use App\Entity\Author;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
+use App\Enum\ComicStatus;
 use App\Repository\AuthorRepository;
 use Symfony\Component\ObjectMapper\ObjectMapperInterface;
 
@@ -34,13 +35,21 @@ class ComicSeriesMapper
 
         // Mapping des propriétés scalaires
         $entity->setTitle($input->title);
-        $entity->setStatus($input->status);
         $entity->setType($input->type);
         $entity->setLatestPublishedIssue($input->latestPublishedIssue);
         $entity->setLatestPublishedIssueComplete($input->latestPublishedIssueComplete);
         $entity->setIsOneShot($input->isOneShot);
-        $entity->setIsWishlist($input->isWishlist);
         $entity->setDescription($input->description);
+
+        // Gestion du statut en tenant compte de isWishlist
+        // Si isWishlist est vrai, le statut est forcé à WISHLIST
+        // Si isWishlist est faux et le statut était WISHLIST, revenir à BUYING
+        if ($input->isWishlist) {
+            $entity->setStatus(ComicStatus::WISHLIST);
+        } else {
+            $status = ComicStatus::WISHLIST === $input->status ? ComicStatus::BUYING : $input->status;
+            $entity->setStatus($status);
+        }
         $entity->setPublishedDate($input->publishedDate);
         $entity->setPublisher($input->publisher);
         $entity->setCoverUrl($input->coverUrl);

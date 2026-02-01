@@ -33,25 +33,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
     }
 
     /**
-     * Crée et persiste une série pour les tests.
-     */
-    private function createSeries(
-        string $title,
-        bool $isWishlist = false,
-        ComicType $type = ComicType::BD,
-        ComicStatus $status = ComicStatus::BUYING,
-    ): ComicSeries {
-        $series = new ComicSeries();
-        $series->setTitle($title);
-        $series->setIsWishlist($isWishlist);
-        $series->setType($type);
-        $series->setStatus($status);
-        $this->em->persist($series);
-
-        return $series;
-    }
-
-    /**
      * Teste findWithFilters avec filtre isWishlist.
      */
     public function testFindWithFiltersWishlistFilter(): void
@@ -440,5 +421,26 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         $this->em->remove($library);
         $this->em->remove($wishlist);
         $this->em->flush();
+    }
+
+    /**
+     * Crée et persiste une série pour les tests.
+     * Note: isWishlist est dérivé du statut (WISHLIST → isWishlist=true).
+     */
+    private function createSeries(
+        string $title,
+        bool $isWishlist = false,
+        ComicType $type = ComicType::BD,
+        ComicStatus $status = ComicStatus::BUYING,
+    ): ComicSeries {
+        $series = new ComicSeries();
+        $series->setTitle($title);
+        $series->setType($type);
+        // isWishlist est calculé à partir du statut
+        $effectiveStatus = $isWishlist ? ComicStatus::WISHLIST : $status;
+        $series->setStatus($effectiveStatus);
+        $this->em->persist($series);
+
+        return $series;
     }
 }

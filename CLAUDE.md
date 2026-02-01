@@ -328,7 +328,6 @@ Entité principale représentant une série BD/Comics/Manga/Livre.
 | `latestPublishedIssue` | int\|null | Dernier numéro paru |
 | `latestPublishedIssueComplete` | bool | Série terminée par l'éditeur |
 | `isOneShot` | bool | One-shot (volume unique) |
-| `isWishlist` | bool | Dans la liste de souhaits |
 | `description` | text\|null | Description |
 | `publishedDate` | string\|null | Date de publication |
 | `publisher` | string\|null | Éditeur |
@@ -340,6 +339,7 @@ Entité principale représentant une série BD/Comics/Manga/Livre.
 - `tomes` : OneToMany → Tome (cascade persist/remove, orphanRemoval)
 
 **Méthodes utiles :**
+- `isWishlist()` : `true` si `status === ComicStatus::WISHLIST` (calculé, pas de setter)
 - `getCurrentIssue()` : numéro max possédé
 - `getLastBought()` : dernier tome acheté
 - `getLastDownloaded()` : dernier tome téléchargé
@@ -438,7 +438,7 @@ DTO principal pour création/édition de séries.
 | `latestPublishedIssue` | ?int | Dernier numéro paru |
 | `latestPublishedIssueComplete` | bool | Série terminée |
 | `isOneShot` | bool | Volume unique |
-| `isWishlist` | bool | Dans wishlist |
+| `isWishlist` | bool | Checkbox wishlist (si true → status=WISHLIST) |
 | `description` | ?string | Description |
 | `publishedDate` | ?string | Date publication |
 | `publisher` | ?string | Éditeur |

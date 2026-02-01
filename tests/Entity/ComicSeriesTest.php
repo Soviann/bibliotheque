@@ -58,6 +58,34 @@ class ComicSeriesTest extends TestCase
     }
 
     /**
+     * Teste que isWishlist retourne true quand le statut est WISHLIST.
+     */
+    public function testIsWishlistReturnsTrueWhenStatusIsWishlist(): void
+    {
+        $series = new ComicSeries();
+        $series->setStatus(ComicStatus::WISHLIST);
+
+        self::assertTrue($series->isWishlist());
+    }
+
+    /**
+     * Teste que isWishlist retourne false pour les autres statuts.
+     */
+    public function testIsWishlistReturnsFalseForOtherStatuses(): void
+    {
+        $series = new ComicSeries();
+
+        $series->setStatus(ComicStatus::BUYING);
+        self::assertFalse($series->isWishlist());
+
+        $series->setStatus(ComicStatus::FINISHED);
+        self::assertFalse($series->isWishlist());
+
+        $series->setStatus(ComicStatus::STOPPED);
+        self::assertFalse($series->isWishlist());
+    }
+
+    /**
      * Teste getCurrentIssue avec une collection vide.
      */
     public function testGetCurrentIssueWithEmptyCollection(): void
@@ -541,7 +569,8 @@ class ComicSeriesTest extends TestCase
         $series->setIsOneShot(true);
         self::assertTrue($series->isOneShot());
 
-        $series->setIsWishlist(true);
+        // isWishlist est maintenant calculé à partir du statut
+        $series->setStatus(ComicStatus::WISHLIST);
         self::assertTrue($series->isWishlist());
 
         $series->setLatestPublishedIssue(10);
@@ -587,7 +616,7 @@ class ComicSeriesTest extends TestCase
         self::assertSame($series, $series->setStatus(ComicStatus::BUYING));
         self::assertSame($series, $series->setType(ComicType::BD));
         self::assertSame($series, $series->setIsOneShot(true));
-        self::assertSame($series, $series->setIsWishlist(true));
+        // setIsWishlist supprimé : isWishlist est calculé à partir du statut
         self::assertSame($series, $series->setLatestPublishedIssue(5));
         self::assertSame($series, $series->setLatestPublishedIssueComplete(true));
         self::assertSame($series, $series->setDescription('Test'));
