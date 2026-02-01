@@ -24,6 +24,7 @@
         "symfony/flex": "^2.10",
         "symfony/form": "^7.2",
         "symfony/framework-bundle": "^7.4.5",
+        "symfony/object-mapper": "^7.2",
         "symfony/rate-limiter": "^7.2",
         "symfony/runtime": "^7.4.1",
         "symfony/security-bundle": "^7.2",

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Form;
 
-use App\Entity\Tome;
+use App\Dto\Input\TomeInput;
 use App\Form\TomeType;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\Form\Test\TypeTestCase;
@@ -29,19 +29,19 @@ class TomeTypeTest extends TypeTestCase
             'title' => 'Le Retour du Héros',
         ];
 
-        $tome = new Tome();
-        $form = $this->factory->create(TomeType::class, $tome);
+        $input = new TomeInput();
+        $form = $this->factory->create(TomeType::class, $input);
         $form->submit($formData);
 
         self::assertTrue($form->isSynchronized());
         self::assertTrue($form->isValid());
 
-        self::assertSame(5, $tome->getNumber());
-        self::assertTrue($tome->isBought());
-        self::assertFalse($tome->isDownloaded());
-        self::assertTrue($tome->isOnNas());
-        self::assertSame('978-2-505-00123-4', $tome->getIsbn());
-        self::assertSame('Le Retour du Héros', $tome->getTitle());
+        self::assertSame(5, $input->number);
+        self::assertTrue($input->bought);
+        self::assertFalse($input->downloaded);
+        self::assertTrue($input->onNas);
+        self::assertSame('978-2-505-00123-4', $input->isbn);
+        self::assertSame('Le Retour du Héros', $input->title);
     }
 
     /**
@@ -58,8 +58,8 @@ class TomeTypeTest extends TypeTestCase
             'title' => '',
         ];
 
-        $tome = new Tome();
-        $form = $this->factory->create(TomeType::class, $tome);
+        $input = new TomeInput();
+        $form = $this->factory->create(TomeType::class, $input);
         $form->submit($formData);
 
         self::assertTrue($form->isSynchronized());
@@ -86,15 +86,15 @@ class TomeTypeTest extends TypeTestCase
      */
     public function testFormPrefillsExistingData(): void
     {
-        $tome = new Tome();
-        $tome->setNumber(10);
-        $tome->setBought(true);
-        $tome->setDownloaded(true);
-        $tome->setOnNas(true);
-        $tome->setIsbn('123-456');
-        $tome->setTitle('Existing Title');
+        $input = new TomeInput();
+        $input->number = 10;
+        $input->bought = true;
+        $input->downloaded = true;
+        $input->onNas = true;
+        $input->isbn = '123-456';
+        $input->title = 'Existing Title';
 
-        $form = $this->factory->create(TomeType::class, $tome);
+        $form = $this->factory->create(TomeType::class, $input);
 
         $view = $form->createView();
 
@@ -113,7 +113,7 @@ class TomeTypeTest extends TypeTestCase
     {
         $form = $this->factory->create(TomeType::class);
 
-        self::assertSame(Tome::class, $form->getConfig()->getDataClass());
+        self::assertSame(TomeInput::class, $form->getConfig()->getDataClass());
     }
 
     /**
@@ -154,16 +154,16 @@ class TomeTypeTest extends TypeTestCase
      */
     public function testBooleanDefaultValues(): void
     {
-        $tome = new Tome();
-        $form = $this->factory->create(TomeType::class, $tome);
+        $input = new TomeInput();
+        $form = $this->factory->create(TomeType::class, $input);
         $form->submit([
             'number' => 1,
             // Booléens non soumis = false
         ]);
 
         self::assertTrue($form->isValid());
-        self::assertFalse($tome->isBought());
-        self::assertFalse($tome->isDownloaded());
-        self::assertFalse($tome->isOnNas());
+        self::assertFalse($input->bought);
+        self::assertFalse($input->downloaded);
+        self::assertFalse($input->onNas);
     }
 }

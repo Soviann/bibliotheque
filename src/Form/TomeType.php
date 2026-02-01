@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\Tome;
+use App\Dto\Input\TomeInput;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -13,9 +13,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Formulaire pour l'entité Tome.
+ * Formulaire pour le DTO TomeInput.
  *
- * @extends AbstractType<Tome>
+ * @extends AbstractType<TomeInput>
  */
 class TomeType extends AbstractType
 {
@@ -55,7 +55,7 @@ class TomeType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Tome::class,
+            'data_class' => TomeInput::class,
         ]);
     }
 }

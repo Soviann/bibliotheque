@@ -27,7 +27,7 @@ class ComicSeries
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(type: Types::STRING, length: 20, enumType: ComicStatus::class)]
     private ComicStatus $status = ComicStatus::BUYING;
@@ -233,16 +233,9 @@ class ComicSeries
             return null;
         }
 
-        $numbers = \array_filter(
-            $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
-            static fn (?int $n): bool => null !== $n
-        );
+        $numbers = $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
 
-        if ([] === $numbers) {
-            return null;
-        }
-
-        return \max($numbers);
+        return [] === $numbers ? null : \max($numbers);
     }
 
     public function getDescription(): ?string
@@ -273,16 +266,9 @@ class ComicSeries
             return null;
         }
 
-        $numbers = \array_filter(
-            $boughtTomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
-            static fn (?int $n): bool => null !== $n
-        );
+        $numbers = $boughtTomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
 
-        if ([] === $numbers) {
-            return null;
-        }
-
-        return \max($numbers);
+        return [] === $numbers ? null : \max($numbers);
     }
 
     /**
@@ -296,16 +282,9 @@ class ComicSeries
             return null;
         }
 
-        $numbers = \array_filter(
-            $downloadedTomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
-            static fn (?int $n): bool => null !== $n
-        );
+        $numbers = $downloadedTomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
 
-        if ([] === $numbers) {
-            return null;
-        }
-
-        return \max($numbers);
+        return [] === $numbers ? null : \max($numbers);
     }
 
     public function getLatestPublishedIssue(): ?int
@@ -344,10 +323,7 @@ class ComicSeries
      */
     public function getOwnedTomesNumbers(): array
     {
-        return \array_filter(
-            $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray(),
-            static fn (?int $n): bool => null !== $n
-        );
+        return $this->tomes->map(static fn (Tome $t) => $t->getNumber())->toArray();
     }
 
     public function getPublishedDate(): ?string
@@ -386,7 +362,7 @@ class ComicSeries
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }

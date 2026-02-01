@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Form;
 
-use App\Entity\ComicSeries;
+use App\Dto\Input\ComicSeriesInput;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Form\ComicSeriesType;
@@ -16,7 +16,7 @@ use Symfony\Component\Form\FormFactoryInterface;
  * Tests fonctionnels pour ComicSeriesType.
  *
  * Note: Ce test utilise KernelTestCase car ComicSeriesType dépend de services
- * (AuthorAutocompleteType, DropzoneType) qui nécessitent le conteneur.
+ * (AuthorAutocompleteType, DropzoneType, AuthorToInputTransformer) qui nécessitent le conteneur.
  */
 #[CoversClass(ComicSeriesType::class)]
 class ComicSeriesTypeTest extends KernelTestCase
@@ -48,21 +48,21 @@ class ComicSeriesTypeTest extends KernelTestCase
             'type' => 'bd',
         ];
 
-        $comic = new ComicSeries();
-        $form = $this->formFactory->create(ComicSeriesType::class, $comic);
+        $input = new ComicSeriesInput();
+        $form = $this->formFactory->create(ComicSeriesType::class, $input);
         $form->submit($formData);
 
         self::assertTrue($form->isSynchronized());
 
-        self::assertSame('Test Series', $comic->getTitle());
-        self::assertSame(ComicType::BD, $comic->getType());
-        self::assertSame(ComicStatus::BUYING, $comic->getStatus());
-        self::assertTrue($comic->isOneShot());
-        self::assertFalse($comic->isWishlist());
-        self::assertSame(10, $comic->getLatestPublishedIssue());
-        self::assertSame('Dupuis', $comic->getPublisher());
-        self::assertSame('Une description de la série', $comic->getDescription());
-        self::assertSame('https://example.com/cover.jpg', $comic->getCoverUrl());
+        self::assertSame('Test Series', $input->title);
+        self::assertSame(ComicType::BD, $input->type);
+        self::assertSame(ComicStatus::BUYING, $input->status);
+        self::assertTrue($input->isOneShot);
+        self::assertFalse($input->isWishlist);
+        self::assertSame(10, $input->latestPublishedIssue);
+        self::assertSame('Dupuis', $input->publisher);
+        self::assertSame('Une description de la série', $input->description);
+        self::assertSame('https://example.com/cover.jpg', $input->coverUrl);
     }
 
     /**
@@ -125,7 +125,7 @@ class ComicSeriesTypeTest extends KernelTestCase
     {
         $form = $this->formFactory->create(ComicSeriesType::class);
 
-        self::assertSame(ComicSeries::class, $form->getConfig()->getDataClass());
+        self::assertSame(ComicSeriesInput::class, $form->getConfig()->getDataClass());
     }
 
     /**
@@ -133,8 +133,8 @@ class ComicSeriesTypeTest extends KernelTestCase
      */
     public function testNewSeriesHasDefaultValues(): void
     {
-        $comic = new ComicSeries();
-        $form = $this->formFactory->create(ComicSeriesType::class, $comic);
+        $input = new ComicSeriesInput();
+        $form = $this->formFactory->create(ComicSeriesType::class, $input);
 
         $view = $form->createView();
 
@@ -148,14 +148,14 @@ class ComicSeriesTypeTest extends KernelTestCase
      */
     public function testFormPrefillsExistingData(): void
     {
-        $comic = new ComicSeries();
-        $comic->setTitle('Existing Title');
-        $comic->setType(ComicType::MANGA);
-        $comic->setStatus(ComicStatus::FINISHED);
-        $comic->setLatestPublishedIssue(25);
-        $comic->setPublisher('Kana');
+        $input = new ComicSeriesInput();
+        $input->title = 'Existing Title';
+        $input->type = ComicType::MANGA;
+        $input->status = ComicStatus::FINISHED;
+        $input->latestPublishedIssue = 25;
+        $input->publisher = 'Kana';
 
-        $form = $this->formFactory->create(ComicSeriesType::class, $comic);
+        $form = $this->formFactory->create(ComicSeriesType::class, $input);
         $view = $form->createView();
 
         self::assertSame('Existing Title', $view->children['title']->vars['value']);

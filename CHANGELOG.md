@@ -61,6 +61,16 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - `Content-Security-Policy` - CSP basique autorisant self, inline, et polices Google
   - 4 tests fonctionnels vérifiant la présence des headers
 
+### Changed
+
+- **Architecture formulaires avec DTOs** : Refactoring des formulaires pour utiliser des DTOs au lieu des entités directement
+  - Nouveaux DTOs : `ComicSeriesInput`, `TomeInput`, `AuthorInput` dans `src/Dto/Input/`
+  - Service `ComicSeriesMapper` pour le mapping bidirectionnel DTO ↔ Entity
+  - `AuthorToInputTransformer` pour gérer l'autocomplete avec les DTOs
+  - Entités avec types non-nullable alignés sur les contraintes BDD (`title: string`, `number: int`, `name: string`)
+  - Utilise `symfony/object-mapper` pour le mapping automatique des propriétés scalaires
+  - Les formulaires Symfony Forms manipulent les DTOs, le mapping vers les entités se fait après validation
+
 ### Fixed
 
 - **Gestion des erreurs Doctrine** : Les erreurs de base de données dans les contrôleurs affichent maintenant un message flash

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\ComicSeries;
+use App\Dto\Input\ComicSeriesInput;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
+use App\Form\DataTransformer\AuthorToInputTransformer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -19,8 +20,18 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\UX\Dropzone\Form\DropzoneType;
 
+/**
+ * Formulaire pour le DTO ComicSeriesInput.
+ *
+ * @extends AbstractType<ComicSeriesInput>
+ */
 class ComicSeriesType extends AbstractType
 {
+    public function __construct(
+        private readonly AuthorToInputTransformer $authorTransformer,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -94,12 +105,15 @@ class ComicSeriesType extends AbstractType
                 'label' => 'Type',
             ])
         ;
+
+        // Transformer pour l'autocomplete des auteurs (Entity ↔ DTO)
+        $builder->get('authors')->addModelTransformer($this->authorTransformer);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => ComicSeries::class,
+            'data_class' => ComicSeriesInput::class,
         ]);
     }
 }

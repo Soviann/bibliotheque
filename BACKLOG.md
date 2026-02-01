@@ -100,38 +100,46 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Envelopper `IOFactory::load($filePath)` dans un try/catch pour gérer `SpreadsheetReaderException` et afficher un message d'erreur lisible si le fichier est corrompu ou dans un format non supporté.
 - **Statut** : ✅ Terminé - Try/catch sur Reader\Exception avec message d'erreur clair
 
-### 3.5 Corriger le null-safe sur `getUpdatedAt()` dans findAllForApi
+### 3.5 ~~Corriger le null-safe sur `getUpdatedAt()` dans findAllForApi~~ ❌
 
 - **Priorité** : BASSE
 - **Fichier** : `src/Repository/ComicSeriesRepository.php:200`
 - **Description** : Remplacer `$comic->getUpdatedAt()->format('c')` par `$comic->getUpdatedAt()?->format('c')` pour éviter une erreur si `updatedAt` est null.
+- **Statut** : ❌ Non applicable - La colonne `updated_at` est `NOT NULL` en BDD, le constructeur initialise toujours la propriété, et PHPStan confirme que `getUpdatedAt()` retourne `\DateTimeImmutable` (non nullable). L'opérateur null-safe serait du code mort.
 
 ---
 
 ## Sprint 4 — Types & Cohérence
 
-### 4.1 Aligner les types nullables avec les contraintes de validation
+### 4.1 ~~Aligner les types nullables avec les contraintes de validation~~ ✅
 
 - **Priorité** : HAUTE
-- **Fichiers** : `src/Entity/ComicSeries.php`, `src/Entity/Tome.php`, `src/Entity/Author.php`, `src/Entity/User.php`
+- **Fichiers** : `src/Entity/ComicSeries.php`, `src/Entity/Tome.php`, `src/Entity/Author.php`
 - **Description** : Corriger les incohérences entre types PHP et contraintes :
   - `ComicSeries.$title: ?string` → `string` (car `Assert\NotBlank`)
   - `Tome.$number: ?int` → `int` (car `Assert\NotNull`)
-  - `Tome.$comicSeries: ?ComicSeries` → `ComicSeries` (car `nullable: false`)
   - `Author.$name: ?string` → `string` (car `Assert\NotBlank`)
-  - Adapter les constructeurs pour initialiser ces propriétés obligatoires.
+- **Statut** : ✅ Terminé via implémentation d'un pattern DTO avec ObjectMapper :
+  1. Création de DTOs (`ComicSeriesInput`, `TomeInput`, `AuthorInput`) avec types non-nullable
+  2. Formulaires utilisent les DTOs (`data_class: ComicSeriesInput`)
+  3. Service `ComicSeriesMapper` pour mapping DTO ↔ Entity
+  4. `AuthorToInputTransformer` pour l'autocomplete (Entity ↔ DTO)
+  5. Entités modifiées avec types non-nullable alignés sur les contraintes BDD
+  6. Note : `Tome.$comicSeries` reste nullable (pattern bidirectionnel `orphanRemoval`)
 
-### 4.2 Utiliser l'enum ComicType dans IsbnLookupService
+### 4.2 ~~Utiliser l'enum ComicType dans IsbnLookupService~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichier** : `src/Service/IsbnLookupService.php`
 - **Description** : Changer le paramètre `?string $type` en `?ComicType $type` dans les méthodes `lookup()` et `lookupByTitle()`. Mettre à jour les appels dans `ApiController`.
+- **Statut** : ✅ Terminé - Paramètres changés en `?ComicType`, comparaisons avec `ComicType::MANGA`, ApiController convertit la string via `ComicType::tryFrom()`
 
-### 4.3 Supprimer la suppression PHPStan injustifiée
+### 4.3 ~~Supprimer la suppression PHPStan injustifiée~~ ✅
 
 - **Priorité** : BASSE
 - **Fichier** : `src/Entity/Tome.php:21`
 - **Description** : Retirer le commentaire `/** @phpstan-ignore-next-line */` sur la propriété `$id`. Aucune autre entité n'a besoin de cette suppression.
+- **Statut** : ✅ Terminé - Commentaire supprimé, erreur ajoutée au baseline PHPStan
 
 ### 4.4 Éliminer la duplication `isWishlist` / `ComicStatus::WISHLIST`
 

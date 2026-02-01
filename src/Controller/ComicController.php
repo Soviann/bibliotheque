@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\Input\ComicSeriesInput;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Form\ComicSeriesType;
+use App\Service\ComicSeriesMapper;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +19,11 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/comic')]
 class ComicController extends AbstractController
 {
+    public function __construct(
+        private readonly ComicSeriesMapper $comicSeriesMapper,
+    ) {
+    }
+
     #[Route('/{id}', name: 'app_comic_show', methods: ['GET'], priority: -1)]
     public function show(ComicSeries $comic): Response
     {
@@ -28,12 +35,13 @@ class ComicController extends AbstractController
     #[Route('/new', name: 'app_comic_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $comic = new ComicSeries();
-        $form = $this->createForm(ComicSeriesType::class, $comic);
+        $input = new ComicSeriesInput();
+        $form = $this->createForm(ComicSeriesType::class, $input);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                $comic = $this->comicSeriesMapper->mapToEntity($input);
                 $entityManager->persist($comic);
                 $entityManager->flush();
 
@@ -50,7 +58,6 @@ class ComicController extends AbstractController
         }
 
         return $this->render('comic/new.html.twig', [
-            'comic' => $comic,
             'form' => $form,
         ]);
     }
@@ -58,11 +65,13 @@ class ComicController extends AbstractController
     #[Route('/{id}/edit', name: 'app_comic_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(ComicSeriesType::class, $comic);
+        $input = $this->comicSeriesMapper->mapToInput($comic);
+        $form = $this->createForm(ComicSeriesType::class, $input);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                $this->comicSeriesMapper->mapToEntity($input, $comic);
                 $entityManager->flush();
 
                 $this->addFlash('success', 'La série a été modifiée avec succès.');

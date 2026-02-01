@@ -18,7 +18,6 @@ class Tome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    /** @phpstan-ignore-next-line */
     private ?int $id = null;
 
     /**
@@ -55,7 +54,7 @@ class Tome
     #[ORM\Column]
     #[Assert\NotNull]
     #[Assert\PositiveOrZero]
-    private ?int $number = null;
+    private int $number = 0;
 
     /**
      * Indique si le tome est présent sur le NAS.
@@ -149,7 +148,7 @@ class Tome
         return $this;
     }
 
-    public function getNumber(): ?int
+    public function getNumber(): int
     {
         return $this->number;
     }

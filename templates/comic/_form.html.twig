@@ -59,9 +59,9 @@
     <div class="form-row cover-upload-section">
         <div class="mdc-text-field mdc-text-field--full-width cover-upload-field">
             <label>Image de couverture (upload manuel)</label>
-            {% if form.vars.data.coverImage %}
+            {% if form.vars.data.coverImage and comic is defined %}
                 <div class="current-cover">
-                    <img src="{{ vich_uploader_asset(form.vars.data, 'coverFile') }}" alt="Couverture actuelle">
+                    <img src="{{ vich_uploader_asset(comic, 'coverFile') }}" alt="Couverture actuelle">
                     <small>Image actuelle (sera remplacee si vous uploadez une nouvelle image)</small>
                 </div>
             {% endif %}

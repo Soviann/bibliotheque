@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Controller\ComicController;
+use App\Dto\Input\ComicSeriesInput;
 use App\Entity\ComicSeries;
+use App\Service\ComicSeriesMapper;
 use Doctrine\DBAL\Driver\Exception as DriverExceptionInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -69,8 +71,12 @@ class ComicControllerUnitTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        // Création du contrôleur avec le container mocké
-        $controller = new ComicController();
+        // Mock du mapper
+        $mapper = $this->createMock(ComicSeriesMapper::class);
+        $mapper->method('mapToEntity')->willReturn(new ComicSeries());
+
+        // Création du contrôleur avec le mapper mocké
+        $controller = new ComicController($mapper);
 
         // Configuration du container
         $container = $this->createMock(\Psr\Container\ContainerInterface::class);
@@ -142,7 +148,12 @@ class ComicControllerUnitTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $controller = new ComicController();
+        // Mock du mapper
+        $mapper = $this->createMock(ComicSeriesMapper::class);
+        $mapper->method('mapToInput')->willReturn(new ComicSeriesInput());
+        $mapper->method('mapToEntity')->willReturn($comic);
+
+        $controller = new ComicController($mapper);
 
         $container = $this->createMock(\Psr\Container\ContainerInterface::class);
         $container->method('has')->willReturnCallback(static function (string $id): bool {

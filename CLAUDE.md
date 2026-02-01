@@ -398,6 +398,17 @@ MANGA = 'manga'
 
 ### Services
 
+#### ComicSeriesMapper (`src/Service/ComicSeriesMapper.php`)
+Mapping bidirectionnel entre DTOs et entités pour les formulaires.
+
+**Méthodes publiques :**
+- `mapToEntity(ComicSeriesInput $input, ?ComicSeries $entity = null): ComicSeries` — DTO → Entity (création ou mise à jour)
+- `mapToInput(ComicSeries $entity): ComicSeriesInput` — Entity → DTO (pré-remplissage formulaire)
+
+**Logique interne :**
+- Authors : utilise `AuthorRepository::findOrCreate()` (pas de mapping automatique)
+- Tomes : synchronisation intelligente (ajout/mise à jour/suppression selon numéro)
+
 #### IsbnLookupService (`src/Service/IsbnLookupService.php`)
 Recherche d'informations via APIs externes.
 
@@ -407,10 +418,64 @@ Recherche d'informations via APIs externes.
 - AniList (GraphQL, mangas uniquement, détection one-shot)
 
 **Méthodes publiques :**
-- `lookup(string $isbn, ?string $type): ?array` — recherche par ISBN
-- `lookupByTitle(string $title, ?string $type): ?array` — recherche par titre
+- `lookup(string $isbn, ?ComicType $type): ?array` — recherche par ISBN
+- `lookupByTitle(string $title, ?ComicType $type): ?array` — recherche par titre
 
 **Retour :** `['title', 'authors', 'description', 'publishedDate', 'publisher', 'isbn', 'thumbnail', 'isOneShot', 'sources']`
+
+### DTOs
+
+Les DTOs (Data Transfer Objects) sont utilisés pour découpler les formulaires des entités.
+
+#### ComicSeriesInput (`src/Dto/Input/ComicSeriesInput.php`)
+DTO principal pour création/édition de séries.
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `title` | string | Titre (non-nullable, `Assert\NotBlank`) |
+| `status` | ComicStatus | Statut (défaut: BUYING) |
+| `type` | ComicType | Type (défaut: BD) |
+| `latestPublishedIssue` | ?int | Dernier numéro paru |
+| `latestPublishedIssueComplete` | bool | Série terminée |
+| `isOneShot` | bool | Volume unique |
+| `isWishlist` | bool | Dans wishlist |
+| `description` | ?string | Description |
+| `publishedDate` | ?string | Date publication |
+| `publisher` | ?string | Éditeur |
+| `coverUrl` | ?string | URL couverture |
+| `coverImage` | ?string | Nom fichier couverture existant (lecture seule) |
+| `coverFile` | ?File | Fichier uploadé |
+| `tomes` | list\<TomeInput\> | Collection de tomes |
+| `authors` | list\<AuthorInput\> | Collection d'auteurs |
+
+**Méthodes :** `getOwnedTomesNumbers()`, `getMissingTomesNumbers()`
+
+#### TomeInput (`src/Dto/Input/TomeInput.php`)
+DTO pour les tomes.
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `number` | int | Numéro du tome (non-nullable) |
+| `bought` | bool | Acheté |
+| `downloaded` | bool | Téléchargé |
+| `onNas` | bool | Sur le NAS |
+| `isbn` | ?string | ISBN |
+| `title` | ?string | Titre spécifique |
+
+#### AuthorInput (`src/Dto/Input/AuthorInput.php`)
+DTO pour les auteurs.
+
+| Propriété | Type | Description |
+|-----------|------|-------------|
+| `name` | string | Nom (non-nullable, `Assert\NotBlank`) |
+
+### DataTransformers
+
+#### AuthorToInputTransformer (`src/Form/DataTransformer/AuthorToInputTransformer.php`)
+Convertit entre entités Author et DTOs AuthorInput pour l'autocomplete.
+
+- `transform(list<AuthorInput>): list<Author>` — DTO → Entity (affichage formulaire)
+- `reverseTransform(list<Author>|Collection): list<AuthorInput>` — Entity → DTO (soumission)
 
 ### Extensions Twig
 
