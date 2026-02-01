@@ -114,93 +114,107 @@ Ces règles sont **obligatoires** pour tout code PHP écrit ou modifié :
 6. **Documentation en français** : PHPDoc, commentaires inline
 7. **Standards Symfony** : https://symfony.com/doc/current/contributing/code/standards.html
 
-## Méthodologie TDD (Test-Driven Development)
+## TDD : Mode de développement obligatoire
 
-**Obligatoire** : tout développement de fonctionnalité ou correction de bug suit le cycle TDD.
+**Le TDD est le mode de fonctionnement par défaut.** Chaque développement commence par un test.
 
-### Cycle Red-Green-Refactor
+### Règle absolue : Tests = Source de vérité
 
-Pour chaque nouvelle fonctionnalité ou bug à corriger :
+Les tests définissent le comportement attendu du code. Cette règle a deux implications :
 
-1. **RED** — Écrire le test en premier
-   - Créer le fichier de test avant le code de production
-   - Le test décrit le comportement attendu
-   - Exécuter le test : il **doit échouer** (rouge)
+1. **Nouvelle fonctionnalité** → Écrire le test EN PREMIER, puis le code
+2. **Modification de code existant** → Mettre à jour les tests AVANT ou EN MÊME TEMPS que le code
 
-2. **GREEN** — Écrire le minimum de code pour faire passer le test
-   - Implémenter uniquement ce qui est nécessaire
-   - Ne pas anticiper les besoins futurs
-   - Exécuter le test : il **doit passer** (vert)
+**INTERDIT** : modifier du code de production sans vérifier/adapter les tests correspondants.
 
-3. **REFACTOR** — Améliorer le code sans changer le comportement
-   - Nettoyer, simplifier, éliminer les duplications
-   - Les tests doivent rester verts après refactoring
+### Workflow obligatoire
 
-### Application pratique
+Pour chaque tâche impliquant du code PHP :
 
-```bash
-# 1. Créer/modifier le test
-# tests/Service/MonServiceTest.php
+```
+1. IDENTIFIER les tests concernés
+   → Si nouvelle fonctionnalité : créer le fichier de test
+   → Si modification : localiser les tests existants
 
-# 2. Exécuter le test (doit échouer)
-ddev exec bin/phpunit tests/Service/MonServiceTest.php
+2. ÉCRIRE/MODIFIER le test d'abord
+   → Le test décrit le comportement attendu APRÈS la modification
+   → Exécuter : ddev exec bin/phpunit tests/MonTest.php
+   → Le test DOIT échouer (sinon le test est inutile ou mal écrit)
 
-# 3. Implémenter le code
-# src/Service/MonService.php
+3. IMPLÉMENTER le code
+   → Écrire uniquement ce qui est nécessaire pour faire passer le test
+   → Pas d'anticipation, pas de sur-ingénierie
 
-# 4. Exécuter le test (doit passer)
-ddev exec bin/phpunit tests/Service/MonServiceTest.php
+4. VALIDER
+   → Exécuter le test : il DOIT passer
+   → Si échec : corriger le code, pas le test (sauf erreur dans le test)
 
-# 5. Refactoriser si nécessaire, relancer les tests
+5. REFACTORISER si nécessaire
+   → Améliorer le code sans changer le comportement
+   → Les tests doivent rester verts
 ```
 
-### Types de tests
+### Synchronisation code/tests
 
-- **Tests unitaires** (`tests/`) : services, entités, logique métier
-- **Tests fonctionnels** (`tests/Controller/`) : contrôleurs, requêtes HTTP
-- **Tests Behat** (`features/`) : scénarios utilisateur end-to-end
-- **Tests Playwright** (`tests/playwright/`) : tests E2E navigateur
+| Action sur le code | Action sur les tests |
+|--------------------|----------------------|
+| Ajouter une méthode publique | Ajouter un test pour cette méthode |
+| Modifier le comportement d'une méthode | Adapter le test existant |
+| Supprimer une méthode | Supprimer le test correspondant |
+| Corriger un bug | Ajouter un test qui reproduit le bug, puis corriger |
+| Refactoring interne (même comportement) | Les tests existants doivent passer sans modification |
 
-### Environnement de test (OBLIGATOIRE)
+### Emplacement des tests
 
-**Tous les tests doivent utiliser l'environnement de test dédié**, jamais l'environnement de développement :
-
-| Type de test | Base de données | Hostname |
+| Type de code | Fichier de test | Commande |
 |--------------|-----------------|----------|
-| PHPUnit / Panther | `db_test` (suffixe automatique Doctrine) | `https://test.bibliotheque.ddev.site` |
-| Playwright | `db_test` | `https://test.bibliotheque.ddev.site` |
+| Service (`src/Service/Foo.php`) | `tests/Service/FooTest.php` | `ddev exec bin/phpunit tests/Service/FooTest.php` |
+| Entité (`src/Entity/Bar.php`) | `tests/Entity/BarTest.php` | `ddev exec bin/phpunit tests/Entity/BarTest.php` |
+| Contrôleur (`src/Controller/BazController.php`) | `tests/Controller/BazControllerTest.php` | `ddev exec bin/phpunit tests/Controller/BazControllerTest.php` |
+| Commande (`src/Command/QuxCommand.php`) | `tests/Command/QuxCommandTest.php` | `ddev exec bin/phpunit tests/Command/QuxCommandTest.php` |
+| Scénario utilisateur complet | `features/*.feature` | `ddev exec vendor/bin/behat features/mon.feature` |
+| Test E2E navigateur | `tests/playwright/*.spec.js` | `npx playwright test tests/playwright/mon.spec.js` |
 
-**Configuration obligatoire dans les tests :**
+### Environnement de test
 
-1. **Tests PHPUnit/Panther** : utiliser l'environnement `test` ou `panther` (configuré dans `.env.test`)
-2. **Tests Playwright** : configurer `baseURL: 'https://test.bibliotheque.ddev.site'` dans `playwright.config.js`
-3. **Tests avec client HTTP** : toujours cibler le hostname de test, jamais `bibliotheque.ddev.site`
+**Tous les tests utilisent l'environnement isolé** :
 
-**Pourquoi ?** La base `db_test` est isolée et peut être vidée/recréée sans affecter les données de développement. Le hostname `test.bibliotheque.ddev.site` pointe vers l'environnement Symfony `test`.
+| Paramètre | Valeur |
+|-----------|--------|
+| Base de données | `db_test` (suffixe automatique Doctrine) |
+| Hostname | `https://test.bibliotheque.ddev.site` |
+| Configuration | `.env.test` |
+
+**Ne jamais** utiliser `bibliotheque.ddev.site` (environnement dev) dans les tests.
 
 ### Exceptions au TDD
 
 Le TDD n'est **pas requis** pour :
-- Modifications de templates Twig uniquement
+- Templates Twig (pas de logique métier)
 - Fichiers de configuration (YAML, .env)
 - Migrations Doctrine (générées automatiquement)
+- Assets statiques (CSS, images)
+
+**Attention** : si un template Twig contient de la logique complexe, extraire cette logique dans un service et tester ce service.
 
 ## Outils de qualité
 
-**Après chaque modification de code PHP**, exécuter sur les fichiers modifiés :
+**Après chaque modification de code PHP**, exécuter dans cet ordre :
 
 ```bash
-# Corriger le style (obligatoire)
+# 1. TESTS (obligatoire) — valider le comportement
+ddev exec bin/phpunit tests/CheminVersTest.php
+
+# 2. STYLE (obligatoire) — corriger le formatage
 ddev exec vendor/bin/php-cs-fixer fix src/MonFichier.php
 
-# Vérifier les types (obligatoire)
+# 3. TYPES (obligatoire) — vérifier l'analyse statique
 ddev exec vendor/bin/phpstan analyse src/MonFichier.php
-
-# Lancer les tests si concernés
-ddev exec bin/phpunit tests/MonTest.php
 ```
 
-**Ne pas exécuter ces outils sur tout le projet**, uniquement sur les fichiers modifiés.
+**Ordre important** : les tests en premier permettent de détecter les régressions avant de formatter le code.
+
+**Cibler uniquement les fichiers modifiés**, pas tout le projet.
 
 ## Frontend & JavaScript
 
