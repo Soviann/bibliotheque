@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Returns the importmap for this application.
  *
@@ -60,5 +58,8 @@ return [
     ],
     '@spomky-labs/pwa/helpers' => [
         'path' => './vendor/spomky-labs/pwa-bundle/assets/src/helpers.js',
+    ],
+    '@symfony/ux-dropzone' => [
+        'version' => '2.32.0',
     ],
 ];

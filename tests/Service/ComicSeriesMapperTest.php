@@ -14,6 +14,7 @@ use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Repository\AuthorRepository;
 use App\Service\ComicSeriesMapper;
+use App\Service\CoverRemoverInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -27,13 +28,15 @@ class ComicSeriesMapperTest extends TestCase
 {
     private ComicSeriesMapper $mapper;
     private AuthorRepository&MockObject $authorRepository;
+    private CoverRemoverInterface&MockObject $coverRemover;
     private ObjectMapperInterface&MockObject $objectMapper;
 
     protected function setUp(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepository::class);
+        $this->coverRemover = $this->createMock(CoverRemoverInterface::class);
         $this->objectMapper = $this->createMock(ObjectMapperInterface::class);
-        $this->mapper = new ComicSeriesMapper($this->authorRepository, $this->objectMapper);
+        $this->mapper = new ComicSeriesMapper($this->authorRepository, $this->coverRemover, $this->objectMapper);
     }
 
     /**
@@ -360,6 +363,47 @@ class ComicSeriesMapperTest extends TestCase
         $entity = $this->mapper->mapToEntity($input, $existingEntity);
 
         self::assertCount(2, $entity->getTomes());
+    }
+
+    /**
+     * Teste la suppression de la couverture via deleteCover.
+     */
+    public function testMapToEntityDeletesCoverWhenRequested(): void
+    {
+        $existingEntity = new ComicSeries();
+        $existingEntity->setTitle('Test Series');
+        $existingEntity->setCoverImage('existing-cover.jpg');
+
+        $input = new ComicSeriesInput();
+        $input->title = 'Test Series';
+        $input->deleteCover = true;
+
+        $this->coverRemover
+            ->expects($this->once())
+            ->method('remove')
+            ->with($existingEntity);
+
+        $this->mapper->mapToEntity($input, $existingEntity);
+    }
+
+    /**
+     * Teste que deleteCover ne supprime rien si aucune image n'existe.
+     */
+    public function testMapToEntityDoesNotDeleteCoverWhenNoneExists(): void
+    {
+        $existingEntity = new ComicSeries();
+        $existingEntity->setTitle('Test Series');
+        // Pas de coverImage
+
+        $input = new ComicSeriesInput();
+        $input->title = 'Test Series';
+        $input->deleteCover = true;
+
+        $this->coverRemover
+            ->expects($this->never())
+            ->method('remove');
+
+        $this->mapper->mapToEntity($input, $existingEntity);
     }
 
     /**

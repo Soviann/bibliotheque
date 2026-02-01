@@ -9,6 +9,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Amélioration upload couverture** : Meilleure UX pour l'upload d'images
+  - Activation de Symfony UX Dropzone avec prévisualisation du fichier sélectionné
+  - Ajout checkbox "Supprimer" pour effacer l'image existante
+  - Le fichier physique est automatiquement supprimé via VichUploader
+  - Interface `CoverRemoverInterface` pour découpler la logique (testabilité)
+
 - **Rector** : Outil de refactoring automatique PHP pour moderniser le code
   - Configuration conservatrice dans `rector.php` adaptée au projet
   - Règles PHP 8.3 (types sur constantes), dead code, code quality, Symfony 7.4

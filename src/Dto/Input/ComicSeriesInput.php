@@ -48,6 +48,12 @@ class ComicSeriesInput
     #[Map(if: false)]
     public ?string $coverImage = null;
 
+    /**
+     * Indique si l'image de couverture doit être supprimée.
+     */
+    #[Map(if: false)]
+    public bool $deleteCover = false;
+
     #[Map(if: false)]
     #[Assert\File(
         maxSize: '5M',

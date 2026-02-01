@@ -62,8 +62,17 @@
             {% if form.vars.data.coverImage and comic is defined %}
                 <div class="current-cover">
                     <img src="{{ vich_uploader_asset(comic, 'coverFile') }}" alt="Couverture actuelle">
-                    <small>Image actuelle (sera remplacee si vous uploadez une nouvelle image)</small>
+                    <div class="current-cover-actions">
+                        <small>Image actuelle</small>
+                        <label class="delete-cover-checkbox">
+                            {{ form_widget(form.deleteCover) }}
+                            <span>Supprimer</span>
+                        </label>
+                    </div>
                 </div>
+            {% else %}
+                {# Rendre le champ caché pour éviter qu'il soit affiché par form_end #}
+                <div hidden>{{ form_widget(form.deleteCover) }}</div>
             {% endif %}
             {{ form_widget(form.coverFile) }}
             {{ form_errors(form.coverFile) }}

@@ -41,10 +41,13 @@ class ComicSeriesType extends AbstractType
             ])
             ->add('coverFile', DropzoneType::class, [
                 'attr' => [
-                    'data-controller' => 'symfony--ux-dropzone--dropzone',
                     'placeholder' => 'Glissez une image ou cliquez pour parcourir',
                 ],
                 'label' => 'Image de couverture',
+                'required' => false,
+            ])
+            ->add('deleteCover', CheckboxType::class, [
+                'label' => 'Supprimer l\'image actuelle',
                 'required' => false,
             ])
             ->add('coverUrl', UrlType::class, [

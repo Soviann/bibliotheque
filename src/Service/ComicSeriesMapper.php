@@ -22,6 +22,7 @@ class ComicSeriesMapper
 {
     public function __construct(
         private readonly AuthorRepository $authorRepository,
+        private readonly CoverRemoverInterface $coverRemover,
         private readonly ObjectMapperInterface $mapper,
     ) {
     }
@@ -55,7 +56,10 @@ class ComicSeriesMapper
         $entity->setPublisher($input->publisher);
         $entity->setCoverUrl($input->coverUrl);
 
-        if ($input->coverFile instanceof File) {
+        // Gestion de la couverture : suppression ou upload
+        if ($input->deleteCover && null !== $entity->getCoverImage()) {
+            $this->coverRemover->remove($entity);
+        } elseif ($input->coverFile instanceof File) {
             $entity->setCoverFile($input->coverFile);
         }
 

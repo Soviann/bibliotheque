@@ -476,7 +476,14 @@ Mapping bidirectionnel entre DTOs et entités pour les formulaires.
 
 **Logique interne :**
 - Authors : utilise `AuthorRepository::findOrCreate()` (pas de mapping automatique)
+- Couverture : suppression via `CoverRemoverInterface` si `deleteCover` est true
 - Tomes : synchronisation intelligente (ajout/mise à jour/suppression selon numéro)
+
+#### CoverRemoverInterface / VichCoverRemover (`src/Service/`)
+Interface et implémentation pour la suppression des couvertures.
+
+- `CoverRemoverInterface::remove(ComicSeries $entity): void` — supprime la couverture
+- `VichCoverRemover` : implémentation utilisant VichUploader
 
 #### IsbnLookupService (`src/Service/IsbnLookupService.php`)
 Recherche d'informations via APIs externes.
@@ -513,6 +520,7 @@ DTO principal pour création/édition de séries.
 | `publisher` | ?string | Éditeur |
 | `coverUrl` | ?string | URL couverture |
 | `coverImage` | ?string | Nom fichier couverture existant (lecture seule) |
+| `deleteCover` | bool | Supprimer l'image de couverture existante |
 | `coverFile` | ?File | Fichier uploadé |
 | `tomes` | list\<TomeInput\> | Collection de tomes |
 | `authors` | list\<AuthorInput\> | Collection d'auteurs |
