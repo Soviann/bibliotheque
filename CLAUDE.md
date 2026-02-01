@@ -25,9 +25,36 @@ Application Symfony de gestion de bibliothèque BD/Comics/Mangas avec mode PWA.
 
 **Ne pas documenter** : modifications mineures (renommage variable, refactoring interne, corrections de bugs sans changement d'API).
 
+## Utilisation de ce fichier vs exploration du code
+
+**Ce fichier est la source principale d'information.** La section "Architecture détaillée" documente les entités, services, routes et méthodes publiques. Utiliser ces informations directement sans explorer le codebase.
+
+**Explorer le code uniquement si :**
+
+| Besoin | Action |
+|--------|--------|
+| Signature d'une méthode documentée | Utiliser ce fichier |
+| Implémentation interne d'une méthode | Lire le fichier source |
+| Structure d'un template Twig | Lire le fichier template |
+| Logique d'un contrôleur Stimulus | Lire `assets/controllers/` |
+| Fichier créé récemment non documenté | Explorer puis mettre à jour ce fichier |
+
+**Ne pas utiliser l'agent Explore** pour des informations déjà présentes ici.
+
 ## Commandes
 
 **Toutes les commandes s'exécutent via DDEV** :
+
+### Démarrage du projet
+
+```bash
+ddev start                                            # Démarrer les containers
+ddev composer install                                 # Dépendances PHP
+ddev exec bin/console doctrine:migrations:migrate -n  # Appliquer migrations
+ddev launch                                           # Ouvrir dans le navigateur
+```
+
+### Commandes courantes
 
 ```bash
 ddev composer install                                 # Dépendances
@@ -347,3 +374,10 @@ Recherche d'informations via APIs externes.
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
+
+## Gotchas
+
+- **ISBN invalide** : l'API Google Books peut retourner des données partielles, toujours vérifier le champ `title`
+- **VichUploader** : supprimer `coverImage` ne supprime pas le fichier physique automatiquement
+- **Tomes orphelins** : `orphanRemoval=true` sur ComicSeries, attention lors de manipulations directes
+- **Cache Twig** : après modification de templates, `ddev exec bin/console cache:clear` peut être nécessaire en dev
