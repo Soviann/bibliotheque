@@ -206,7 +206,7 @@
     </fieldset>
 
     <div class="form-actions">
-        <a href="{{ app.request.headers.get('referer') ?: path('app_home') }}" class="btn btn-text">Annuler</a>
+        <a href="{{ safe_referer(path('app_home')) }}" class="btn btn-text">Annuler</a>
         <button type="submit" class="btn btn-contained">Enregistrer</button>
     </div>
 {{ form_end(form) }}

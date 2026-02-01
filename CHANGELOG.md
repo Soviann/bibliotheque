@@ -44,6 +44,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Injection propre de l'environnement via `#[Autowire('%kernel.environment%')]`
   - 3 tests unitaires couvrant prod, dev et test
 
+- **Correction vulnérabilité Open Redirect** : Nouvelle fonction Twig `safe_referer()`
+  - Valide que le header Referer appartient au même host avant de l'utiliser
+  - Protège contre les redirections vers des sites malveillants
+  - Mise à jour des templates `comic/show.html.twig` et `comic/_form.html.twig`
+  - 9 tests unitaires couvrant les différents scénarios
+
 ### Fixed
 
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`

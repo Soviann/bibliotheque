@@ -271,11 +271,13 @@ Corps optionnel
 src/
 ├── Command/          # Commandes console
 ├── Controller/       # Contrôleurs HTTP
+├── DataFixtures/     # Fixtures de données
 ├── Entity/           # Entités Doctrine
 ├── Enum/             # Enums PHP
 ├── Form/             # Types de formulaire
 ├── Repository/       # Repositories Doctrine
-└── Service/          # Services métier
+├── Service/          # Services métier
+└── Twig/             # Extensions Twig
 templates/            # Templates Twig
 assets/controllers/   # Contrôleurs Stimulus
 tests/                # Tests PHPUnit
@@ -382,6 +384,14 @@ Recherche d'informations via APIs externes.
 - `lookupByTitle(string $title, ?string $type): ?array` — recherche par titre
 
 **Retour :** `['title', 'authors', 'description', 'publishedDate', 'publisher', 'isbn', 'thumbnail', 'isOneShot', 'sources']`
+
+### Extensions Twig
+
+#### SafeRefererExtension (`src/Twig/SafeRefererExtension.php`)
+Protection contre les attaques Open Redirect via le header Referer.
+
+**Fonction Twig :**
+- `safe_referer(fallback)` — retourne le referer si même host, sinon le fallback
 
 ### Contrôleurs et routes
 

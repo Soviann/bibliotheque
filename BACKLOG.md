@@ -47,11 +47,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Ajouter une vérification au début de la méthode `load()` qui lance une exception si `$_ENV['APP_ENV'] === 'prod'`. Les fixtures contiennent des credentials en dur (`test@example.com` / `password`).
 - **Statut** : ✅ Terminé - Injection de `%kernel.environment%` via Autowire, warning si hors env test
 
-### 2.3 Corriger la vulnérabilité Open Redirect via Referer
+### 2.3 ~~Corriger la vulnérabilité Open Redirect via Referer~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichiers** : `templates/comic/show.html.twig:7`, `templates/comic/_form.html.twig:209`
 - **Description** : Le header `Referer` est utilisé directement sans validation. Créer une Twig Extension ou une méthode helper qui valide que l'URL de referer commence par le host de l'application avant de l'utiliser.
+- **Statut** : ✅ Terminé - Nouvelle extension Twig `safe_referer()` avec 9 tests unitaires
 
 ### 2.4 Ajouter `UniqueEntity` sur l'entité User
 
