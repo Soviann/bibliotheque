@@ -1,4 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
+import { getFromCache, saveToCache } from '../utils/cache-utils.js';
+import { renderCard } from '../utils/card-renderer.js';
+import { normalizeString } from '../utils/string-utils.js';
 
 /**
  * Contrôleur de filtrage côté client pour la bibliothèque et la wishlist.
@@ -24,22 +27,6 @@ export default class extends Controller {
         sort: 'title_asc',
         status: null,
         type: null,
-    };
-
-    /** @type {Object} */
-    statusLabels = {
-        buying: "En cours d'achat",
-        finished: 'Terminee',
-        stopped: 'Arretee',
-        wishlist: 'Liste de souhaits',
-    };
-
-    /** @type {Object} */
-    typeLabels = {
-        bd: 'BD',
-        comics: 'Comics',
-        livre: 'Livre',
-        manga: 'Manga',
     };
 
     connect() {
@@ -125,7 +112,7 @@ export default class extends Controller {
      */
     async loadComics() {
         // Essayer de charger depuis le cache d'abord
-        const cached = this.getFromCache();
+        const cached = getFromCache(this.cacheKey);
         if (cached) {
             this.comics = cached;
             this.renderResults();
@@ -136,7 +123,7 @@ export default class extends Controller {
             const response = await fetch('/api/comics');
             if (response.ok) {
                 this.comics = await response.json();
-                this.saveToCache(this.comics);
+                saveToCache(this.comics, this.cacheKey);
                 this.renderResults();
             }
         } catch (error) {
@@ -260,10 +247,10 @@ export default class extends Controller {
 
             // Filtre recherche
             if (this.filters.search && this.filters.search.length >= 2) {
-                const query = this.normalizeString(this.filters.search);
-                const title = this.normalizeString(comic.title || '');
-                const authors = this.normalizeString(comic.authors || '');
-                const description = this.normalizeString(comic.description || '');
+                const query = normalizeString(this.filters.search);
+                const title = normalizeString(comic.title || '');
+                const authors = normalizeString(comic.authors || '');
+                const description = normalizeString(comic.description || '');
 
                 if (
                     !title.includes(query) &&
@@ -289,7 +276,7 @@ export default class extends Controller {
         if (filtered.length > 0) {
             let html = '<div class="cards-grid">';
             filtered.forEach((comic) => {
-                html += this.renderCard(comic);
+                html += renderCard(comic, { showAddButton: this.isWishlistValue });
             });
             html += '</div>';
             this.resultsTarget.innerHTML = html;
@@ -337,120 +324,6 @@ export default class extends Controller {
     }
 
     /**
-     * Normalise une chaîne pour la recherche (minuscules, sans accents).
-     *
-     * @param {string} str
-     * @returns {string}
-     */
-    normalizeString(str) {
-        return str
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
-    }
-
-    /**
-     * Génère le HTML d'une carte de comic.
-     *
-     * @param {Object} comic
-     * @returns {string}
-     */
-    renderCard(comic) {
-        const coverHtml = comic.coverUrl
-            ? `<div class="comic-card-cover"><img src="${this.escapeHtml(comic.coverUrl)}" alt="Couverture de ${this.escapeHtml(comic.title)}" loading="lazy"></div>`
-            : '';
-
-        let infoHtml = '';
-        if (comic.isOneShot) {
-            infoHtml = `
-                <div class="comic-info-row">
-                    <span class="comic-info-label">Type</span>
-                    <span class="comic-info-value">Tome unique</span>
-                </div>`;
-        } else {
-            if (comic.currentIssue !== null || comic.currentIssueComplete) {
-                infoHtml += `
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Possede</span>
-                        <span class="comic-info-value">${comic.currentIssueComplete ? 'Complet' : comic.currentIssue}</span>
-                    </div>`;
-            }
-            if (comic.lastBought !== null || comic.lastBoughtComplete) {
-                infoHtml += `
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Dernier achat</span>
-                        <span class="comic-info-value">${comic.lastBoughtComplete ? 'Complet' : comic.lastBought}</span>
-                    </div>`;
-            }
-            if (comic.latestPublishedIssue !== null || comic.latestPublishedIssueComplete) {
-                infoHtml += `
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Parus</span>
-                        <span class="comic-info-value">${comic.latestPublishedIssueComplete ? comic.latestPublishedIssue + ' (termine)' : comic.latestPublishedIssue}</span>
-                    </div>`;
-            }
-            if (comic.lastDownloaded !== null || comic.lastDownloadedComplete) {
-                infoHtml += `
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Telecharge</span>
-                        <span class="comic-info-value">${comic.lastDownloadedComplete ? 'Complet' : comic.lastDownloaded}</span>
-                    </div>`;
-            }
-            if (comic.ownedTomesNumbers && comic.ownedTomesNumbers.length > 0) {
-                infoHtml += `
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Tomes</span>
-                        <span class="comic-info-value">${comic.ownedTomesNumbers.join(', ')}</span>
-                    </div>`;
-            }
-            if (comic.missingTomesNumbers && comic.missingTomesNumbers.length > 0) {
-                infoHtml += `
-                    <div class="comic-info-row">
-                        <span class="comic-info-label">Manquants</span>
-                        <span class="comic-info-value warning">${comic.missingTomesNumbers.join(', ')}</span>
-                    </div>`;
-            }
-        }
-
-        const nasBadge = comic.hasNasTome ? '<span class="type-badge type-badge-nas">NAS</span>' : '';
-        const statusLabel = comic.statusLabel || this.statusLabels[comic.status] || comic.status;
-        const typeLabel = comic.typeLabel || this.typeLabels[comic.type] || comic.type;
-
-        // Actions simplifiées (pas de CSRF en mode offline)
-        let actionsHtml = `
-            <div class="comic-card-actions">
-                <a href="/comic/${comic.id}/edit" class="btn btn-text" data-turbo-frame="_top">Modifier</a>`;
-
-        if (this.isWishlistValue) {
-            actionsHtml += `
-                <button type="button" class="btn btn-success" disabled title="Non disponible hors ligne">Ajouter</button>`;
-        }
-
-        actionsHtml += '</div>';
-
-        return `
-            <div class="comic-card">
-                <a href="/comic/${comic.id}" class="comic-card-link" data-turbo-frame="_top">
-                    ${coverHtml}
-                    <div class="comic-card-content">
-                        <div class="comic-card-title">
-                            <h3>${this.escapeHtml(comic.title)}</h3>
-                            <span class="status-badge status-${comic.status}">${this.escapeHtml(statusLabel)}</span>
-                        </div>
-                        <div class="comic-info">
-                            ${infoHtml}
-                        </div>
-                        <div class="type-badges">
-                            <span class="type-badge type-badge-${comic.type}">${this.escapeHtml(typeLabel)}</span>
-                            ${nasBadge}
-                        </div>
-                    </div>
-                </a>
-                ${actionsHtml}
-            </div>`;
-    }
-
-    /**
      * Affiche un message hors ligne.
      */
     showOfflineMessage() {
@@ -460,48 +333,5 @@ export default class extends Controller {
             <div class="empty-state">
                 <p>Aucune donnee en cache. Connectez-vous a Internet pour charger les donnees.</p>
             </div>`;
-    }
-
-    /**
-     * Échappe les caractères HTML.
-     *
-     * @param {string} str
-     * @returns {string}
-     */
-    escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    /**
-     * Récupère les données depuis le cache localStorage.
-     *
-     * @returns {Array|null}
-     */
-    getFromCache() {
-        try {
-            const cached = localStorage.getItem(this.cacheKey);
-            if (cached) {
-                return JSON.parse(cached);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la lecture du cache:', error);
-        }
-        return null;
-    }
-
-    /**
-     * Sauvegarde les données dans le cache localStorage.
-     *
-     * @param {Array} data
-     */
-    saveToCache(data) {
-        try {
-            localStorage.setItem(this.cacheKey, JSON.stringify(data));
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde du cache:', error);
-        }
     }
 }

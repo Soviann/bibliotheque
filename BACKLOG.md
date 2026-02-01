@@ -152,7 +152,7 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 
 ## Sprint 5 — Simplification & Code mort
 
-### 5.1 Extraire les utilitaires JavaScript partagés
+### 5.1 ~~Extraire les utilitaires JavaScript partagés~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichiers** : `assets/controllers/library_controller.js`, `assets/controllers/search_controller.js`
@@ -161,6 +161,7 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
   - `assets/utils/cache-utils.js` : `getFromCache()`, `saveToCache()`
   - `assets/utils/card-renderer.js` : `renderCard()`
   - Modifier les contrôleurs pour importer ces fonctions.
+- **Statut** : ✅ Terminé - Modules créés, contrôleurs refactorisés (~200 lignes de code dupliqué éliminées)
 
 ### 5.2 Refactorer les méthodes dupliquées dans ComicSeries
 
@@ -181,6 +182,24 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
   - `assets/controllers/hello_controller.js` (template par défaut, non utilisé)
   - `src/Repository/ComicSeriesRepository.php` : méthodes `findLibrary()` et `findWishlist()` marquées `@deprecated`
 - **Description** : Vérifier qu'aucune référence n'existe avant suppression.
+
+---
+
+## 🚫 Idées différées (à ne pas traiter pour le moment)
+
+Ces idées sont conservées pour référence mais ne doivent pas être implémentées actuellement.
+
+### D.1 Ajout d'une série et/ou d'un tome par scan ISBN
+
+- **Priorité** : DIFFÉRÉE
+- **Description** : Permettre l'ajout d'une série ou d'un tome en scannant le code-barres ISBN via la caméra du téléphone (mode PWA). Utiliserait une librairie de lecture de codes-barres (ex: `quagga2`, `@aspect/barcode-scanner`) combinée avec le service `IsbnLookupService` existant.
+- **Raison du report** : Fonctionnalité avancée, nécessite une PWA plus mature et des tests utilisateur.
+
+### D.2 Ajouter des tests pour le code JavaScript
+
+- **Priorité** : DIFFÉRÉE
+- **Description** : Mettre en place un framework de test JavaScript (Jest ou Vitest) pour tester les contrôleurs Stimulus et les utilitaires JS. Couvrirait notamment : `library_controller.js`, `search_controller.js`, et les futurs modules utilitaires (cf. tâche 5.1).
+- **Raison du report** : Le code JS actuel est relativement simple et couvert indirectement par les tests E2E Playwright.
 
 ---
 

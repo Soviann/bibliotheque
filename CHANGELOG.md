@@ -34,6 +34,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Le repository filtre désormais sur le statut au lieu de la colonne supprimée
   - Le mapper gère la synchronisation entre le champ formulaire et le statut
 
+- **Extraction des utilitaires JavaScript** : Modules partagés pour les contrôleurs Stimulus
+  - `assets/utils/string-utils.js` : `normalizeString()`, `escapeHtml()`
+  - `assets/utils/cache-utils.js` : `getFromCache()`, `saveToCache()`
+  - `assets/utils/card-renderer.js` : `renderCard()` avec options configurables
+  - Élimination de ~200 lignes de code dupliqué entre `library_controller.js` et `search_controller.js`
+
 ### Removed
 
 - **Onglet Recherche** : Suppression du lien "Recherche" dans la navigation (desktop et mobile)
