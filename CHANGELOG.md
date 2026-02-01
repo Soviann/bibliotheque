@@ -71,6 +71,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - `ComicController::delete()` et `toLibrary()` affichent "Token de sécurité invalide"
   - L'utilisateur sait maintenant que son action n'a pas été effectuée
 
+- **Validation email doublon dans CreateUserCommand** : Message d'erreur clair si l'email existe
+  - Utilisation du ValidatorInterface pour vérifier les contraintes de l'entité
+  - Réutilise la contrainte UniqueEntity existante sur User
+  - Retourne FAILURE au lieu de laisser remonter une exception Doctrine
+
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`
   - Ajout d'un eager loading avec `leftJoin` + `addSelect` pour les relations `tomes` et `authors`
   - Réduit les requêtes SQL de ~3N à 1 pour l'endpoint `/api/comics`

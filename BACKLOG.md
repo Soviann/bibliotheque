@@ -86,11 +86,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Quand le token CSRF est invalide, ajouter un message flash d'erreur au lieu de rediriger silencieusement. L'utilisateur doit savoir que son action n'a pas été effectuée.
 - **Statut** : ✅ Terminé - Message flash d'erreur "Token de sécurité invalide" avec early return
 
-### 3.3 Vérifier les doublons dans CreateUserCommand
+### 3.3 ~~Vérifier les doublons dans CreateUserCommand~~ ✅
 
 - **Priorité** : MOYENNE
 - **Fichier** : `src/Command/CreateUserCommand.php`
 - **Description** : Avant de créer l'utilisateur, vérifier si l'email existe déjà avec `UserRepository::findOneBy()`. Afficher un message d'erreur clair au lieu de laisser une exception Doctrine remonter.
+- **Statut** : ✅ Terminé - Utilisation du Validator Symfony pour vérifier les contraintes UniqueEntity
 
 ### 3.4 Gérer les erreurs de lecture Excel dans ImportExcelCommand
 

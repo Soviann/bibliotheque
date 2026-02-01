@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsCommand(
     name: 'app:create-user',
@@ -23,6 +24,7 @@ class CreateUserCommand extends Command
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly ValidatorInterface $validator,
     ) {
         parent::__construct();
     }
@@ -48,6 +50,16 @@ class CreateUserCommand extends Command
         $user->setEmail($email);
         $user->setPassword($this->passwordHasher->hashPassword($user, $password));
         $user->setRoles(['ROLE_USER']);
+
+        // Valider l'entité (incluant UniqueEntity sur email)
+        $errors = $this->validator->validate($user);
+        if (\count($errors) > 0) {
+            foreach ($errors as $error) {
+                $io->error((string) $error->getMessage());
+            }
+
+            return Command::FAILURE;
+        }
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();

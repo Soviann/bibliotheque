@@ -6,6 +6,7 @@ namespace App\Tests\Command;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -33,7 +34,7 @@ class CreateUserCommandTest extends KernelTestCase
         $command = $application->find('app:create-user');
         $commandTester = new CommandTester($command);
 
-        $email = 'testcommand'.uniqid().'@example.com';
+        $email = 'testcommand'.\uniqid().'@example.com';
 
         $commandTester->execute([
             'email' => $email,
@@ -61,7 +62,7 @@ class CreateUserCommandTest extends KernelTestCase
         $command = $application->find('app:create-user');
         $commandTester = new CommandTester($command);
 
-        $email = 'hashtest'.uniqid().'@example.com';
+        $email = 'hashtest'.\uniqid().'@example.com';
         $plainPassword = 'plainpassword123';
 
         $commandTester->execute([
@@ -94,7 +95,7 @@ class CreateUserCommandTest extends KernelTestCase
         $command = $application->find('app:create-user');
         $commandTester = new CommandTester($command);
 
-        $email = 'roletest'.uniqid().'@example.com';
+        $email = 'roletest'.\uniqid().'@example.com';
 
         $commandTester->execute([
             'email' => $email,
@@ -119,7 +120,7 @@ class CreateUserCommandTest extends KernelTestCase
         $command = $application->find('app:create-user');
         $commandTester = new CommandTester($command);
 
-        $email = 'msgtest'.uniqid().'@example.com';
+        $email = 'msgtest'.\uniqid().'@example.com';
 
         $commandTester->execute([
             'email' => $email,
@@ -147,7 +148,7 @@ class CreateUserCommandTest extends KernelTestCase
         $command = $application->find('app:create-user');
         $commandTester = new CommandTester($command);
 
-        $email = 'successtest'.uniqid().'@example.com';
+        $email = 'successtest'.\uniqid().'@example.com';
 
         $exitCode = $commandTester->execute([
             'email' => $email,
@@ -155,6 +156,51 @@ class CreateUserCommandTest extends KernelTestCase
         ]);
 
         self::assertSame(0, $exitCode);
+
+        // Nettoyer
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+        if ($user) {
+            $this->em->remove($user);
+            $this->em->flush();
+        }
+    }
+
+    /**
+     * Teste que la commande échoue avec un message d'erreur si l'email existe déjà.
+     */
+    public function testCommandFailsIfEmailAlreadyExists(): void
+    {
+        $application = new Application(self::$kernel);
+        $command = $application->find('app:create-user');
+        $commandTester = new CommandTester($command);
+
+        $email = 'duplicate'.\uniqid().'@example.com';
+
+        // Créer un premier utilisateur
+        $commandTester->execute([
+            'email' => $email,
+            'password' => 'password1',
+        ]);
+        $commandTester->assertCommandIsSuccessful();
+
+        // Tenter de créer un deuxième utilisateur avec le même email
+        $exitCode = $commandTester->execute([
+            'email' => $email,
+            'password' => 'password2',
+        ]);
+
+        // La commande doit échouer
+        self::assertSame(1, $exitCode);
+
+        // Récupérer le message de la contrainte UniqueEntity depuis l'entité User
+        $reflectionClass = new \ReflectionClass(User::class);
+        $uniqueEntityAttributes = $reflectionClass->getAttributes(UniqueEntity::class);
+        self::assertNotEmpty($uniqueEntityAttributes, 'User doit avoir une contrainte UniqueEntity');
+        $expectedMessage = $uniqueEntityAttributes[0]->newInstance()->message;
+
+        // Vérifier que ce message est affiché
+        $output = $commandTester->getDisplay();
+        self::assertStringContainsString($expectedMessage, $output);
 
         // Nettoyer
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
