@@ -72,11 +72,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 
 ## Sprint 3 — Robustesse (Gestion des erreurs)
 
-### 3.1 Gérer les exceptions Doctrine dans les contrôleurs
+### 3.1 ~~Gérer les exceptions Doctrine dans les contrôleurs~~ ✅
 
 - **Priorité** : HAUTE
 - **Fichier** : `src/Controller/ComicController.php` (méthodes `new`, `edit`, `delete`)
 - **Description** : Envelopper les appels `$entityManager->flush()` dans des try/catch pour gérer `UniqueConstraintViolationException` et afficher un message flash approprié au lieu d'une erreur 500.
+- **Statut** : ✅ Terminé - Try/catch sur DriverException dans new(), edit() et delete() avec message flash d'erreur
 
 ### 3.2 Améliorer le feedback pour CSRF invalide
 

@@ -63,6 +63,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Gestion des erreurs Doctrine** : Les erreurs de base de données dans les contrôleurs affichent maintenant un message flash
+  - Try/catch sur `DriverException` dans `ComicController::new()`, `edit()` et `delete()`
+  - Message d'erreur utilisateur au lieu d'une erreur 500
+
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`
   - Ajout d'un eager loading avec `leftJoin` + `addSelect` pour les relations `tomes` et `authors`
   - Réduit les requêtes SQL de ~3N à 1 pour l'endpoint `/api/comics`

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Form\ComicSeriesType;
+use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,16 +33,20 @@ class ComicController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($comic);
-            $entityManager->flush();
+            try {
+                $entityManager->persist($comic);
+                $entityManager->flush();
 
-            $this->addFlash('success', 'La série a été ajoutée avec succès.');
+                $this->addFlash('success', 'La série a été ajoutée avec succès.');
 
-            if ($comic->isWishlist()) {
-                return $this->redirectToRoute('app_wishlist');
+                if ($comic->isWishlist()) {
+                    return $this->redirectToRoute('app_wishlist');
+                }
+
+                return $this->redirectToRoute('app_home');
+            } catch (DriverException) {
+                $this->addFlash('error', 'Une erreur est survenue lors de l\'enregistrement. Veuillez réessayer.');
             }
-
-            return $this->redirectToRoute('app_home');
         }
 
         return $this->render('comic/new.html.twig', [
@@ -57,15 +62,19 @@ class ComicController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
 
-            $this->addFlash('success', 'La série a été modifiée avec succès.');
+                $this->addFlash('success', 'La série a été modifiée avec succès.');
 
-            if ($comic->isWishlist()) {
-                return $this->redirectToRoute('app_wishlist');
+                if ($comic->isWishlist()) {
+                    return $this->redirectToRoute('app_wishlist');
+                }
+
+                return $this->redirectToRoute('app_home');
+            } catch (DriverException) {
+                $this->addFlash('error', 'Une erreur est survenue lors de l\'enregistrement. Veuillez réessayer.');
             }
-
-            return $this->redirectToRoute('app_home');
         }
 
         return $this->render('comic/edit.html.twig', [
@@ -79,13 +88,18 @@ class ComicController extends AbstractController
     {
         if ($this->isCsrfTokenValid('delete'.$comic->getId(), $request->request->getString('_token'))) {
             $wasWishlist = $comic->isWishlist();
-            $entityManager->remove($comic);
-            $entityManager->flush();
 
-            $this->addFlash('success', 'La série a été supprimée avec succès.');
+            try {
+                $entityManager->remove($comic);
+                $entityManager->flush();
 
-            if ($wasWishlist) {
-                return $this->redirectToRoute('app_wishlist');
+                $this->addFlash('success', 'La série a été supprimée avec succès.');
+
+                if ($wasWishlist) {
+                    return $this->redirectToRoute('app_wishlist');
+                }
+            } catch (DriverException) {
+                $this->addFlash('error', 'Une erreur est survenue lors de la suppression. Veuillez réessayer.');
             }
         }
 
