@@ -40,11 +40,12 @@ Liste des tâches issues de la revue de code complète du 2026-02-01.
 - **Description** : Ajouter la configuration `login_throttling` dans le firewall `main` avec `max_attempts: 5` et `interval: '15 minutes'`.
 - **Statut** : ✅ Terminé - Ajout de symfony/rate-limiter et configuration login_throttling
 
-### 2.2 Empêcher le chargement des fixtures en production
+### 2.2 ~~Empêcher le chargement des fixtures en production~~ ✅
 
 - **Priorité** : HAUTE
 - **Fichier** : `src/DataFixtures/UserFixtures.php`
 - **Description** : Ajouter une vérification au début de la méthode `load()` qui lance une exception si `$_ENV['APP_ENV'] === 'prod'`. Les fixtures contiennent des credentials en dur (`test@example.com` / `password`).
+- **Statut** : ✅ Terminé - Injection de `%kernel.environment%` via Autowire, warning si hors env test
 
 ### 2.3 Corriger la vulnérabilité Open Redirect via Referer
 

@@ -38,6 +38,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Ajout du composant `symfony/rate-limiter`
   - 4 tests couvrant les scénarios : blocage après limite, connexion réussie avant limite, blocage même avec bon mot de passe, réinitialisation après connexion réussie
 
+- **Protection fixtures hors environnement test** : Les fixtures ne s'exécutent qu'en environnement de test
+  - Affiche un avertissement et ne charge pas les fixtures si l'environnement n'est pas "test"
+  - Empêche le chargement accidentel de credentials de test (`test@example.com` / `password`)
+  - Injection propre de l'environnement via `#[Autowire('%kernel.environment%')]`
+  - 3 tests unitaires couvrant prod, dev et test
+
 ### Fixed
 
 - **Performance API PWA** : Correction du problème N+1 query dans `findAllForApi()`
