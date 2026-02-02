@@ -1,628 +1,165 @@
 # CLAUDE.md
 
-Instructions pour Claude Code. Ces règles sont **obligatoires** et doivent être suivies à chaque intervention.
+Règles **obligatoires** pour Claude Code sur ce projet.
 
 ## Projet
 
-Application Symfony de gestion de bibliothèque BD/Comics/Mangas avec mode PWA.
+**Bibliothèque BD/Comics/Mangas** — Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX, PWA.
 
-**Stack technique** : Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX.
-
-**Contexte** : Claude est le seul développeur sur ce projet. Implications :
-
-- **Pas de revue de code externe** → rigueur maximale sur l'auto-vérification (tests, PHPStan, CS-Fixer)
-- **Continuité entre sessions** → ce fichier et les tests sont la seule mémoire du projet ; les maintenir à jour
-- **Responsabilité complète** → chaque erreur non détectée restera dans le code ; ne jamais prendre de raccourcis
-
-## Principe fondamental : ne pas réinventer la roue
-
-**Obligatoire avant toute implémentation** : vérifier si une solution existante, éprouvée et maintenue, répond au besoin.
-
-### Ordre de recherche
-
-1. **Composant natif du framework** — Symfony, Doctrine, ou l'écosystème utilisé
-2. **Bundle/package officiel** — extensions maintenues par l'équipe du framework
-3. **Librairie tierce populaire** — solutions communautaires largement adoptées
-4. **Implémentation custom** — uniquement si aucune solution existante ne convient
-
-### Critères de sélection d'une librairie tierce
-
-| Critère | Exigence |
-|---------|----------|
-| Maintenance | Commits récents (< 6 mois), issues traitées |
-| Popularité | Nombre d'étoiles/téléchargements significatif |
-| Compatibilité | Compatible avec la stack actuelle (PHP 8.3, Symfony 7.x) |
-| Documentation | Documentation claire et à jour |
-| Licence | Licence compatible (MIT, Apache, BSD) |
-
-### Ressources de recherche
-
-| Technologie | Où chercher |
-|-------------|-------------|
-| PHP/Symfony | Packagist, Symfony Flex recipes, symfony.com/bundles |
-| JavaScript | npm, Symfony UX (https://ux.symfony.com) |
-| CSS | npm, CDN populaires |
-| Général | GitHub, documentation officielle du framework |
-
-### Application
-
-- **Ne jamais implémenter** une fonctionnalité standard (authentification, upload, pagination, validation, etc.) sans avoir vérifié les solutions existantes
-- **Documenter le choix** : si une librairie est écartée, noter pourquoi dans le commit ou le PR
-- **Préférer la simplicité** : une librairie légère et ciblée vaut mieux qu'une usine à gaz
-
-## Maintenance de ce fichier
-
-**Obligatoire** : ce fichier doit refléter l'état actuel du code. Mettre à jour la section "Architecture détaillée" après chaque modification structurelle :
-
-| Type de modification | Action requise |
-|---------------------|----------------|
-| Nouvelle entité | Ajouter dans "Entités Doctrine" avec propriétés et relations |
-| Modification entité | Mettre à jour propriétés/relations/méthodes concernées |
-| Suppression entité | Retirer de la documentation |
-| Nouvel enum | Ajouter dans "Enums" avec toutes les valeurs |
-| Nouveau service | Ajouter dans "Services" avec rôle et méthodes publiques |
-| Nouveau contrôleur/route | Ajouter dans "Contrôleurs et routes" |
-| Nouvelle commande console | Ajouter dans "Commandes console" |
-| Nouvelle intégration externe | Ajouter dans "Intégrations externes" |
-
-**Ne pas documenter** : modifications mineures (renommage variable, refactoring interne, corrections de bugs sans changement d'API).
-
-## Utilisation de ce fichier vs exploration du code
-
-**Ce fichier est la source principale d'information.** La section "Architecture détaillée" documente les entités, services, routes et méthodes publiques. Utiliser ces informations directement sans explorer le codebase.
-
-**Explorer le code uniquement si :**
-
-| Besoin | Action |
-|--------|--------|
-| Signature d'une méthode documentée | Utiliser ce fichier |
-| Implémentation interne d'une méthode | Lire le fichier source |
-| Structure d'un template Twig | Lire le fichier template |
-| Logique d'un contrôleur Stimulus | Lire `assets/controllers/` |
-| Fichier créé récemment non documenté | Explorer puis mettre à jour ce fichier |
-
-**Ne pas utiliser l'agent Explore** pour des informations déjà présentes ici.
+**Contexte** : Claude = seul développeur → rigueur maximale, maintenir ce fichier et les tests à jour.
 
 ## Workflow
 
-- **Tâches complexes** : utiliser le mode Plan avant l'implémentation
-- **Validation** : obtenir l'approbation du plan avant de coder
+- **Tâches complexes** : mode Plan → approbation → implémentation
 - **Découpage** : diviser les gros changements en morceaux vérifiables
 
-## Commandes
+## Principe : ne pas réinventer la roue
 
-**Toutes les commandes s'exécutent via DDEV** :
+**Avant toute implémentation**, chercher dans l'ordre :
+1. Composant natif Symfony/Doctrine
+2. Bundle officiel
+3. Librairie tierce (maintenue, populaire, compatible PHP 8.3/Symfony 7.x, licence MIT/Apache/BSD)
+4. Implémentation custom (dernier recours)
 
-### Démarrage du projet
+**Recherche** : Packagist, symfony.com/bundles, npm, https://ux.symfony.com
 
-```bash
-ddev start                                            # Démarrer les containers
-ddev composer install                                 # Dépendances PHP
-ddev exec bin/console doctrine:migrations:migrate -n  # Appliquer migrations
-ddev launch                                           # Ouvrir dans le navigateur
-```
-
-### Commandes courantes
+## Commandes DDEV
 
 ```bash
-ddev composer install                                 # Dépendances
-ddev exec bin/console doctrine:migrations:diff -n    # Générer migration
-ddev exec bin/console doctrine:migrations:migrate -n # Appliquer migrations
-ddev exec bin/console cache:clear                    # Vider cache
+ddev start && ddev composer install && ddev exec bin/console doctrine:migrations:migrate -n
+ddev exec bin/console doctrine:migrations:diff -n   # Générer migration
+ddev exec bin/console cache:clear
+ddev exec bin/phpunit tests/CheminVersTest.php      # Tests
 ```
 
-## Règles de code PHP
+**PHP-CS-Fixer et PHPStan** : automatisés via PostToolUse hooks.
 
-Ces règles sont **obligatoires** pour tout code PHP écrit ou modifié :
+## Règles PHP
 
-1. **`declare(strict_types=1);`** en haut de chaque fichier PHP
-2. **Préfixer les fonctions natives** avec `\` : `\array_map()`, `\sprintf()`, `\count()`, `\trim()`, etc.
-3. **Ordre des méthodes** : `__construct()` en premier, puis `public` → `protected` → `private`
-4. **Arguments sur une ligne**, sauf pour les constructeurs avec promotion de propriétés (un paramètre par ligne)
-5. **Tri alphabétique** :
-   - Assignations dans le corps du constructeur
-   - Clés des tableaux associatifs
-   - Clés YAML à chaque niveau
-6. **Documentation en français** : PHPDoc, commentaires inline
-7. **Standards Symfony** : https://symfony.com/doc/current/contributing/code/standards.html
+1. `declare(strict_types=1);` en haut de chaque fichier
+2. Préfixer fonctions natives : `\array_map()`, `\sprintf()`, `\count()`
+3. Ordre méthodes : `__construct()` → `public` → `protected` → `private`
+4. Arguments sur une ligne (sauf constructeurs avec promotion : un par ligne)
+5. Tri alphabétique : assignations constructeur, clés tableaux, clés YAML
+6. Documentation en français
+7. Standards Symfony
 
-## Validation des entités
+**Validation entités** : `$this->validator->validate($entity)` avant persist.
 
-Pour valider les contraintes d'une entité avant persist, utiliser `ValidatorInterface` plutôt qu'une recherche manuelle. Cela réutilise les contraintes définies sur l'entité (`UniqueEntity`, `NotBlank`, etc.) :
+## TDD obligatoire
 
-```php
-$errors = $this->validator->validate($entity);
-if (\count($errors) > 0) {
-    foreach ($errors as $error) {
-        // Adapter selon le contexte : addFlash(), $io->error(), throw, etc.
-    }
-    // Ne pas persister, retourner une erreur
-}
-```
+1. **Test d'abord** : écrire/modifier le test → doit échouer
+2. **Implémenter** : minimum pour faire passer le test
+3. **Refactoriser** : tests verts
 
-## TDD : Mode de développement obligatoire
+**Convention** : `src/X/Foo.php` → `tests/X/FooTest.php`
 
-**Le TDD est le mode de fonctionnement par défaut.** Chaque développement commence par un test.
+**Environnement test** : `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 
-### Règle absolue : Tests = Source de vérité
+**Exceptions TDD** : templates Twig, config YAML, migrations, assets.
 
-Les tests définissent le comportement attendu du code. Cette règle a deux implications :
-
-1. **Nouvelle fonctionnalité** → Écrire le test EN PREMIER, puis le code
-2. **Modification de code existant** → Mettre à jour les tests AVANT ou EN MÊME TEMPS que le code
-
-**INTERDIT** : modifier du code de production sans vérifier/adapter les tests correspondants.
-
-### Workflow obligatoire
-
-Pour chaque tâche impliquant du code PHP :
-
-```
-1. IDENTIFIER les tests concernés
-   → Si nouvelle fonctionnalité : créer le fichier de test
-   → Si modification : localiser les tests existants
-
-2. ÉCRIRE/MODIFIER le test d'abord
-   → Le test décrit le comportement attendu APRÈS la modification
-   → Exécuter : ddev exec bin/phpunit tests/MonTest.php
-   → Le test DOIT échouer (sinon le test est inutile ou mal écrit)
-
-3. IMPLÉMENTER le code
-   → Écrire uniquement ce qui est nécessaire pour faire passer le test
-   → Pas d'anticipation, pas de sur-ingénierie
-
-4. VALIDER
-   → Exécuter le test : il DOIT passer
-   → Si échec : corriger le code, pas le test (sauf erreur dans le test)
-
-5. REFACTORISER si nécessaire
-   → Améliorer le code sans changer le comportement
-   → Les tests doivent rester verts
-```
-
-### Synchronisation code/tests
-
-| Action sur le code | Action sur les tests |
-|--------------------|----------------------|
-| Ajouter une méthode publique | Ajouter un test pour cette méthode |
-| Modifier le comportement d'une méthode | Adapter le test existant |
-| Supprimer une méthode | Supprimer le test correspondant |
-| Corriger un bug | Ajouter un test qui reproduit le bug, puis corriger |
-| Refactoring interne (même comportement) | Les tests existants doivent passer sans modification |
-
-### Emplacement des tests
-
-| Type de code | Fichier de test | Commande |
-|--------------|-----------------|----------|
-| Service (`src/Service/Foo.php`) | `tests/Service/FooTest.php` | `ddev exec bin/phpunit tests/Service/FooTest.php` |
-| Entité (`src/Entity/Bar.php`) | `tests/Entity/BarTest.php` | `ddev exec bin/phpunit tests/Entity/BarTest.php` |
-| Contrôleur (`src/Controller/BazController.php`) | `tests/Controller/BazControllerTest.php` | `ddev exec bin/phpunit tests/Controller/BazControllerTest.php` |
-| Commande (`src/Command/QuxCommand.php`) | `tests/Command/QuxCommandTest.php` | `ddev exec bin/phpunit tests/Command/QuxCommandTest.php` |
-| Scénario utilisateur complet | `features/*.feature` | `ddev exec vendor/bin/behat features/mon.feature` |
-| Test E2E navigateur | `tests/playwright/*.spec.js` | `npx playwright test tests/playwright/mon.spec.js` |
-
-### Environnement de test
-
-**Tous les tests utilisent l'environnement isolé** :
-
-| Paramètre | Valeur |
-|-----------|--------|
-| Base de données | `db_test` (suffixe automatique Doctrine) |
-| Hostname | `https://test.bibliotheque.ddev.site` |
-| Configuration | `.env.test` |
-
-**Ne jamais** utiliser `bibliotheque.ddev.site` (environnement dev) dans les tests.
-
-### Exceptions au TDD
-
-Le TDD n'est **pas requis** pour :
-- Templates Twig (pas de logique métier)
-- Fichiers de configuration (YAML, .env)
-- Migrations Doctrine (générées automatiquement)
-- Assets statiques (CSS, images)
-
-**Attention** : si un template Twig contient de la logique complexe, extraire cette logique dans un service et tester ce service.
-
-### Tests des exceptions Doctrine
-
-Pour tester les `DriverException` (UniqueConstraintViolation, etc.) en test unitaire, créer une vraie instance car `Driver\Exception` étend `Throwable` et ne peut pas être mockée :
-
-```php
-$driverException = new class('Message', 1062) extends \Exception implements DriverExceptionInterface {
-    public function getSQLState(): string { return '23000'; }
-};
-$exception = new UniqueConstraintViolationException($driverException, null);
-```
-
-## Outils de qualité
-
-**Après chaque modification de code PHP**, exécuter les tests :
+## Rector (usage ponctuel)
 
 ```bash
-ddev exec bin/phpunit tests/CheminVersTest.php
+ddev exec vendor/bin/rector process --dry-run      # Toujours vérifier d'abord
+ddev exec vendor/bin/rector process src/Fichier.php
 ```
 
-**PHP-CS-Fixer et PHPStan sont automatisés** via PostToolUse hooks (`.claude/settings.json`). Ils s'exécutent automatiquement sur chaque fichier PHP modifié — pas besoin de les lancer manuellement.
+Jamais sur `vendor/`, migrations, fixtures. Exécuter PHP-CS-Fixer et tests après.
 
-### Rector — Refactoring automatique
+## Frontend
 
-Rector est un outil de refactoring automatique qui modernise le code PHP. La configuration (`rector.php`) est conservatrice et adaptée au projet.
-
-**Quand utiliser Rector :**
-
-| Situation | Action |
-|-----------|--------|
-| Modernisation PHP | Exécuter sur tout le projet pour appliquer les nouvelles fonctionnalités PHP 8.3 |
-| Refactoring majeur | Utiliser après un changement d'architecture pour harmoniser le code |
-| Code legacy à intégrer | Exécuter sur les nouveaux fichiers pour les aligner avec le style du projet |
-| Revue de code | Vérifier en dry-run si des améliorations automatiques sont possibles |
-
-**Quand NE PAS utiliser Rector :**
-
-- **Changements mineurs** : pour une correction de bug ou un petit ajout, Rector est superflu
-- **Code tiers** : ne jamais exécuter sur `vendor/`, les migrations ou les fixtures
-- **Sans relecture** : toujours vérifier les changements proposés avant de les appliquer
-
-**Commandes :**
-
-```bash
-# Voir les changements proposés (TOUJOURS commencer par ça)
-ddev exec vendor/bin/rector process --dry-run
-
-# Sur un fichier spécifique
-ddev exec vendor/bin/rector process src/MonFichier.php --dry-run
-
-# Appliquer les changements (après vérification du dry-run)
-ddev exec vendor/bin/rector process
-
-# Appliquer sur un fichier spécifique
-ddev exec vendor/bin/rector process src/MonFichier.php
-```
-
-**Workflow d'utilisation :**
-
-```
-1. Exécuter en dry-run
-   → Analyser les changements proposés
-   → Vérifier qu'ils ont du sens
-
-2. Appliquer les changements
-   → Rector modifie les fichiers
-
-3. Exécuter PHP-CS-Fixer
-   → Rector peut introduire des problèmes de formatage
-
-4. Exécuter les tests
-   → Valider que le comportement n'a pas changé
-
-5. Mettre à jour le baseline PHPStan si nécessaire
-   → ddev exec vendor/bin/phpstan analyse src tests --generate-baseline
-```
-
-**Configuration (`rector.php`) :**
-
-La configuration actuelle applique :
-- **PHP 8.3** : types sur les constantes, fonctionnalités modernes
-- **Dead code** : suppression de code mort (paramètres inutilisés, etc.)
-- **Code quality** : améliorations de lisibilité
-- **Type declarations** : ajout de types de retour sur les closures
-- **Symfony 7.4** : mises à jour spécifiques au framework
-
-Règles volontairement désactivées :
-- `#[Override]` : ajoute du bruit sans valeur
-- Injection constructeur : l'injection par action est valide en Symfony
-- Inline des préfixes de route : conserve la lisibilité
-
-## Frontend & JavaScript
-
-Appliquer le principe "ne pas réinventer la roue" (voir section dédiée).
-
-**Priorité pour JavaScript** :
-1. Package Symfony UX : https://ux.symfony.com/packages
-2. Librairie npm éprouvée
-3. Contrôleur Stimulus custom (dernier recours)
-
-**Packages UX installés ou à privilégier** :
-- Autocomplétion/tags : `symfony/ux-autocomplete`
-- Composants dynamiques : `symfony/ux-live-component`
-- Charts : `symfony/ux-chartjs`
-- Upload : `symfony/ux-dropzone`
+Priorité : Symfony UX → npm → Stimulus custom.
+Packages UX : `ux-autocomplete`, `ux-live-component`, `ux-chartjs`, `ux-dropzone`.
 
 ## Git
 
-**Format des commits** (Conventional Commits) :
-
-```
-<type>(scope): description
-
-Corps optionnel
-```
-
-**Types** : `feat`, `fix`, `chore`, `refactor`, `docs`
-
-**Exemple** : `feat(isbn): add ISBN lookup via Google Books API`
-
-**Ne pas inclure** de trailer `Co-Authored-By`.
-
-**Rebase avec fixup automatique** : `GIT_SEQUENCE_EDITOR=: git rebase -i --autosquash <commit>~1`
+Format : `<type>(scope): description` — Types : `feat`, `fix`, `chore`, `refactor`, `docs`
+Pas de `Co-Authored-By`.
 
 ## Changelog
 
-**Mettre à jour `CHANGELOG.md` après chaque modification** :
+Ajouter dans `## [Unreleased]` : `### Added|Changed|Fixed|Removed`
+Format : `- **Nom** : Description`
 
-1. Ajouter l'entrée dans `## [Unreleased]` sous la bonne catégorie :
-   - `### Added` : nouvelles fonctionnalités
-   - `### Changed` : modifications
-   - `### Fixed` : corrections de bugs
-   - `### Removed` : suppressions
-
-2. Format : `- **Nom court** : Description`
-
-## Structure du projet
+## Structure
 
 ```
-src/
-├── Command/          # Commandes console
-├── Controller/       # Contrôleurs HTTP
-├── DataFixtures/     # Fixtures de données
-├── Entity/           # Entités Doctrine
-├── Enum/             # Enums PHP
-├── Form/             # Types de formulaire
-├── Repository/       # Repositories Doctrine
-├── Service/          # Services métier
-└── Twig/             # Extensions Twig
-templates/            # Templates Twig
-assets/controllers/   # Contrôleurs Stimulus
-tests/                # Tests PHPUnit
-features/             # Tests Behat (Gherkin)
+src/{Command,Controller,DataFixtures,Entity,Enum,Form,Repository,Service,Twig}/
+templates/                    assets/controllers/
+tests/                        features/
 ```
 
-## Architecture détaillée
+## Architecture
 
-Cette section documente le code existant pour éviter les explorations répétitives.
+### Entités
 
-### Entités Doctrine
+**ComicSeries** : `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverImage?`, `coverUrl?`
+- Relations : `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)`
+- Méthodes : `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `isCurrentIssueComplete()`
 
-#### ComicSeries (`src/Entity/ComicSeries.php`)
-Entité principale représentant une série BD/Comics/Manga/Livre.
+**Tome** : `number:int`, `bought:bool`, `downloaded:bool`, `onNas:bool`, `isbn?`, `title?` — Relation : `comicSeries:M2O→ComicSeries`
 
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `title` | string(255) | Titre de la série |
-| `status` | ComicStatus | Statut (BUYING, FINISHED, STOPPED, WISHLIST) |
-| `type` | ComicType | Type (BD, COMICS, LIVRE, MANGA) |
-| `latestPublishedIssue` | int\|null | Dernier numéro paru |
-| `latestPublishedIssueComplete` | bool | Série terminée par l'éditeur |
-| `isOneShot` | bool | One-shot (volume unique) |
-| `description` | text\|null | Description |
-| `publishedDate` | string\|null | Date de publication |
-| `publisher` | string\|null | Éditeur |
-| `coverImage` | string\|null | Fichier image uploadé (VichUploader) |
-| `coverUrl` | string\|null | URL de couverture externe |
+**Author** : `name:string(unique)` — Relation : `comicSeries:M2M→ComicSeries`
 
-**Relations :**
-- `authors` : ManyToMany → Author
-- `tomes` : OneToMany → Tome (cascade persist/remove, orphanRemoval)
-
-**Méthodes utiles :**
-- `isWishlist()` : `true` si `status === ComicStatus::WISHLIST` (calculé, pas de setter)
-- `getCurrentIssue()` : numéro max possédé
-- `getLastBought()` : dernier tome acheté
-- `getLastDownloaded()` : dernier tome téléchargé
-- `getMissingTomesNumbers()` : tomes manquants
-- `isCurrentIssueComplete()` : série complète ?
-
-#### Tome (`src/Entity/Tome.php`)
-Volume individuel d'une série.
-
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `number` | int | Numéro du tome (≥ 0) |
-| `bought` | bool | Acheté |
-| `downloaded` | bool | Téléchargé |
-| `onNas` | bool | Sur le NAS |
-| `isbn` | string\|null | ISBN |
-| `title` | string\|null | Titre spécifique du tome |
-
-**Relation :** `comicSeries` : ManyToOne → ComicSeries
-
-#### Author (`src/Entity/Author.php`)
-Auteur (scénariste, dessinateur, mangaka).
-
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `name` | string(255) | Nom (unique) |
-
-**Relation :** `comicSeries` : ManyToMany → ComicSeries
-
-#### User (`src/Entity/User.php`)
-Utilisateur pour l'authentification.
-
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `email` | string(180) | Email (unique, identifiant) |
-| `password` | string | Mot de passe hashé |
-| `roles` | array | Rôles (ROLE_USER inclus par défaut) |
+**User** : `email:string(unique)`, `password`, `roles:array`
 
 ### Enums
 
-#### ComicStatus (`src/Enum/ComicStatus.php`)
-```php
-BUYING = 'buying'      // "En cours d'achat"
-FINISHED = 'finished'  // "Terminée"
-STOPPED = 'stopped'    // "Arrêtée"
-WISHLIST = 'wishlist'  // "Liste de souhaits"
-```
-
-#### ComicType (`src/Enum/ComicType.php`)
-```php
-BD = 'bd'
-COMICS = 'comics'
-LIVRE = 'livre'
-MANGA = 'manga'
-```
+**ComicStatus** : `BUYING`, `FINISHED`, `STOPPED`, `WISHLIST`
+**ComicType** : `BD`, `COMICS`, `LIVRE`, `MANGA`
 
 ### Services
 
-#### ComicSeriesMapper (`src/Service/ComicSeriesMapper.php`)
-Mapping bidirectionnel entre DTOs et entités pour les formulaires.
+**ComicSeriesMapper** : `mapToEntity(ComicSeriesInput, ?ComicSeries): ComicSeries`, `mapToInput(ComicSeries): ComicSeriesInput`
 
-**Méthodes publiques :**
-- `mapToEntity(ComicSeriesInput $input, ?ComicSeries $entity = null): ComicSeries` — DTO → Entity (création ou mise à jour)
-- `mapToInput(ComicSeries $entity): ComicSeriesInput` — Entity → DTO (pré-remplissage formulaire)
+**CoverRemoverInterface** : `remove(ComicSeries): void` — Impl : `VichCoverRemover`
 
-**Logique interne :**
-- Authors : utilise `AuthorRepository::findOrCreate()` (pas de mapping automatique)
-- Couverture : suppression via `CoverRemoverInterface` si `deleteCover` est true
-- Tomes : synchronisation intelligente (ajout/mise à jour/suppression selon numéro)
-
-#### CoverRemoverInterface / VichCoverRemover (`src/Service/`)
-Interface et implémentation pour la suppression des couvertures.
-
-- `CoverRemoverInterface::remove(ComicSeries $entity): void` — supprime la couverture
-- `VichCoverRemover` : implémentation utilisant VichUploader
-
-#### IsbnLookupService (`src/Service/IsbnLookupService.php`)
-Recherche d'informations via APIs externes.
-
-**APIs utilisées :**
-- Google Books (ISBN + titre)
-- Open Library (ISBN, enrichissement auteur/éditeur)
-- AniList (GraphQL, mangas uniquement, détection one-shot)
-
-**Méthodes publiques :**
-- `lookup(string $isbn, ?ComicType $type): ?array` — recherche par ISBN
-- `lookupByTitle(string $title, ?ComicType $type): ?array` — recherche par titre
-
-**Retour :** `['title', 'authors', 'description', 'publishedDate', 'publisher', 'isbn', 'thumbnail', 'isOneShot', 'sources']`
+**IsbnLookupService** : `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`
+- APIs : Google Books, Open Library, AniList (mangas)
+- Retour : `[title, authors, description, publishedDate, publisher, isbn, thumbnail, isOneShot, sources]`
 
 ### DTOs
 
-Les DTOs (Data Transfer Objects) sont utilisés pour découpler les formulaires des entités.
+**ComicSeriesInput** : `title`, `status`, `type`, `latestPublishedIssue?`, `latestPublishedIssueComplete`, `isOneShot`, `isWishlist`, `description?`, `publishedDate?`, `publisher?`, `coverUrl?`, `coverImage?`, `deleteCover`, `coverFile?`, `tomes:list<TomeInput>`, `authors:list<AuthorInput>`
 
-#### ComicSeriesInput (`src/Dto/Input/ComicSeriesInput.php`)
-DTO principal pour création/édition de séries.
+**TomeInput** : `number`, `bought`, `downloaded`, `onNas`, `isbn?`, `title?`
 
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `title` | string | Titre (non-nullable, `Assert\NotBlank`) |
-| `status` | ComicStatus | Statut (défaut: BUYING) |
-| `type` | ComicType | Type (défaut: BD) |
-| `latestPublishedIssue` | ?int | Dernier numéro paru |
-| `latestPublishedIssueComplete` | bool | Série terminée |
-| `isOneShot` | bool | Volume unique |
-| `isWishlist` | bool | Checkbox wishlist (si true → status=WISHLIST) |
-| `description` | ?string | Description |
-| `publishedDate` | ?string | Date publication |
-| `publisher` | ?string | Éditeur |
-| `coverUrl` | ?string | URL couverture |
-| `coverImage` | ?string | Nom fichier couverture existant (lecture seule) |
-| `deleteCover` | bool | Supprimer l'image de couverture existante |
-| `coverFile` | ?File | Fichier uploadé |
-| `tomes` | list\<TomeInput\> | Collection de tomes |
-| `authors` | list\<AuthorInput\> | Collection d'auteurs |
+**AuthorInput** : `name`
 
-**Méthodes :** `getOwnedTomesNumbers()`, `getMissingTomesNumbers()`
+**ComicFilters** : `nas?`, `q?`, `sort`, `status?`, `type?` — Utilisé avec `#[MapQueryString]`
 
-#### TomeInput (`src/Dto/Input/TomeInput.php`)
-DTO pour les tomes.
+### Routes
 
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `number` | int | Numéro du tome (non-nullable) |
-| `bought` | bool | Acheté |
-| `downloaded` | bool | Téléchargé |
-| `onNas` | bool | Sur le NAS |
-| `isbn` | ?string | ISBN |
-| `title` | ?string | Titre spécifique |
-
-#### AuthorInput (`src/Dto/Input/AuthorInput.php`)
-DTO pour les auteurs.
-
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `name` | string | Nom (non-nullable, `Assert\NotBlank`) |
-
-#### ComicFilters (`src/Dto/ComicFilters.php`)
-DTO pour les filtres de recherche des séries, utilisé avec `#[MapQueryString]`.
-
-| Propriété | Type | Description |
-|-----------|------|-------------|
-| `nas` | ?string | Filtre NAS ('1', '0', ou null) |
-| `q` | ?string | Terme de recherche |
-| `sort` | string | Tri (défaut: 'title_asc') |
-| `status` | ?string | Statut (string pour `tryFrom()`) |
-| `type` | ?string | Type (string pour `tryFrom()`) |
-
-**Méthodes :**
-- `getOnNas(): ?bool` — convertit nas en booléen
-- `getSearch(): ?string` — retourne q (null si vide)
-- `getStatus(): ?ComicStatus` — convertit via `tryFrom()` (null si invalide)
-- `getType(): ?ComicType` — convertit via `tryFrom()` (null si invalide)
-
-**Usage dans contrôleur :**
-```php
-public function index(#[MapQueryString] ComicFilters $filters): Response
-```
-
-### DataTransformers
-
-#### AuthorToInputTransformer (`src/Form/DataTransformer/AuthorToInputTransformer.php`)
-Convertit entre entités Author et DTOs AuthorInput pour l'autocomplete.
-
-- `transform(list<AuthorInput>): list<Author>` — DTO → Entity (affichage formulaire)
-- `reverseTransform(list<Author>|Collection): list<AuthorInput>` — Entity → DTO (soumission)
-
-### Extensions Twig
-
-#### SafeRefererExtension (`src/Twig/SafeRefererExtension.php`)
-Protection contre les attaques Open Redirect via le header Referer.
-
-**Fonction Twig :**
-- `safe_referer(fallback)` — retourne le referer si même host, sinon le fallback
-
-### Contrôleurs et routes
-
-| Route | Méthode | Contrôleur | Description |
-|-------|---------|------------|-------------|
-| `/` | GET | HomeController::index | Liste bibliothèque (filtres: type, status, nas, q, sort) |
-| `/comic/{id}` | GET | ComicController::show | Détail série |
-| `/comic/new` | GET/POST | ComicController::new | Création série |
-| `/comic/{id}/edit` | GET/POST | ComicController::edit | Édition série |
-| `/comic/{id}/delete` | POST | ComicController::delete | Suppression (CSRF) |
-| `/comic/{id}/to-library` | POST | ComicController::toLibrary | Wishlist → Bibliothèque |
-| `/wishlist` | GET | WishlistController::index | Liste de souhaits |
-| `/search` | GET | SearchController::index | Recherche (param: q) |
-| `/login` | GET | SecurityController::login | Connexion |
-| `/logout` | GET | SecurityController::logout | Déconnexion |
-| `/offline` | GET | OfflineController | Page offline PWA |
-| `/api/comics` | GET | ApiController::comics | JSON toutes les séries |
-| `/api/isbn-lookup` | GET | ApiController::isbnLookup | Recherche ISBN (params: isbn, type) |
-| `/api/title-lookup` | GET | ApiController::titleLookup | Recherche titre (params: title, type) |
+| Route | Contrôleur |
+|-------|------------|
+| `/` | HomeController::index |
+| `/comic/{id}` | ComicController::show |
+| `/comic/new` | ComicController::new |
+| `/comic/{id}/edit` | ComicController::edit |
+| `/comic/{id}/delete` | ComicController::delete |
+| `/comic/{id}/to-library` | ComicController::toLibrary |
+| `/wishlist` | WishlistController::index |
+| `/search` | SearchController::index |
+| `/login`, `/logout` | SecurityController |
+| `/offline` | OfflineController |
+| `/api/comics` | ApiController::comics |
+| `/api/isbn-lookup` | ApiController::isbnLookup |
+| `/api/title-lookup` | ApiController::titleLookup |
 
 ### Repositories
 
-#### ComicSeriesRepository
-- `findWithFilters(array $filters)` : filtrage avancé (isWishlist, type, status, onNas, search, sort)
-- `search(string $query)` : recherche titre ou ISBN tome
-- `findAllForApi()` : données sérialisées pour API/PWA
-
-#### AuthorRepository
-- `findOrCreate(string $name)` : trouve ou crée un auteur
-- `findOrCreateMultiple(array $names)` : batch création
+**ComicSeriesRepository** : `findWithFilters()`, `search()`, `findAllForApi()`
+**AuthorRepository** : `findOrCreate()`, `findOrCreateMultiple()`
 
 ### Commandes console
 
-| Commande | Usage |
-|----------|-------|
-| `app:create-user` | `ddev exec bin/console app:create-user <email> <password>` |
-| `app:import-excel` | `ddev exec bin/console app:import-excel <file> [--dry-run]` |
+- `app:create-user <email> <password>`
+- `app:import-excel <file> [--dry-run]`
 
-### Intégrations externes
+### Intégrations
 
-- **VichUploaderBundle** : upload des couvertures
-- **PWA** : mode offline via `/offline` et `/api/comics`
-- **APIs** : Google Books, Open Library, AniList (GraphQL)
+VichUploaderBundle (covers), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
 
 ## Déploiement
 
@@ -632,7 +169,12 @@ docker compose -f docker-compose.prod.yml up --build -d
 
 ## Gotchas
 
-- **ISBN invalide** : l'API Google Books peut retourner des données partielles, toujours vérifier le champ `title`
-- **VichUploader** : supprimer `coverImage` ne supprime pas le fichier physique automatiquement
-- **Tomes orphelins** : `orphanRemoval=true` sur ComicSeries, attention lors de manipulations directes
-- **Cache Twig** : après modification de templates, `ddev exec bin/console cache:clear` peut être nécessaire en dev
+- **Google Books** : peut retourner données partielles, vérifier `title`
+- **VichUploader** : supprimer `coverImage` ne supprime pas le fichier physique
+- **Tomes** : `orphanRemoval=true`, attention aux manipulations directes
+- **Cache Twig** : `cache:clear` parfois nécessaire en dev
+
+## Maintenance
+
+Mettre à jour "Architecture" après : nouvelle entité/enum/service/route/commande.
+Explorer le code uniquement pour : implémentation interne, templates Twig, contrôleurs Stimulus.
