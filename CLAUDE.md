@@ -83,6 +83,12 @@ Application Symfony de gestion de bibliothèque BD/Comics/Mangas avec mode PWA.
 
 **Ne pas utiliser l'agent Explore** pour des informations déjà présentes ici.
 
+## Workflow
+
+- **Tâches complexes** : utiliser le mode Plan avant l'implémentation
+- **Validation** : obtenir l'approbation du plan avant de coder
+- **Découpage** : diviser les gros changements en morceaux vérifiables
+
 ## Commandes
 
 **Toutes les commandes s'exécutent via DDEV** :
@@ -230,22 +236,13 @@ $exception = new UniqueConstraintViolationException($driverException, null);
 
 ## Outils de qualité
 
-**Après chaque modification de code PHP**, exécuter dans cet ordre :
+**Après chaque modification de code PHP**, exécuter les tests :
 
 ```bash
-# 1. TESTS (obligatoire) — valider le comportement
 ddev exec bin/phpunit tests/CheminVersTest.php
-
-# 2. STYLE (obligatoire) — corriger le formatage
-ddev exec vendor/bin/php-cs-fixer fix src/MonFichier.php
-
-# 3. TYPES (obligatoire) — vérifier l'analyse statique
-ddev exec vendor/bin/phpstan analyse src/MonFichier.php
 ```
 
-**Ordre important** : les tests en premier permettent de détecter les régressions avant de formatter le code.
-
-**Cibler uniquement les fichiers modifiés**, pas tout le projet.
+**PHP-CS-Fixer et PHPStan sont automatisés** via PostToolUse hooks (`.claude/settings.json`). Ils s'exécutent automatiquement sur chaque fichier PHP modifié — pas besoin de les lancer manuellement.
 
 ### Rector — Refactoring automatique
 
