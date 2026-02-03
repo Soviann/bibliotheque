@@ -1,86 +1,86 @@
 # CLAUDE.md
 
-Règles **obligatoires** pour Claude Code sur ce projet.
+**Mandatory** rules for Claude Code on this project.
 
-## Projet
+## Project
 
-**Bibliothèque BD/Comics/Mangas** — Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX, PWA.
+**Comic/Manga Library** — Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX, PWA.
 
-**Contexte** : Claude = seul développeur → rigueur maximale, maintenir ce fichier et les tests à jour.
+**Context**: Claude = sole developer → maximum rigor, keep this file and tests up to date.
 
 ## Workflow
 
-- **Tâches complexes** : mode Plan → approbation → implémentation
-- **Découpage** : diviser les gros changements en morceaux vérifiables
+- **Complex tasks**: Plan mode → approval → implementation
+- **Splitting**: divide large changes into verifiable chunks
 
-## Principe : ne pas réinventer la roue
+## Principle: Don't Reinvent the Wheel
 
-**Avant toute implémentation**, chercher dans l'ordre :
-1. Composant natif Symfony/Doctrine
-2. Bundle officiel
-3. Librairie tierce (maintenue, populaire, compatible PHP 8.3/Symfony 7.x, licence MIT/Apache/BSD)
-4. Implémentation custom (dernier recours)
+**Before any implementation**, search in order:
+1. Native Symfony/Doctrine component
+2. Official bundle
+3. Third-party library (maintained, popular, PHP 8.3/Symfony 7.x compatible, MIT/Apache/BSD license)
+4. Custom implementation (last resort)
 
-**Recherche** : Packagist, symfony.com/bundles, npm, https://ux.symfony.com
+**Search**: Packagist, symfony.com/bundles, npm, https://ux.symfony.com
 
-## Commandes DDEV
+## DDEV Commands
 
 ```bash
 ddev start && ddev composer install && ddev exec bin/console doctrine:migrations:migrate -n
-ddev exec bin/console doctrine:migrations:diff -n   # Générer migration
+ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 ddev exec bin/console cache:clear
-ddev exec bin/phpunit tests/CheminVersTest.php      # Tests
+ddev exec bin/phpunit tests/PathToTest.php          # Tests
 ```
 
-**PHP-CS-Fixer et PHPStan** : automatisés via PostToolUse hooks.
+**PHP-CS-Fixer and PHPStan**: automated via PostToolUse hooks.
 
-## Règles PHP
+## PHP Rules
 
-1. `declare(strict_types=1);` en haut de chaque fichier
-2. Préfixer fonctions natives : `\array_map()`, `\sprintf()`, `\count()`
-3. Ordre méthodes : `__construct()` → `public` → `protected` → `private`
-4. Arguments sur une ligne (sauf constructeurs avec promotion : un par ligne)
-5. Tri alphabétique : assignations constructeur, clés tableaux, clés YAML
-6. Documentation en français
-7. Standards Symfony
+1. `declare(strict_types=1);` at the top of each file
+2. Prefix native functions: `\array_map()`, `\sprintf()`, `\count()`
+3. Method order: `__construct()` → `public` → `protected` → `private`
+4. Arguments on one line (except constructors with promotion: one per line)
+5. Alphabetical sorting: constructor assignments, array keys, YAML keys
+6. Documentation in French
+7. Symfony standards
 
-**Validation entités** : `$this->validator->validate($entity)` avant persist.
+**Entity validation**: `$this->validator->validate($entity)` before persist.
 
-## TDD obligatoire
+## Mandatory TDD
 
-1. **Test d'abord** : écrire/modifier le test → doit échouer
-2. **Implémenter** : minimum pour faire passer le test
-3. **Refactoriser** : tests verts
+1. **Test first**: write/modify test → must fail
+2. **Implement**: minimum to make the test pass
+3. **Refactor**: green tests
 
-**Convention** : `src/X/Foo.php` → `tests/X/FooTest.php`
+**Convention**: `src/X/Foo.php` → `tests/X/FooTest.php`
 
-**Environnement test** : `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
+**Test environment**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 
-**Exceptions TDD** : templates Twig, config YAML, migrations, assets.
+**TDD exceptions**: Twig templates, YAML config, migrations, assets.
 
-## Rector (usage ponctuel)
+## Rector (occasional use)
 
 ```bash
-ddev exec vendor/bin/rector process --dry-run      # Toujours vérifier d'abord
-ddev exec vendor/bin/rector process src/Fichier.php
+ddev exec vendor/bin/rector process --dry-run      # Always check first
+ddev exec vendor/bin/rector process src/File.php
 ```
 
-Jamais sur `vendor/`, migrations, fixtures. Exécuter PHP-CS-Fixer et tests après.
+Never on `vendor/`, migrations, fixtures. Run PHP-CS-Fixer and tests afterwards.
 
 ## Frontend
 
-Priorité : Symfony UX → npm → Stimulus custom.
-Packages UX : `ux-autocomplete`, `ux-live-component`, `ux-chartjs`, `ux-dropzone`.
+Priority: Symfony UX → npm → custom Stimulus.
+UX Packages: `ux-autocomplete`, `ux-live-component`, `ux-chartjs`, `ux-dropzone`.
 
 ## Git
 
-Format : `<type>(scope): description` — Types : `feat`, `fix`, `chore`, `refactor`, `docs`
-Pas de `Co-Authored-By`.
+Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
+No `Co-Authored-By`.
 
 ## Changelog
 
-Ajouter dans `## [Unreleased]` : `### Added|Changed|Fixed|Removed`
-Format : `- **Nom** : Description`
+Add in `## [Unreleased]`: `### Added|Changed|Fixed|Removed`
+Format: `- **Name**: Description`
 
 ## Structure
 
@@ -92,46 +92,46 @@ tests/                        features/
 
 ## Architecture
 
-### Entités
+### Entities
 
-**ComicSeries** : `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverImage?`, `coverUrl?`
-- Relations : `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)`
-- Méthodes : `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `isCurrentIssueComplete()`
+**ComicSeries**: `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverImage?`, `coverUrl?`
+- Relations: `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)`
+- Methods: `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `isCurrentIssueComplete()`
 
-**Tome** : `number:int`, `bought:bool`, `downloaded:bool`, `onNas:bool`, `isbn?`, `title?` — Relation : `comicSeries:M2O→ComicSeries`
+**Tome**: `number:int`, `bought:bool`, `downloaded:bool`, `onNas:bool`, `isbn?`, `title?` — Relation: `comicSeries:M2O→ComicSeries`
 
-**Author** : `name:string(unique)` — Relation : `comicSeries:M2M→ComicSeries`
+**Author**: `name:string(unique)` — Relation: `comicSeries:M2M→ComicSeries`
 
-**User** : `email:string(unique)`, `password`, `roles:array`
+**User**: `email:string(unique)`, `password`, `roles:array`
 
 ### Enums
 
-**ComicStatus** : `BUYING`, `FINISHED`, `STOPPED`, `WISHLIST`
-**ComicType** : `BD`, `COMICS`, `LIVRE`, `MANGA`
+**ComicStatus**: `BUYING`, `FINISHED`, `STOPPED`, `WISHLIST`
+**ComicType**: `BD`, `COMICS`, `LIVRE`, `MANGA`
 
 ### Services
 
-**ComicSeriesMapper** : `mapToEntity(ComicSeriesInput, ?ComicSeries): ComicSeries`, `mapToInput(ComicSeries): ComicSeriesInput`
+**ComicSeriesMapper**: `mapToEntity(ComicSeriesInput, ?ComicSeries): ComicSeries`, `mapToInput(ComicSeries): ComicSeriesInput`
 
-**CoverRemoverInterface** : `remove(ComicSeries): void` — Impl : `VichCoverRemover`
+**CoverRemoverInterface**: `remove(ComicSeries): void` — Impl: `VichCoverRemover`
 
-**IsbnLookupService** : `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`
-- APIs : Google Books, Open Library, AniList (mangas)
-- Retour : `[title, authors, description, publishedDate, publisher, isbn, thumbnail, isOneShot, sources]`
+**IsbnLookupService**: `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`
+- APIs: Google Books, Open Library, AniList (mangas)
+- Returns: `[title, authors, description, publishedDate, publisher, isbn, thumbnail, isOneShot, sources]`
 
 ### DTOs
 
-**ComicSeriesInput** : `title`, `status`, `type`, `latestPublishedIssue?`, `latestPublishedIssueComplete`, `isOneShot`, `isWishlist`, `description?`, `publishedDate?`, `publisher?`, `coverUrl?`, `coverImage?`, `deleteCover`, `coverFile?`, `tomes:list<TomeInput>`, `authors:list<AuthorInput>`
+**ComicSeriesInput**: `title`, `status`, `type`, `latestPublishedIssue?`, `latestPublishedIssueComplete`, `isOneShot`, `isWishlist`, `description?`, `publishedDate?`, `publisher?`, `coverUrl?`, `coverImage?`, `deleteCover`, `coverFile?`, `tomes:list<TomeInput>`, `authors:list<AuthorInput>`
 
-**TomeInput** : `number`, `bought`, `downloaded`, `onNas`, `isbn?`, `title?`
+**TomeInput**: `number`, `bought`, `downloaded`, `onNas`, `isbn?`, `title?`
 
-**AuthorInput** : `name`
+**AuthorInput**: `name`
 
-**ComicFilters** : `nas?`, `q?`, `sort`, `status?`, `type?` — Utilisé avec `#[MapQueryString]`
+**ComicFilters**: `nas?`, `q?`, `sort`, `status?`, `type?` — Used with `#[MapQueryString]`
 
 ### Routes
 
-| Route | Contrôleur |
+| Route | Controller |
 |-------|------------|
 | `/` | HomeController::index |
 | `/comic/{id}` | ComicController::show |
@@ -149,19 +149,19 @@ tests/                        features/
 
 ### Repositories
 
-**ComicSeriesRepository** : `findWithFilters()`, `search()`, `findAllForApi()`
-**AuthorRepository** : `findOrCreate()`, `findOrCreateMultiple()`
+**ComicSeriesRepository**: `findWithFilters()`, `search()`, `findAllForApi()`
+**AuthorRepository**: `findOrCreate()`, `findOrCreateMultiple()`
 
-### Commandes console
+### Console Commands
 
 - `app:create-user <email> <password>`
 - `app:import-excel <file> [--dry-run]`
 
-### Intégrations
+### Integrations
 
 VichUploaderBundle (covers), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
 
-## Déploiement
+## Deployment
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
@@ -169,12 +169,12 @@ docker compose -f docker-compose.prod.yml up --build -d
 
 ## Gotchas
 
-- **Google Books** : peut retourner données partielles, vérifier `title`
-- **VichUploader** : supprimer `coverImage` ne supprime pas le fichier physique
-- **Tomes** : `orphanRemoval=true`, attention aux manipulations directes
-- **Cache Twig** : `cache:clear` parfois nécessaire en dev
+- **Google Books**: may return partial data, verify `title`
+- **VichUploader**: removing `coverImage` doesn't delete the physical file
+- **Tomes**: `orphanRemoval=true`, be careful with direct manipulations
+- **Twig cache**: `cache:clear` sometimes needed in dev
 
 ## Maintenance
 
-Mettre à jour "Architecture" après : nouvelle entité/enum/service/route/commande.
-Explorer le code uniquement pour : implémentation interne, templates Twig, contrôleurs Stimulus.
+Update "Architecture" after: new entity/enum/service/route/command.
+Explore code only for: internal implementation, Twig templates, Stimulus controllers.
