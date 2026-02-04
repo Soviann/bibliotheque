@@ -30,7 +30,7 @@
             {% if app.user %}
             {# Top App Bar - Desktop only #}
             <header class="top-app-bar">
-                <div class="top-app-bar-title">Ma Bibliotheque BD</div>
+                <a href="{{ path('app_home') }}" class="top-app-bar-title">Ma Bibliotheque BD</a>
                 <nav class="top-app-bar-nav">
                     <a href="{{ path('app_home') }}" class="{% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}">Bibliotheque</a>
                     <a href="{{ path('app_wishlist') }}" class="{% if app.request.attributes.get('_route') == 'app_wishlist' %}active{% endif %}">Wishlist</a>
