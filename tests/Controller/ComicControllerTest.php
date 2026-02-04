@@ -318,65 +318,44 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     }
 
     /**
-     * Teste que naviguer vers l'édition d'un autre comic réinitialise le flow à l'étape 1.
+     * Teste que l'édition utilise un formulaire standard (pas un wizard multi-étapes).
      *
-     * Scénario : L'utilisateur commence à éditer Comic A (avance à l'étape 2),
-     * puis navigue vers l'édition de Comic B. Le formulaire de B doit commencer à l'étape 1.
+     * Le formulaire d'édition doit afficher tous les champs sur une seule page
+     * pour permettre une modification rapide.
      */
-    public function testEditActionResetsFlowOnGetRequest(): void
+    public function testEditActionUsesStandardForm(): void
     {
         $client = $this->createAuthenticatedClient();
         $container = static::getContainer();
         /** @var EntityManagerInterface $em */
         $em = $container->get(EntityManagerInterface::class);
 
-        // Créer deux séries pour le test
-        $seriesA = new ComicSeries();
-        $seriesA->setTitle('Test Series A');
-        $seriesB = new ComicSeries();
-        $seriesB->setTitle('Test Series B');
-        $em->persist($seriesA);
-        $em->persist($seriesB);
+        $series = new ComicSeries();
+        $series->setTitle('Test Edit Standard Form');
+        $em->persist($series);
         $em->flush();
 
-        $seriesAId = $seriesA->getId();
-        $seriesBId = $seriesB->getId();
+        $seriesId = $series->getId();
 
         try {
-            // 1. Charger le formulaire d'édition de A (étape 1)
-            $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesAId.'/edit');
+            $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesId.'/edit');
             self::assertResponseIsSuccessful();
 
-            // Vérifier qu'on est à l'étape 1 (format)
-            self::assertSelectorExists('[name="comic_series_flow[format][type]"]');
+            // Vérifier que le formulaire standard est utilisé (pas le flow)
+            // Le formulaire standard a le préfixe "comic_series" (pas "comic_series_flow")
+            self::assertSelectorExists('[name="comic_series[title]"]');
+            self::assertSelectorExists('[name="comic_series[type]"]');
+            self::assertSelectorExists('[name="comic_series[status]"]');
+            self::assertSelectorExists('[name="comic_series[description]"]');
 
-            // 2. Soumettre l'étape 1 pour avancer à l'étape 2
-            $form = $crawler->selectButton('Suivant')->form([
-                'comic_series_flow[format][type]' => 'bd',
-            ]);
-            $crawler = $client->submit($form);
-            self::assertResponseIsSuccessful();
-
-            // Vérifier qu'on est maintenant à l'étape 2
-            self::assertSelectorExists('[name="comic_series_flow[identification_series][title]"]');
-
-            // 3. Naviguer vers l'édition de Comic B (nouvelle requête GET)
-            $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesBId.'/edit');
-            self::assertResponseIsSuccessful();
-
-            // 4. Vérifier que le formulaire de B commence à l'étape 1 (pas l'étape 2 de A)
-            self::assertSelectorExists('[name="comic_series_flow[format][type]"]');
-            self::assertSelectorNotExists('[name="comic_series_flow[identification_series][title]"]');
+            // Vérifier que ce n'est PAS le formulaire flow
+            self::assertSelectorNotExists('[name="comic_series_flow[format][type]"]');
+            self::assertSelectorNotExists('.wizard-progress');
         } finally {
-            // Nettoyer - recharger les entités pour éviter les problèmes de détachement
             $em->clear();
-            $seriesA = $em->getRepository(ComicSeries::class)->find($seriesAId);
-            $seriesB = $em->getRepository(ComicSeries::class)->find($seriesBId);
-            if ($seriesA) {
-                $em->remove($seriesA);
-            }
-            if ($seriesB) {
-                $em->remove($seriesB);
+            $series = $em->getRepository(ComicSeries::class)->find($seriesId);
+            if ($series) {
+                $em->remove($series);
             }
             $em->flush();
         }
