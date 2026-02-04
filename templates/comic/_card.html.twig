@@ -79,18 +79,18 @@
     </a>
 
     <div class="comic-card-actions">
-        <a href="{{ path('app_comic_edit', {id: comic.id}) }}" class="btn btn-text" data-turbo-frame="_top">Modifier</a>
+        <a href="{{ path('app_comic_edit', {id: comic.id}) }}" class="btn btn-outlined btn-full-width" data-turbo-frame="_top">Modifier</a>
 
         {% if showToLibrary %}
             <form action="{{ path('app_comic_to_library', {id: comic.id}) }}" method="post" class="inline-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('to-library' ~ comic.id) }}">
-                <button type="submit" class="btn btn-success">Ajouter</button>
+                <button type="submit" class="btn btn-success btn-full-width">Ajouter à la bibliothèque</button>
             </form>
         {% endif %}
 
         <form action="{{ path('app_comic_delete', {id: comic.id}) }}" method="post" class="inline-form" onsubmit="return confirm('Supprimer cette serie ?');">
             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comic.id) }}">
-            <button type="submit" class="btn btn-danger">Supprimer</button>
+            <button type="submit" class="btn btn-danger btn-full-width">Supprimer</button>
         </form>
     </div>
 </div>

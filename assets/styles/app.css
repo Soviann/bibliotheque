@@ -481,9 +481,13 @@ body {
 .comic-card-actions {
     border-top: 1px solid var(--md-divider);
     display: flex;
+    flex-direction: column;
     gap: var(--md-spacing-sm);
-    justify-content: flex-end;
     padding: var(--md-spacing-sm);
+}
+
+.comic-card-actions .inline-form {
+    display: contents;
 }
 
 /* Buttons */
@@ -554,6 +558,10 @@ body {
 
 .btn-success:hover {
     background-color: rgba(0, 200, 83, 0.08);
+}
+
+.btn-full-width {
+    width: 100%;
 }
 
 /* FAB (Floating Action Button) */

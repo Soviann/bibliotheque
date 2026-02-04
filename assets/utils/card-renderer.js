@@ -112,14 +112,16 @@ export function renderCard(comic, options = {}) {
     // Actions
     let actionsHtml = `
         <div class="comic-card-actions">
-            <a href="/comic/${comic.id}/edit" class="btn btn-text" data-turbo-frame="_top">Modifier</a>`;
+            <a href="/comic/${comic.id}/edit" class="btn btn-outlined btn-full-width" data-turbo-frame="_top">Modifier</a>`;
 
     if (showAddButton) {
         actionsHtml += `
-            <button type="button" class="btn btn-success" disabled title="Non disponible hors ligne">Ajouter</button>`;
+            <button type="button" class="btn btn-success btn-full-width" disabled title="Non disponible hors ligne">Ajouter à la bibliothèque</button>`;
     }
 
-    actionsHtml += '</div>';
+    actionsHtml += `
+            <button type="button" class="btn btn-danger btn-full-width" disabled title="Non disponible hors ligne">Supprimer</button>
+        </div>`;
 
     return `
         <div class="comic-card">
