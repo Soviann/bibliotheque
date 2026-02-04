@@ -18,8 +18,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Map(target: ComicSeries::class)]
 class ComicSeriesInput
 {
-    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
-    public string $title = '';
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.', groups: ['identification_series', 'identification_oneshot', 'Default'])]
+    public ?string $title = '';
 
     public ComicStatus $status = ComicStatus::BUYING;
 
@@ -73,6 +73,12 @@ class ComicSeriesInput
     #[Map(if: false)]
     #[Assert\Valid]
     public array $authors = [];
+
+    /**
+     * Étape courante du formulaire multi-étapes (pour Form Flow).
+     */
+    #[Map(if: false)]
+    public ?string $currentStep = null;
 
     /**
      * Retourne les numéros des tomes possédés.

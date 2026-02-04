@@ -7,11 +7,12 @@ namespace App\Controller;
 use App\Dto\Input\ComicSeriesInput;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
-use App\Form\ComicSeriesType;
+use App\Form\Flow\ComicSeriesFlowType;
 use App\Service\ComicSeriesMapper;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Flow\FormFlowInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -36,14 +37,30 @@ class ComicController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $input = new ComicSeriesInput();
-        $form = $this->createForm(ComicSeriesType::class, $input);
-        $form->handleRequest($request);
+        $flow = $this->createForm(ComicSeriesFlowType::class, $input);
+        \assert($flow instanceof FormFlowInterface);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // Réinitialiser le flow sur GET pour éviter de reprendre une session abandonnée
+        if ($request->isMethod('GET')) {
+            $flow->reset();
+            // Reconstruire le formulaire avec l'étape initiale
+            $flow = $flow->newStepForm();
+        }
+
+        $flow->handleRequest($request);
+
+        // Vérifier si le bouton "Enregistrer" a été cliqué et le formulaire est valide
+        if ($flow->isSubmitted() && $flow->isValid() && $flow->isFinished()) {
+            // Important : utiliser getData() car le session storage peut restaurer un objet différent
+            /** @var ComicSeriesInput $inputData */
+            $inputData = $flow->getData();
+
             try {
-                $comic = $this->comicSeriesMapper->mapToEntity($input);
+                $comic = $this->comicSeriesMapper->mapToEntity($inputData);
                 $entityManager->persist($comic);
                 $entityManager->flush();
+
+                $flow->reset();
 
                 $this->addFlash('success', 'La série a été ajoutée avec succès.');
 
@@ -57,8 +74,11 @@ class ComicController extends AbstractController
             }
         }
 
+        // Obtenir le formulaire pour l'étape courante (peut avoir changé après handleRequest)
+        $stepFlow = $flow->getStepForm();
+
         return $this->render('comic/new.html.twig', [
-            'form' => $form,
+            'flow' => $stepFlow,
         ]);
     }
 
@@ -66,13 +86,29 @@ class ComicController extends AbstractController
     public function edit(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
     {
         $input = $this->comicSeriesMapper->mapToInput($comic);
-        $form = $this->createForm(ComicSeriesType::class, $input);
-        $form->handleRequest($request);
+        $flow = $this->createForm(ComicSeriesFlowType::class, $input);
+        \assert($flow instanceof FormFlowInterface);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // Réinitialiser le flow sur GET pour éviter de reprendre une session d'un autre comic
+        if ($request->isMethod('GET')) {
+            $flow->reset();
+            // Reconstruire le formulaire avec l'étape initiale
+            $flow = $flow->newStepForm();
+        }
+
+        $flow->handleRequest($request);
+
+        // Vérifier si le bouton "Enregistrer" a été cliqué et le formulaire est valide
+        if ($flow->isSubmitted() && $flow->isValid() && $flow->isFinished()) {
+            // Important : utiliser getData() car le session storage peut restaurer un objet différent
+            /** @var ComicSeriesInput $inputData */
+            $inputData = $flow->getData();
+
             try {
-                $this->comicSeriesMapper->mapToEntity($input, $comic);
+                $this->comicSeriesMapper->mapToEntity($inputData, $comic);
                 $entityManager->flush();
+
+                $flow->reset();
 
                 $this->addFlash('success', 'La série a été modifiée avec succès.');
 
@@ -86,9 +122,12 @@ class ComicController extends AbstractController
             }
         }
 
+        // Obtenir le formulaire pour l'étape courante (peut avoir changé après handleRequest)
+        $stepFlow = $flow->getStepForm();
+
         return $this->render('comic/edit.html.twig', [
             'comic' => $comic,
-            'form' => $form,
+            'flow' => $stepFlow,
         ]);
     }
 

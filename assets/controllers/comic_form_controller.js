@@ -38,14 +38,9 @@ export default class extends Controller {
     };
 
     connect() {
-        this.element.addEventListener('submit', (e) => {
-            const title = this.element.querySelector('[name$="[title]"]');
-            if (title && !title.value.trim()) {
-                e.preventDefault();
-                title.focus();
-                title.classList.add('error');
-            }
-        });
+        // La validation côté client est gérée par les attributs HTML5 required
+        // et la validation côté serveur (FormFlow avec HTTP 422).
+        // Ne pas intercepter la soumission pour éviter les conflits avec Turbo Drive.
 
         // Applique l'état initial du one-shot
         if (this.hasIsOneShotTarget) {
