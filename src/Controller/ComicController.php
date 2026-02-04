@@ -37,6 +37,12 @@ class ComicController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $input = new ComicSeriesInput();
+
+        // Présélectionner le statut WISHLIST si on vient de la page wishlist
+        if ($request->query->getBoolean('wishlist')) {
+            $input->status = ComicStatus::WISHLIST;
+        }
+
         $flow = $this->createForm(ComicSeriesFlowType::class, $input);
         \assert($flow instanceof FormFlowInterface);
 

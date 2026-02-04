@@ -584,4 +584,36 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $em->remove($series);
         $em->flush();
     }
+
+    /**
+     * Teste que le statut est présélectionné à WISHLIST quand on vient de la page wishlist.
+     */
+    public function testNewFromWishlistPreselectsWishlistStatus(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // Accéder au formulaire avec le paramètre wishlist=1
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new?wishlist=1');
+        self::assertResponseIsSuccessful();
+
+        // Vérifier que le statut WISHLIST est sélectionné
+        $selectedOption = $crawler->filter('[name="comic_series_flow[format][status]"] option[selected]');
+        self::assertSame('wishlist', $selectedOption->attr('value'));
+    }
+
+    /**
+     * Teste que le statut par défaut est BUYING quand on n'a pas le paramètre wishlist.
+     */
+    public function testNewWithoutWishlistParamDefaultsToBuying(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // Accéder au formulaire sans paramètre
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
+        self::assertResponseIsSuccessful();
+
+        // Vérifier que le statut BUYING est sélectionné
+        $selectedOption = $crawler->filter('[name="comic_series_flow[format][status]"] option[selected]');
+        self::assertSame('buying', $selectedOption->attr('value'));
+    }
 }
