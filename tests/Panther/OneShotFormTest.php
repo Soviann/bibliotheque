@@ -4,45 +4,91 @@ declare(strict_types=1);
 
 namespace App\Tests\Panther;
 
+use App\Entity\ComicSeries;
+use App\Enum\ComicStatus;
+use App\Enum\ComicType;
+use Doctrine\ORM\EntityManagerInterface;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Process;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Tests du comportement du formulaire pour les one-shots.
  *
- * Ces tests vérifient le comportement dynamique du formulaire qui masque/affiche
+ * Ces tests vérifient le comportement dynamique du formulaire d'édition qui masque/affiche
  * la section tomes selon que la case one-shot est cochée ou non.
+ *
+ * Note: La page de création utilise un wizard multi-étapes où le one-shot détermine
+ * le chemin (étapes différentes), pas une section masquée. Le comportement dynamique
+ * de masquage est uniquement sur le formulaire d'édition (formulaire standard).
+ *
  * Utilise Selenium distant (ddev chrome service).
  */
-final class OneShotFormTest extends TestCase
+final class OneShotFormTest extends KernelTestCase
 {
     private const string BASE_URL = 'https://test.bibliotheque.ddev.site';
     private const string SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
 
     private ?RemoteWebDriver $driver = null;
+    private static ?int $testSeriesId = null;
 
     /**
-     * Réinitialise la base de données de test avant tous les tests de cette classe.
+     * Crée une série de test pour les tests de cette classe.
      */
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
-        // Recharge les fixtures dans la base de données de test
-        $process = new Process(['bin/console', 'doctrine:fixtures:load', '--no-interaction'], null, ['APP_ENV' => 'test']);
-        $process->run();
+        self::bootKernel(['environment' => 'test']);
 
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException('Échec du chargement des fixtures: '.$process->getErrorOutput());
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+
+        // Crée une série de test pour les tests de one-shot
+        $series = new ComicSeries();
+        $series->setTitle('Série Test One-Shot');
+        $series->setType(ComicType::BD);
+        $series->setStatus(ComicStatus::BUYING);
+
+        $em->persist($series);
+        $em->flush();
+
+        self::$testSeriesId = $series->getId();
+
+        self::ensureKernelShutdown();
+    }
+
+    /**
+     * Supprime la série de test après tous les tests.
+     */
+    public static function tearDownAfterClass(): void
+    {
+        if (null !== self::$testSeriesId) {
+            self::bootKernel(['environment' => 'test']);
+
+            /** @var EntityManagerInterface $em */
+            $em = self::getContainer()->get(EntityManagerInterface::class);
+
+            $series = $em->find(ComicSeries::class, self::$testSeriesId);
+            if ($series) {
+                $em->remove($series);
+                $em->flush();
+            }
+
+            self::ensureKernelShutdown();
         }
+
+        parent::tearDownAfterClass();
     }
 
     protected function setUp(): void
     {
+        if (null === self::$testSeriesId) {
+            self::markTestSkipped('Aucune série de test disponible dans la base de données.');
+        }
+
         $capabilities = DesiredCapabilities::chrome();
         $capabilities->setCapability('goog:chromeOptions', [
             'args' => [
@@ -66,7 +112,7 @@ final class OneShotFormTest extends TestCase
     public function testCheckOneShotHidesTomesSection(): void
     {
         $this->login();
-        $this->goToNewSeriesPage();
+        $this->goToEditSeriesPage();
 
         // Vérifie que la section tomes est visible initialement
         $this->assertTomesSectionVisible(true, 'La section tomes devrait être visible initialement');
@@ -85,7 +131,7 @@ final class OneShotFormTest extends TestCase
     public function testUncheckOneShotShowsTomesSection(): void
     {
         $this->login();
-        $this->goToNewSeriesPage();
+        $this->goToEditSeriesPage();
 
         // Coche la case one-shot
         $this->checkOneShot();
@@ -150,13 +196,13 @@ final class OneShotFormTest extends TestCase
     }
 
     /**
-     * Navigue vers la page de création d'une série.
+     * Navigue vers la page d'édition d'une série.
      */
-    private function goToNewSeriesPage(): void
+    private function goToEditSeriesPage(): void
     {
         $driver = $this->getDriver();
 
-        $driver->get(self::BASE_URL.'/comic/new');
+        $driver->get(self::BASE_URL.'/comic/'.self::$testSeriesId.'/edit');
 
         $driver->wait(10)->until(
             WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.comic-form'))

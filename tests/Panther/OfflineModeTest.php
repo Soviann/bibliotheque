@@ -164,16 +164,29 @@ final class OfflineModeTest extends TestCase
 
     /**
      * Teste que le manifest.webmanifest est accessible.
+     *
+     * Note: On utilise fetch() car Chrome ne rend pas le JSON de façon prédictible
+     * via getPageSource() (dépend du viewer JSON, du content-type, etc.).
      */
     public function testManifestIsAccessible(): void
     {
         $driver = $this->getDriver();
 
-        $driver->get(self::BASE_URL.'/manifest.webmanifest');
+        // Aller sur une page pour avoir un contexte d'exécution JavaScript
+        $driver->get(self::BASE_URL.'/login');
         \sleep(1);
 
-        $pageSource = $driver->getPageSource();
-        $this->assertStringContainsString('Ma Bibliotheque BD', $pageSource);
+        // Récupérer le manifest via fetch
+        $manifestContent = $driver->executeAsyncScript("
+            const callback = arguments[arguments.length - 1];
+            fetch('/manifest.webmanifest')
+                .then(response => response.text())
+                .then(text => callback(text))
+                .catch(error => callback('ERROR: ' + error.message));
+        ");
+
+        $this->assertIsString($manifestContent);
+        $this->assertStringContainsString('Ma Bibliotheque BD', $manifestContent);
     }
 
     /**
@@ -183,31 +196,33 @@ final class OfflineModeTest extends TestCase
     {
         $driver = $this->getDriver();
 
-        $driver->get(self::BASE_URL.'/manifest.webmanifest');
+        // Aller sur une page pour avoir un contexte d'exécution JavaScript
+        $driver->get(self::BASE_URL.'/login');
         \sleep(1);
 
-        // Récupérer le contenu JSON du manifest
-        $manifestContent = $driver->executeScript('
-            return document.body.innerText;
-        ');
+        // Récupérer le manifest via fetch
+        $manifestContent = $driver->executeAsyncScript("
+            const callback = arguments[arguments.length - 1];
+            fetch('/manifest.webmanifest')
+                .then(response => response.json())
+                .then(json => callback(json))
+                .catch(error => callback(null));
+        ");
 
-        $this->assertIsString($manifestContent, 'Le contenu du manifest devrait être une chaîne');
-        $manifest = \json_decode($manifestContent, true);
-
-        $this->assertIsArray($manifest, 'Le manifest devrait être un JSON valide');
-        $this->assertArrayHasKey('name', $manifest);
-        $this->assertArrayHasKey('short_name', $manifest);
-        $this->assertArrayHasKey('start_url', $manifest);
-        $this->assertArrayHasKey('display', $manifest);
-        $this->assertArrayHasKey('icons', $manifest);
-        $this->assertArrayHasKey('theme_color', $manifest);
-        $this->assertArrayHasKey('background_color', $manifest);
+        $this->assertIsArray($manifestContent, 'Le manifest devrait être un JSON valide');
+        $this->assertArrayHasKey('name', $manifestContent);
+        $this->assertArrayHasKey('short_name', $manifestContent);
+        $this->assertArrayHasKey('start_url', $manifestContent);
+        $this->assertArrayHasKey('display', $manifestContent);
+        $this->assertArrayHasKey('icons', $manifestContent);
+        $this->assertArrayHasKey('theme_color', $manifestContent);
+        $this->assertArrayHasKey('background_color', $manifestContent);
 
         // Vérifier les valeurs
-        $this->assertSame('Ma Bibliotheque BD', $manifest['name']);
-        $this->assertSame('BibliotheQue', $manifest['short_name']);
-        $this->assertSame('standalone', $manifest['display']);
-        $this->assertSame('#1976d2', $manifest['theme_color']);
+        $this->assertSame('Ma Bibliotheque BD', $manifestContent['name']);
+        $this->assertSame('BibliotheQue', $manifestContent['short_name']);
+        $this->assertSame('standalone', $manifestContent['display']);
+        $this->assertSame('#1976d2', $manifestContent['theme_color']);
     }
 
     /**

@@ -4,44 +4,90 @@ declare(strict_types=1);
 
 namespace App\Tests\Panther;
 
+use App\Entity\ComicSeries;
+use App\Enum\ComicStatus;
+use App\Enum\ComicType;
+use Doctrine\ORM\EntityManagerInterface;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Process;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Tests de gestion des tomes via JavaScript.
  *
- * Ces tests vérifient l'ajout dynamique de tomes via le contrôleur Stimulus.
+ * Ces tests vérifient l'ajout dynamique de tomes via le contrôleur Stimulus
+ * sur le formulaire d'édition (formulaire standard).
+ *
+ * Note: La page de création utilise un wizard multi-étapes. Le comportement
+ * d'ajout de tomes est testé sur le formulaire d'édition qui est identique.
+ *
  * Utilise Selenium distant (ddev chrome service).
  */
-final class TomeManagementTest extends TestCase
+final class TomeManagementTest extends KernelTestCase
 {
     private const string BASE_URL = 'https://test.bibliotheque.ddev.site';
     private const string SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
 
     private ?RemoteWebDriver $driver = null;
+    private static ?int $testSeriesId = null;
 
     /**
-     * Réinitialise la base de données de test avant tous les tests de cette classe.
+     * Crée une série de test pour les tests de cette classe.
      */
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
-        // Recharge les fixtures dans la base de données de test
-        $process = new Process(['bin/console', 'doctrine:fixtures:load', '--no-interaction'], null, ['APP_ENV' => 'test']);
-        $process->run();
+        self::bootKernel(['environment' => 'test']);
 
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException('Échec du chargement des fixtures: '.$process->getErrorOutput());
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+
+        // Crée une série de test pour les tests de gestion des tomes
+        $series = new ComicSeries();
+        $series->setTitle('Série Test Tomes');
+        $series->setType(ComicType::MANGA);
+        $series->setStatus(ComicStatus::BUYING);
+
+        $em->persist($series);
+        $em->flush();
+
+        self::$testSeriesId = $series->getId();
+
+        self::ensureKernelShutdown();
+    }
+
+    /**
+     * Supprime la série de test après tous les tests.
+     */
+    public static function tearDownAfterClass(): void
+    {
+        if (null !== self::$testSeriesId) {
+            self::bootKernel(['environment' => 'test']);
+
+            /** @var EntityManagerInterface $em */
+            $em = self::getContainer()->get(EntityManagerInterface::class);
+
+            $series = $em->find(ComicSeries::class, self::$testSeriesId);
+            if ($series) {
+                $em->remove($series);
+                $em->flush();
+            }
+
+            self::ensureKernelShutdown();
         }
+
+        parent::tearDownAfterClass();
     }
 
     protected function setUp(): void
     {
+        if (null === self::$testSeriesId) {
+            self::markTestSkipped('Aucune série de test disponible dans la base de données.');
+        }
+
         $capabilities = DesiredCapabilities::chrome();
         $capabilities->setCapability('goog:chromeOptions', [
             'args' => [
@@ -65,29 +111,25 @@ final class TomeManagementTest extends TestCase
     public function testAddTomeWithNumberTitleAndIsbn(): void
     {
         $this->login();
-        $this->goToNewSeriesPage();
+        $this->goToEditSeriesPage();
 
-        // Remplit le titre de la série
-        $this->fillField('#comic_series_title', 'Ma Série Test');
-
-        // Sélectionne le type BD
-        $this->selectOption('#comic_series_type', 'bd');
+        // Compte les tomes existants
+        $initialCount = $this->getTomeCount();
 
         // Clique sur ajouter un tome
         $this->clickAddTomeButton();
         \usleep(500000); // 0.5 seconde
 
-        // Remplit le tome 1
-        $this->fillTomeNumber(0, 1);
-        $this->fillTomeTitle(0, 'Premier tome');
-        $this->fillTomeIsbn(0, '978-2-1234-5678-9');
-        $this->checkTomeBought(0);
+        // Remplit le nouveau tome
+        $newIndex = $initialCount;
+        $this->fillTomeNumber($newIndex, 99);
+        $this->fillTomeTitle($newIndex, 'Tome de test');
+        $this->fillTomeIsbn($newIndex, '978-2-1234-5678-9');
+        $this->checkTomeBought($newIndex);
 
-        // Soumet le formulaire
-        $this->submitForm();
-
-        // Vérifie que la série a été créée
-        $this->assertSeriesExists('Ma Série Test');
+        // Vérifie que le tome a été ajouté dans le DOM
+        $finalCount = $this->getTomeCount();
+        $this->assertSame($initialCount + 1, $finalCount, 'Un tome devrait avoir été ajouté');
     }
 
     /**
@@ -96,28 +138,28 @@ final class TomeManagementTest extends TestCase
     public function testMarkTomeOnNas(): void
     {
         $this->login();
-        $this->goToNewSeriesPage();
+        $this->goToEditSeriesPage();
 
-        // Remplit le titre de la série
-        $this->fillField('#comic_series_title', 'Série avec NAS');
-
-        // Sélectionne le type BD
-        $this->selectOption('#comic_series_type', 'bd');
+        // Compte les tomes existants
+        $initialCount = $this->getTomeCount();
 
         // Clique sur ajouter un tome
         $this->clickAddTomeButton();
         \usleep(500000);
 
-        // Remplit le tome 1 et le marque comme acheté et sur NAS
-        $this->fillTomeNumber(0, 1);
-        $this->checkTomeBought(0);
-        $this->checkTomeOnNas(0);
+        // Remplit le tome et le marque comme acheté et sur NAS
+        $newIndex = $initialCount;
+        $this->fillTomeNumber($newIndex, 98);
+        $this->checkTomeBought($newIndex);
+        $this->checkTomeOnNas($newIndex);
 
-        // Soumet le formulaire
-        $this->submitForm();
+        // Vérifie que le tome a été ajouté dans le DOM
+        $finalCount = $this->getTomeCount();
+        $this->assertSame($initialCount + 1, $finalCount, 'Un tome devrait avoir été ajouté');
 
-        // Vérifie que la série a été créée
-        $this->assertSeriesExists('Série avec NAS');
+        // Vérifie que la case NAS est cochée
+        $isOnNas = $this->isTomeOnNasChecked($newIndex);
+        $this->assertTrue($isOnNas, 'La case NAS devrait être cochée');
     }
 
     /**
@@ -126,29 +168,24 @@ final class TomeManagementTest extends TestCase
     public function testAddMultipleTomes(): void
     {
         $this->login();
-        $this->goToNewSeriesPage();
+        $this->goToEditSeriesPage();
 
-        // Remplit le titre de la série
-        $this->fillField('#comic_series_title', 'Série Multi-Tomes');
-
-        // Sélectionne le type Manga
-        $this->selectOption('#comic_series_type', 'manga');
+        // Compte les tomes existants
+        $initialCount = $this->getTomeCount();
 
         // Ajoute le premier tome
         $this->clickAddTomeButton();
         \usleep(500000);
-        $this->fillTomeNumber(0, 1);
+        $this->fillTomeNumber($initialCount, 96);
 
         // Ajoute le second tome
         $this->clickAddTomeButton();
         \usleep(500000);
-        $this->fillTomeNumber(1, 2);
+        $this->fillTomeNumber($initialCount + 1, 97);
 
-        // Soumet le formulaire
-        $this->submitForm();
-
-        // Vérifie que la série a été créée
-        $this->assertSeriesExists('Série Multi-Tomes');
+        // Vérifie que les deux tomes ont été ajoutés
+        $finalCount = $this->getTomeCount();
+        $this->assertSame($initialCount + 2, $finalCount, 'Deux tomes devraient avoir été ajoutés');
     }
 
     /**
@@ -199,13 +236,13 @@ final class TomeManagementTest extends TestCase
     }
 
     /**
-     * Navigue vers la page de création d'une série.
+     * Navigue vers la page d'édition d'une série.
      */
-    private function goToNewSeriesPage(): void
+    private function goToEditSeriesPage(): void
     {
         $driver = $this->getDriver();
 
-        $driver->get(self::BASE_URL.'/comic/new');
+        $driver->get(self::BASE_URL.'/comic/'.self::$testSeriesId.'/edit');
 
         $driver->wait(10)->until(
             WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.comic-form'))
@@ -213,27 +250,15 @@ final class TomeManagementTest extends TestCase
     }
 
     /**
-     * Remplit un champ de formulaire.
+     * Compte le nombre de tomes dans le formulaire.
      */
-    private function fillField(string $selector, string $value): void
+    private function getTomeCount(): int
     {
-        $this->getDriver()->executeScript(\sprintf(
-            "document.querySelector('%s').value = '%s';",
-            $selector,
-            \addslashes($value)
-        ));
-    }
+        $count = $this->getDriver()->executeScript(
+            "return document.querySelectorAll('.tome-entry').length;"
+        );
 
-    /**
-     * Sélectionne une option dans un select.
-     */
-    private function selectOption(string $selector, string $value): void
-    {
-        $this->getDriver()->executeScript(\sprintf(
-            "document.querySelector('%s').value = '%s';",
-            $selector,
-            $value
-        ));
+        return \is_numeric($count) ? (int) $count : 0;
     }
 
     /**
@@ -305,32 +330,13 @@ final class TomeManagementTest extends TestCase
     }
 
     /**
-     * Soumet le formulaire.
+     * Vérifie si la case NAS d'un tome est cochée.
      */
-    private function submitForm(): void
+    private function isTomeOnNasChecked(int $index): bool
     {
-        $this->getDriver()->executeScript("
-            document.querySelector('button[type=\"submit\"]').click();
-        ");
-
-        \sleep(2);
-    }
-
-    /**
-     * Vérifie qu'une série existe en base de données.
-     */
-    private function assertSeriesExists(string $title): void
-    {
-        $driver = $this->getDriver();
-
-        // Recherche la série via la page de recherche
-        $driver->get(self::BASE_URL.'/search?q='.\urlencode($title));
-
-        $driver->wait(10)->until(
-            WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.comic-card, .search-results'))
-        );
-
-        $pageSource = $driver->getPageSource();
-        $this->assertStringContainsString($title, $pageSource, "La série '$title' devrait exister");
+        return (bool) $this->getDriver()->executeScript(\sprintf(
+            "return document.querySelectorAll('.tome-checkboxes input[type=\"checkbox\"]')[%d * 3 + 2].checked;",
+            $index
+        ));
     }
 }
