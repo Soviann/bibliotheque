@@ -426,8 +426,12 @@ body {
 }
 
 .comic-info-value {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
     color: var(--md-text-high);
+    display: -webkit-box;
     font-weight: 500;
+    overflow: hidden;
 }
 
 .comic-info-value.warning {
