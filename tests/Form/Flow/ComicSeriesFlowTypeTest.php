@@ -54,9 +54,9 @@ class ComicSeriesFlowTypeTest extends KernelTestCase
     }
 
     /**
-     * Teste que l'étape format contient les champs type et isOneShot.
+     * Teste que l'étape format contient les champs type, isOneShot et status.
      */
-    public function testFormatStepHasTypeAndOneShotFields(): void
+    public function testFormatStepHasTypeOneShotAndStatusFields(): void
     {
         $input = new ComicSeriesInput();
         $flow = $this->formFactory->create(ComicSeriesFlowType::class, $input, [
@@ -66,6 +66,7 @@ class ComicSeriesFlowTypeTest extends KernelTestCase
         // Les champs sont dans le sous-formulaire de l'étape courante
         self::assertTrue($flow->get('format')->has('type'));
         self::assertTrue($flow->get('format')->has('isOneShot'));
+        self::assertTrue($flow->get('format')->has('status'));
     }
 
     /**
@@ -157,9 +158,9 @@ class ComicSeriesFlowTypeTest extends KernelTestCase
     }
 
     /**
-     * Teste que l'étape tomes contient les champs statut et tomes.
+     * Teste que l'étape tomes contient les champs tomes et latestPublishedIssue.
      */
-    public function testTomesStepHasStatusAndTomesFields(): void
+    public function testTomesStepHasTomesAndLatestPublishedFields(): void
     {
         $input = new ComicSeriesInput();
         $input->currentStep = 'tomes';
@@ -168,7 +169,6 @@ class ComicSeriesFlowTypeTest extends KernelTestCase
             'data_storage' => new NullDataStorage(),
         ]);
 
-        self::assertTrue($flow->get('tomes')->has('status'));
         self::assertTrue($flow->get('tomes')->has('tomes'));
         self::assertTrue($flow->get('tomes')->has('latestPublishedIssue'));
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Form\Flow\Step;
 
+use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -24,6 +25,11 @@ class FormatStepType extends AbstractType
             ->add('isOneShot', CheckboxType::class, [
                 'label' => 'One-shot (tome unique)',
                 'required' => false,
+            ])
+            ->add('status', EnumType::class, [
+                'class' => ComicStatus::class,
+                'choice_label' => static fn (ComicStatus $status): string => $status->getLabel(),
+                'label' => 'Statut',
             ])
             ->add('type', EnumType::class, [
                 'class' => ComicType::class,

@@ -28,13 +28,19 @@
 <div class="wizard-step-content">
     {% if currentStepName == 'format' %}
         <h2>Type et format</h2>
-        <p class="step-description">Choisissez le type de série et indiquez s'il s'agit d'un one-shot.</p>
+        <p class="step-description">Choisissez le type de série, son statut et indiquez s'il s'agit d'un one-shot.</p>
 
         <div class="form-row">
             <div class="mdc-text-field">
                 {{ form_label(flow.format.type) }}
                 {{ form_widget(flow.format.type, {attr: {'data-comic-form-target': 'type'}}) }}
                 {{ form_errors(flow.format.type) }}
+            </div>
+
+            <div class="mdc-text-field">
+                {{ form_label(flow.format.status) }}
+                {{ form_widget(flow.format.status) }}
+                {{ form_errors(flow.format.status) }}
             </div>
         </div>
 
@@ -133,16 +139,10 @@
         </div>
 
     {% elseif currentStepName == 'tomes' %}
-        <h2>Tomes et statut</h2>
-        <p class="step-description">Gérez votre collection et le statut de la série.</p>
+        <h2>Tomes</h2>
+        <p class="step-description">Gérez votre collection de tomes.</p>
 
         <div class="form-row">
-            <div class="mdc-text-field">
-                {{ form_label(flow.tomes.status) }}
-                {{ form_widget(flow.tomes.status) }}
-                {{ form_errors(flow.tomes.status) }}
-            </div>
-
             <div class="mdc-text-field">
                 {{ form_label(flow.tomes.latestPublishedIssue) }}
                 {{ form_widget(flow.tomes.latestPublishedIssue, {attr: {'data-comic-form-target': 'latestPublishedIssue'}}) }}
