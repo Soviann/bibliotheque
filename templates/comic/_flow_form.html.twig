@@ -90,7 +90,7 @@
         <p class="step-description">Ajoutez les informations complémentaires.</p>
 
         <div class="form-row">
-            <div class="mdc-text-field mdc-text-field--autocomplete">
+            <div class="mdc-text-field mdc-text-field--autocomplete" data-comic-form-target="authorsWrapper">
                 {{ form_label(flow.details.authors) }}
                 {{ form_widget(flow.details.authors) }}
                 {{ form_errors(flow.details.authors) }}
@@ -153,7 +153,7 @@
         <fieldset class="tomes-section">
             <legend>Tomes possédés</legend>
 
-            <div class="tomes-list" data-tomes-collection-target="list">
+            <div class="tomes-list" data-tomes-collection-target="list" data-comic-form-target="tomesList">
                 {% for tome in flow.tomes.tomes %}
                     <div class="tome-entry" data-tomes-collection-target="entry">
                         <div class="tome-fields">

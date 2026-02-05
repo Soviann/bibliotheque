@@ -274,6 +274,84 @@ class ComicFlowControllerTest extends AuthenticatedWebTestCase
     }
 
     /**
+     * Teste que l'étape format possède la cible Stimulus type pour la persistance via sessionStorage.
+     */
+    public function testWizardFormatStepHasTypeTarget(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-comic-form-target="type"]');
+    }
+
+    /**
+     * Teste que l'étape identification (série) possède la cible Stimulus title et le bouton lookup.
+     */
+    public function testWizardIdentificationSeriesStepHasLookupTargets(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
+        $form = $crawler->selectButton('comic_series_flow[next]')->form([
+            'comic_series_flow[format][type]' => 'bd',
+        ]);
+        $crawler = $client->submit($form);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-comic-form-target="title"]');
+        self::assertSelectorExists('[data-action="comic-form#lookupByTitle"]');
+    }
+
+    /**
+     * Teste que l'étape identification (one-shot) possède la cible Stimulus title et le bouton lookup.
+     */
+    public function testWizardIdentificationOneShotStepHasLookupTargets(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
+        $form = $crawler->selectButton('comic_series_flow[next]')->form([
+            'comic_series_flow[format][type]' => 'manga',
+            'comic_series_flow[format][isOneShot]' => '1',
+        ]);
+        $crawler = $client->submit($form);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-comic-form-target="title"]');
+        self::assertSelectorExists('[data-action="comic-form#lookupByTitle"]');
+    }
+
+    /**
+     * Teste que l'étape détails possède les cibles Stimulus nécessaires au remplissage différé.
+     */
+    public function testWizardDetailsStepHasDeferredFillTargets(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // Étape 1: Format
+        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
+        $form = $crawler->selectButton('comic_series_flow[next]')->form([
+            'comic_series_flow[format][type]' => 'bd',
+        ]);
+        $crawler = $client->submit($form);
+
+        // Étape 2: Identification (série) → Suivant
+        $form = $crawler->selectButton('comic_series_flow[next]')->form([
+            'comic_series_flow[identification_series][title]' => 'Test Targets',
+        ]);
+        $crawler = $client->submit($form);
+
+        self::assertResponseIsSuccessful();
+        // Vérifie les cibles Stimulus nécessaires au remplissage différé
+        self::assertSelectorExists('[data-comic-form-target="authorsWrapper"]');
+        self::assertSelectorExists('[data-comic-form-target="publisher"]');
+        self::assertSelectorExists('[data-comic-form-target="publishedDate"]');
+        self::assertSelectorExists('[data-comic-form-target="description"]');
+    }
+
+    /**
      * Teste l'édition d'une série existante via le formulaire standard.
      *
      * Note: L'édition utilise le formulaire standard (ComicSeriesType) et non le wizard.

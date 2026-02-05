@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Préremplissage wizard** : Correction du préremplissage des champs via recherche titre/ISBN dans le formulaire wizard (création). Les données de l'API sont désormais persistées via `sessionStorage` et appliquées progressivement à chaque étape du wizard. Le type sélectionné à l'étape 1 est aussi transmis pour les recherches AniList (mangas).
+
 ### Added
 
 - **Amélioration upload couverture** : Meilleure UX pour l'upload d'images
