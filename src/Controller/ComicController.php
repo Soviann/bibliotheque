@@ -8,12 +8,10 @@ use App\Dto\Input\ComicSeriesInput;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Form\ComicSeriesType;
-use App\Form\Flow\ComicSeriesFlowType;
 use App\Service\ComicSeriesMapper;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Flow\FormFlowInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -44,30 +42,15 @@ class ComicController extends AbstractController
             $input->status = ComicStatus::WISHLIST;
         }
 
-        $flow = $this->createForm(ComicSeriesFlowType::class, $input);
-        \assert($flow instanceof FormFlowInterface);
+        $form = $this->createForm(ComicSeriesType::class, $input);
 
-        // Réinitialiser le flow sur GET pour éviter de reprendre une session abandonnée
-        if ($request->isMethod('GET')) {
-            $flow->reset();
-            // Reconstruire le formulaire avec l'étape initiale
-            $flow = $flow->newStepForm();
-        }
+        $form->handleRequest($request);
 
-        $flow->handleRequest($request);
-
-        // Vérifier si le bouton "Enregistrer" a été cliqué et le formulaire est valide
-        if ($flow->isSubmitted() && $flow->isValid() && $flow->isFinished()) {
-            // Important : utiliser getData() car le session storage peut restaurer un objet différent
-            /** @var ComicSeriesInput $inputData */
-            $inputData = $flow->getData();
-
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $comic = $this->comicSeriesMapper->mapToEntity($inputData);
+                $comic = $this->comicSeriesMapper->mapToEntity($input);
                 $entityManager->persist($comic);
                 $entityManager->flush();
-
-                $flow->reset();
 
                 $this->addFlash('success', 'La série a été ajoutée avec succès.');
 
@@ -81,11 +64,8 @@ class ComicController extends AbstractController
             }
         }
 
-        // Obtenir le formulaire pour l'étape courante (peut avoir changé après handleRequest)
-        $stepFlow = $flow->getStepForm();
-
         return $this->render('comic/new.html.twig', [
-            'flow' => $stepFlow,
+            'form' => $form,
         ]);
     }
 

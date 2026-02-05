@@ -281,47 +281,27 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     }
 
     /**
-     * Teste que revenir sur /comic/new après avoir commencé le formulaire réinitialise à l'étape 1.
-     *
-     * Scénario : L'utilisateur commence à remplir le formulaire (avance à l'étape 2),
-     * navigue ailleurs, puis revient sur /comic/new. Le formulaire doit reprendre à l'étape 1.
+     * Teste que le formulaire de création utilise le formulaire standard (pas un wizard).
      */
-    public function testNewActionResetsFlowOnGetRequest(): void
+    public function testNewActionUsesStandardForm(): void
     {
         $client = $this->createAuthenticatedClient();
 
-        // 1. Charger le formulaire pour être à l'étape 1
         $crawler = $client->request(Request::METHOD_GET, '/comic/new');
         self::assertResponseIsSuccessful();
 
-        // Vérifier qu'on est à l'étape 1 (format) - le champ type est visible
-        self::assertSelectorExists('[name="comic_series_flow[format][type]"]');
+        // Le formulaire standard a le préfixe "comic_series"
+        self::assertSelectorExists('[name="comic_series[title]"]');
+        self::assertSelectorExists('[name="comic_series[type]"]');
+        self::assertSelectorExists('[name="comic_series[status]"]');
+        self::assertSelectorExists('[name="comic_series[description]"]');
 
-        // 2. Soumettre l'étape 1 pour avancer à l'étape 2
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[format][type]' => 'bd',
-        ]);
-        $crawler = $client->submit($form);
-        self::assertResponseIsSuccessful();
-
-        // Vérifier qu'on est maintenant à l'étape 2 (identification_series) - le champ title est visible
-        self::assertSelectorExists('[name="comic_series_flow[identification_series][title]"]');
-        self::assertSelectorNotExists('[name="comic_series_flow[format][type]"]');
-
-        // 3. Simuler une navigation ailleurs puis retour sur /comic/new (nouvelle requête GET)
-        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
-        self::assertResponseIsSuccessful();
-
-        // 4. Vérifier qu'on est de retour à l'étape 1
-        self::assertSelectorExists('[name="comic_series_flow[format][type]"]');
-        self::assertSelectorNotExists('[name="comic_series_flow[identification_series][title]"]');
+        // Le bouton Enregistrer est présent
+        self::assertSelectorExists('button[type="submit"]');
     }
 
     /**
-     * Teste que l'édition utilise un formulaire standard (pas un wizard multi-étapes).
-     *
-     * Le formulaire d'édition doit afficher tous les champs sur une seule page
-     * pour permettre une modification rapide.
+     * Teste que l'édition utilise le même formulaire standard que la création.
      */
     public function testEditActionUsesStandardForm(): void
     {
@@ -341,16 +321,11 @@ class ComicControllerTest extends AuthenticatedWebTestCase
             $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesId.'/edit');
             self::assertResponseIsSuccessful();
 
-            // Vérifier que le formulaire standard est utilisé (pas le flow)
-            // Le formulaire standard a le préfixe "comic_series" (pas "comic_series_flow")
+            // Le formulaire standard a le préfixe "comic_series"
             self::assertSelectorExists('[name="comic_series[title]"]');
             self::assertSelectorExists('[name="comic_series[type]"]');
             self::assertSelectorExists('[name="comic_series[status]"]');
             self::assertSelectorExists('[name="comic_series[description]"]');
-
-            // Vérifier que ce n'est PAS le formulaire flow
-            self::assertSelectorNotExists('[name="comic_series_flow[format][type]"]');
-            self::assertSelectorNotExists('.wizard-progress');
         } finally {
             $em->clear();
             $series = $em->getRepository(ComicSeries::class)->find($seriesId);
@@ -362,78 +337,29 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     }
 
     /**
-     * Teste que le bouton Enregistrer n'est PAS visible à l'étape 1 (format).
+     * Teste la création d'une série avec des données valides.
      */
-    public function testSaveButtonNotVisibleAtFormatStep(): void
+    public function testNewWithValidDataCreatesEntity(): void
     {
         $client = $this->createAuthenticatedClient();
 
         $crawler = $client->request(Request::METHOD_GET, '/comic/new');
         self::assertResponseIsSuccessful();
 
-        // Le bouton "Enregistrer" ne doit pas être présent à l'étape format
-        self::assertSelectorNotExists('button[name="comic_series_flow[finish]"]');
-    }
-
-    /**
-     * Teste que le bouton Enregistrer EST visible à l'étape 2 (identification_series).
-     */
-    public function testSaveButtonVisibleAtIdentificationStep(): void
-    {
-        $client = $this->createAuthenticatedClient();
-
-        // 1. Charger l'étape 1
-        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
-        self::assertResponseIsSuccessful();
-
-        // 2. Passer à l'étape 2
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[format][type]' => 'bd',
-        ]);
-        $crawler = $client->submit($form);
-        self::assertResponseIsSuccessful();
-
-        // Le bouton "Enregistrer" doit être présent à l'étape identification_series
-        self::assertSelectorExists('button[name="comic_series_flow[finish]"]');
-    }
-
-    /**
-     * Teste que la sauvegarde depuis l'étape 2 fonctionne avec des données valides.
-     */
-    public function testSaveFromStep2WithValidDataCreatesEntity(): void
-    {
-        $client = $this->createAuthenticatedClient();
-
-        // 1. Charger l'étape 1
-        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
-        self::assertResponseIsSuccessful();
-
-        // 2. Passer à l'étape 2
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[format][type]' => 'bd',
-        ]);
-        $crawler = $client->submit($form);
-        self::assertResponseIsSuccessful();
-
-        // 3. Remplir le titre et cliquer sur Enregistrer
         $form = $crawler->selectButton('Enregistrer')->form([
-            'comic_series_flow[identification_series][title]' => 'Ma BD Test Sauvegarde Étape 2',
+            'comic_series[title]' => 'Ma BD Test Création',
+            'comic_series[type]' => 'bd',
         ]);
         $client->submit($form);
 
-        // 4. Vérifier la redirection (succès)
         self::assertResponseRedirects('/');
 
-        // Suivre la redirection pour vérifier le message flash
         $client->followRedirect();
-
-        // Vérifier qu'un message de succès est affiché (pas d'erreur)
         self::assertSelectorExists('.alert-success');
 
-        // 5. Vérifier que l'entité a été créée en base (obtenir un EntityManager frais après la requête)
         /** @var EntityManagerInterface $em */
         $em = static::getContainer()->get(EntityManagerInterface::class);
-        $series = $em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Ma BD Test Sauvegarde Étape 2']);
+        $series = $em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Ma BD Test Création']);
         self::assertNotNull($series, 'La série devrait avoir été créée en base de données');
 
         // Nettoyer
@@ -442,126 +368,22 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     }
 
     /**
-     * Teste que la sauvegarde depuis l'étape 2 échoue si le titre est vide.
+     * Teste que la création échoue si le titre est vide.
      */
-    public function testSaveFromStep2FailsWithEmptyTitle(): void
+    public function testNewFailsWithEmptyTitle(): void
     {
         $client = $this->createAuthenticatedClient();
 
-        // 1. Charger l'étape 1
         $crawler = $client->request(Request::METHOD_GET, '/comic/new');
         self::assertResponseIsSuccessful();
 
-        // 2. Passer à l'étape 2
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[format][type]' => 'bd',
-        ]);
-        $crawler = $client->submit($form);
-        self::assertResponseIsSuccessful();
-
-        // 3. Soumettre sans titre (champ vide)
         $form = $crawler->selectButton('Enregistrer')->form([
-            'comic_series_flow[identification_series][title]' => '',
+            'comic_series[title]' => '',
         ]);
-        $crawler = $client->submit($form);
+        $client->submit($form);
 
-        // 4. Le formulaire doit rester sur la même page avec erreur de validation (422 Unprocessable Content)
         self::assertResponseStatusCodeSame(422);
-
-        // 5. Vérifier qu'une erreur de validation est affichée
         self::assertSelectorTextContains('ul li', 'Le titre est obligatoire');
-    }
-
-    /**
-     * Teste que la sauvegarde depuis l'étape 3 (details) fonctionne.
-     */
-    public function testSaveFromStep3WithValidDataCreatesEntity(): void
-    {
-        $client = $this->createAuthenticatedClient();
-
-        // 1. Charger l'étape 1
-        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
-
-        // 2. Passer à l'étape 2
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[format][type]' => 'manga',
-        ]);
-        $crawler = $client->submit($form);
-
-        // 3. Passer à l'étape 3 avec un titre
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[identification_series][title]' => 'Mon Manga Test Étape 3',
-        ]);
-        $crawler = $client->submit($form);
-        self::assertResponseIsSuccessful();
-
-        // 4. Vérifier qu'on est à l'étape details et que le bouton Enregistrer est présent
-        self::assertSelectorExists('button[name="comic_series_flow[finish]"]');
-
-        // 5. Cliquer sur Enregistrer depuis l'étape 3
-        $form = $crawler->selectButton('Enregistrer')->form();
-        $client->submit($form);
-
-        // 6. Vérifier la redirection (succès)
-        self::assertResponseRedirects('/');
-
-        // 7. Vérifier que l'entité a été créée (obtenir un EntityManager frais)
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $series = $em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Mon Manga Test Étape 3']);
-        self::assertNotNull($series, 'La série devrait avoir été créée en base de données');
-
-        // Nettoyer
-        $em->remove($series);
-        $em->flush();
-    }
-
-    /**
-     * Teste que la sauvegarde depuis l'étape 4 (cover) fonctionne.
-     */
-    public function testSaveFromStep4WithValidDataCreatesEntity(): void
-    {
-        $client = $this->createAuthenticatedClient();
-
-        // 1. Charger l'étape 1
-        $crawler = $client->request(Request::METHOD_GET, '/comic/new');
-
-        // 2. Passer à l'étape 2
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[format][type]' => 'comics',
-        ]);
-        $crawler = $client->submit($form);
-
-        // 3. Passer à l'étape 3
-        $form = $crawler->selectButton('Suivant')->form([
-            'comic_series_flow[identification_series][title]' => 'Mon Comics Test Étape 4',
-        ]);
-        $crawler = $client->submit($form);
-
-        // 4. Passer à l'étape 4
-        $form = $crawler->selectButton('Suivant')->form();
-        $crawler = $client->submit($form);
-        self::assertResponseIsSuccessful();
-
-        // 5. Vérifier qu'on est à l'étape cover
-        self::assertSelectorExists('[name="comic_series_flow[cover][coverUrl]"]');
-
-        // 6. Cliquer sur Enregistrer depuis l'étape 4
-        $form = $crawler->selectButton('Enregistrer')->form();
-        $client->submit($form);
-
-        // 7. Vérifier la redirection (succès)
-        self::assertResponseRedirects('/');
-
-        // 8. Vérifier que l'entité a été créée (obtenir un EntityManager frais)
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $series = $em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Mon Comics Test Étape 4']);
-        self::assertNotNull($series, 'La série devrait avoir été créée en base de données');
-
-        // Nettoyer
-        $em->remove($series);
-        $em->flush();
     }
 
     /**
@@ -571,12 +393,10 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        // Accéder au formulaire avec le paramètre wishlist=1
         $crawler = $client->request(Request::METHOD_GET, '/comic/new?wishlist=1');
         self::assertResponseIsSuccessful();
 
-        // Vérifier que le statut WISHLIST est sélectionné
-        $selectedOption = $crawler->filter('[name="comic_series_flow[format][status]"] option[selected]');
+        $selectedOption = $crawler->filter('[name="comic_series[status]"] option[selected]');
         self::assertSame('wishlist', $selectedOption->attr('value'));
     }
 
@@ -587,12 +407,10 @@ class ComicControllerTest extends AuthenticatedWebTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        // Accéder au formulaire sans paramètre
         $crawler = $client->request(Request::METHOD_GET, '/comic/new');
         self::assertResponseIsSuccessful();
 
-        // Vérifier que le statut BUYING est sélectionné
-        $selectedOption = $crawler->filter('[name="comic_series_flow[format][status]"] option[selected]');
+        $selectedOption = $crawler->filter('[name="comic_series[status]"] option[selected]');
         self::assertSame('buying', $selectedOption->attr('value'));
     }
 }

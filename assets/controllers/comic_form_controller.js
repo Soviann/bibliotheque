@@ -38,28 +38,6 @@ export default class extends Controller {
     };
 
     connect() {
-        const isWizard = this.element.classList.contains('wizard-form');
-
-        if (isWizard) {
-            // Réinitialise les données de lookup en cache à l'étape format (étape 1)
-            if (this.hasIsOneShotTarget && !this.hasTitleTarget) {
-                sessionStorage.removeItem('comic-form-lookup-data');
-                sessionStorage.removeItem('comic-form-selected-type');
-            }
-
-            // Sauvegarde le type sélectionné pour les étapes suivantes
-            if (this.hasTypeTarget) {
-                sessionStorage.setItem('comic-form-selected-type', this.typeTarget.value);
-            }
-
-            // Applique les données de lookup en attente (remplissage différé)
-            this.applyPendingLookupData();
-        } else {
-            // Nettoie les données du wizard si on utilise le formulaire standard
-            sessionStorage.removeItem('comic-form-lookup-data');
-            sessionStorage.removeItem('comic-form-selected-type');
-        }
-
         // Applique l'état initial du one-shot
         if (this.hasIsOneShotTarget) {
             this.applyOneShotState(this.isOneShotTarget.checked);
@@ -180,7 +158,6 @@ export default class extends Controller {
             return;
         }
 
-        // Récupère le type sélectionné (avec fallback sessionStorage pour le wizard)
         const type = this.getSelectedType();
 
         button.disabled = true;
@@ -250,7 +227,6 @@ export default class extends Controller {
             return;
         }
 
-        // Récupère le type sélectionné (avec fallback sessionStorage pour le wizard)
         const type = this.getSelectedType();
 
         if (this.hasLookupTitleButtonTarget) {
@@ -267,10 +243,7 @@ export default class extends Controller {
                 return;
             }
 
-            // Sauvegarde les données pour le remplissage différé (wizard multi-étapes)
-            this.storeLookupData(data);
-
-            // Liste des champs remplis immédiatement
+            // Liste des champs remplis
             const filledFields = [];
 
             // Remplit les champs disponibles (ne remplace pas le titre car l'utilisateur l'a saisi)
@@ -294,14 +267,6 @@ export default class extends Controller {
                 }
             }
 
-            // Compte les champs en attente (cibles absentes du DOM = étapes futures du wizard)
-            let pendingCount = 0;
-            if (data.authors && !this.hasAuthorsWrapperTarget) pendingCount++;
-            if (data.publisher && !this.hasPublisherTarget) pendingCount++;
-            if (data.publishedDate && !this.hasPublishedDateTarget) pendingCount++;
-            if (data.description && !this.hasDescriptionTarget) pendingCount++;
-            if (data.thumbnail && !this.hasCoverUrlTarget) pendingCount++;
-
             // Affiche les sources utilisées
             const sourceLabels = {
                 'anilist': 'AniList',
@@ -313,8 +278,6 @@ export default class extends Controller {
 
             if (filledFields.length > 0) {
                 this.showFlashNotification(filledFields, sourcesText);
-            } else if (pendingCount > 0) {
-                this.showFlashInfo(`Données trouvées via ${sourcesText}. Les champs seront préremplis aux prochaines étapes.`);
             } else {
                 this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})`);
             }
@@ -385,22 +348,30 @@ export default class extends Controller {
             return;
         }
 
+        const type = this.getSelectedType();
+
         this.lookupButtonTarget.disabled = true;
         this.showStatus('Recherche en cours...', 'loading');
 
         try {
-            const response = await fetch(`/api/isbn-lookup?isbn=${encodeURIComponent(isbn)}`);
+            const url = `/api/isbn-lookup?isbn=${encodeURIComponent(isbn)}${type ? `&type=${type}` : ''}`;
+            const response = await fetch(url);
             const data = await response.json();
+
+            const apiStatusHtml = this.buildApiStatusHtml(data.apiMessages);
 
             if (!response.ok) {
                 this.showStatus(data.error || 'Erreur lors de la recherche', 'error');
+                this.showFlashError((data.error || 'Erreur lors de la recherche') + apiStatusHtml);
                 return;
             }
+
+            this.showStatus('', '');
 
             // Liste des champs remplis
             const filledFields = [];
 
-            // Remplit les champs
+            // Remplit les champs disponibles dans le DOM
             if (this.fillField('title', data.title)) filledFields.push('title');
             if (this.fillAuthors(data.authors)) filledFields.push('authors');
             if (this.fillField('publisher', data.publisher)) filledFields.push('publisher');
@@ -409,20 +380,28 @@ export default class extends Controller {
             if (this.fillField('coverUrl', data.thumbnail)) filledFields.push('coverUrl');
             if (this.fillSelect('type', data.type)) filledFields.push('type');
 
+            // Gère le one-shot détecté
+            if (data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
+                this.isOneShotTarget.checked = true;
+                this.applyOneShotState(true);
+                filledFields.push('isOneShot');
+            }
+
+            // Pré-remplit l'ISBN du tome si one-shot et ISBN disponible
+            if (data.isOneShot === true && data.isbn) {
+                if (this.fillTomeIsbn(data.isbn)) {
+                    filledFields.push('tomeIsbn');
+                }
+            }
+
             // Affiche les sources utilisées
-            const sourceLabels = {
-                'anilist': 'AniList',
-                'google_books': 'Google Books',
-                'open_library': 'Open Library',
-            };
-            const sourceNames = (data.sources || []).map(s => sourceLabels[s] || s);
+            const sourceNames = (data.sources || []).map(s => this.constructor.apiLabels[s] || s);
             const sourcesText = sourceNames.join(' + ');
 
             if (filledFields.length > 0) {
-                this.showStatus(`${filledFields.length} champ(s) rempli(s) via ${sourcesText}`, 'success');
-                this.showFlashNotification(filledFields, sourcesText);
+                this.showFlashNotification(filledFields, sourcesText, apiStatusHtml);
             } else {
-                this.showStatus(`Aucun nouveau champ à remplir (${sourcesText})`, 'success');
+                this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})` + apiStatusHtml);
             }
         } catch (error) {
             this.showStatus('Erreur de connexion', 'error');
@@ -616,121 +595,13 @@ export default class extends Controller {
     }
 
     /**
-     * Retourne le type sélectionné, avec fallback sur sessionStorage (wizard multi-étapes).
+     * Retourne le type sélectionné.
      */
     getSelectedType() {
         if (this.hasTypeTarget) {
             return this.typeTarget.value || null;
         }
 
-        return sessionStorage.getItem('comic-form-selected-type');
-    }
-
-    /**
-     * Sauvegarde les données de lookup dans sessionStorage pour le remplissage différé.
-     */
-    storeLookupData(data) {
-        const toStore = {};
-
-        if (data.authors) toStore.authors = data.authors;
-        if (data.description) toStore.description = data.description;
-        if (data.isbn) toStore.isbn = data.isbn;
-        if (data.isOneShot !== undefined) toStore.isOneShot = data.isOneShot;
-        if (data.publishedDate) toStore.publishedDate = data.publishedDate;
-        if (data.publisher) toStore.publisher = data.publisher;
-        if (data.sources) toStore.sources = data.sources;
-        if (data.thumbnail) toStore.coverUrl = data.thumbnail;
-
-        if (Object.keys(toStore).length > 0) {
-            sessionStorage.setItem('comic-form-lookup-data', JSON.stringify(toStore));
-        }
-    }
-
-    /**
-     * Applique les données de lookup en attente aux cibles disponibles dans le DOM.
-     * Appelé à chaque connect() du wizard pour remplir les champs des étapes suivantes.
-     */
-    applyPendingLookupData() {
-        const stored = sessionStorage.getItem('comic-form-lookup-data');
-        if (!stored) return;
-
-        let data;
-        try {
-            data = JSON.parse(stored);
-        } catch {
-            sessionStorage.removeItem('comic-form-lookup-data');
-            return;
-        }
-
-        const filledFields = [];
-        const sources = data.sources || [];
-        let authorsRetry = false;
-
-        // Tente de remplir les auteurs
-        if (data.authors && this.hasAuthorsWrapperTarget) {
-            const selectElement = this.authorsWrapperTarget.querySelector('select');
-            if (selectElement && selectElement.tomselect) {
-                if (this.fillAuthors(data.authors)) {
-                    filledFields.push('authors');
-                }
-                delete data.authors;
-            } else if (selectElement) {
-                // Tom Select pas encore initialisé, réessayer après un court délai
-                authorsRetry = true;
-            }
-        }
-
-        // Tente de remplir les champs texte
-        const textFields = [
-            ['coverUrl', 'coverUrl'],
-            ['description', 'description'],
-            ['publishedDate', 'publishedDate'],
-            ['publisher', 'publisher'],
-        ];
-
-        for (const [dataKey, targetName] of textFields) {
-            if (!data[dataKey]) continue;
-
-            const hasMethod = `has${targetName.charAt(0).toUpperCase() + targetName.slice(1)}Target`;
-            if (this[hasMethod]) {
-                if (this.fillField(targetName, data[dataKey])) {
-                    filledFields.push(targetName);
-                }
-                delete data[dataKey];
-            }
-        }
-
-        // Tente de remplir l'ISBN du tome (one-shot)
-        if (data.isbn && data.isOneShot && this.hasTomesListTarget) {
-            if (this.fillTomeIsbn(data.isbn)) {
-                filledFields.push('tomeIsbn');
-            }
-            delete data.isbn;
-        }
-
-        // Met à jour le stockage avec les champs restants
-        const remainingFields = Object.keys(data).filter(k => !['isOneShot', 'sources'].includes(k));
-        if (remainingFields.length > 0) {
-            sessionStorage.setItem('comic-form-lookup-data', JSON.stringify(data));
-        } else {
-            sessionStorage.removeItem('comic-form-lookup-data');
-        }
-
-        // Affiche une notification pour les champs remplis à cette étape
-        if (filledFields.length > 0) {
-            const sourceLabels = {
-                'anilist': 'AniList',
-                'google_books': 'Google Books',
-                'open_library': 'Open Library',
-            };
-            const sourceNames = sources.map(s => sourceLabels[s] || s);
-            this.showFlashNotification(filledFields, sourceNames.join(' + '));
-        }
-
-        // Réessaye si Tom Select n'était pas encore prêt
-        if (authorsRetry && !this._lookupRetryDone) {
-            this._lookupRetryDone = true;
-            setTimeout(() => this.applyPendingLookupData(), 300);
-        }
+        return null;
     }
 }
