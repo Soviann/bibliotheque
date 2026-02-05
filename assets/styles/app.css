@@ -1445,6 +1445,43 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
     color: #e65100;
 }
 
+/* Badges de statut API */
+.api-status-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.375rem;
+    width: 100%;
+}
+
+.api-status-badge {
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 0.2rem 0.5rem;
+}
+
+.api-status-badge--success {
+    background-color: #c8e6c9;
+    color: #2e7d32;
+}
+
+.api-status-badge--not_found {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.api-status-badge--error {
+    background-color: #ffcdd2;
+    color: #c62828;
+}
+
+.api-status-badge--rate_limited {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
 @keyframes slideDown {
     from {
         opacity: 0;
