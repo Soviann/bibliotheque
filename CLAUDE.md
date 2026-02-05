@@ -77,6 +77,35 @@ UX Packages: `ux-autocomplete`, `ux-live-component`, `ux-chartjs`, `ux-dropzone`
 Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 No `Co-Authored-By`.
 
+## GitHub Issues & Project
+
+**Repo**: `Soviann/bibliotheqe` — **Project**: `Bibliotheqe - Roadmap` (number: 1, owner: Soviann)
+
+**Board columns** (Status field): `Backlog` → `Todo` → `In Progress` → `Done`
+
+### Rules
+
+1. **All work starts from an issue.** Before implementing, check if an issue exists; if not, create one.
+2. **Move issues** through the board as you work: `Todo` → `In Progress` (when starting) → `Done` (when merged/complete).
+3. **New feature ideas** without immediate implementation go to `Backlog`.
+4. **Close issues** with commit references when the work is done (`fixes #N` in commit message).
+5. **Labels**: use existing repo labels (`enhancement`, `bug`, etc.). Don't create new labels without asking.
+
+### Quick reference
+
+```bash
+# Issues
+gh issue list --repo Soviann/bibliotheqe
+gh issue create --repo Soviann/bibliotheqe --title "..." --body "..." --label "..."
+gh issue close N --repo Soviann/bibliotheqe
+
+# Project board — move item to a column
+# 1. Get item ID:  gh project item-list 1 --owner Soviann --format json
+# 2. Edit status:  gh project item-edit --project-id PVT_kwHOANG8LM4BObgL --id <ITEM_ID> \
+#      --field-id PVTSSF_lAHOANG8LM4BObgLzg9IoUA --single-select-option-id <OPTION_ID>
+# Column option IDs: Backlog=d55ad18f  Todo=31c84745  InProgress=7c2874a8  Done=6694d845
+```
+
 ## Changelog
 
 Add in `## [Unreleased]`: `### Added|Changed|Fixed|Removed`
