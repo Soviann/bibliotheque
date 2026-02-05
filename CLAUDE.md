@@ -74,8 +74,30 @@ UX Packages: `ux-autocomplete`, `ux-live-component`, `ux-chartjs`, `ux-dropzone`
 
 ## Git
 
+### Commits
+
 Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 No `Co-Authored-By`.
+
+### Branches (GitHub Flow)
+
+- `main` = toujours stable et déployable
+- Branches de travail : `<type>/<description-courte>` (ex: `feat/api-lookup-status`, `fix/cover-upload`)
+- Tout travail non trivial → branche + PR + **squash merge**
+- Commits directs sur `main` autorisés pour : typos, CLAUDE.md, config mineure
+- Lier les PRs aux issues : `fixes #N` ou `closes #N`
+- Supprimer la branche après merge
+
+### Tags et releases (SemVer)
+
+- Format : `vMAJOR.MINOR.PATCH`
+- MAJOR = breaking change, MINOR = nouvelle fonctionnalité, PATCH = bugfix/perf
+- Tag posé sur `main` uniquement, pas besoin de tagger chaque merge
+- Processus release :
+  1. CHANGELOG.md : `[Unreleased]` → `[vX.Y.Z] - YYYY-MM-DD`
+  2. Commit : `chore(release): vX.Y.Z`
+  3. Tag : `git tag -a vX.Y.Z -m "vX.Y.Z"` + push
+  4. GitHub Release : `gh release create vX.Y.Z`
 
 ## GitHub Issues & Project
 
