@@ -7,9 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
-### Fixed
+### Removed
 
-- **Préremplissage wizard** : Correction du préremplissage des champs via recherche titre/ISBN dans le formulaire wizard (création). Les données de l'API sont désormais persistées via `sessionStorage` et appliquées progressivement à chaque étape du wizard. Le type sélectionné à l'étape 1 est aussi transmis pour les recherches AniList (mangas).
+- **Wizard multi-étapes** : Suppression du formulaire multi-étapes (FormFlow) pour la création de séries
+  - La création utilise désormais le même formulaire standard que l'édition
+  - Suppression de `ComicSeriesFlowType`, des 6 types d'étape, du template `_flow_form.html.twig`
+  - Suppression du code `sessionStorage` dans le contrôleur Stimulus (plus de persistance inter-étapes)
+  - Suppression des styles CSS du wizard (`.wizard-*`, `.step-description`, `.form-separator`)
 
 ### Added
 

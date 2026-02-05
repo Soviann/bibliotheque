@@ -34,14 +34,69 @@ class ComicControllerUnitTest extends TestCase
 {
     /**
      * Teste que new() affiche un message flash d'erreur si flush() lève une exception.
-     *
-     * Note: Ce test est incomplet car la méthode new() utilise maintenant FormFlow
-     * qui requiert un container complet avec CraueFormFlowBundle. Le comportement
-     * de gestion d'erreur est testé fonctionnellement via ComicFlowControllerTest.
      */
     public function testNewActionShowsFlashErrorOnUniqueConstraintViolation(): void
     {
-        self::markTestSkipped('La méthode new() utilise FormFlow qui ne peut pas être mocké en test unitaire. Voir ComicFlowControllerTest pour les tests fonctionnels.');
+        $comic = new ComicSeries();
+        $comic->setTitle('Test Series');
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->method('flush')
+            ->willThrowException($this->createUniqueConstraintException());
+
+        $flashBag = $this->createMock(FlashBagInterface::class);
+        $flashBag
+            ->expects($this->once())
+            ->method('add')
+            ->with('error', $this->stringContains('erreur'));
+
+        $session = $this->createMock(Session::class);
+        $session->method('getFlashBag')->willReturn($flashBag);
+
+        $request = new Request();
+        $request->setSession($session);
+
+        $form = $this->createMock(FormInterface::class);
+        $form->method('handleRequest')->willReturnSelf();
+        $form->method('isSubmitted')->willReturn(true);
+        $form->method('isValid')->willReturn(true);
+        $form->method('createView')->willReturn($this->createMock(FormView::class));
+
+        $formFactory = $this->createMock(FormFactoryInterface::class);
+        $formFactory->method('create')->willReturn($form);
+
+        $twig = $this->createMock(Environment::class);
+        $twig->method('render')->willReturn('<html></html>');
+
+        $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
+
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+
+        $mapper = $this->createMock(ComicSeriesMapper::class);
+        $mapper->method('mapToEntity')->willReturn($comic);
+
+        $controller = new ComicController($mapper);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturnCallback(static fn (string $id): bool => \in_array($id, ['form.factory', 'twig', 'router', 'request_stack'], true));
+        $container->method('get')->willReturnCallback(
+            static fn (string $id) => match ($id) {
+                'form.factory' => $formFactory,
+                'twig' => $twig,
+                'router' => $urlGenerator,
+                'request_stack' => $requestStack,
+                default => null,
+            }
+        );
+
+        $controller->setContainer($container);
+
+        $response = $controller->new($request, $entityManager);
+
+        self::assertNotInstanceOf(RedirectResponse::class, $response);
+        self::assertSame(200, $response->getStatusCode());
     }
 
     /**
