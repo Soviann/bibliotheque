@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -23,10 +24,23 @@ class IsbnLookupService
     private const string GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
     private const string OPEN_LIBRARY_API = 'https://openlibrary.org/isbn/';
 
+    /** @var array<string, array{status: string, message: string}> */
+    private array $apiMessages = [];
+
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
     ) {
+    }
+
+    /**
+     * Retourne les messages de statut des APIs du dernier appel lookup.
+     *
+     * @return array<string, array{status: string, message: string}>
+     */
+    public function getLastApiMessages(): array
+    {
+        return $this->apiMessages;
     }
 
     /**
@@ -40,6 +54,8 @@ class IsbnLookupService
      */
     public function lookup(string $isbn, ?ComicType $type = null): ?array
     {
+        $this->apiMessages = [];
+
         // Nettoie l'ISBN (supprime les tirets et espaces)
         $isbn = \preg_replace('/[\s-]/', '', $isbn) ?? '';
 
@@ -87,6 +103,8 @@ class IsbnLookupService
      */
     public function lookupByTitle(string $title, ?ComicType $type = null): ?array
     {
+        $this->apiMessages = [];
+
         $title = \trim($title);
 
         if ('' === $title) {
@@ -148,18 +166,30 @@ class IsbnLookupService
             $data = $response->toArray();
 
             if (empty($data['items'])) {
+                $this->recordApiMessage('google_books', ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
+
                 return null;
             }
 
-            return $this->mergeGoogleBooksItems($data['items']);
+            $result = $this->mergeGoogleBooksItems($data['items']);
+            $this->recordApiMessage('google_books', ApiLookupStatus::SUCCESS, 'Données trouvées');
+
+            return $result;
         } catch (TransportExceptionInterface $e) {
             $this->logger->error('Erreur réseau lors de la recherche Google Books pour le titre "{title}": {error}', [
                 'error' => $e->getMessage(),
                 'title' => $title,
             ]);
+            $this->recordApiMessage('google_books', ApiLookupStatus::ERROR, 'Erreur de connexion');
 
             return null;
         } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $code = $e->getResponse()->getStatusCode();
+            if (429 === $code) {
+                $this->recordApiMessage('google_books', ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
+            } else {
+                $this->recordApiMessage('google_books', ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
+            }
             $this->logger->warning('Erreur HTTP lors de la recherche Google Books pour le titre "{title}": {error}', [
                 'error' => $e->getMessage(),
                 'title' => $title,
@@ -171,6 +201,7 @@ class IsbnLookupService
                 'error' => $e->getMessage(),
                 'title' => $title,
             ]);
+            $this->recordApiMessage('google_books', ApiLookupStatus::ERROR, 'Réponse invalide');
 
             return null;
         }
@@ -246,19 +277,31 @@ class IsbnLookupService
             $data = $response->toArray();
 
             if (empty($data['items'])) {
+                $this->recordApiMessage('google_books', ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
+
                 return null;
             }
 
             // Fusionne les informations de tous les résultats pour maximiser les données
-            return $this->mergeGoogleBooksItems($data['items']);
+            $result = $this->mergeGoogleBooksItems($data['items']);
+            $this->recordApiMessage('google_books', ApiLookupStatus::SUCCESS, 'Données trouvées');
+
+            return $result;
         } catch (TransportExceptionInterface $e) {
             $this->logger->error('Erreur réseau lors de la recherche Google Books pour ISBN {isbn}: {error}', [
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
             ]);
+            $this->recordApiMessage('google_books', ApiLookupStatus::ERROR, 'Erreur de connexion');
 
             return null;
         } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $code = $e->getResponse()->getStatusCode();
+            if (429 === $code) {
+                $this->recordApiMessage('google_books', ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
+            } else {
+                $this->recordApiMessage('google_books', ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
+            }
             $this->logger->warning('Erreur HTTP lors de la recherche Google Books pour ISBN {isbn}: {error}', [
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
@@ -270,6 +313,7 @@ class IsbnLookupService
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
             ]);
+            $this->recordApiMessage('google_books', ApiLookupStatus::ERROR, 'Réponse invalide');
 
             return null;
         }
@@ -401,12 +445,16 @@ class IsbnLookupService
             ]);
 
             if (200 !== $response->getStatusCode()) {
+                $this->recordApiMessage('open_library', ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
+
                 return null;
             }
 
             $data = $response->toArray();
 
             if (empty($data['title'])) {
+                $this->recordApiMessage('open_library', ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
+
                 return null;
             }
 
@@ -441,6 +489,8 @@ class IsbnLookupService
                 $thumbnail = "https://covers.openlibrary.org/b/id/{$coverId}-M.jpg";
             }
 
+            $this->recordApiMessage('open_library', ApiLookupStatus::SUCCESS, 'Données trouvées');
+
             return [
                 'authors' => $authors,
                 'description' => null,
@@ -455,9 +505,16 @@ class IsbnLookupService
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
             ]);
+            $this->recordApiMessage('open_library', ApiLookupStatus::ERROR, 'Erreur de connexion');
 
             return null;
         } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $code = $e->getResponse()->getStatusCode();
+            if (429 === $code) {
+                $this->recordApiMessage('open_library', ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
+            } else {
+                $this->recordApiMessage('open_library', ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
+            }
             $this->logger->warning('Erreur HTTP lors de la recherche Open Library pour ISBN {isbn}: {error}', [
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
@@ -469,6 +526,7 @@ class IsbnLookupService
                 'error' => $e->getMessage(),
                 'isbn' => $isbn,
             ]);
+            $this->recordApiMessage('open_library', ApiLookupStatus::ERROR, 'Réponse invalide');
 
             return null;
         }
@@ -509,6 +567,14 @@ class IsbnLookupService
 
             return null;
         }
+    }
+
+    /**
+     * Enregistre le message de statut d'une API.
+     */
+    private function recordApiMessage(string $apiName, ApiLookupStatus $status, string $message): void
+    {
+        $this->apiMessages[$apiName] = ['message' => $message, 'status' => $status->value];
     }
 
     /**
@@ -597,6 +663,8 @@ class IsbnLookupService
             $media = $data['data']['Media'] ?? null;
 
             if (null === $media) {
+                $this->recordApiMessage('anilist', ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
+
                 return null;
             }
 
@@ -632,6 +700,8 @@ class IsbnLookupService
             $status = $media['status'] ?? null;
             $isOneShot = 'ONE_SHOT' === $format || (1 === $volumes && 'FINISHED' === $status);
 
+            $this->recordApiMessage('anilist', ApiLookupStatus::SUCCESS, 'Données trouvées');
+
             return [
                 'authors' => $authors,
                 'description' => $description,
@@ -647,9 +717,16 @@ class IsbnLookupService
                 'search' => $searchTitle,
                 'title' => $title,
             ]);
+            $this->recordApiMessage('anilist', ApiLookupStatus::ERROR, 'Erreur de connexion');
 
             return null;
         } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $code = $e->getResponse()->getStatusCode();
+            if (429 === $code) {
+                $this->recordApiMessage('anilist', ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
+            } else {
+                $this->recordApiMessage('anilist', ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
+            }
             $this->logger->warning('Erreur HTTP lors de la recherche AniList pour le titre "{title}" (recherche: "{search}"): {error}', [
                 'error' => $e->getMessage(),
                 'search' => $searchTitle,
@@ -663,6 +740,7 @@ class IsbnLookupService
                 'search' => $searchTitle,
                 'title' => $title,
             ]);
+            $this->recordApiMessage('anilist', ApiLookupStatus::ERROR, 'Réponse invalide');
 
             return null;
         }

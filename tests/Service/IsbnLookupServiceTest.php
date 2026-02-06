@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use App\Service\IsbnLookupService;
 use PHPUnit\Framework\TestCase;
@@ -643,5 +644,320 @@ class IsbnLookupServiceTest extends TestCase
         self::assertNotNull($result);
         // Seuls Story et Art sont inclus, pas Editor
         self::assertSame('Writer Name, Artist Name', $result['authors']);
+    }
+
+    /**
+     * Teste que getLastApiMessages retourne un tableau vide initialement.
+     */
+    public function testGetLastApiMessagesReturnsEmptyArrayInitially(): void
+    {
+        $mockClient = new MockHttpClient([]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        self::assertSame([], $service->getLastApiMessages());
+    }
+
+    /**
+     * Teste que les apiMessages sont réinitialisés à chaque appel de lookup.
+     */
+    public function testApiMessagesResetOnEachLookupCall(): void
+    {
+        // Premier appel : Google Books succès, Open Library 404
+        $googleResponse1 = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Book 1']]],
+        ]));
+        $openLibraryResponse1 = new MockResponse('', ['http_code' => 404]);
+
+        // Deuxième appel : Google Books vide, Open Library 404 → null
+        $googleResponse2 = new MockResponse(\json_encode(['items' => []]));
+        $openLibraryResponse2 = new MockResponse('', ['http_code' => 404]);
+
+        $mockClient = new MockHttpClient([
+            $googleResponse1, $openLibraryResponse1,
+            $googleResponse2, $openLibraryResponse2,
+        ]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        // Premier lookup
+        $service->lookup('1111111111');
+        $messages1 = $service->getLastApiMessages();
+        self::assertArrayHasKey('google_books', $messages1);
+
+        // Deuxième lookup — les messages doivent être frais
+        $service->lookup('2222222222');
+        $messages2 = $service->getLastApiMessages();
+
+        // google_books doit être not_found (items vide)
+        self::assertSame(ApiLookupStatus::NOT_FOUND->value, $messages2['google_books']['status']);
+    }
+
+    /**
+     * Teste que Google Books succès est enregistré.
+     */
+    public function testRecordsGoogleBooksSuccess(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Test']]],
+        ]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890');
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::SUCCESS->value, $messages['google_books']['status']);
+        self::assertSame('Données trouvées', $messages['google_books']['message']);
+    }
+
+    /**
+     * Teste que Google Books not_found est enregistré.
+     */
+    public function testRecordsGoogleBooksNotFound(): void
+    {
+        $googleResponse = new MockResponse(\json_encode(['items' => []]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('0000000000');
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::NOT_FOUND->value, $messages['google_books']['status']);
+        self::assertSame('Aucun résultat', $messages['google_books']['message']);
+    }
+
+    /**
+     * Teste que Google Books erreur réseau est enregistrée.
+     */
+    public function testRecordsGoogleBooksError(): void
+    {
+        $googleResponse = new MockResponse('', ['error' => 'Connection refused']);
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890');
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::ERROR->value, $messages['google_books']['status']);
+        self::assertStringContainsString('Erreur de connexion', $messages['google_books']['message']);
+    }
+
+    /**
+     * Teste que Google Books rate limited (429) est enregistré.
+     */
+    public function testRecordsGoogleBooksRateLimited(): void
+    {
+        $googleResponse = new MockResponse('Rate limit exceeded', ['http_code' => 429]);
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890');
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::RATE_LIMITED->value, $messages['google_books']['status']);
+        self::assertSame('Quota dépassé (429)', $messages['google_books']['message']);
+    }
+
+    /**
+     * Teste que Open Library succès est enregistré.
+     */
+    public function testRecordsOpenLibrarySuccess(): void
+    {
+        $googleResponse = new MockResponse(\json_encode(['items' => []]));
+        $openLibraryResponse = new MockResponse(\json_encode([
+            'title' => 'OL Book',
+            'publishers' => ['OL Publisher'],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890');
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::SUCCESS->value, $messages['open_library']['status']);
+        self::assertSame('Données trouvées', $messages['open_library']['message']);
+    }
+
+    /**
+     * Teste que Open Library not_found est enregistré.
+     */
+    public function testRecordsOpenLibraryNotFound(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Test']]],
+        ]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890');
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::NOT_FOUND->value, $messages['open_library']['status']);
+        self::assertSame('Aucun résultat', $messages['open_library']['message']);
+    }
+
+    /**
+     * Teste que Open Library erreur est enregistrée.
+     */
+    public function testRecordsOpenLibraryError(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Test']]],
+        ]));
+        $openLibraryResponse = new MockResponse('', ['error' => 'Connection refused']);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890');
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::ERROR->value, $messages['open_library']['status']);
+    }
+
+    /**
+     * Teste que AniList succès est enregistré.
+     */
+    public function testRecordsAniListSuccess(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Manga Test']]],
+        ]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://anilist.co/cover.jpg'],
+                    'title' => ['english' => 'Manga Test'],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890', ComicType::MANGA);
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::SUCCESS->value, $messages['anilist']['status']);
+        self::assertSame('Données trouvées', $messages['anilist']['message']);
+    }
+
+    /**
+     * Teste que AniList not_found est enregistré.
+     */
+    public function testRecordsAniListNotFound(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Manga Test']]],
+        ]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => ['Media' => null],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890', ComicType::MANGA);
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::NOT_FOUND->value, $messages['anilist']['status']);
+        self::assertSame('Aucun résultat', $messages['anilist']['message']);
+    }
+
+    /**
+     * Teste que AniList erreur est enregistrée.
+     */
+    public function testRecordsAniListError(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Manga Test']]],
+        ]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+        $anilistResponse = new MockResponse('', ['error' => 'Connection refused']);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse, $anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890', ComicType::MANGA);
+        $messages = $service->getLastApiMessages();
+
+        self::assertSame(ApiLookupStatus::ERROR->value, $messages['anilist']['status']);
+    }
+
+    /**
+     * Teste que AniList n'est pas enregistré quand le type n'est pas MANGA.
+     */
+    public function testAniListNotRecordedWhenNotManga(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'BD Test']]],
+        ]));
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $mockClient = new MockHttpClient([$googleResponse, $openLibraryResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookup('1234567890', ComicType::BD);
+        $messages = $service->getLastApiMessages();
+
+        self::assertArrayNotHasKey('anilist', $messages);
+        self::assertArrayHasKey('google_books', $messages);
+    }
+
+    /**
+     * Teste que lookupByTitle enregistre aussi les apiMessages.
+     */
+    public function testLookupByTitleTracksApiMessages(): void
+    {
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Found by Title']]],
+        ]));
+
+        $mockClient = new MockHttpClient([$googleResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookupByTitle('Some Title');
+        $messages = $service->getLastApiMessages();
+
+        self::assertArrayHasKey('google_books', $messages);
+        self::assertSame(ApiLookupStatus::SUCCESS->value, $messages['google_books']['status']);
+    }
+
+    /**
+     * Teste que lookupByTitle pour manga enregistre AniList.
+     */
+    public function testLookupByTitleMangaTracksAniListMessages(): void
+    {
+        $anilistResponse = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://anilist.co/cover.jpg'],
+                    'title' => ['english' => 'Manga Title'],
+                ],
+            ],
+        ]));
+
+        $mockClient = new MockHttpClient([$anilistResponse]);
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+
+        $service->lookupByTitle('Manga Title', ComicType::MANGA);
+        $messages = $service->getLastApiMessages();
+
+        self::assertArrayHasKey('anilist', $messages);
+        self::assertSame(ApiLookupStatus::SUCCESS->value, $messages['anilist']['status']);
+        // google_books ne doit pas être présent car AniList a trouvé
+        self::assertArrayNotHasKey('google_books', $messages);
     }
 }

@@ -292,4 +292,63 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         // 404 est attendu (pas de résultat) mais pas 400 (mauvaise requête)
         self::assertResponseStatusCodeSame(404);
     }
+
+    /**
+     * Teste que l'API ISBN lookup inclut apiMessages en cas de 404.
+     */
+    public function testIsbnLookupIncludesApiMessagesOn404(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request(Request::METHOD_GET, '/api/isbn-lookup?isbn=0000000000000');
+
+        self::assertResponseStatusCodeSame(404);
+
+        $response = $client->getResponse();
+        $data = \json_decode($response->getContent(), true);
+
+        self::assertArrayHasKey('apiMessages', $data);
+        self::assertIsArray($data['apiMessages']);
+    }
+
+    /**
+     * Teste que l'API title lookup inclut apiMessages en cas de 404.
+     */
+    public function testTitleLookupIncludesApiMessagesOn404(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request(Request::METHOD_GET, '/api/title-lookup?title='.\urlencode('zzz###qqqxxx$$$777'));
+
+        self::assertResponseStatusCodeSame(404);
+
+        $response = $client->getResponse();
+        $data = \json_decode($response->getContent(), true);
+
+        self::assertArrayHasKey('apiMessages', $data);
+        self::assertIsArray($data['apiMessages']);
+    }
+
+    /**
+     * Teste que chaque entrée de apiMessages a la structure attendue (status + message).
+     */
+    public function testApiMessagesEntriesHaveExpectedStructure(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request(Request::METHOD_GET, '/api/isbn-lookup?isbn=0000000000000');
+
+        self::assertResponseStatusCodeSame(404);
+
+        $response = $client->getResponse();
+        $data = \json_decode($response->getContent(), true);
+
+        self::assertArrayHasKey('apiMessages', $data);
+
+        foreach ($data['apiMessages'] as $apiName => $entry) {
+            self::assertIsString($apiName);
+            self::assertArrayHasKey('message', $entry);
+            self::assertArrayHasKey('status', $entry);
+        }
+    }
 }

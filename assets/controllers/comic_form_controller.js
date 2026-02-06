@@ -24,6 +24,13 @@ export default class extends Controller {
         'type',
     ];
 
+    // Labels lisibles pour les APIs
+    static apiLabels = {
+        anilist: 'AniList',
+        google_books: 'Google Books',
+        open_library: 'Open Library',
+    };
+
     // Labels lisibles pour les champs
     static fieldLabels = {
         authors: 'Auteur(s)',
@@ -191,18 +198,14 @@ export default class extends Controller {
             }
 
             // Affiche les sources utilisées
-            const sourceLabels = {
-                'anilist': 'AniList',
-                'google_books': 'Google Books',
-                'open_library': 'Open Library',
-            };
-            const sourceNames = (data.sources || []).map(s => sourceLabels[s] || s);
+            const sourceNames = (data.sources || []).map(s => this.constructor.apiLabels[s] || s);
             const sourcesText = sourceNames.join(' + ');
+            const apiStatusHtml = this.buildApiStatusHtml(data.apiMessages);
 
             if (filledFields.length > 0) {
-                this.showFlashNotification(filledFields, sourcesText);
+                this.showFlashNotification(filledFields, sourcesText, apiStatusHtml);
             } else {
-                this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})`);
+                this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})` + apiStatusHtml);
             }
         } catch (error) {
             this.showFlashError('Erreur de connexion');
@@ -268,18 +271,14 @@ export default class extends Controller {
             }
 
             // Affiche les sources utilisées
-            const sourceLabels = {
-                'anilist': 'AniList',
-                'google_books': 'Google Books',
-                'open_library': 'Open Library',
-            };
-            const sourceNames = (data.sources || []).map(s => sourceLabels[s] || s);
+            const sourceNames = (data.sources || []).map(s => this.constructor.apiLabels[s] || s);
             const sourcesText = sourceNames.join(' + ');
+            const apiStatusHtml = this.buildApiStatusHtml(data.apiMessages);
 
             if (filledFields.length > 0) {
-                this.showFlashNotification(filledFields, sourcesText);
+                this.showFlashNotification(filledFields, sourcesText, apiStatusHtml);
             } else {
-                this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})`);
+                this.showFlashInfo(`Aucun nouveau champ à remplir (${sourcesText})` + apiStatusHtml);
             }
         } catch (error) {
             this.showFlashError('Erreur de connexion');
@@ -536,9 +535,30 @@ export default class extends Controller {
     }
 
     /**
+     * Construit le HTML des badges de statut API.
+     */
+    buildApiStatusHtml(apiMessages) {
+        if (!apiMessages || typeof apiMessages !== 'object') {
+            return '';
+        }
+
+        const badges = Object.entries(apiMessages).map(([api, info]) => {
+            const label = this.constructor.apiLabels[api] || api;
+            const status = info.status || 'error';
+            return `<span class="api-status-badge api-status-badge--${status}" title="${info.message || ''}">${label}</span>`;
+        });
+
+        if (badges.length === 0) {
+            return '';
+        }
+
+        return `<div class="api-status-badges">${badges.join('')}</div>`;
+    }
+
+    /**
      * Affiche une notification flash en haut de la page.
      */
-    showFlashNotification(filledFields, sources) {
+    showFlashNotification(filledFields, sources, apiStatusHtml = '') {
         // Supprime une notification existante
         const existing = document.querySelector('.api-lookup-flash');
         if (existing) {
@@ -555,6 +575,7 @@ export default class extends Controller {
             <div class="api-lookup-flash__content">
                 <strong>Champs préremplis via ${sources} :</strong>
                 <span class="api-lookup-flash__fields">${fieldLabels.join(', ')}</span>
+                ${apiStatusHtml}
             </div>
             <button type="button" class="api-lookup-flash__close" aria-label="Fermer">&times;</button>
         `;
