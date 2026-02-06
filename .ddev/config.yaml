@@ -9,5 +9,7 @@ webserver_type: nginx-fpm
 database:
   type: mariadb
   version: "10.11"
+upload_dirs:
+  - uploads/covers
 additional_hostnames:
   - test.bibliotheque
