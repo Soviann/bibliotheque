@@ -9,7 +9,7 @@ default:
                 - App\Tests\Behat\Context\FormContext
                 - App\Tests\Behat\Context\NavigationContext
             paths:
-                - tests/Behat/Features
+                - features
 
     extensions:
         FriendsOfBehat\SymfonyExtension:
@@ -49,7 +49,7 @@ javascript:
                 - App\Tests\Behat\Context\NavigationContext
                 - App\Tests\Behat\Context\PantherContext
             paths:
-                - tests/Behat/Features
+                - features
 
     extensions:
         FriendsOfBehat\SymfonyExtension:
