@@ -107,11 +107,12 @@ No `Co-Authored-By`.
 
 ### Rules
 
-1. **All work starts from an issue.** Before implementing, check if an issue exists; if not, create one.
-2. **Move issues** through the board as you work: `Todo` → `In Progress` (when starting) → `Done` (when merged/complete).
-3. **New feature ideas** without immediate implementation go to `Backlog`.
-4. **Close issues** with commit references when the work is done (`fixes #N` in commit message).
-5. **Labels**: use existing repo labels (`enhancement`, `bug`, etc.). Don't create new labels without asking.
+1. **All work starts from an issue.** If the user provides an issue number, use it. Otherwise create one directly — **never list/search issues first** (sole developer knows what exists).
+2. **No read-only GitHub queries.** Never call `list_issues`, `list_pull_requests`, `search_issues`, `search_pull_requests`, or `list_branches` to "check" state. The user will provide context. Only query GitHub when a specific ID or data point is needed and unknown.
+3. **Move issues** through the board as you work: `Todo` → `In Progress` (when starting) → `Done` (when merged/complete).
+4. **New feature ideas** without immediate implementation go to `Backlog`.
+5. **Close issues** with commit references when the work is done (`fixes #N` in commit message).
+6. **Labels**: use existing repo labels (`enhancement`, `bug`, etc.). Don't create new labels without asking.
 
 ### Quick reference
 
