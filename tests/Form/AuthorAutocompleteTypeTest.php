@@ -69,10 +69,6 @@ class AuthorAutocompleteTypeTest extends KernelTestCase
         $data = $form->getData();
         self::assertCount(1, $data);
         self::assertSame($author->getId(), $data->first()->getId());
-
-        // Nettoyer
-        $this->em->remove($author);
-        $this->em->flush();
     }
 
     /**
@@ -96,10 +92,6 @@ class AuthorAutocompleteTypeTest extends KernelTestCase
         // Vérifier que l'auteur est bien en base
         $foundAuthor = $this->authorRepository->findOneBy(['name' => $newAuthorName]);
         self::assertNotNull($foundAuthor);
-
-        // Nettoyer
-        $this->em->remove($createdAuthor);
-        $this->em->flush();
     }
 
     /**
@@ -125,12 +117,6 @@ class AuthorAutocompleteTypeTest extends KernelTestCase
 
         $data = $form->getData();
         self::assertCount(2, $data);
-
-        // Nettoyer
-        foreach ($data as $author) {
-            $this->em->remove($author);
-        }
-        $this->em->flush();
     }
 
     /**
@@ -148,10 +134,6 @@ class AuthorAutocompleteTypeTest extends KernelTestCase
         $data = $form->getData();
         self::assertCount(1, $data);
         self::assertSame($validName, $data->first()->getName());
-
-        // Nettoyer
-        $this->em->remove($data->first());
-        $this->em->flush();
     }
 
     /**
@@ -195,10 +177,6 @@ class AuthorAutocompleteTypeTest extends KernelTestCase
         // Vérifier qu'il n'y a qu'un seul auteur avec ce nom
         $allWithName = $this->authorRepository->findBy(['name' => $authorName]);
         self::assertCount(1, $allWithName);
-
-        // Nettoyer
-        $this->em->remove($existingAuthor);
-        $this->em->flush();
     }
 
     /**

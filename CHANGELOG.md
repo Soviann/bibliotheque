@@ -50,6 +50,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Isolation transactionnelle des tests** : Intégration de `dama/doctrine-test-bundle` pour l'isolation automatique des tests
+  - Chaque test PHPUnit et scénario Behat (non-JS) est wrappé dans une transaction rollbackée automatiquement
+  - Suppression de ~200 lignes de cleanup manuel (`$em->remove()`/`$em->flush()`) dans 11 fichiers de tests
+  - Temps d'exécution PHPUnit réduit de ~2min à ~40s (hors Panther)
+  - Behat `DatabaseContext` simplifié : seed idempotent pour le profil default, schema reset conservé pour Selenium
+
 - **Élimination de la duplication `isWishlist`** : La propriété `isWishlist` est maintenant calculée à partir du statut
   - Suppression de la colonne `is_wishlist` en base de données (migration Version20260201132408)
   - `isWishlist()` retourne `true` si `status === ComicStatus::WISHLIST`

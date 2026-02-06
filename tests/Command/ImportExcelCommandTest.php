@@ -79,10 +79,6 @@ class ImportExcelCommandTest extends KernelTestCase
         self::assertSame(ComicStatus::BUYING, $series->getStatus());
         self::assertSame(10, $series->getLatestPublishedIssue());
         self::assertCount(5, $series->getTomes());
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -107,10 +103,6 @@ class ImportExcelCommandTest extends KernelTestCase
         $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => $title]);
         self::assertNotNull($series);
         self::assertSame(ComicType::MANGA, $series->getType());
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -135,10 +127,6 @@ class ImportExcelCommandTest extends KernelTestCase
         $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => $title]);
         self::assertNotNull($series);
         self::assertSame(ComicType::COMICS, $series->getType());
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -164,10 +152,6 @@ class ImportExcelCommandTest extends KernelTestCase
         self::assertNotNull($series);
         self::assertSame(ComicType::LIVRE, $series->getType());
         self::assertSame(ComicStatus::FINISHED, $series->getStatus());
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -191,10 +175,6 @@ class ImportExcelCommandTest extends KernelTestCase
         $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => $title]);
         self::assertNotNull($series);
         self::assertSame(ComicStatus::STOPPED, $series->getStatus());
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -255,10 +235,6 @@ class ImportExcelCommandTest extends KernelTestCase
                 self::assertFalse($tome->isBought(), "Tome {$tome->getNumber()} should not be bought");
             }
         }
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -290,10 +266,6 @@ class ImportExcelCommandTest extends KernelTestCase
                 self::assertFalse($tome->isDownloaded(), "Tome {$tome->getNumber()} should not be downloaded");
             }
         }
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -321,10 +293,6 @@ class ImportExcelCommandTest extends KernelTestCase
         foreach ($series->getTomes() as $tome) {
             self::assertTrue($tome->isOnNas(), "Tome {$tome->getNumber()} should be on NAS");
         }
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -350,10 +318,6 @@ class ImportExcelCommandTest extends KernelTestCase
 
         // Le max (5) devrait être utilisé pour lastBought
         self::assertSame(5, $series->getLastBought());
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -377,13 +341,6 @@ class ImportExcelCommandTest extends KernelTestCase
         $commandTester->assertCommandIsSuccessful();
         $output = $commandTester->getDisplay();
         self::assertStringContainsString('non trouvé', $output);
-
-        // Nettoyer
-        $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => $title]);
-        if ($series instanceof ComicSeries) {
-            $this->em->remove($series);
-            $this->em->flush();
-        }
     }
 
     /**
@@ -409,10 +366,6 @@ class ImportExcelCommandTest extends KernelTestCase
         // Seule la série valide doit être importée
         $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => $title]);
         self::assertNotNull($series);
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**

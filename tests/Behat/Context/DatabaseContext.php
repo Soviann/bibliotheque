@@ -11,7 +11,7 @@ use App\Entity\User;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use Behat\Behat\Context\Context;
-use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -28,22 +28,41 @@ final readonly class DatabaseContext implements Context
     }
 
     /**
-     * Réinitialise la base de données avant chaque scénario.
+     * Prépare la base de données avant chaque scénario non-JavaScript.
+     * DAMA/DoctrineTestBundle gère l'isolation transactionnelle.
      *
-     * @BeforeScenario
+     * @BeforeScenario ~@javascript
      */
-    public function resetDatabase(BeforeScenarioScope $scope): void
+    public function seedDatabase(): void
     {
+        $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => 'test@example.com']);
+        if (null === $existingUser) {
+            $this->createTestUser();
+        }
+        $this->entityManager->clear();
+    }
+
+    /**
+     * Réinitialise la base de données avant chaque scénario JavaScript.
+     * Selenium utilise un processus PHP séparé, DAMA ne peut pas gérer l'isolation.
+     * Si DAMA est actif (profil default), on skip le DDL car l'isolation transactionnelle suffit.
+     *
+     * @BeforeScenario @javascript
+     */
+    public function resetDatabase(): void
+    {
+        if (StaticDriver::isKeepStaticConnections()) {
+            // DAMA est actif (profil default) : pas de DDL, l'isolation transactionnelle suffit
+            return;
+        }
+
         $schemaTool = new SchemaTool($this->entityManager);
         $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
 
-        // Supprime et recrée le schéma
         $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
 
-        // Crée l'utilisateur de test
         $this->createTestUser();
-
         $this->entityManager->clear();
     }
 

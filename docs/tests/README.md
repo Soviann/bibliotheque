@@ -10,14 +10,15 @@ L'application dispose de plusieurs types de tests :
 
 | Type | Framework | Dossier | Description |
 |------|-----------|---------|-------------|
-| Unitaires | PHPUnit | `tests/Entity/`, `tests/Enum/`, `tests/Service/` | Logique métier isolée |
-| Formulaires | PHPUnit | `tests/Form/` | Types de formulaire |
+| Unitaires | PHPUnit | `tests/Entity/`, `tests/Enum/`, `tests/Service/`, `tests/Dto/` | Logique métier isolée |
+| Formulaires | PHPUnit | `tests/Form/` | Types de formulaire et transformers |
 | Fonctionnels | PHPUnit | `tests/Controller/` | Contrôleurs HTTP |
-| Intégration | PHPUnit | `tests/Repository/` | Repositories avec BDD |
-| End-to-end | Behat | `features/` | Scénarios utilisateur |
-| Navigateur | Panther | `tests/Panther/` | Tests JavaScript/PWA |
+| Intégration | PHPUnit | `tests/Repository/`, `tests/Command/`, `tests/DataFixtures/` | Repositories, commandes, fixtures avec BDD |
+| Sécurité | PHPUnit | `tests/Security/` | En-têtes de sécurité HTTP |
+| End-to-end | Behat | `features/` | Scénarios utilisateur en Gherkin |
+| Navigateur | WebDriver | `tests/Panther/` | Tests JavaScript/PWA avec Chrome distant |
 
-**Total** : 240+ tests, 585+ assertions
+**Total** : 345 tests PHPUnit (872 assertions) + 27 scénarios Behat (218 steps)
 
 ---
 
@@ -29,10 +30,21 @@ L'application dispose de plusieurs types de tests :
 ddev exec bin/phpunit
 ```
 
+### Tous les tests Behat
+
+```bash
+# Profil default (session BrowserKit, sans JavaScript)
+ddev exec vendor/bin/behat
+
+# Profil javascript (session Selenium, avec Chrome distant)
+ddev exec vendor/bin/behat --profile=javascript
+```
+
 ### Un fichier de test spécifique
 
 ```bash
 ddev exec bin/phpunit tests/Entity/ComicSeriesTest.php
+ddev exec vendor/bin/behat features/authentication.feature
 ```
 
 ### Un test spécifique
@@ -50,8 +62,8 @@ ddev exec bin/phpunit tests/Entity/
 # Tests de contrôleurs
 ddev exec bin/phpunit tests/Controller/
 
-# Tests de services
-ddev exec bin/phpunit tests/Service/
+# Tests navigateur (WebDriver + Chrome)
+ddev exec bin/phpunit tests/Panther/
 ```
 
 ### Avec couverture de code
@@ -124,7 +136,9 @@ public function testComicStatusValues(): void
 
 Testent les services avec mocks HTTP.
 
-**Fichier** : `tests/Service/IsbnLookupServiceTest.php`
+**Fichiers** :
+- `tests/Service/IsbnLookupServiceTest.php`
+- `tests/Service/ComicSeriesMapperTest.php`
 
 **Exemple** :
 
@@ -150,16 +164,23 @@ public function testLookupReturnsDataFromGoogleBooks(): void
 }
 ```
 
+### DTOs
+
+Testent les objets de transfert de données.
+
+**Fichier** : `tests/Dto/ComicFiltersTest.php`
+
 ---
 
 ## Tests de formulaires
 
-Testent les types de formulaire Symfony.
+Testent les types de formulaire Symfony et les data transformers.
 
 **Fichiers** :
 - `tests/Form/ComicSeriesTypeTest.php`
 - `tests/Form/TomeTypeTest.php`
 - `tests/Form/AuthorAutocompleteTypeTest.php`
+- `tests/Form/DataTransformer/AuthorToInputTransformerTest.php`
 
 **Exemple** :
 
@@ -189,7 +210,7 @@ Testent les contrôleurs HTTP avec requêtes simulées.
 
 **Fichiers** :
 - `tests/Controller/HomeControllerTest.php`
-- `tests/Controller/ComicControllerTest.php`
+- `tests/Controller/ComicControllerTest.php` + `ComicControllerUnitTest.php`
 - `tests/Controller/SearchControllerTest.php`
 - `tests/Controller/WishlistControllerTest.php`
 - `tests/Controller/ApiControllerTest.php`
@@ -265,83 +286,97 @@ public function testFindWithFiltersFiltersByType(): void
 
 ## Tests Behat (end-to-end)
 
-Tests de scénarios utilisateur en Gherkin.
+Tests de scénarios utilisateur en Gherkin, écrits en francais.
 
 ### Exécution
 
 ```bash
-# Tous les tests Behat
+# Tous les scénarios (hors @javascript)
 ddev exec vendor/bin/behat
 
 # Un fichier feature
-ddev exec vendor/bin/behat features/creation_serie.feature
+ddev exec vendor/bin/behat features/comic_creation.feature
 
-# Avec JavaScript (Selenium)
+# Scénarios @javascript (nécessite le profil javascript + Chrome)
 ddev exec vendor/bin/behat --profile=javascript
 ```
 
-### Structure
+### Structure des features
 
 ```
 features/
-├── authentification.feature
-├── creation_serie.feature
-├── edition_serie.feature
-├── suppression_serie.feature
-├── filtrage.feature
-├── wishlist.feature
-├── recherche.feature
-├── one_shots.feature
-└── gestion_tomes.feature
+├── authentication.feature     # 4 scénarios : connexion, déconnexion, accès protégé
+├── comic_creation.feature     # 4 scénarios : BD, manga, wishlist, one-shot
+├── comic_edition.feature      # 3 scénarios : titre, type, statut
+├── comic_deletion.feature     # 2 scénarios : bibliothèque, wishlist
+├── filtering.feature          # 8 scénarios : type, statut, NAS, recherche
+├── search.feature             # 3 scénarios : partiel, insensible casse, sans résultat
+├── wishlist.feature           # 3 scénarios : voir, déplacer, isolation
+├── one_shot.feature           # 2 scénarios (@javascript @wip) : masquer/afficher tomes
+└── tome_management.feature    # 3 scénarios (@javascript @wip) : ajout, NAS, multi-tomes
 ```
+
+**27 scénarios** passent avec le profil `default` (session BrowserKit).
+Les 5 scénarios `@javascript @wip` nécessitent le profil `javascript` (Selenium + Chrome). Leur couverture est assurée par les tests Panther équivalents (voir ci-dessous).
 
 ### Contextes
 
 ```
 tests/Behat/Context/
-├── FeatureContext.php         # Contexte principal
-├── AuthenticationContext.php  # Steps d'authentification
-├── ComicSeriesContext.php     # Steps de gestion de séries
-├── NavigationContext.php      # Steps de navigation
+├── AuthenticationContext.php  # Steps d'authentification (connexion, déconnexion)
+├── ComicSeriesContext.php     # Steps de gestion de séries (CRUD, wishlist)
+├── DatabaseContext.php        # Création de fixtures par scénario
+├── FeatureContext.php         # Steps génériques (redirection page d'accueil)
 ├── FormContext.php            # Steps de formulaire
-├── DatabaseContext.php        # Reset BDD avant chaque scénario
-└── PantherContext.php         # Tests JavaScript
+├── NavigationContext.php      # Steps de navigation et filtrage
+└── PantherContext.php         # Steps JavaScript (sessions Selenium)
 ```
+
+### Profils Behat
+
+Le fichier `behat.yaml` définit deux profils :
+
+| Profil | Session | Base URL | Usage |
+|--------|---------|----------|-------|
+| `default` | BrowserKit (Symfony) | `bibliotheque.ddev.site` | Scénarios sans JS |
+| `javascript` | Selenium2 (Chrome) | `test.bibliotheque.ddev.site` | Scénarios `@javascript` |
 
 ### Exemple de feature
 
 ```gherkin
-# features/creation_serie.feature
-@creation
-Fonctionnalité: Création d'une série
+# features/comic_creation.feature
+
+Fonctionnalité: Création de séries
   En tant qu'utilisateur connecté
-  Je veux pouvoir ajouter une nouvelle série
+  Je veux pouvoir créer des séries
   Afin de gérer ma collection
 
   Contexte:
-    Étant donné que je suis connecté
+    Étant donné je suis connecté
 
   Scénario: Créer une série BD simple
-    Quand je vais sur la page de création
-    Et je remplis le formulaire avec:
-      | type   | BD           |
-      | titre  | Astérix      |
-      | statut | En cours     |
+    Étant donné je suis sur la page de création d'une série
+    Quand je remplis le titre avec "Astérix"
+    Et je sélectionne le type "BD"
+    Et je sélectionne le statut "En cours d'achat"
     Et je soumets le formulaire
-    Alors je vois le message "Série créée"
-    Et la série "Astérix" existe dans la base
+    Alors je devrais être sur la page d'accueil
+    Et la série "Astérix" devrait exister
+    Et la série "Astérix" devrait être de type "BD"
 ```
 
 ---
 
-## Tests Panther (navigateur)
+## Tests navigateur (WebDriver + Chrome)
 
-Tests avec un vrai navigateur Chrome.
+Tests avec un vrai navigateur Chrome via Selenium distant (`ddev-bibliotheque-chrome`).
+
+Ces tests utilisent directement `RemoteWebDriver` (pas Symfony Panther Client) pour un contrôle fin : exécution JavaScript asynchrone, accès au Chrome DevTools Protocol (CDP), vérification des caches et du Service Worker.
 
 **Fichiers** :
-- `tests/Panther/OfflineModeTest.php`
-- `tests/Panther/TomeManagementTest.php`
-- `tests/Panther/OneShotFormTest.php`
+- `tests/Panther/OfflineModeTest.php` — 10 tests PWA/offline
+- `tests/Panther/OneShotFormTest.php` — 2 tests formulaire dynamique
+- `tests/Panther/TomeManagementTest.php` — 3 tests ajout de tomes via Stimulus
 
 ### Exécution
 
@@ -349,22 +384,46 @@ Tests avec un vrai navigateur Chrome.
 ddev exec bin/phpunit tests/Panther/
 ```
 
+### OfflineModeTest (PWA)
+
+Teste le comportement hors-ligne de la Progressive Web App :
+
+| Test | Description |
+|------|-------------|
+| `testOfflinePageIsAccessible` | La page `/offline` est accessible |
+| `testServiceWorkerInstalled` | Le SW est installé après visite |
+| `testServiceWorkerIsActive` | Le SW est en état `activated` |
+| `testOfflineCacheContainsOfflinePage` | Le cache contient `/offline` |
+| `testCachedPageAvailableOffline` | Une page visitée reste accessible hors-ligne (via CDP) |
+| `testManifestIsAccessible` | Le `manifest.webmanifest` répond |
+| `testManifestContainsRequiredFields` | Structure correcte du manifest |
+| `testPwaCachesAreInitialized` | Les caches PWA sont créés |
+| `testApiComicsIsCached` | L'API `/api/comics` est mise en cache |
+| `testTurboFetchErrorEventStructure` | Le listener Turbo est en place |
+
+### OneShotFormTest
+
+Teste le comportement dynamique du formulaire d'édition quand on coche/décoche la case one-shot (masquage de la section tomes via Stimulus).
+
+### TomeManagementTest
+
+Teste l'ajout dynamique de tomes via le contrôleur Stimulus sur le formulaire d'édition : ajout avec numéro/titre/ISBN, marquage NAS, ajout multiple.
+
 ### Exemple
 
 ```php
-public function testServiceWorkerIsRegistered(): void
+public function testServiceWorkerInstalled(): void
 {
-    $client = static::createPantherClient();
-    $client->request('GET', '/');
+    $driver = $this->getDriver();
 
-    // Attend l'enregistrement du SW
-    $client->waitFor('body');
+    $driver->get(self::BASE_URL.'/login');
+    \sleep(3);
 
-    $swRegistered = $client->executeScript(
-        'return navigator.serviceWorker.controller !== null'
-    );
+    $swRegistered = $driver->executeScript('
+        return navigator.serviceWorker.controller !== null;
+    ');
 
-    $this->assertTrue($swRegistered);
+    $this->assertTrue($swRegistered, 'Service Worker devrait être installé');
 }
 ```
 
@@ -374,7 +433,7 @@ public function testServiceWorkerIsRegistered(): void
 
 ### Méthodologie TDD
 
-1. **RED** : Écrire le test qui échoue
+1. **RED** : Ecrire le test qui échoue
 2. **GREEN** : Implémenter le minimum pour passer
 3. **REFACTOR** : Nettoyer sans casser les tests
 
@@ -411,38 +470,23 @@ $this->assertInstanceOf(ComicSeries::class, $object);
 
 **Fichier** : `phpunit.dist.xml`
 
-```xml
-<phpunit>
-    <testsuites>
-        <testsuite name="Project Test Suite">
-            <directory>tests</directory>
-        </testsuite>
-    </testsuites>
-    <php>
-        <env name="APP_ENV" value="test"/>
-        <env name="KERNEL_CLASS" value="App\Kernel"/>
-    </php>
-</phpunit>
-```
+- Environnement : `APP_ENV=test`
+- `failOnDeprecation`, `failOnNotice`, `failOnWarning` activés
+- Extension `Symfony\Component\Panther\ServerExtension` pour les tests navigateur
 
 ### Behat
 
 **Fichier** : `behat.yaml`
 
-```yaml
-default:
-    suites:
-        default:
-            contexts:
-                - App\Tests\Behat\Context\FeatureContext
-                - App\Tests\Behat\Context\AuthenticationContext
-                # ...
+- Extension `FriendsOfBehat\SymfonyExtension` pour l'intégration Symfony
+- Extension `Behat\MinkExtension` pour la navigation web
+- Profil `javascript` avec Selenium2 + Chrome distant
 
-javascript:
-    extensions:
-        Behat\MinkExtension:
-            selenium2: ~
-```
+### Environnement de test
+
+- Base de données : `db_test`
+- URL : `https://test.bibliotheque.ddev.site`
+- Variables : `.env.test`
 
 ---
 

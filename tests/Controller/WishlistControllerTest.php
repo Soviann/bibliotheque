@@ -108,10 +108,6 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
         self::assertStringContainsString('Wishlist Series Test', $crawler->text());
         self::assertStringNotContainsString('Library Series Test', $crawler->text());
 
-        // Nettoyer
-        $em->remove($wishlistSeries);
-        $em->remove($librarySeries);
-        $em->flush();
     }
 
     /**
