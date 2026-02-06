@@ -166,9 +166,10 @@ tests/                        features/
 
 **CoverRemoverInterface**: `remove(ComicSeries): void` — Impl: `VichCoverRemover`
 
-**IsbnLookupService**: `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`
+**IsbnLookupService**: `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`, `getLastApiMessages(): array`
 - APIs: Google Books, Open Library, AniList (mangas)
 - Returns: `[title, authors, description, publishedDate, publisher, isbn, thumbnail, isOneShot, sources]`
+- `getLastApiMessages()`: statut de chaque API interrogée (`{api_name: {status, message}}`), utilise `ApiLookupStatus`
 
 ### DTOs
 

@@ -17,6 +17,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Statut API dans les réponses de lookup** : Les endpoints `/api/isbn-lookup` et `/api/title-lookup` incluent désormais un objet `apiMessages` indiquant le statut de chaque API interrogée (success, not_found, error, rate_limited) avec des badges colorés dans l'interface
 - **Amélioration upload couverture** : Meilleure UX pour l'upload d'images
   - Activation de Symfony UX Dropzone avec prévisualisation du fichier sélectionné
   - Ajout checkbox "Supprimer" pour effacer l'image existante

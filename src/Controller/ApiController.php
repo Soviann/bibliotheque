@@ -38,10 +38,13 @@ class ApiController extends AbstractController
         }
 
         $result = $isbnLookupService->lookup($isbn, $type);
+        $apiMessages = $isbnLookupService->getLastApiMessages();
 
         if (null === $result) {
-            return $this->json(['error' => 'Aucun résultat trouvé'], 404);
+            return $this->json(['apiMessages' => $apiMessages, 'error' => 'Aucun résultat trouvé'], 404);
         }
+
+        $result['apiMessages'] = $apiMessages;
 
         return $this->json($result);
     }
@@ -61,10 +64,13 @@ class ApiController extends AbstractController
         }
 
         $result = $isbnLookupService->lookupByTitle($title, $type);
+        $apiMessages = $isbnLookupService->getLastApiMessages();
 
         if (null === $result) {
-            return $this->json(['error' => 'Aucun résultat trouvé'], 404);
+            return $this->json(['apiMessages' => $apiMessages, 'error' => 'Aucun résultat trouvé'], 404);
         }
+
+        $result['apiMessages'] = $apiMessages;
 
         return $this->json($result);
     }
