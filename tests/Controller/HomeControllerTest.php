@@ -157,10 +157,6 @@ class HomeControllerTest extends AuthenticatedWebTestCase
         self::assertStringContainsString('Test Library Series', $crawler->text());
         self::assertStringNotContainsString('Test Wishlist Series', $crawler->text());
 
-        // Nettoyer
-        $em->remove($librarySeries);
-        $em->remove($wishlistSeries);
-        $em->flush();
     }
 
     /**
@@ -199,10 +195,6 @@ class HomeControllerTest extends AuthenticatedWebTestCase
         self::assertStringContainsString('Series On NAS Test', $crawler->text());
         self::assertStringNotContainsString('Series Not On NAS Test', $crawler->text());
 
-        // Nettoyer
-        $em->remove($seriesOnNas);
-        $em->remove($seriesNotOnNas);
-        $em->flush();
     }
 
     /**

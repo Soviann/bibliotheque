@@ -95,6 +95,7 @@
         "behat/mink": "^1.13",
         "behat/mink-extension": "*",
         "behat/mink-selenium2-driver": "^1.7",
+        "dama/doctrine-test-bundle": "^8.6",
         "dmore/behat-chrome-extension": "^1.4",
         "dmore/chrome-mink-driver": "^2.10",
         "doctrine/doctrine-fixtures-bundle": "^4.3",

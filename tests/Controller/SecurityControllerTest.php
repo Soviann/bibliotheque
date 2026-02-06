@@ -74,13 +74,6 @@ class SecurityControllerTest extends WebTestCase
         // Devrait rediriger vers la page d'accueil
         self::assertResponseRedirects('/');
 
-        // Nettoyer - refetch l'entité car elle est détachée après le submit
-        $em->clear();
-        $userToDelete = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($userToDelete) {
-            $em->remove($userToDelete);
-            $em->flush();
-        }
     }
 
     /**
@@ -135,9 +128,6 @@ class SecurityControllerTest extends WebTestCase
         // Devrait rediriger vers la page d'accueil
         self::assertResponseRedirects('/');
 
-        // Nettoyer
-        $em->remove($user);
-        $em->flush();
     }
 
     /**
@@ -170,9 +160,6 @@ class SecurityControllerTest extends WebTestCase
         // Devrait rediriger (géré par le firewall Symfony)
         self::assertResponseRedirects();
 
-        // Nettoyer
-        $em->remove($user);
-        $em->flush();
     }
 
     /**
@@ -285,14 +272,6 @@ class SecurityControllerTest extends WebTestCase
 
         // Devrait rediriger vers la page d'accueil (connexion réussie)
         self::assertResponseRedirects('/');
-
-        // Nettoyer
-        $em->clear();
-        $userToDelete = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($userToDelete) {
-            $em->remove($userToDelete);
-            $em->flush();
-        }
     }
 
     /**
@@ -344,13 +323,6 @@ class SecurityControllerTest extends WebTestCase
         // Devrait afficher un message d'erreur de throttling
         self::assertSelectorTextContains('.alert-error', 'Too many');
 
-        // Nettoyer
-        $em->clear();
-        $userToDelete = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($userToDelete) {
-            $em->remove($userToDelete);
-            $em->flush();
-        }
     }
 
     /**
@@ -429,13 +401,5 @@ class SecurityControllerTest extends WebTestCase
         $client->submit($form);
         $client->followRedirect();
         self::assertSelectorTextContains('.alert-error', 'Too many');
-
-        // Nettoyer
-        $em->clear();
-        $userToDelete = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($userToDelete) {
-            $em->remove($userToDelete);
-            $em->flush();
-        }
     }
 }
