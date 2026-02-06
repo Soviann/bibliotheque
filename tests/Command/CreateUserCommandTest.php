@@ -47,10 +47,6 @@ class CreateUserCommandTest extends KernelTestCase
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
         self::assertNotNull($user);
         self::assertSame($email, $user->getEmail());
-
-        // Nettoyer
-        $this->em->remove($user);
-        $this->em->flush();
     }
 
     /**
@@ -80,10 +76,6 @@ class CreateUserCommandTest extends KernelTestCase
         /** @var UserPasswordHasherInterface $hasher */
         $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
         self::assertTrue($hasher->isPasswordValid($user, $plainPassword));
-
-        // Nettoyer
-        $this->em->remove($user);
-        $this->em->flush();
     }
 
     /**
@@ -105,10 +97,6 @@ class CreateUserCommandTest extends KernelTestCase
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
         self::assertNotNull($user);
         self::assertContains('ROLE_USER', $user->getRoles());
-
-        // Nettoyer
-        $this->em->remove($user);
-        $this->em->flush();
     }
 
     /**
@@ -130,13 +118,6 @@ class CreateUserCommandTest extends KernelTestCase
         $output = $commandTester->getDisplay();
         self::assertStringContainsString($email, $output);
         self::assertStringContainsString('créé avec succès', $output);
-
-        // Nettoyer
-        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($user instanceof User) {
-            $this->em->remove($user);
-            $this->em->flush();
-        }
     }
 
     /**
@@ -156,13 +137,6 @@ class CreateUserCommandTest extends KernelTestCase
         ]);
 
         self::assertSame(0, $exitCode);
-
-        // Nettoyer
-        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($user instanceof User) {
-            $this->em->remove($user);
-            $this->em->flush();
-        }
     }
 
     /**
@@ -201,12 +175,5 @@ class CreateUserCommandTest extends KernelTestCase
         // Vérifier que ce message est affiché
         $output = $commandTester->getDisplay();
         self::assertStringContainsString($expectedMessage, $output);
-
-        // Nettoyer
-        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($user instanceof User) {
-            $this->em->remove($user);
-            $this->em->flush();
-        }
     }
 }

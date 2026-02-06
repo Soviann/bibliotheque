@@ -27,11 +27,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         $this->repository = $this->em->getRepository(ComicSeries::class);
     }
 
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-    }
-
     /**
      * Teste findWithFilters avec filtre isWishlist.
      */
@@ -51,11 +46,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertNotContains('Wishlist Series Filter Test', $libraryTitles);
         self::assertContains('Wishlist Series Filter Test', $wishlistTitles);
         self::assertNotContains('Library Series Filter Test', $wishlistTitles);
-
-        // Nettoyer
-        $this->em->remove($library);
-        $this->em->remove($wishlist);
-        $this->em->flush();
     }
 
     /**
@@ -76,11 +66,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertContains('BD Series Test', $titles);
         self::assertNotContains('Manga Series Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($bd);
-        $this->em->remove($manga);
-        $this->em->flush();
     }
 
     /**
@@ -101,11 +86,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertContains('Buying Series Test', $titles);
         self::assertNotContains('Finished Series Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($buying);
-        $this->em->remove($finished);
-        $this->em->flush();
     }
 
     /**
@@ -136,11 +116,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertContains('On NAS Repo Test', $titles);
         self::assertNotContains('Not On NAS Repo Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($seriesOnNas);
-        $this->em->remove($seriesNotOnNas);
-        $this->em->flush();
     }
 
     /**
@@ -171,11 +146,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertNotContains('On NAS False Test', $titles);
         self::assertContains('Not On NAS False Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($seriesOnNas);
-        $this->em->remove($seriesNotOnNas);
-        $this->em->flush();
     }
 
     /**
@@ -196,11 +166,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertContains('UniqueSearchRepoTestXYZ', $titles);
         self::assertNotContains('Other Series', $titles);
-
-        // Nettoyer
-        $this->em->remove($series1);
-        $this->em->remove($series2);
-        $this->em->flush();
     }
 
     /**
@@ -223,10 +188,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertContains('ISBN Search Repo Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -257,11 +218,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertNotNull($asterixIndex);
         self::assertNotNull($zorroIndex);
         self::assertLessThan($zorroIndex, $asterixIndex);
-
-        // Nettoyer
-        $this->em->remove($seriesZ);
-        $this->em->remove($seriesA);
-        $this->em->flush();
     }
 
     /**
@@ -292,11 +248,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertNotNull($asterixIndex);
         self::assertNotNull($zorroIndex);
         self::assertGreaterThan($zorroIndex, $asterixIndex);
-
-        // Nettoyer
-        $this->em->remove($seriesZ);
-        $this->em->remove($seriesA);
-        $this->em->flush();
     }
 
     /**
@@ -312,10 +263,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
 
         self::assertContains('Unique Searchable Title XYZ', $titles);
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**
@@ -333,11 +280,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertContains('Stopped Status Test', $titles);
         self::assertNotContains('Buying Status Test', $titles);
-
-        // Nettoyer
-        $this->em->remove($stopped);
-        $this->em->remove($buying);
-        $this->em->flush();
     }
 
     /**
@@ -373,10 +315,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame(5, $testResult['latestPublishedIssue']);
         self::assertIsArray($testResult['missingTomesNumbers']);
         self::assertIsArray($testResult['ownedTomesNumbers']);
-
-        // Nettoyer
-        $this->em->remove($series);
-        $this->em->flush();
     }
 
     /**

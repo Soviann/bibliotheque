@@ -104,9 +104,6 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         self::assertArrayHasKey('tomesCount', $testSeries);
         self::assertArrayHasKey('updatedAt', $testSeries);
 
-        // Nettoyer
-        $em->remove($series);
-        $em->flush();
     }
 
     /**
@@ -219,10 +216,6 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         self::assertNotNull($zorroIndex);
         self::assertLessThan($zorroIndex, $asterixIndex);
 
-        // Nettoyer
-        $em->remove($seriesZ);
-        $em->remove($seriesA);
-        $em->flush();
     }
 
     /**

@@ -24,11 +24,6 @@ class AuthorRepositoryTest extends KernelTestCase
         $this->repository = $this->em->getRepository(Author::class);
     }
 
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-    }
-
     /**
      * Teste findOrCreate avec un nouvel auteur.
      */
@@ -40,10 +35,6 @@ class AuthorRepositoryTest extends KernelTestCase
 
         self::assertInstanceOf(Author::class, $author);
         self::assertSame($authorName, $author->getName());
-
-        // Nettoyer
-        $this->em->remove($author);
-        $this->em->flush();
     }
 
     /**
@@ -66,10 +57,6 @@ class AuthorRepositoryTest extends KernelTestCase
 
         self::assertSame($existingId, $foundAuthor->getId());
         self::assertSame($authorName, $foundAuthor->getName());
-
-        // Nettoyer
-        $this->em->remove($foundAuthor);
-        $this->em->flush();
     }
 
     /**
@@ -87,10 +74,6 @@ class AuthorRepositoryTest extends KernelTestCase
         // Vérifier qu'on retrouve le même auteur avec le nom non trimmé
         $sameAuthor = $this->repository->findOrCreate($authorName);
         self::assertSame($author->getId(), $sameAuthor->getId());
-
-        // Nettoyer
-        $this->em->remove($author);
-        $this->em->flush();
     }
 
     /**
@@ -111,12 +94,6 @@ class AuthorRepositoryTest extends KernelTestCase
         self::assertSame('Author One '.$suffix, $authors[0]->getName());
         self::assertSame('Author Two '.$suffix, $authors[1]->getName());
         self::assertSame('Author Three '.$suffix, $authors[2]->getName());
-
-        // Nettoyer
-        foreach ($authors as $author) {
-            $this->em->remove($author);
-        }
-        $this->em->flush();
     }
 
     /**
@@ -138,12 +115,6 @@ class AuthorRepositoryTest extends KernelTestCase
         $authorNames = \array_map(static fn (Author $a): string => $a->getName(), $authors);
         self::assertContains('Valid Author '.$suffix, $authorNames);
         self::assertContains('Another Valid '.$suffix, $authorNames);
-
-        // Nettoyer
-        foreach ($authors as $author) {
-            $this->em->remove($author);
-        }
-        $this->em->flush();
     }
 
     /**
@@ -170,12 +141,6 @@ class AuthorRepositoryTest extends KernelTestCase
         $existingFound = \array_filter($authors, static fn (Author $a): bool => $a->getName() === $existingName);
         self::assertCount(1, $existingFound);
         self::assertSame($existingId, \array_values($existingFound)[0]->getId());
-
-        // Nettoyer
-        foreach ($authors as $author) {
-            $this->em->remove($author);
-        }
-        $this->em->flush();
     }
 
     /**

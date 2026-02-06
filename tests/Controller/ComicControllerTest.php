@@ -32,10 +32,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $client->request(Request::METHOD_GET, '/comic/'.$series->getId());
 
         self::assertResponseIsSuccessful();
-
-        // Nettoyer
-        $em->remove($series);
-        $em->flush();
     }
 
     /**
@@ -68,10 +64,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $client->request(Request::METHOD_GET, '/comic/'.$series->getId().'/edit');
 
         self::assertResponseIsSuccessful();
-
-        // Nettoyer
-        $em->remove($series);
-        $em->flush();
     }
 
     /**
@@ -142,10 +134,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         // Vérifier que la série n'a PAS été supprimée
         $stillExists = $em->getRepository(ComicSeries::class)->find($seriesId);
         self::assertNotNull($stillExists);
-
-        // Nettoyer
-        $em->remove($stillExists);
-        $em->flush();
     }
 
     /**
@@ -217,10 +205,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         self::assertNotNull($updatedSeries);
         self::assertFalse($updatedSeries->isWishlist());
         self::assertSame(ComicStatus::BUYING, $updatedSeries->getStatus());
-
-        // Nettoyer
-        $em->remove($updatedSeries);
-        $em->flush();
     }
 
     /**
@@ -262,10 +246,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         self::assertNotNull($series);
         self::assertTrue($series->isWishlist());
         self::assertSame(ComicStatus::WISHLIST, $series->getStatus());
-
-        // Nettoyer
-        $em->remove($series);
-        $em->flush();
     }
 
     /**
@@ -315,25 +295,14 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $em->persist($series);
         $em->flush();
 
-        $seriesId = $series->getId();
+        $crawler = $client->request(Request::METHOD_GET, '/comic/'.$series->getId().'/edit');
+        self::assertResponseIsSuccessful();
 
-        try {
-            $crawler = $client->request(Request::METHOD_GET, '/comic/'.$seriesId.'/edit');
-            self::assertResponseIsSuccessful();
-
-            // Le formulaire standard a le préfixe "comic_series"
-            self::assertSelectorExists('[name="comic_series[title]"]');
-            self::assertSelectorExists('[name="comic_series[type]"]');
-            self::assertSelectorExists('[name="comic_series[status]"]');
-            self::assertSelectorExists('[name="comic_series[description]"]');
-        } finally {
-            $em->clear();
-            $series = $em->getRepository(ComicSeries::class)->find($seriesId);
-            if ($series) {
-                $em->remove($series);
-            }
-            $em->flush();
-        }
+        // Le formulaire standard a le préfixe "comic_series"
+        self::assertSelectorExists('[name="comic_series[title]"]');
+        self::assertSelectorExists('[name="comic_series[type]"]');
+        self::assertSelectorExists('[name="comic_series[status]"]');
+        self::assertSelectorExists('[name="comic_series[description]"]');
     }
 
     /**
@@ -361,10 +330,6 @@ class ComicControllerTest extends AuthenticatedWebTestCase
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $series = $em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Ma BD Test Création']);
         self::assertNotNull($series, 'La série devrait avoir été créée en base de données');
-
-        // Nettoyer
-        $em->remove($series);
-        $em->flush();
     }
 
     /**
