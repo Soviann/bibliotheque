@@ -29,7 +29,9 @@
 ddev start && ddev composer install && ddev exec bin/console doctrine:migrations:migrate -n
 ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 ddev exec bin/console cache:clear
-ddev exec bin/phpunit tests/PathToTest.php          # Tests
+ddev exec bin/phpunit tests/PathToTest.php          # PHP Tests
+ddev exec npm test                                  # JS Tests (Vitest)
+ddev exec npm run test:watch                        # JS Tests (watch mode)
 ```
 
 **PHP-CS-Fixer and PHPStan**: automated via PostToolUse hooks.
@@ -57,6 +59,18 @@ ddev exec bin/phpunit tests/PathToTest.php          # Tests
 **Test environment**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 
 **TDD exceptions**: Twig templates, YAML config, migrations, assets.
+
+## JavaScript Tests (Vitest)
+
+**Framework**: Vitest + jsdom (ESM natif, compatible AssetMapper).
+
+**Convention**: `assets/X/foo.js` → `tests/js/X/foo.test.js`
+
+**Helpers**:
+- `tests/js/setup.js` — mocks globaux (fetch, localStorage, Cache API, crypto)
+- `tests/js/helpers/stimulus-helper.js` — `startStimulusController()` / `stopStimulusController()`
+
+**Fake timers**: toujours activer `vi.useFakeTimers()` **APRÈS** `startStimulusController()` (sinon timeout Stimulus).
 
 ## Rector (occasional use)
 
