@@ -116,11 +116,17 @@ export function renderCard(comic, options = {}) {
 
     if (showAddButton) {
         actionsHtml += `
-            <button type="button" class="btn btn-success btn-full-width" disabled title="Non disponible hors ligne">Ajouter à la bibliothèque</button>`;
+            <form action="/comic/${comic.id}/to-library" method="post" class="inline-form" data-turbo-frame="_top">
+                <input type="hidden" name="_token" value="${escapeHtml(comic.toLibraryToken || '')}">
+                <button type="submit" class="btn btn-success btn-full-width">Ajouter à la bibliothèque</button>
+            </form>`;
     }
 
     actionsHtml += `
-            <button type="button" class="btn btn-danger btn-full-width" disabled title="Non disponible hors ligne">Supprimer</button>
+            <form action="/comic/${comic.id}/delete" method="post" class="inline-form" data-turbo-frame="_top" onsubmit="return confirm('Supprimer cette serie ?');">
+                <input type="hidden" name="_token" value="${escapeHtml(comic.deleteToken || '')}">
+                <button type="submit" class="btn btn-danger btn-full-width">Supprimer</button>
+            </form>
         </div>`;
 
     return `
