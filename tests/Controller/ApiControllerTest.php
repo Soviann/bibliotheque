@@ -89,6 +89,7 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         self::assertArrayHasKey('coverUrl', $testSeries);
         self::assertArrayHasKey('currentIssue', $testSeries);
         self::assertArrayHasKey('currentIssueComplete', $testSeries);
+        self::assertArrayHasKey('deleteToken', $testSeries);
         self::assertArrayHasKey('description', $testSeries);
         self::assertArrayHasKey('isWishlist', $testSeries);
         self::assertArrayHasKey('lastBought', $testSeries);
@@ -101,9 +102,45 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         self::assertArrayHasKey('ownedTomesNumbers', $testSeries);
         self::assertArrayHasKey('publishedDate', $testSeries);
         self::assertArrayHasKey('publisher', $testSeries);
+        self::assertArrayHasKey('toLibraryToken', $testSeries);
         self::assertArrayHasKey('tomesCount', $testSeries);
         self::assertArrayHasKey('updatedAt', $testSeries);
 
+    }
+
+    /**
+     * Teste que les tokens CSRF de l'API sont des chaînes non vides.
+     */
+    public function testComicsApiCsrfTokensAreNonEmptyStrings(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $container = static::getContainer();
+        /** @var EntityManagerInterface $em */
+        $em = $container->get(EntityManagerInterface::class);
+
+        $series = new ComicSeries();
+        $series->setTitle('CSRF Token Test Series');
+        $em->persist($series);
+        $em->flush();
+
+        $client->request(Request::METHOD_GET, '/api/comics');
+
+        $response = $client->getResponse();
+        $data = \json_decode($response->getContent(), true);
+
+        $testSeries = null;
+        foreach ($data as $comic) {
+            if ('CSRF Token Test Series' === $comic['title']) {
+                $testSeries = $comic;
+                break;
+            }
+        }
+
+        self::assertNotNull($testSeries);
+        self::assertIsString($testSeries['deleteToken']);
+        self::assertNotEmpty($testSeries['deleteToken']);
+        self::assertIsString($testSeries['toLibraryToken']);
+        self::assertNotEmpty($testSeries['toLibraryToken']);
     }
 
     /**

@@ -11,14 +11,20 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 #[Route('/api')]
 class ApiController extends AbstractController
 {
     #[Route('/comics', name: 'api_comics', methods: ['GET'])]
-    public function comics(ComicSeriesRepository $comicSeriesRepository): JsonResponse
+    public function comics(ComicSeriesRepository $comicSeriesRepository, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
     {
         $comics = $comicSeriesRepository->findAllForApi();
+
+        foreach ($comics as &$comic) {
+            $comic['deleteToken'] = $csrfTokenManager->getToken('delete'.$comic['id'])->getValue();
+            $comic['toLibraryToken'] = $csrfTokenManager->getToken('to-library'.$comic['id'])->getValue();
+        }
 
         return $this->json($comics);
     }
