@@ -4,15 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Panther;
 
-use App\Entity\ComicSeries;
-use App\Enum\ComicStatus;
-use App\Enum\ComicType;
-use Doctrine\ORM\EntityManagerInterface;
-use Facebook\WebDriver\Remote\DesiredCapabilities;
-use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests de gestion des tomes via JavaScript.
@@ -25,38 +19,41 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  *
  * Utilise Selenium distant (ddev chrome service).
  */
-final class TomeManagementTest extends KernelTestCase
+final class TomeManagementTest extends TestCase
 {
-    private const string BASE_URL = 'https://test.bibliotheque.ddev.site';
-    private const string SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
+    use PantherTestHelper;
 
-    private ?RemoteWebDriver $driver = null;
+    private const string TEST_TITLE = 'Série Test Tomes Panther';
+
     private static ?int $testSeriesId = null;
 
     /**
-     * Crée une série de test pour les tests de cette classe.
+     * Crée une série de test via SQL (visible par le processus Selenium).
      */
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
-        self::bootKernel(['environment' => 'test']);
+        // Nettoie d'éventuels résidus d'un run précédent
+        self::runSql(\sprintf("DELETE FROM comic_series WHERE title = '%s'", self::TEST_TITLE));
 
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
+        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
 
-        // Crée une série de test pour les tests de gestion des tomes
-        $series = new ComicSeries();
-        $series->setTitle('Série Test Tomes');
-        $series->setType(ComicType::MANGA);
-        $series->setStatus(ComicStatus::BUYING);
+        self::runSql(\sprintf(
+            "INSERT INTO comic_series (title, status, type, created_at, is_one_shot, latest_published_issue_complete, updated_at) VALUES ('%s', 'buying', 'manga', '%s', 0, 0, '%s')",
+            self::TEST_TITLE,
+            $now,
+            $now,
+        ));
 
-        $em->persist($series);
-        $em->flush();
+        $output = self::runSql(\sprintf(
+            "SELECT id FROM comic_series WHERE title = '%s' ORDER BY id DESC LIMIT 1",
+            self::TEST_TITLE,
+        ));
 
-        self::$testSeriesId = $series->getId();
-
-        self::ensureKernelShutdown();
+        if (\preg_match('/(\d+)/', $output, $matches)) {
+            self::$testSeriesId = (int) $matches[1];
+        }
     }
 
     /**
@@ -64,20 +61,7 @@ final class TomeManagementTest extends KernelTestCase
      */
     public static function tearDownAfterClass(): void
     {
-        if (null !== self::$testSeriesId) {
-            self::bootKernel(['environment' => 'test']);
-
-            /** @var EntityManagerInterface $em */
-            $em = self::getContainer()->get(EntityManagerInterface::class);
-
-            $series = $em->find(ComicSeries::class, self::$testSeriesId);
-            if ($series) {
-                $em->remove($series);
-                $em->flush();
-            }
-
-            self::ensureKernelShutdown();
-        }
+        self::runSql(\sprintf("DELETE FROM comic_series WHERE title = '%s'", self::TEST_TITLE));
 
         parent::tearDownAfterClass();
     }
@@ -88,16 +72,7 @@ final class TomeManagementTest extends KernelTestCase
             self::markTestSkipped('Aucune série de test disponible dans la base de données.');
         }
 
-        $capabilities = DesiredCapabilities::chrome();
-        $capabilities->setCapability('goog:chromeOptions', [
-            'args' => [
-                '--disable-gpu',
-                '--ignore-certificate-errors',
-                '--no-sandbox',
-            ],
-        ]);
-
-        $this->driver = RemoteWebDriver::create(self::SELENIUM_URL, $capabilities);
+        $this->driver = $this->createDriver();
     }
 
     protected function tearDown(): void
@@ -118,7 +93,7 @@ final class TomeManagementTest extends KernelTestCase
 
         // Clique sur ajouter un tome
         $this->clickAddTomeButton();
-        \usleep(500000); // 0.5 seconde
+        $this->waitForTomeCount($initialCount + 1);
 
         // Remplit le nouveau tome
         $newIndex = $initialCount;
@@ -145,7 +120,7 @@ final class TomeManagementTest extends KernelTestCase
 
         // Clique sur ajouter un tome
         $this->clickAddTomeButton();
-        \usleep(500000);
+        $this->waitForTomeCount($initialCount + 1);
 
         // Remplit le tome et le marque comme acheté et sur NAS
         $newIndex = $initialCount;
@@ -175,64 +150,17 @@ final class TomeManagementTest extends KernelTestCase
 
         // Ajoute le premier tome
         $this->clickAddTomeButton();
-        \usleep(500000);
+        $this->waitForTomeCount($initialCount + 1);
         $this->fillTomeNumber($initialCount, 96);
 
         // Ajoute le second tome
         $this->clickAddTomeButton();
-        \usleep(500000);
+        $this->waitForTomeCount($initialCount + 2);
         $this->fillTomeNumber($initialCount + 1, 97);
 
         // Vérifie que les deux tomes ont été ajoutés
         $finalCount = $this->getTomeCount();
         $this->assertSame($initialCount + 2, $finalCount, 'Deux tomes devraient avoir été ajoutés');
-    }
-
-    /**
-     * Retourne le driver WebDriver (non-null).
-     */
-    private function getDriver(): RemoteWebDriver
-    {
-        if (!$this->driver instanceof RemoteWebDriver) {
-            throw new \RuntimeException('WebDriver non initialisé.');
-        }
-
-        return $this->driver;
-    }
-
-    /**
-     * Effectue la connexion.
-     */
-    private function login(): void
-    {
-        $driver = $this->getDriver();
-
-        $driver->get(self::BASE_URL.'/login');
-
-        // Attend que le formulaire soit stable (Turbo peut modifier la page)
-        \sleep(1);
-
-        $driver->wait(10)->until(
-            WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::name('_username'))
-        );
-
-        // Attend que le formulaire soit interactif
-        $driver->wait(10)->until(
-            WebDriverExpectedCondition::elementToBeClickable(WebDriverBy::cssSelector('button[type="submit"]'))
-        );
-
-        // Utilise WebDriver pour remplir les champs
-        $driver->findElement(WebDriverBy::name('_username'))->sendKeys('test@example.com');
-        $driver->findElement(WebDriverBy::name('_password'))->sendKeys('password');
-        $driver->findElement(WebDriverBy::cssSelector('button[type="submit"]'))->click();
-
-        // Attend la redirection
-        \sleep(3);
-
-        $currentUrl = $driver->getCurrentURL();
-        if (\str_contains($currentUrl, '/login')) {
-            throw new \RuntimeException("Login failed. Still on: $currentUrl");
-        }
     }
 
     /**
@@ -259,6 +187,16 @@ final class TomeManagementTest extends KernelTestCase
         );
 
         return \is_numeric($count) ? (int) $count : 0;
+    }
+
+    /**
+     * Attend que le nombre de tomes atteigne la valeur attendue.
+     */
+    private function waitForTomeCount(int $expected): void
+    {
+        $this->getDriver()->wait(5)->until(function () use ($expected) {
+            return $this->getTomeCount() === $expected;
+        });
     }
 
     /**
