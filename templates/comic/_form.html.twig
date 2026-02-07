@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    {# Recherche par titre #}
+    {# Recherche par titre + ISBN one-shot #}
     <div class="form-row">
         <div class="mdc-text-field mdc-text-field--with-button">
             <label for="{{ form.title.vars.id }}">Titre de la série</label>
@@ -33,11 +33,9 @@
             </div>
             {{ form_errors(form.title) }}
         </div>
-    </div>
 
-    {# Champ ISBN pour les one-shots (masqué par défaut, géré par Stimulus) #}
-    <div class="form-row" data-comic-form-target="oneShotIsbnRow" style="display: none;">
-        <div class="mdc-text-field">
+        {# Champ ISBN pour les one-shots (masqué par défaut, géré par Stimulus) #}
+        <div class="mdc-text-field" data-comic-form-target="oneShotIsbnRow" style="display: none;">
             <label for="{{ form.isbn.vars.id }}">ISBN</label>
             {{ form_widget(form.isbn, {attr: {'data-comic-form-target': 'oneShotIsbn', 'data-action': 'input->comic-form#syncIsbnToTome', placeholder: 'ISBN-10 ou ISBN-13'}}) }}
             {{ form_errors(form.isbn) }}
