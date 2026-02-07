@@ -59,6 +59,11 @@ class ComicSeriesType extends AbstractType
                 'label' => 'Description',
                 'required' => false,
             ])
+            ->add('isbn', TextType::class, [
+                'label' => 'ISBN',
+                'mapped' => false,
+                'required' => false,
+            ])
             ->add('isOneShot', CheckboxType::class, [
                 'label' => 'One-shot (tome unique)',
                 'required' => false,
