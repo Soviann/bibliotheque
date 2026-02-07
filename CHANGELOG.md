@@ -9,6 +9,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Tests JavaScript (Vitest)** : Suite de tests unitaires pour tout le code JS du projet
+  - 139 tests couvrant 3 modules utilitaires et 6 contrôleurs Stimulus
+  - Framework Vitest avec jsdom (support ESM natif compatible AssetMapper)
+  - Helper Stimulus pour tester les contrôleurs sans bibliothèque tierce
+  - Mocks globaux (fetch, localStorage, Cache API, crypto) dans le setup
+  - Scripts npm : `npm test` (run) et `npm run test:watch` (watch)
+
 - **ISBN one-shot** : Champ ISBN virtuel affiché directement dans le formulaire quand one-shot est coché, avec masquage de la section tomes
 - **Recherche ISBN one-shot** : Bouton de recherche à côté du champ ISBN pour pré-remplir le formulaire via l'API
 
