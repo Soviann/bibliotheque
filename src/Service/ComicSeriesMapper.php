@@ -66,6 +66,14 @@ class ComicSeriesMapper
         // Gestion des Tomes
         $this->syncTomes($input->tomes, $entity, $isNew);
 
+        // One-shot : créer automatiquement un tome n°1 s'il n'en existe pas
+        if ($input->isOneShot && $entity->getTomes()->isEmpty()) {
+            $defaultTomeInput = new TomeInput();
+            $defaultTomeInput->number = 1;
+            $tome = $this->mapper->map($defaultTomeInput, Tome::class);
+            $entity->addTome($tome);
+        }
+
         return $entity;
     }
 
