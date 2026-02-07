@@ -230,6 +230,7 @@ docker compose -f docker-compose.prod.yml up --build -d
 - **Enum values are lowercase in DB**: `'buying'` not `'BUYING'` (PHP backed enum stores the value, not the case name)
 - **`LAST_INSERT_ID()`** doesn't work across separate `bin/console` calls (each opens a new connection). Use `SELECT ... WHERE title = '...'` instead
 - **Turbo + Selenium**: use `executeScript` to fill forms + `form.submit()` (avoids `StaleElementReferenceException` from DOM replacement)
+- **AssetMapper + Panther**: after modifying JS, run `ddev exec bin/console asset-map:compile` — Selenium loads compiled assets from `public/assets/`, not source files
 
 ## Maintenance
 
