@@ -14,6 +14,8 @@ export default class extends Controller {
         'lookupButton',
         'lookupStatus',
         'lookupTitleButton',
+        'oneShotIsbn',
+        'oneShotIsbnRow',
         'publishedDate',
         'publishedIssueRow',
         'publisher',
@@ -45,6 +47,14 @@ export default class extends Controller {
     };
 
     connect() {
+        // Pré-remplit le champ ISBN virtuel depuis le tome #1 (mode édition)
+        if (this.hasOneShotIsbnTarget && this.hasIsOneShotTarget && this.isOneShotTarget.checked) {
+            const tomeIsbn = this.getFirstTomeIsbn();
+            if (tomeIsbn) {
+                this.oneShotIsbnTarget.value = tomeIsbn;
+            }
+        }
+
         // Applique l'état initial du one-shot
         if (this.hasIsOneShotTarget) {
             this.applyOneShotState(this.isOneShotTarget.checked);
@@ -67,23 +77,14 @@ export default class extends Controller {
             this.publishedIssueRowTarget.style.display = isOneShot ? 'none' : '';
         }
 
-        // Masque/affiche le bouton "Ajouter un tome"
-        if (this.hasAddTomeButtonTarget) {
-            this.addTomeButtonTarget.style.display = isOneShot ? 'none' : '';
+        // Affiche/masque le champ ISBN virtuel
+        if (this.hasOneShotIsbnRowTarget) {
+            this.oneShotIsbnRowTarget.style.display = isOneShot ? '' : 'none';
         }
 
-        // Masque/affiche les boutons de suppression des tomes
+        // Masque/affiche la section tomes entière
         if (this.hasTomesSectionTarget) {
-            const removeButtons = this.tomesSectionTarget.querySelectorAll('.tome-remove');
-            removeButtons.forEach(btn => {
-                btn.style.display = isOneShot ? 'none' : '';
-            });
-
-            // Affiche/masque les boutons de recherche ISBN
-            const isbnLookupButtons = this.tomesSectionTarget.querySelectorAll('.tome-isbn-lookup');
-            isbnLookupButtons.forEach(btn => {
-                btn.style.display = isOneShot ? '' : 'none';
-            });
+            this.tomesSectionTarget.style.display = isOneShot ? 'none' : '';
         }
 
         // Pré-remplit les valeurs pour un one-shot
@@ -140,14 +141,32 @@ export default class extends Controller {
         }
 
         this.tomesListTarget.appendChild(entryElement);
+    }
 
-        // Affiche le bouton de recherche ISBN si one-shot est coché
-        if (this.hasIsOneShotTarget && this.isOneShotTarget.checked) {
-            const isbnLookupButton = entryElement.querySelector('.tome-isbn-lookup');
-            if (isbnLookupButton) {
-                isbnLookupButton.style.display = '';
-            }
+    /**
+     * Synchronise le champ ISBN virtuel vers l'input ISBN du tome #1.
+     */
+    syncIsbnToTome() {
+        if (!this.hasOneShotIsbnTarget || !this.hasTomesListTarget) {
+            return;
         }
+
+        const firstTomeIsbn = this.tomesListTarget.querySelector('.tome-isbn-input');
+        if (firstTomeIsbn) {
+            firstTomeIsbn.value = this.oneShotIsbnTarget.value;
+        }
+    }
+
+    /**
+     * Retourne l'ISBN du premier tome, ou null.
+     */
+    getFirstTomeIsbn() {
+        if (!this.hasTomesListTarget) {
+            return null;
+        }
+
+        const firstTomeIsbn = this.tomesListTarget.querySelector('.tome-isbn-input');
+        return firstTomeIsbn && firstTomeIsbn.value.trim() ? firstTomeIsbn.value.trim() : null;
     }
 
     /**
@@ -501,6 +520,7 @@ export default class extends Controller {
 
     /**
      * Remplit l'ISBN du premier tome (pour les one-shots).
+     * Met aussi à jour le champ ISBN virtuel si one-shot est actif.
      * @returns {boolean} true si le champ a été rempli
      */
     fillTomeIsbn(isbn) {
@@ -521,6 +541,13 @@ export default class extends Controller {
 
         isbnInput.value = isbn;
         this.highlightField(isbnInput);
+
+        // Synchronise vers le champ ISBN virtuel si one-shot
+        if (this.hasOneShotIsbnTarget && this.hasIsOneShotTarget && this.isOneShotTarget.checked) {
+            this.oneShotIsbnTarget.value = isbn;
+            this.highlightField(this.oneShotIsbnTarget);
+        }
+
         return true;
     }
 
