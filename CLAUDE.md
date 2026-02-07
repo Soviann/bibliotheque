@@ -226,6 +226,10 @@ docker compose -f docker-compose.prod.yml up --build -d
 - **VichUploader**: removing `coverImage` doesn't delete the physical file
 - **Tomes**: `orphanRemoval=true`, be careful with direct manipulations
 - **Twig cache**: `cache:clear` sometimes needed in dev
+- **Panther tests must extend `TestCase`**, not `KernelTestCase` — DAMA wraps data in uncommitted transactions invisible to Selenium. Use `PantherTestHelper` trait (driver, login, `runSql()` via `Process`)
+- **Enum values are lowercase in DB**: `'buying'` not `'BUYING'` (PHP backed enum stores the value, not the case name)
+- **`LAST_INSERT_ID()`** doesn't work across separate `bin/console` calls (each opens a new connection). Use `SELECT ... WHERE title = '...'` instead
+- **Turbo + Selenium**: use `executeScript` to fill forms + `form.submit()` (avoids `StaleElementReferenceException` from DOM replacement)
 
 ## Maintenance
 
