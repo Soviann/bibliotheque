@@ -364,6 +364,92 @@ class ComicSeriesMapperTest extends TestCase
     }
 
     /**
+     * Teste qu'un one-shot sans tomes crée automatiquement un tome n°1.
+     */
+    public function testMapToEntityCreatesDefaultTomeForOneShotWithoutTomes(): void
+    {
+        $input = new ComicSeriesInput();
+        $input->title = 'One-Shot Test';
+        $input->isOneShot = true;
+        $input->tomes = [];
+
+        $defaultTome = new Tome();
+        $defaultTome->setNumber(1);
+
+        $this->objectMapper
+            ->expects($this->once())
+            ->method('map')
+            ->willReturn($defaultTome);
+
+        $entity = $this->mapper->mapToEntity($input);
+
+        self::assertCount(1, $entity->getTomes());
+        $tome = $entity->getTomes()->first();
+        self::assertSame(1, $tome->getNumber());
+    }
+
+    /**
+     * Teste qu'un one-shot avec un tome existant ne crée pas de doublon.
+     */
+    public function testMapToEntityDoesNotDuplicateTomeForOneShotWithExistingTome(): void
+    {
+        $tomeInput = new TomeInput();
+        $tomeInput->number = 1;
+        $tomeInput->bought = true;
+        $tomeInput->downloaded = false;
+        $tomeInput->isbn = '978-1234567890';
+        $tomeInput->onNas = false;
+
+        $input = new ComicSeriesInput();
+        $input->title = 'One-Shot Test';
+        $input->isOneShot = true;
+        $input->tomes = [$tomeInput];
+
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $tome->setBought(true);
+        $tome->setIsbn('978-1234567890');
+
+        $this->objectMapper
+            ->expects($this->once())
+            ->method('map')
+            ->with($tomeInput, Tome::class)
+            ->willReturn($tome);
+
+        $entity = $this->mapper->mapToEntity($input);
+
+        self::assertCount(1, $entity->getTomes());
+        self::assertSame('978-1234567890', $entity->getTomes()->first()->getIsbn());
+    }
+
+    /**
+     * Teste qu'un one-shot existant sans tome crée le tome n°1 en édition.
+     */
+    public function testMapToEntityCreatesDefaultTomeForExistingOneShotWithoutTomes(): void
+    {
+        $existingEntity = new ComicSeries();
+        $existingEntity->setTitle('Existing One-Shot');
+
+        $input = new ComicSeriesInput();
+        $input->title = 'Existing One-Shot';
+        $input->isOneShot = true;
+        $input->tomes = [];
+
+        $defaultTome = new Tome();
+        $defaultTome->setNumber(1);
+
+        $this->objectMapper
+            ->expects($this->once())
+            ->method('map')
+            ->willReturn($defaultTome);
+
+        $entity = $this->mapper->mapToEntity($input, $existingEntity);
+
+        self::assertCount(1, $entity->getTomes());
+        self::assertSame(1, $entity->getTomes()->first()->getNumber());
+    }
+
+    /**
      * Teste la suppression de la couverture via deleteCover.
      */
     public function testMapToEntityDeletesCoverWhenRequested(): void
