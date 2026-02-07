@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,9 @@
   },
   "homepage": "https://github.com/Soviann/bibliotheqe#readme",
   "devDependencies": {
-    "@playwright/test": "^1.58.1"
+    "@hotwired/stimulus": "^3.2.2",
+    "@playwright/test": "^1.58.1",
+    "jsdom": "^28.0.0",
+    "vitest": "^4.0.18"
   }
 }
