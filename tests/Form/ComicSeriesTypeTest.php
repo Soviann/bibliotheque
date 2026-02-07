@@ -74,6 +74,7 @@ class ComicSeriesTypeTest extends KernelTestCase
         self::assertTrue($form->has('coverFile'));
         self::assertTrue($form->has('coverUrl'));
         self::assertTrue($form->has('description'));
+        self::assertTrue($form->has('isbn'));
         self::assertTrue($form->has('isOneShot'));
         self::assertTrue($form->has('latestPublishedIssue'));
         self::assertTrue($form->has('latestPublishedIssueComplete'));
@@ -106,6 +107,7 @@ class ComicSeriesTypeTest extends KernelTestCase
         self::assertFalse($form->get('coverFile')->isRequired());
         self::assertFalse($form->get('coverUrl')->isRequired());
         self::assertFalse($form->get('description')->isRequired());
+        self::assertFalse($form->get('isbn')->isRequired());
         self::assertFalse($form->get('isOneShot')->isRequired());
         self::assertFalse($form->get('latestPublishedIssue')->isRequired());
         self::assertFalse($form->get('latestPublishedIssueComplete')->isRequired());
@@ -171,6 +173,27 @@ class ComicSeriesTypeTest extends KernelTestCase
 
         self::assertTrue($tomesConfig->getOption('allow_add'));
         self::assertTrue($tomesConfig->getOption('allow_delete'));
+    }
+
+    /**
+     * Teste que le champ isbn est non mappé (ne se propage pas au DTO).
+     */
+    public function testIsbnFieldIsNotMapped(): void
+    {
+        $input = new ComicSeriesInput();
+        $form = $this->formFactory->create(ComicSeriesType::class, $input);
+
+        $form->submit([
+            'isbn' => '978-2-1234-5678-9',
+            'status' => 'buying',
+            'title' => 'Test ISBN',
+            'type' => 'bd',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame('978-2-1234-5678-9', $form->get('isbn')->getData());
+        // Le DTO n'a pas de propriété isbn — la soumission ne crashe pas
+        self::assertSame('Test ISBN', $input->title);
     }
 
     /**
