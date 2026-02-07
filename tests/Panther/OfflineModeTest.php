@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Panther;
 
-use Facebook\WebDriver\Remote\DesiredCapabilities;
-use Facebook\WebDriver\Remote\RemoteWebDriver;
-use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
@@ -18,10 +15,7 @@ use Symfony\Component\Process\Process;
  */
 final class OfflineModeTest extends TestCase
 {
-    private const string BASE_URL = 'https://test.bibliotheque.ddev.site';
-    private const string SELENIUM_URL = 'http://ddev-bibliotheque-chrome:4444/wd/hub';
-
-    private ?RemoteWebDriver $driver = null;
+    use PantherTestHelper;
 
     /**
      * Réinitialise la base de données de test avant tous les tests de cette classe.
@@ -41,16 +35,7 @@ final class OfflineModeTest extends TestCase
 
     protected function setUp(): void
     {
-        $capabilities = DesiredCapabilities::chrome();
-        $capabilities->setCapability('goog:chromeOptions', [
-            'args' => [
-                '--ignore-certificate-errors',
-                '--disable-gpu',
-                '--no-sandbox',
-            ],
-        ]);
-
-        $this->driver = RemoteWebDriver::create(self::SELENIUM_URL, $capabilities);
+        $this->driver = $this->createDriver();
     }
 
     protected function tearDown(): void
@@ -299,49 +284,6 @@ final class OfflineModeTest extends TestCase
 
         // Le SW devrait être activated
         $this->assertContains($swState, ['activated', 'activating'], 'Service Worker devrait être actif');
-    }
-
-    /**
-     * Retourne le driver WebDriver (non-null).
-     */
-    private function getDriver(): RemoteWebDriver
-    {
-        if (!$this->driver instanceof RemoteWebDriver) {
-            throw new \RuntimeException('WebDriver non initialisé.');
-        }
-
-        return $this->driver;
-    }
-
-    /**
-     * Effectue la connexion.
-     */
-    private function login(): void
-    {
-        $driver = $this->getDriver();
-
-        $driver->get(self::BASE_URL.'/login');
-
-        $driver->wait(10)->until(
-            WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::name('_username'))
-        );
-
-        // Remplir et soumettre via JavaScript
-        $driver->executeScript("
-            document.querySelector('[name=\"_username\"]').value = 'test@example.com';
-            document.querySelector('[name=\"_password\"]').value = 'password';
-            document.querySelector('form').submit();
-        ");
-
-        \sleep(3);
-
-        // Debug
-        $currentUrl = $driver->getCurrentURL();
-        if (\str_contains($currentUrl, '/login')) {
-            $driver->takeScreenshot('/var/www/html/var/login-debug.png');
-            \file_put_contents('/var/www/html/var/login-debug.html', $driver->getPageSource());
-            throw new \RuntimeException("Login failed. Still on: $currentUrl. Check var/login-debug.png and var/login-debug.html");
-        }
     }
 
     /**
