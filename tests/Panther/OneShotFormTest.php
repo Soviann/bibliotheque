@@ -136,6 +136,105 @@ final class OneShotFormTest extends TestCase
     }
 
     /**
+     * Teste que le champ ISBN apparaît quand on coche one-shot et disparaît quand on décoche.
+     */
+    public function testOneShotIsbnFieldVisibility(): void
+    {
+        $this->login();
+        $this->goToEditSeriesPage();
+
+        // Le champ ISBN n'est pas visible initialement
+        self::assertFalse($this->isOneShotIsbnVisible(), 'Le champ ISBN ne devrait pas être visible initialement');
+
+        // Coche one-shot → ISBN visible
+        $this->checkOneShot();
+        $this->getDriver()->wait(5)->until(fn () => $this->isOneShotIsbnVisible());
+        self::assertTrue($this->isOneShotIsbnVisible(), 'Le champ ISBN devrait être visible après avoir coché one-shot');
+
+        // Décoche one-shot → ISBN masqué
+        $this->uncheckOneShot();
+        $this->getDriver()->wait(5)->until(fn () => !$this->isOneShotIsbnVisible());
+        self::assertFalse($this->isOneShotIsbnVisible(), 'Le champ ISBN devrait être masqué après avoir décoché one-shot');
+    }
+
+    /**
+     * Teste que saisir un ISBN dans le champ virtuel le synchronise vers le tome #1.
+     */
+    public function testOneShotIsbnSyncsToTome(): void
+    {
+        $this->login();
+        $this->goToEditSeriesPage();
+
+        // Coche one-shot (crée le tome #1)
+        $this->checkOneShot();
+        $this->getDriver()->wait(5)->until(fn () => $this->isOneShotIsbnVisible());
+
+        // Saisit un ISBN dans le champ virtuel
+        $this->getDriver()->executeScript("
+            const isbnField = document.querySelector('[data-comic-form-target=\"oneShotIsbn\"]');
+            isbnField.value = '978-2-1234-5678-9';
+            isbnField.dispatchEvent(new Event('input', { bubbles: true }));
+        ");
+
+        // Vérifie que l'ISBN est copié dans le tome #1
+        $tomeIsbn = $this->getDriver()->executeScript("
+            const tomeIsbn = document.querySelector('.tome-isbn-input');
+            return tomeIsbn ? tomeIsbn.value : null;
+        ");
+
+        self::assertSame('978-2-1234-5678-9', $tomeIsbn, 'L\'ISBN devrait être synchronisé vers le tome #1');
+    }
+
+    /**
+     * Teste que le champ ISBN est pré-rempli en édition d'un one-shot avec ISBN existant.
+     */
+    public function testOneShotIsbnPrefillOnEdit(): void
+    {
+        // Crée un one-shot avec un tome ayant un ISBN via SQL
+        $title = 'Test ISBN Prefill Panther';
+        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+
+        self::runSql(\sprintf("DELETE FROM tome WHERE comic_series_id IN (SELECT id FROM comic_series WHERE title = '%s')", $title));
+        self::runSql(\sprintf("DELETE FROM comic_series WHERE title = '%s'", $title));
+        self::runSql(\sprintf(
+            "INSERT INTO comic_series (title, status, type, created_at, is_one_shot, latest_published_issue, latest_published_issue_complete, updated_at) VALUES ('%s', 'buying', 'bd', '%s', 1, 1, 1, '%s')",
+            $title,
+            $now,
+            $now,
+        ));
+
+        $output = self::runSql(\sprintf("SELECT id FROM comic_series WHERE title = '%s' ORDER BY id DESC LIMIT 1", $title));
+        \preg_match('/(\d+)/', $output, $matches);
+        $seriesId = (int) $matches[1];
+
+        self::runSql(\sprintf(
+            "INSERT INTO tome (comic_series_id, number, bought, downloaded, on_nas, isbn, created_at, updated_at) VALUES (%d, 1, 1, 0, 0, '978-2-1234-0000-0', '%s', '%s')",
+            $seriesId,
+            $now,
+            $now,
+        ));
+
+        try {
+            $this->login();
+            $this->getDriver()->get(self::BASE_URL.'/comic/'.$seriesId.'/edit');
+            $this->getDriver()->wait(10)->until(
+                WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.comic-form'))
+            );
+
+            // Le champ ISBN virtuel doit être pré-rempli
+            $isbnValue = $this->getDriver()->executeScript("
+                const isbnField = document.querySelector('[data-comic-form-target=\"oneShotIsbn\"]');
+                return isbnField ? isbnField.value : null;
+            ");
+
+            self::assertSame('978-2-1234-0000-0', $isbnValue, 'Le champ ISBN devrait être pré-rempli depuis le tome #1');
+        } finally {
+            self::runSql(\sprintf("DELETE FROM tome WHERE comic_series_id IN (SELECT id FROM comic_series WHERE title = '%s')", $title));
+            self::runSql(\sprintf("DELETE FROM comic_series WHERE title = '%s'", $title));
+        }
+    }
+
+    /**
      * Navigue vers la page d'édition d'une série.
      */
     private function goToEditSeriesPage(): void
@@ -176,22 +275,20 @@ final class OneShotFormTest extends TestCase
     }
 
     /**
-     * Vérifie si le bouton "Ajouter un tome" est visible.
+     * Vérifie si la section tomes est visible.
      */
     private function isTomesSectionVisible(): bool
     {
         return (bool) $this->getDriver()->executeScript("
-            const addButton = document.querySelector('[data-action=\"tomes-collection#addTome\"]');
-            if (!addButton) return false;
-            const style = window.getComputedStyle(addButton);
+            const section = document.querySelector('[data-comic-form-target=\"tomesSection\"]');
+            if (!section) return false;
+            const style = window.getComputedStyle(section);
             return style.display !== 'none' && style.visibility !== 'hidden';
         ");
     }
 
     /**
-     * Vérifie la visibilité du bouton "Ajouter un tome".
-     *
-     * Le comportement one-shot masque ce bouton, pas la section entière.
+     * Vérifie la visibilité de la section tomes.
      */
     private function assertTomesSectionVisible(bool $expected, string $message): void
     {
@@ -202,5 +299,18 @@ final class OneShotFormTest extends TestCase
         } else {
             $this->assertFalse($isVisible, $message);
         }
+    }
+
+    /**
+     * Vérifie si le champ ISBN one-shot est visible.
+     */
+    private function isOneShotIsbnVisible(): bool
+    {
+        return (bool) $this->getDriver()->executeScript("
+            const row = document.querySelector('[data-comic-form-target=\"oneShotIsbnRow\"]');
+            if (!row) return false;
+            const style = window.getComputedStyle(row);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+        ");
     }
 }
