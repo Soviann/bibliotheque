@@ -158,6 +158,29 @@ final class OneShotFormTest extends TestCase
     }
 
     /**
+     * Teste que le bouton de recherche ISBN apparaît à côté du champ ISBN one-shot.
+     */
+    public function testOneShotIsbnLookupButtonVisible(): void
+    {
+        $this->login();
+        $this->goToEditSeriesPage();
+
+        // Coche one-shot
+        $this->checkOneShot();
+        $this->getDriver()->wait(5)->until(fn () => $this->isOneShotIsbnVisible());
+
+        // Vérifie que le bouton de recherche ISBN est visible
+        $hasButton = (bool) $this->getDriver()->executeScript("
+            const row = document.querySelector('[data-comic-form-target=\"oneShotIsbnRow\"]');
+            if (!row) return false;
+            const btn = row.querySelector('[data-action*=\"lookupOneShotIsbn\"]');
+            return btn !== null;
+        ");
+
+        self::assertTrue($hasButton, 'Le bouton de recherche ISBN devrait être présent dans le champ ISBN one-shot');
+    }
+
+    /**
      * Teste que saisir un ISBN dans le champ virtuel le synchronise vers le tome #1.
      */
     public function testOneShotIsbnSyncsToTome(): void

@@ -10,6 +10,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Added
 
 - **ISBN one-shot** : Champ ISBN virtuel affiché directement dans le formulaire quand one-shot est coché, avec masquage de la section tomes
+- **Recherche ISBN one-shot** : Bouton de recherche à côté du champ ISBN pour pré-remplir le formulaire via l'API
 
 ### Fixed
 
