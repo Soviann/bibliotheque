@@ -12,6 +12,7 @@ export default class extends Controller {
         'latestPublishedIssue',
         'latestPublishedIssueComplete',
         'lookupButton',
+        'lookupOneShotIsbnButton',
         'lookupStatus',
         'lookupTitleButton',
         'oneShotIsbn',
@@ -184,9 +185,36 @@ export default class extends Controller {
             return;
         }
 
+        await this.performIsbnLookup(isbn, button);
+    }
+
+    /**
+     * Recherche les informations du livre par ISBN du champ one-shot.
+     */
+    async lookupOneShotIsbn() {
+        if (!this.hasOneShotIsbnTarget) {
+            return;
+        }
+
+        const isbn = this.oneShotIsbnTarget.value.trim();
+
+        if (!isbn) {
+            this.showFlashError('Veuillez saisir un ISBN');
+            this.oneShotIsbnTarget.focus();
+            return;
+        }
+
+        const button = this.hasLookupOneShotIsbnButtonTarget ? this.lookupOneShotIsbnButtonTarget : null;
+        await this.performIsbnLookup(isbn, button);
+    }
+
+    /**
+     * Logique commune de recherche ISBN via l'API.
+     */
+    async performIsbnLookup(isbn, button) {
         const type = this.getSelectedType();
 
-        button.disabled = true;
+        if (button) button.disabled = true;
 
         try {
             const url = `/api/isbn-lookup?isbn=${encodeURIComponent(isbn)}${type ? `&type=${type}` : ''}`;
@@ -229,7 +257,7 @@ export default class extends Controller {
         } catch (error) {
             this.showFlashError('Erreur de connexion');
         } finally {
-            button.disabled = false;
+            if (button) button.disabled = false;
         }
     }
 
