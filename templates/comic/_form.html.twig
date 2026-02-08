@@ -157,7 +157,7 @@
                         </div>
                         <div class="tome-isbn">
                             {{ form_widget(tome.isbn, {attr: {placeholder: 'ISBN', class: 'tome-isbn-input'}}) }}
-                            <button type="button" class="btn btn-icon btn-secondary tome-isbn-lookup" data-action="comic-form#lookupTomeIsbn" title="Rechercher via ISBN" style="display: none;">
+                            <button type="button" class="btn btn-icon btn-secondary tome-isbn-lookup" data-action="comic-form#lookupTomeIsbn" title="Rechercher via ISBN">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
                             </button>
                             <button type="button" class="btn btn-icon btn-secondary btn-scan" data-action="barcode-scanner#open" data-comic-form-context-param="tome-{{ loop.index0 }}" title="Scanner un code-barres">
@@ -197,7 +197,7 @@
                     </div>
                     <div class="tome-isbn">
                         <input type="text" name="{{ form.tomes.vars.full_name }}[__name__][isbn]" placeholder="ISBN" class="tome-isbn-input">
-                        <button type="button" class="btn btn-icon btn-secondary tome-isbn-lookup" data-action="comic-form#lookupTomeIsbn" title="Rechercher via ISBN" style="display: none;">
+                        <button type="button" class="btn btn-icon btn-secondary tome-isbn-lookup" data-action="comic-form#lookupTomeIsbn" title="Rechercher via ISBN">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
                         </button>
                         <button type="button" class="btn btn-icon btn-secondary btn-scan" data-action="barcode-scanner#open" data-comic-form-context-param="tome-__name__" title="Scanner un code-barres">
