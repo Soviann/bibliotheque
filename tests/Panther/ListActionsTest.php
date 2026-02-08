@@ -95,14 +95,14 @@ final class ListActionsTest extends TestCase
         );
 
         $flashText = $driver->findElement(WebDriverBy::cssSelector('.alert-success'))->getText();
-        self::assertStringContainsString('supprimée', $flashText);
+        self::assertStringContainsString('corbeille', $flashText);
 
-        // Vérifier en base que la série n'existe plus
+        // Vérifier en base que la série est soft-deleted (pas hard-deleted)
         $output = self::runSql(\sprintf(
-            "SELECT COUNT(*) as cnt FROM comic_series WHERE title = '%s'",
+            "SELECT COUNT(*) as cnt FROM comic_series WHERE title = '%s' AND deleted_at IS NOT NULL",
             self::DELETE_TITLE,
         ));
-        self::assertStringContainsString('0', $output);
+        self::assertStringContainsString('1', $output);
     }
 
     /**
