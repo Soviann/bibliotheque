@@ -3,11 +3,15 @@ FROM php:8.3-apache
 RUN apt-get update && apt-get install -y \
     git \
     libicu-dev \
+    libjpeg62-turbo-dev \
     libpng-dev \
+    libwebp-dev \
     libzip-dev \
     unzip \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-configure intl \
     && docker-php-ext-install \
+    gd \
     intl \
     opcache \
     pdo_mysql \

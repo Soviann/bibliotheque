@@ -203,7 +203,9 @@ features/                     # Behat .feature files
 
 **ComicSeriesMapper**: `mapToEntity(ComicSeriesInput, ?ComicSeries): ComicSeries`, `mapToInput(ComicSeries): ComicSeriesInput`
 
-**CoverRemoverInterface**: `remove(ComicSeries): void` — Impl: `VichCoverRemover`
+**CoverRemoverInterface**: `remove(ComicSeries): void` — Impl: `VichCoverRemover` (invalide aussi le cache LiipImagine)
+
+**UploadHandlerInterface**: `remove(object, string): void` — Impl: `VichUploadHandlerAdapter` (adaptateur pour le `UploadHandler` final de VichUploader)
 
 **IsbnLookupService**: `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`, `getLastApiMessages(): array`
 - APIs: Google Books, Open Library, AniList (mangas)
@@ -255,6 +257,8 @@ features/                     # Behat .feature files
 
 ### Twig Extensions
 
+**CoverImageExtension**: `cover_image_url(comic, filter='cover_thumbnail')` — URL optimisée de la couverture (LiipImagine pour uploads, URL directe pour externes, chaîne vide si pas de cover)
+
 **SafeRefererExtension**: `safeReferer(fallback)` — retourne le HTTP referer filtré
 
 ### Console Commands
@@ -265,7 +269,7 @@ features/                     # Behat .feature files
 
 ### Integrations
 
-VichUploaderBundle (covers), knplabs/doctrine-behaviors (soft delete), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
+VichUploaderBundle (covers), LiipImagineBundle (redimensionnement + WebP), knplabs/doctrine-behaviors (soft delete), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
 
 ### Behat
 

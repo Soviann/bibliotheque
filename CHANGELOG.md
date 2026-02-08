@@ -9,6 +9,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Optimisation des couvertures** : Redimensionnement automatique et conversion WebP des images de couverture via LiipImagineBundle
+  - Deux variantes : `cover_thumbnail` (300×450, WebP, q80) pour les listes et `cover_medium` (600×900, WebP, q85) pour les fiches détail
+  - Extension Twig `cover_image_url()` centralisant la logique cover uploadée / URL externe / pas de cover
+  - Invalidation automatique du cache LiipImagine lors de la suppression d'une couverture
+  - Attributs `width`/`height` explicites sur les `<img>` pour éviter le CLS (Cumulative Layout Shift)
+  - Extension GD avec support WebP/JPEG dans le Dockerfile de production
+  - Cache PWA images augmenté de 60 à 200 entrées
+
 - **Soft delete pour les séries** : La suppression d'une série la déplace dans une corbeille au lieu de la supprimer définitivement
   - Package `knplabs/doctrine-behaviors` pour le trait `SoftDeletable` sur `ComicSeries`
   - Filtre SQL Doctrine `SoftDeleteFilter` excluant automatiquement les séries supprimées des requêtes

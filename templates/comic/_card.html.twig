@@ -1,12 +1,9 @@
 <div class="comic-card">
     <a href="{{ path('app_comic_show', {id: comic.id}) }}" class="comic-card-link" data-turbo-frame="_top">
-        {% if comic.coverImage %}
+        {% set coverUrl = cover_image_url(comic, 'cover_thumbnail') %}
+        {% if coverUrl %}
             <div class="comic-card-cover">
-                <img src="{{ vich_uploader_asset(comic, 'coverFile') }}" alt="Couverture de {{ comic.title }}" loading="lazy">
-            </div>
-        {% elseif comic.coverUrl %}
-            <div class="comic-card-cover">
-                <img src="{{ comic.coverUrl }}" alt="Couverture de {{ comic.title }}" loading="lazy">
+                <img src="{{ coverUrl }}" alt="Couverture de {{ comic.title }}" width="300" height="450" loading="lazy">
             </div>
         {% endif %}
         <div class="comic-card-content">
