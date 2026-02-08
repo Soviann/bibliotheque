@@ -13,6 +13,7 @@
 - **Complex tasks**: Plan mode → approval → implementation
 - **Splitting**: divide large changes into verifiable chunks
 - **Plans**: save to `docs/plans/YYYY-MM-DD-<feature>.md`, not `~/.claude/plans/`
+- **Cleanup**: delete the plan file from `docs/plans/` once fully executed and merged/PR'd
 
 ## Principle: Don't Reinvent the Wheel
 
