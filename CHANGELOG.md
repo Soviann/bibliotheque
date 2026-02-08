@@ -36,6 +36,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Nouveau trait `PantherTestHelper` mutualisant driver, login et exécution SQL entre les 3 fichiers de tests Panther
   - Remplacement des `usleep()`/`sleep()` par des WebDriver waits explicites
 
+### Changed
+
+- **Lookup ISBN parallélisé** : Les appels Google Books et Open Library sont désormais lancés en parallèle (lazy responses de Symfony HttpClient), réduisant le temps d'attente de Google + OpenLibrary à ~max(Google, OpenLibrary). Les fetches d'auteurs Open Library sont également parallélisés.
+
 ### Removed
 
 - **Wizard multi-étapes** : Suppression du formulaire multi-étapes (FormFlow) pour la création de séries

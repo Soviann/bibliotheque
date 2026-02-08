@@ -13,6 +13,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Service de recherche d'informations sur un livre/BD/manga par ISBN ou titre.
@@ -63,9 +64,13 @@ class IsbnLookupService
             return null;
         }
 
-        // Interroge Google Books et Open Library par ISBN
-        $googleResult = $this->lookupGoogleBooks($isbn);
-        $openLibraryResult = $this->lookupOpenLibrary($isbn);
+        // Lance les deux requêtes en parallèle (Symfony HttpClient est lazy)
+        $googleResponse = $this->requestGoogleBooks($isbn);
+        $openLibraryResponse = $this->requestOpenLibrary($isbn);
+
+        // Traite les réponses (les requêtes s'exécutent en parallèle pendant ce temps)
+        $googleResult = $this->processGoogleBooksResponse($googleResponse, $isbn);
+        $openLibraryResult = $this->processOpenLibraryResponse($openLibraryResponse, $isbn);
 
         // Si aucune API n'a de résultat
         if (null === $googleResult && null === $openLibraryResult) {
@@ -260,20 +265,27 @@ class IsbnLookupService
     }
 
     /**
-     * Recherche sur Google Books API.
-     * Récupère plusieurs résultats et les fusionne pour obtenir les données les plus complètes.
+     * Lance la requête Google Books par ISBN (non bloquant).
      */
-    private function lookupGoogleBooks(string $isbn): ?array
+    private function requestGoogleBooks(string $isbn): ResponseInterface
+    {
+        return $this->httpClient->request('GET', self::GOOGLE_BOOKS_API, [
+            'query' => [
+                'q' => 'isbn:'.$isbn,
+                'maxResults' => 10,
+            ],
+            'timeout' => 10,
+        ]);
+    }
+
+    /**
+     * Traite la réponse Google Books et extrait les données.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function processGoogleBooksResponse(ResponseInterface $response, string $isbn): ?array
     {
         try {
-            $response = $this->httpClient->request('GET', self::GOOGLE_BOOKS_API, [
-                'query' => [
-                    'q' => 'isbn:'.$isbn,
-                    'maxResults' => 10,
-                ],
-                'timeout' => 10,
-            ]);
-
             $data = $response->toArray();
 
             if (empty($data['items'])) {
@@ -282,7 +294,6 @@ class IsbnLookupService
                 return null;
             }
 
-            // Fusionne les informations de tous les résultats pour maximiser les données
             $result = $this->mergeGoogleBooksItems($data['items']);
             $this->recordApiMessage('google_books', ApiLookupStatus::SUCCESS, 'Données trouvées');
 
@@ -435,15 +446,24 @@ class IsbnLookupService
     }
 
     /**
-     * Recherche sur Open Library API.
+     * Lance la requête Open Library par ISBN (non bloquant).
      */
-    private function lookupOpenLibrary(string $isbn): ?array
+    private function requestOpenLibrary(string $isbn): ResponseInterface
+    {
+        return $this->httpClient->request('GET', self::OPEN_LIBRARY_API.$isbn.'.json', [
+            'timeout' => 10,
+        ]);
+    }
+
+    /**
+     * Traite la réponse Open Library et extrait les données.
+     * Les requêtes d'auteurs sont également parallélisées.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function processOpenLibraryResponse(ResponseInterface $response, string $isbn): ?array
     {
         try {
-            $response = $this->httpClient->request('GET', self::OPEN_LIBRARY_API.$isbn.'.json', [
-                'timeout' => 10,
-            ]);
-
             if (200 !== $response->getStatusCode()) {
                 $this->recordApiMessage('open_library', ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
 
@@ -458,19 +478,10 @@ class IsbnLookupService
                 return null;
             }
 
-            // Récupère les auteurs si disponibles
+            // Récupère les auteurs en parallèle si disponibles
             $authors = null;
             if (!empty($data['authors'])) {
-                $authorNames = [];
-                foreach ($data['authors'] as $author) {
-                    if (isset($author['key'])) {
-                        $authorData = $this->fetchOpenLibraryAuthor($author['key']);
-                        if ($authorData) {
-                            $authorNames[] = $authorData;
-                        }
-                    }
-                }
-                $authors = \implode(', ', $authorNames);
+                $authors = $this->fetchOpenLibraryAuthorsParallel($data['authors']);
             }
 
             // Récupère l'éditeur
@@ -533,40 +544,50 @@ class IsbnLookupService
     }
 
     /**
-     * Récupère le nom d'un auteur depuis Open Library.
+     * Récupère les noms des auteurs Open Library en parallèle.
+     * Lance toutes les requêtes d'abord, puis lit les réponses.
+     *
+     * @param array<int, array{key?: string}> $authorRefs
      */
-    private function fetchOpenLibraryAuthor(string $authorKey): ?string
+    private function fetchOpenLibraryAuthorsParallel(array $authorRefs): ?string
     {
-        try {
-            $response = $this->httpClient->request('GET', 'https://openlibrary.org'.$authorKey.'.json', [
-                'timeout' => 5,
-            ]);
-
-            $data = $response->toArray();
-
-            return $data['name'] ?? null;
-        } catch (TransportExceptionInterface $e) {
-            $this->logger->debug('Erreur réseau lors de la récupération de l\'auteur Open Library "{key}": {error}', [
-                'error' => $e->getMessage(),
-                'key' => $authorKey,
-            ]);
-
-            return null;
-        } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
-            $this->logger->debug('Erreur HTTP lors de la récupération de l\'auteur Open Library "{key}": {error}', [
-                'error' => $e->getMessage(),
-                'key' => $authorKey,
-            ]);
-
-            return null;
-        } catch (DecodingExceptionInterface $e) {
-            $this->logger->debug('Réponse JSON invalide pour l\'auteur Open Library "{key}": {error}', [
-                'error' => $e->getMessage(),
-                'key' => $authorKey,
-            ]);
-
-            return null;
+        // Phase 1 : lance toutes les requêtes (non bloquant)
+        $responses = [];
+        foreach ($authorRefs as $author) {
+            if (isset($author['key'])) {
+                $responses[$author['key']] = $this->httpClient->request('GET', 'https://openlibrary.org'.$author['key'].'.json', [
+                    'timeout' => 5,
+                ]);
+            }
         }
+
+        // Phase 2 : lit les réponses (les requêtes s'exécutent en parallèle)
+        $authorNames = [];
+        foreach ($responses as $authorKey => $response) {
+            try {
+                $data = $response->toArray();
+                if (!empty($data['name'])) {
+                    $authorNames[] = $data['name'];
+                }
+            } catch (TransportExceptionInterface $e) {
+                $this->logger->debug('Erreur réseau lors de la récupération de l\'auteur Open Library "{key}": {error}', [
+                    'error' => $e->getMessage(),
+                    'key' => $authorKey,
+                ]);
+            } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+                $this->logger->debug('Erreur HTTP lors de la récupération de l\'auteur Open Library "{key}": {error}', [
+                    'error' => $e->getMessage(),
+                    'key' => $authorKey,
+                ]);
+            } catch (DecodingExceptionInterface $e) {
+                $this->logger->debug('Réponse JSON invalide pour l\'auteur Open Library "{key}": {error}', [
+                    'error' => $e->getMessage(),
+                    'key' => $authorKey,
+                ]);
+            }
+        }
+
+        return \count($authorNames) > 0 ? \implode(', ', $authorNames) : null;
     }
 
     /**
