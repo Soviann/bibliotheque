@@ -17,6 +17,9 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ComicSeriesRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\Index(columns: ['status'], name: 'idx_comic_series_status')]
+#[ORM\Index(columns: ['title'], name: 'idx_comic_series_title')]
+#[ORM\Index(columns: ['type'], name: 'idx_comic_series_type')]
 #[Vich\Uploadable]
 class ComicSeries
 {
