@@ -13,6 +13,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: TomeRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\Index(columns: ['isbn'], name: 'idx_tome_isbn')]
+#[ORM\Index(columns: ['on_nas'], name: 'idx_tome_on_nas')]
 class Tome
 {
     #[ORM\Id]
