@@ -115,7 +115,7 @@ No `Co-Authored-By`.
 - Tout travail non trivial → branche + PR + **squash merge**
 - Commits directs sur `main` autorisés pour : typos, CLAUDE.md, config mineure
 - Lier les PRs aux issues : `fixes #N` ou `closes #N`
-- Supprimer la branche après merge
+- Branche remote supprimée automatiquement après merge (setting GitHub)
 
 ### Tags et releases (SemVer)
 
@@ -138,12 +138,10 @@ No `Co-Authored-By`.
 
 1. **All work starts from an issue.** If the user provides an issue number, use it. Otherwise create one directly — **never list/search issues first** (sole developer knows what exists).
 2. **No read-only GitHub queries.** Never call `list_issues`, `list_pull_requests`, `search_issues`, `search_pull_requests`, or `list_branches` to "check" state. The user will provide context. Only query GitHub when a specific ID or data point is needed and unknown.
-3. **Move issues** through the board as you work: `Todo` → `In Progress` (when starting) → `Done` (when merged/complete).
+3. **Board automation** : les workflows GitHub Project déplacent automatiquement les issues vers `Done` à la fermeture. Ne pas déplacer manuellement. Seul `In Progress` au démarrage reste manuel.
 4. **New feature ideas** without immediate implementation go to `Backlog`.
-5. **Close issues** with commit references when the work is done (`fixes #N` in commit message).
+5. **Close issues** via `fixes #N` dans le message de PR/commit — pas de fermeture manuelle.
 6. **Labels**: use existing repo labels (`enhancement`, `bug`, etc.). Don't create new labels without asking.
-
-7. **Single board move per issue**: move directly to `Done` at merge (skip `In Progress` → `Done`). The `fixes #N` in the PR auto-closes the issue — no need to close it manually.
 
 ### Token optimization
 
@@ -156,15 +154,13 @@ No `Co-Authored-By`.
 
 ```bash
 # Issues
-gh issue list --repo Soviann/bibliotheque
 gh issue create --repo Soviann/bibliotheque --title "..." --body "..." --label "..."
-gh issue close N --repo Soviann/bibliotheque
 
-# Project board — move item to a column
+# Project board — move item (only needed for In Progress, Done is automated)
 # 1. Get item ID:  gh project item-list 1 --owner Soviann --format json
 # 2. Edit status:  gh project item-edit --project-id PVT_kwHOANG8LM4BObgL --id <ITEM_ID> \
 #      --field-id PVTSSF_lAHOANG8LM4BObgLzg9IoUA --single-select-option-id <OPTION_ID>
-# Column option IDs: Backlog=d55ad18f  Todo=31c84745  InProgress=7c2874a8  Done=6694d845
+# Column option IDs: Backlog=d55ad18f  Todo=31c84745  InProgress=7c2874a8  Done=automated
 ```
 
 ## Changelog
