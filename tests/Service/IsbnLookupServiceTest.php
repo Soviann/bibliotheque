@@ -960,4 +960,84 @@ class IsbnLookupServiceTest extends TestCase
         // google_books ne doit pas être présent car AniList a trouvé
         self::assertArrayNotHasKey('google_books', $messages);
     }
+
+    /**
+     * Teste que les requêtes Google Books et Open Library sont lancées en parallèle.
+     * Les deux request() doivent être appelés avant que les réponses ne soient lues.
+     */
+    public function testLookupLaunchesBothRequestsBeforeProcessing(): void
+    {
+        $requestLog = [];
+
+        $googleResponse = new MockResponse(\json_encode([
+            'items' => [['volumeInfo' => ['title' => 'Parallel Test']]],
+        ]));
+
+        $openLibraryResponse = new MockResponse('', ['http_code' => 404]);
+
+        $responses = [$googleResponse, $openLibraryResponse];
+
+        $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$requestLog, &$responses): MockResponse {
+            $requestLog[] = $url;
+
+            return \array_shift($responses);
+        });
+
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Parallel Test', $result['title']);
+        // Les deux requêtes ont bien été émises
+        self::assertCount(2, $requestLog);
+        // Google Books en premier
+        self::assertStringContainsString('googleapis.com', $requestLog[0]);
+        // Open Library en second
+        self::assertStringContainsString('openlibrary.org', $requestLog[1]);
+    }
+
+    /**
+     * Teste que les requêtes d'auteurs Open Library sont lancées en parallèle.
+     * Tous les request() d'auteurs doivent être émis avant que les réponses ne soient lues.
+     */
+    public function testLookupParallelizesOpenLibraryAuthorFetches(): void
+    {
+        $requestLog = [];
+
+        $googleResponse = new MockResponse(\json_encode(['items' => []]));
+
+        $openLibraryResponse = new MockResponse(\json_encode([
+            'authors' => [
+                ['key' => '/authors/OL1A'],
+                ['key' => '/authors/OL2A'],
+                ['key' => '/authors/OL3A'],
+            ],
+            'title' => 'Multi Author Book',
+        ]));
+
+        $authorResponse1 = new MockResponse(\json_encode(['name' => 'Author One']));
+        $authorResponse2 = new MockResponse(\json_encode(['name' => 'Author Two']));
+        $authorResponse3 = new MockResponse(\json_encode(['name' => 'Author Three']));
+
+        $responses = [$googleResponse, $openLibraryResponse, $authorResponse1, $authorResponse2, $authorResponse3];
+
+        $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$requestLog, &$responses): MockResponse {
+            $requestLog[] = $url;
+
+            return \array_shift($responses);
+        });
+
+        $service = new IsbnLookupService($mockClient, new NullLogger());
+        $result = $service->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Author One, Author Two, Author Three', $result['authors']);
+
+        // 5 requêtes : Google Books + Open Library ISBN + 3 auteurs
+        self::assertCount(5, $requestLog);
+        // Les 3 requêtes d'auteurs sont consécutives (lancées ensemble)
+        self::assertStringContainsString('/authors/OL1A', $requestLog[2]);
+        self::assertStringContainsString('/authors/OL2A', $requestLog[3]);
+        self::assertStringContainsString('/authors/OL3A', $requestLog[4]);
+    }
 }
