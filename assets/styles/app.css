@@ -2250,6 +2250,120 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
     color: var(--md-primary);
 }
 
+/* Type Picker (bottom sheet) */
+.type-picker {
+    align-items: flex-end;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    position: fixed;
+    z-index: 1000;
+}
+
+.type-picker__sheet {
+    animation: typePickerSlideUp 0.3s ease-out;
+    background-color: var(--md-surface);
+    border-radius: var(--md-radius-lg) var(--md-radius-lg) 0 0;
+    max-width: 400px;
+    padding: var(--md-spacing-lg);
+    padding-bottom: calc(var(--md-spacing-lg) + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+}
+
+.type-picker__title {
+    color: var(--md-text-high);
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: var(--md-spacing-lg);
+    text-align: center;
+}
+
+.type-picker__options {
+    display: grid;
+    gap: var(--md-spacing-md);
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: var(--md-spacing-lg);
+}
+
+.type-picker__option {
+    border: 2px solid transparent;
+    border-radius: var(--md-radius-md);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    min-height: 56px;
+    transition: all 0.2s;
+}
+
+.type-picker__option:active {
+    transform: scale(0.95);
+}
+
+.type-picker__option--bd {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.type-picker__option--bd:hover {
+    border-color: #e65100;
+}
+
+.type-picker__option--comics {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.type-picker__option--comics:hover {
+    border-color: #1565c0;
+}
+
+.type-picker__option--manga {
+    background-color: #fce4ec;
+    color: #c2185b;
+}
+
+.type-picker__option--manga:hover {
+    border-color: #c2185b;
+}
+
+.type-picker__option--livre {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.type-picker__option--livre:hover {
+    border-color: #2e7d32;
+}
+
+.type-picker__close {
+    background: none;
+    border: 1px solid var(--md-divider);
+    border-radius: var(--md-radius-full);
+    color: var(--md-text-medium);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    height: 40px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.type-picker__close:hover {
+    background-color: var(--md-background);
+}
+
+@keyframes typePickerSlideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
 /* Desktop */
 @media (min-width: 768px) {
     .fab-stack {
