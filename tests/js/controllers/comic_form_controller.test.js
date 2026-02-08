@@ -330,6 +330,81 @@ describe('comic_form_controller', () => {
             expect(checkbox.checked).toBe(true);
         });
 
+        it('ne remplit PAS title/publishedDate/description depuis un tome', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    authors: 'Kishimoto',
+                    description: 'Résumé du tome 1',
+                    isOneShot: false,
+                    publishedDate: '2024',
+                    publisher: 'Kana',
+                    sources: ['google_books'],
+                    thumbnail: 'http://img.jpg',
+                    title: 'Naruto Vol. 1',
+                }),
+                ok: true,
+            });
+
+            const controller = await setup();
+            const button = document.createElement('button');
+            await controller.performIsbnLookup('978-123', button, { fromTome: true });
+
+            // Champs série : remplis
+            expect(document.querySelector('[data-comic-form-target="publisher"]').value).toBe('Kana');
+            expect(document.querySelector('[data-comic-form-target="coverUrl"]').value).toBe('http://img.jpg');
+
+            // Champs volume-spécifiques : NON remplis
+            expect(document.querySelector('[data-comic-form-target="title"]').value).toBe('');
+            expect(document.querySelector('[data-comic-form-target="publishedDate"]').value).toBe('');
+            expect(document.querySelector('[data-comic-form-target="description"]').value).toBe('');
+        });
+
+        it('remplit title/publishedDate/description en mode normal', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    authors: 'Kishimoto',
+                    description: 'Ninja manga',
+                    isOneShot: false,
+                    publishedDate: '1999',
+                    publisher: 'Kana',
+                    sources: ['google_books'],
+                    thumbnail: 'http://img.jpg',
+                    title: 'Naruto',
+                }),
+                ok: true,
+            });
+
+            const controller = await setup();
+            const button = document.createElement('button');
+            await controller.performIsbnLookup('978-123', button);
+
+            expect(document.querySelector('[data-comic-form-target="title"]').value).toBe('Naruto');
+            expect(document.querySelector('[data-comic-form-target="publishedDate"]').value).toBe('1999');
+            expect(document.querySelector('[data-comic-form-target="description"]').value).toBe('Ninja manga');
+            expect(document.querySelector('[data-comic-form-target="publisher"]').value).toBe('Kana');
+            expect(document.querySelector('[data-comic-form-target="coverUrl"]').value).toBe('http://img.jpg');
+        });
+
+        it('ne coche PAS isOneShot depuis un tome', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    isOneShot: true,
+                    sources: ['google_books'],
+                    title: 'Solo Vol. 1',
+                }),
+                ok: true,
+            });
+
+            const controller = await setup();
+            await controller.performIsbnLookup('978-123', null, { fromTome: true });
+
+            const checkbox = document.querySelector('[data-comic-form-target="isOneShot"]');
+            expect(checkbox.checked).toBe(false);
+        });
+
         it('inclut le type dans l\'URL de l\'API', async () => {
             global.fetch = vi.fn().mockResolvedValue({
                 json: () => Promise.resolve({ apiMessages: {}, sources: [] }),

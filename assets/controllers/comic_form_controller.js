@@ -171,7 +171,8 @@ export default class extends Controller {
     }
 
     /**
-     * Recherche les informations du livre par ISBN du tome (pour les one-shots).
+     * Recherche les informations du livre par ISBN d'un tome.
+     * Ne remplit que les champs pertinents au niveau série (auteurs, éditeur, couverture).
      */
     async lookupTomeIsbn(event) {
         const button = event.currentTarget;
@@ -185,7 +186,7 @@ export default class extends Controller {
             return;
         }
 
-        await this.performIsbnLookup(isbn, button);
+        await this.performIsbnLookup(isbn, button, { fromTome: true });
     }
 
     /**
@@ -210,8 +211,13 @@ export default class extends Controller {
 
     /**
      * Logique commune de recherche ISBN via l'API.
+     * @param {string} isbn - ISBN à rechercher
+     * @param {HTMLButtonElement|null} button - Bouton à désactiver pendant la recherche
+     * @param {Object} options - Options de recherche
+     * @param {boolean} options.fromTome - Si true, ne remplit que les champs série (pas title/date/description)
      */
-    async performIsbnLookup(isbn, button) {
+    async performIsbnLookup(isbn, button, options = {}) {
+        const { fromTome = false } = options;
         const type = this.getSelectedType();
 
         if (button) button.disabled = true;
@@ -229,16 +235,20 @@ export default class extends Controller {
             // Liste des champs remplis
             const filledFields = [];
 
-            // Remplit les champs de la série
-            if (this.fillField('title', data.title)) filledFields.push('title');
+            // Champs volume-spécifiques : uniquement en mode normal (pas depuis un tome)
+            if (!fromTome) {
+                if (this.fillField('title', data.title)) filledFields.push('title');
+                if (this.fillField('publishedDate', data.publishedDate)) filledFields.push('publishedDate');
+                if (this.fillField('description', data.description)) filledFields.push('description');
+            }
+
+            // Champs série : toujours remplis
             if (this.fillAuthors(data.authors)) filledFields.push('authors');
             if (this.fillField('publisher', data.publisher)) filledFields.push('publisher');
-            if (this.fillField('publishedDate', data.publishedDate)) filledFields.push('publishedDate');
-            if (this.fillField('description', data.description)) filledFields.push('description');
             if (this.fillField('coverUrl', data.thumbnail)) filledFields.push('coverUrl');
 
-            // Gère le one-shot détecté (coche la case si pas déjà cochée)
-            if (data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
+            // Gère le one-shot détecté (uniquement en mode normal)
+            if (!fromTome && data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
                 this.isOneShotTarget.checked = true;
                 this.applyOneShotState(true);
                 filledFields.push('isOneShot');
