@@ -294,6 +294,7 @@ export default class extends Controller {
         const type = this.getSelectedType();
 
         if (button) button.disabled = true;
+        this.setButtonLoading(button);
 
         try {
             const url = `/api/isbn-lookup?isbn=${encodeURIComponent(isbn)}${type ? `&type=${type}` : ''}`;
@@ -341,6 +342,7 @@ export default class extends Controller {
             this.showFlashError('Erreur de connexion');
         } finally {
             if (button) button.disabled = false;
+            this.clearButtonLoading(button);
         }
     }
 
@@ -364,6 +366,7 @@ export default class extends Controller {
 
         if (this.hasLookupTitleButtonTarget) {
             this.lookupTitleButtonTarget.disabled = true;
+            this.setButtonLoading(this.lookupTitleButtonTarget);
         }
 
         try {
@@ -415,6 +418,7 @@ export default class extends Controller {
         } finally {
             if (this.hasLookupTitleButtonTarget) {
                 this.lookupTitleButtonTarget.disabled = false;
+                this.clearButtonLoading(this.lookupTitleButtonTarget);
             }
         }
     }
@@ -480,6 +484,7 @@ export default class extends Controller {
         const type = this.getSelectedType();
 
         this.lookupButtonTarget.disabled = true;
+        this.setButtonLoading(this.lookupButtonTarget);
         this.showStatus('Recherche en cours...', 'loading');
 
         try {
@@ -536,6 +541,7 @@ export default class extends Controller {
             this.showStatus('Erreur de connexion', 'error');
         } finally {
             this.lookupButtonTarget.disabled = false;
+            this.clearButtonLoading(this.lookupButtonTarget);
         }
     }
 
@@ -751,6 +757,20 @@ export default class extends Controller {
                 this.lookupStatusTarget.className = 'lookup-status';
             }, 5000);
         }
+    }
+
+    /**
+     * Active l'état de chargement sur un bouton (spinner CSS).
+     */
+    setButtonLoading(button) {
+        if (button) button.classList.add('btn-icon--loading');
+    }
+
+    /**
+     * Désactive l'état de chargement sur un bouton.
+     */
+    clearButtonLoading(button) {
+        if (button) button.classList.remove('btn-icon--loading');
     }
 
     /**

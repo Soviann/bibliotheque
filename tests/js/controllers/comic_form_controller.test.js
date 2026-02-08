@@ -42,15 +42,15 @@ function buildHtml({ isOneShot = false, existingTome = false } = {}) {
             </div>
             <div data-comic-form-target="oneShotIsbnRow" style="display: none;">
                 <input data-comic-form-target="oneShotIsbn" type="text" value="">
-                <button data-comic-form-target="lookupOneShotIsbnButton">Rechercher</button>
+                <button data-comic-form-target="lookupOneShotIsbnButton" class="btn-icon"><svg></svg></button>
             </div>
             <div data-comic-form-target="tomesSection">
                 <div data-comic-form-target="tomesList">${tomeEntry}</div>
                 <template data-comic-form-target="tomesPrototype">${TOME_PROTOTYPE}</template>
                 <button data-comic-form-target="addTomeButton">Ajouter</button>
             </div>
-            <button data-comic-form-target="lookupButton">Rechercher ISBN</button>
-            <button data-comic-form-target="lookupTitleButton">Rechercher Titre</button>
+            <button data-comic-form-target="lookupButton" class="btn-icon"><svg></svg></button>
+            <button data-comic-form-target="lookupTitleButton" class="btn-icon"><svg></svg></button>
             <div data-comic-form-target="lookupStatus" class="lookup-status"></div>
         </form>
     `;
@@ -548,6 +548,80 @@ describe('comic_form_controller', () => {
             expect(document.querySelector('.api-lookup-flash')).toBeNull();
 
             vi.useRealTimers();
+        });
+    });
+
+    describe('loading spinner on buttons', () => {
+        it('ajoute btn-icon--loading sur le bouton pendant performIsbnLookup', async () => {
+            let resolveFetch;
+            global.fetch = vi.fn().mockReturnValue(new Promise(resolve => {
+                resolveFetch = resolve;
+            }));
+
+            const controller = await setup();
+            const button = document.querySelector('[data-comic-form-target="lookupOneShotIsbnButton"]');
+
+            const lookupPromise = controller.performIsbnLookup('978-123', button);
+            expect(button.classList.contains('btn-icon--loading')).toBe(true);
+
+            resolveFetch({
+                json: () => Promise.resolve({ apiMessages: {}, sources: [] }),
+                ok: true,
+            });
+            await lookupPromise;
+            expect(button.classList.contains('btn-icon--loading')).toBe(false);
+        });
+
+        it('ajoute btn-icon--loading sur lookupTitleButton pendant lookupByTitle', async () => {
+            let resolveFetch;
+            global.fetch = vi.fn().mockReturnValue(new Promise(resolve => {
+                resolveFetch = resolve;
+            }));
+
+            const controller = await setup();
+            document.querySelector('[data-comic-form-target="title"]').value = 'One Piece';
+
+            const lookupPromise = controller.lookupByTitle();
+            const button = document.querySelector('[data-comic-form-target="lookupTitleButton"]');
+            expect(button.classList.contains('btn-icon--loading')).toBe(true);
+
+            resolveFetch({
+                json: () => Promise.resolve({ apiMessages: {}, sources: [] }),
+                ok: true,
+            });
+            await lookupPromise;
+            expect(button.classList.contains('btn-icon--loading')).toBe(false);
+        });
+
+        it('ajoute btn-icon--loading sur lookupButton pendant lookupIsbn', async () => {
+            let resolveFetch;
+            global.fetch = vi.fn().mockReturnValue(new Promise(resolve => {
+                resolveFetch = resolve;
+            }));
+
+            const controller = await setup();
+            document.querySelector('[data-comic-form-target="isbn"]').value = '978-123';
+
+            const lookupPromise = controller.lookupIsbn();
+            const button = document.querySelector('[data-comic-form-target="lookupButton"]');
+            expect(button.classList.contains('btn-icon--loading')).toBe(true);
+
+            resolveFetch({
+                json: () => Promise.resolve({ apiMessages: {}, sources: [] }),
+                ok: true,
+            });
+            await lookupPromise;
+            expect(button.classList.contains('btn-icon--loading')).toBe(false);
+        });
+
+        it('retire btn-icon--loading même en cas d\'erreur réseau', async () => {
+            global.fetch = vi.fn().mockRejectedValue(new Error('network'));
+
+            const controller = await setup();
+            const button = document.querySelector('[data-comic-form-target="lookupOneShotIsbnButton"]');
+
+            await controller.performIsbnLookup('978-123', button);
+            expect(button.classList.contains('btn-icon--loading')).toBe(false);
         });
     });
 
