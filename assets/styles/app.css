@@ -2122,3 +2122,138 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
         width: auto;
     }
 }
+
+/* FAB Stack (scan + add) */
+.fab-stack {
+    align-items: center;
+    bottom: calc(var(--bottom-nav-height) + var(--md-spacing-md) + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: var(--md-spacing-md);
+    position: fixed;
+    right: var(--md-spacing-md);
+    z-index: 90;
+}
+
+.fab-stack .fab {
+    bottom: auto;
+    position: static;
+    right: auto;
+}
+
+.fab-scan {
+    background-color: var(--md-primary);
+}
+
+.fab-scan--loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.fab-scan--loading::after {
+    animation: spin 1s linear infinite;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    border-top-color: var(--md-on-primary);
+    content: '';
+    height: 20px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+}
+
+.fab-scan--loading svg {
+    visibility: hidden;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Scanner Modal (plein écran) */
+.scanner-modal {
+    align-items: center;
+    background-color: #000;
+    display: flex;
+    height: 100%;
+    inset: 0;
+    justify-content: center;
+    position: fixed;
+    z-index: 1000;
+}
+
+.scanner-modal video {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+
+.scanner-modal__overlay {
+    align-items: center;
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    pointer-events: none;
+    position: absolute;
+}
+
+.scanner-modal__scan-area {
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: var(--md-radius-md);
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+    width: 280px;
+}
+
+.scanner-modal__scan-line {
+    animation: scanLine 2s ease-in-out infinite;
+    background: linear-gradient(to bottom, transparent, var(--md-primary), transparent);
+    height: 3px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+@keyframes scanLine {
+    0%, 100% { top: 0; }
+    50% { top: calc(100% - 3px); }
+}
+
+.scanner-modal__close {
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    font-size: 1.5rem;
+    height: 48px;
+    justify-content: center;
+    position: absolute;
+    right: var(--md-spacing-md);
+    top: calc(var(--md-spacing-md) + env(safe-area-inset-top, 0px));
+    width: 48px;
+    z-index: 1;
+}
+
+.scanner-modal__close:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Bouton scan dans les formulaires */
+.btn-scan {
+    color: var(--md-primary);
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+    .fab-stack {
+        bottom: var(--md-spacing-lg);
+        right: var(--md-spacing-lg);
+    }
+}
