@@ -654,6 +654,79 @@ describe('comic_form_controller', () => {
             window.history.replaceState({}, '', window.location.pathname);
         });
 
+        it('pré-sélectionne le type si présent dans l\'URL', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    sources: ['google_books'],
+                    title: 'Naruto',
+                }),
+                ok: true,
+            });
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('scan_isbn', '9782723456789');
+            url.searchParams.set('type', 'manga');
+            window.history.replaceState({}, '', url.toString());
+
+            await setup();
+
+            const typeSelect = document.querySelector('[data-comic-form-target="type"]');
+            expect(typeSelect.value).toBe('manga');
+
+            // Nettoie l'URL
+            window.history.replaceState({}, '', window.location.pathname);
+        });
+
+        it('inclut le type dans l\'appel API du lookup automatique', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    sources: ['google_books'],
+                    title: 'Naruto',
+                }),
+                ok: true,
+            });
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('scan_isbn', '9782723456789');
+            url.searchParams.set('type', 'manga');
+            window.history.replaceState({}, '', url.toString());
+
+            await setup();
+
+            await vi.waitFor(() => {
+                expect(global.fetch).toHaveBeenCalledWith(
+                    expect.stringContaining('type=manga')
+                );
+            });
+
+            // Nettoie l'URL
+            window.history.replaceState({}, '', window.location.pathname);
+        });
+
+        it('nettoie aussi le paramètre type de l\'URL', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    sources: [],
+                }),
+                ok: true,
+            });
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('scan_isbn', '9782723456789');
+            url.searchParams.set('type', 'manga');
+            window.history.replaceState({}, '', url.toString());
+
+            await setup();
+
+            expect(window.location.search).toBe('');
+
+            // Nettoie l'URL
+            window.history.replaceState({}, '', window.location.pathname);
+        });
+
         it('remplit le champ ISBN avant le lookup', async () => {
             global.fetch = vi.fn().mockResolvedValue({
                 json: () => Promise.resolve({

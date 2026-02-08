@@ -76,6 +76,12 @@ export default class extends Controller {
             return;
         }
 
+        // Pré-sélectionne le type si fourni (avant le lookup qui utilise getSelectedType())
+        const scanType = params.get('type');
+        if (scanType && this.hasTypeTarget) {
+            this.fillSelect('type', scanType);
+        }
+
         // Pré-remplit le champ ISBN
         if (this.hasIsbnTarget) {
             this.isbnTarget.value = scanIsbn;
@@ -84,8 +90,9 @@ export default class extends Controller {
         // Déclenche le lookup
         this.performIsbnLookup(scanIsbn, null);
 
-        // Nettoie le paramètre de l'URL
+        // Nettoie les paramètres de l'URL
         params.delete('scan_isbn');
+        params.delete('type');
         const newUrl = params.toString()
             ? `${window.location.pathname}?${params}`
             : window.location.pathname;

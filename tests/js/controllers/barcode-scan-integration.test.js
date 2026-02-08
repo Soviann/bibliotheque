@@ -246,8 +246,8 @@ describe('Intégration : scan code-barres → formulaire', () => {
         });
     });
 
-    describe('Saisie rapide : FAB scan → API → redirection', () => {
-        it('scanne un ISBN depuis le FAB, appelle l\'API et redirige vers le formulaire', async () => {
+    describe('Saisie rapide : FAB scan → type picker → API → redirection', () => {
+        it('affiche le type picker, scanne un ISBN, appelle l\'API avec le type et redirige', async () => {
             global.fetch = vi.fn().mockResolvedValue({
                 json: () => Promise.resolve({ title: 'Naruto' }),
                 ok: true,
@@ -266,37 +266,48 @@ describe('Intégration : scan code-barres → formulaire', () => {
             ));
 
             const container = document.querySelector('[data-controller*="quick-scan"]');
+            const quickScanController = application.getControllerForElementAndIdentifier(container, 'quick-scan');
             const scannerController = application.getControllerForElementAndIdentifier(container, 'barcode-scanner');
 
-            // 1. Ouvre le scanner
+            // 1. Clique sur le FAB → affiche le type picker
+            quickScanController.scan();
+            expect(document.querySelector('.type-picker')).not.toBeNull();
+
+            // 2. Sélectionne "Manga" → ferme le picker, ouvre le scanner
+            const mangaButton = Array.from(document.querySelectorAll('.type-picker__option'))
+                .find(btn => btn.textContent.trim() === 'Manga');
+            mangaButton.click();
+            expect(document.querySelector('.type-picker')).toBeNull();
+
+            // 3. Ouvre le scanner (déclenché par l'événement open-scanner)
             await scannerController.open();
             expect(document.querySelector('.scanner-modal')).not.toBeNull();
 
-            // 2. Simule la détection
+            // 4. Simule la détection
             mockDetector.detect.mockResolvedValueOnce([
                 { rawValue: '9782505044123', format: 'ean_13' },
             ]);
             await scannerController.detectBarcode();
 
-            // 3. Le modal est fermé
+            // 5. Le modal est fermé
             expect(document.querySelector('.scanner-modal')).toBeNull();
 
-            // 4. L'API est appelée avec l'ISBN
+            // 6. L'API est appelée avec l'ISBN ET le type
             await vi.waitFor(() => {
                 expect(global.fetch).toHaveBeenCalledWith(
-                    '/api/isbn-lookup?isbn=9782505044123'
+                    '/api/isbn-lookup?isbn=9782505044123&type=manga'
                 );
             });
 
-            // 5. Redirection vers le formulaire avec scan_isbn
+            // 7. Redirection vers le formulaire avec scan_isbn ET type
             await vi.waitFor(() => {
                 expect(assignMock).toHaveBeenCalledWith(
-                    '/comic/new?scan_isbn=9782505044123'
+                    '/comic/new?scan_isbn=9782505044123&type=manga'
                 );
             });
         });
 
-        it('redirige même si l\'API retourne une erreur réseau', async () => {
+        it('redirige avec le type même si l\'API retourne une erreur réseau', async () => {
             global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
             const assignMock = vi.fn();
@@ -312,7 +323,14 @@ describe('Intégration : scan code-barres → formulaire', () => {
             ));
 
             const container = document.querySelector('[data-controller*="quick-scan"]');
+            const quickScanController = application.getControllerForElementAndIdentifier(container, 'quick-scan');
             const scannerController = application.getControllerForElementAndIdentifier(container, 'barcode-scanner');
+
+            // Sélectionne un type BD
+            quickScanController.scan();
+            const bdButton = Array.from(document.querySelectorAll('.type-picker__option'))
+                .find(btn => btn.textContent.trim() === 'BD');
+            bdButton.click();
 
             await scannerController.open();
             mockDetector.detect.mockResolvedValueOnce([
@@ -320,10 +338,10 @@ describe('Intégration : scan code-barres → formulaire', () => {
             ]);
             await scannerController.detectBarcode();
 
-            // Même en erreur réseau, la redirection a lieu
+            // Même en erreur réseau, la redirection a lieu avec le type
             await vi.waitFor(() => {
                 expect(assignMock).toHaveBeenCalledWith(
-                    '/comic/new?scan_isbn=9782505044123'
+                    '/comic/new?scan_isbn=9782505044123&type=bd'
                 );
             });
         });
