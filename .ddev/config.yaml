@@ -11,5 +11,6 @@ database:
   version: "10.11"
 upload_dirs:
   - uploads/covers
+bind_all_interfaces: true
 additional_hostnames:
   - test.bibliotheque
