@@ -25,6 +25,29 @@ export async function startStimulusController(ControllerClass, identifier, html)
 }
 
 /**
+ * Démarre plusieurs contrôleurs Stimulus dans un conteneur DOM isolé.
+ *
+ * @param {Object<string, typeof import('@hotwired/stimulus').Controller>} controllers - Map {identifier: ControllerClass}
+ * @param {string} html - HTML du conteneur
+ * @returns {Promise<{application: Application, container: HTMLElement}>}
+ */
+export async function startStimulusControllers(controllers, html) {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    document.body.appendChild(container);
+
+    const application = Application.start(container);
+    for (const [identifier, ControllerClass] of Object.entries(controllers)) {
+        application.register(identifier, ControllerClass);
+    }
+
+    // Attendre que Stimulus connecte les contrôleurs
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    return { application, container };
+}
+
+/**
  * Arrête l'application Stimulus et nettoie le DOM.
  *
  * @param {Application} application
