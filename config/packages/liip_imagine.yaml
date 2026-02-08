@@ -1,0 +1,30 @@
+liip_imagine:
+    driver: gd
+
+    filter_sets:
+        cover_medium:
+            filters:
+                thumbnail:
+                    size: [600, 900]
+                    mode: outbound
+            format: webp
+            quality: 85
+        cover_thumbnail:
+            filters:
+                thumbnail:
+                    size: [300, 450]
+                    mode: outbound
+            format: webp
+            quality: 80
+
+    loaders:
+        default:
+            filesystem:
+                data_root:
+                    - '%kernel.project_dir%/public'
+
+    resolvers:
+        default:
+            web_path:
+                web_root: '%kernel.project_dir%/public'
+                cache_prefix: media/cache

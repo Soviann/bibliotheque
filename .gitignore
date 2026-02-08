@@ -25,6 +25,10 @@
 /public/uploads/
 ###< vich/uploader-bundle ###
 
+###> liip/imagine-bundle ###
+/public/media/
+###< liip/imagine-bundle ###
+
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/

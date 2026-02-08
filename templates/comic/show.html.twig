@@ -14,13 +14,10 @@
 
 <div class="comic-detail">
     <div class="comic-detail-header">
-        {% if comic.coverImage %}
+        {% set coverUrl = cover_image_url(comic, 'cover_medium') %}
+        {% if coverUrl %}
             <div class="comic-detail-cover">
-                <img src="{{ vich_uploader_asset(comic, 'coverFile') }}" alt="Couverture de {{ comic.title }}">
-            </div>
-        {% elseif comic.coverUrl %}
-            <div class="comic-detail-cover">
-                <img src="{{ comic.coverUrl }}" alt="Couverture de {{ comic.title }}">
+                <img src="{{ coverUrl }}" alt="Couverture de {{ comic.title }}" width="600" height="900" loading="lazy">
             </div>
         {% endif %}
 
