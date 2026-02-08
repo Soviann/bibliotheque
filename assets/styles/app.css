@@ -1014,6 +1014,25 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
     background-color: transparent;
 }
 
+.btn-icon--loading svg {
+    display: none;
+}
+
+.btn-icon--loading::after {
+    animation: spin 0.7s linear infinite;
+    border: 2px solid var(--md-text-disabled);
+    border-radius: 50%;
+    border-top-color: var(--md-primary);
+    content: '';
+    display: block;
+    height: 18px;
+    width: 18px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 .lookup-status {
     display: block;
     font-size: 0.75rem;
