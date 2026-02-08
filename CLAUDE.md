@@ -175,9 +175,9 @@ Format: `- **Name**: Description`
 ## Structure
 
 ```
-src/{Command,Controller,DataFixtures,Dto,Entity,Enum,Form,Repository,Service,Twig}/
+src/{Command,Controller,DataFixtures,Doctrine/Filter,Dto,Entity,Enum,Form,Repository,Service,Twig}/
 templates/                    assets/{controllers,utils}/
-tests/{Behat,Controller,Command,Dto,Entity,Enum,Form,js,Panther,playwright,Repository,Security,Service,Twig}/
+tests/{Behat,Command,Controller,Doctrine/Filter,Dto,Entity,Enum,Form,js,Panther,playwright,Repository,Security,Service,Twig}/
 features/                     # Behat .feature files
 ```
 
@@ -185,9 +185,10 @@ features/                     # Behat .feature files
 
 ### Entities
 
-**ComicSeries**: `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverFile?:File(Vich)`, `coverImage?`, `coverUrl?`, `createdAt`, `updatedAt`
+**ComicSeries**: `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverFile?:File(Vich)`, `coverImage?`, `coverUrl?`, `deletedAt?:datetime(SoftDeletable)`, `createdAt`, `updatedAt`
+- Implements: `SoftDeletableInterface` (trait `SoftDeletableTrait` de `knplabs/doctrine-behaviors`)
 - Relations: `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)`
-- Methods: `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `getOwnedTomesNumbers()`, `getAuthorsAsString()`, `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`
+- Methods: `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `getOwnedTomesNumbers()`, `getAuthorsAsString()`, `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`, `delete()`, `restore()`, `isDeleted()`
 
 **Tome**: `number:int`, `bought:bool`, `downloaded:bool`, `onNas:bool`, `isbn?`, `title?`, `createdAt`, `updatedAt` — Relation: `comicSeries:M2O→ComicSeries`
 
@@ -234,6 +235,9 @@ features/                     # Behat .feature files
 | `/comic/{id}/to-library` | ComicController::toLibrary |
 | `/wishlist` | WishlistController::index |
 | `/search` | SearchController::index |
+| `/trash` | TrashController::index |
+| `/trash/{id}/restore` | TrashController::restore |
+| `/trash/{id}/permanent-delete` | TrashController::permanentDelete |
 | `/login`, `/logout` | SecurityController |
 | `/offline` | OfflineController |
 | `/api/comics` | ApiController::comics |
@@ -260,10 +264,11 @@ features/                     # Behat .feature files
 
 - `app:create-user <email> <password>`
 - `app:import-excel <file> [--dry-run]`
+- `app:purge-deleted [--days=30] [--dry-run]`
 
 ### Integrations
 
-VichUploaderBundle (covers), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
+VichUploaderBundle (covers), knplabs/doctrine-behaviors (soft delete), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
 
 ### Behat
 
@@ -291,6 +296,8 @@ docker compose -f docker-compose.prod.yml up --build -d
 - **`LAST_INSERT_ID()`** doesn't work across separate `bin/console` calls (each opens a new connection). Use `SELECT ... WHERE title = '...'` instead
 - **Turbo + Selenium**: use `executeScript` to fill forms + `form.submit()` (avoids `StaleElementReferenceException` from DOM replacement)
 - **AssetMapper + Panther**: after modifying JS, run `ddev exec bin/console asset-map:compile` — Selenium loads compiled assets from `public/assets/`, not source files
+- **Soft delete filter**: `SoftDeleteFilter` est activé par défaut dans `doctrine.yaml`. Pour accéder aux séries soft-deleted, désactiver avec `$em->getFilters()->disable('soft_delete')` puis réactiver après
+- **Suppression définitive**: `$em->remove()` est toujours intercepté par le `SoftDeletableEventSubscriber` — utiliser DBAL direct (`$connection->delete()`) pour supprimer réellement, en respectant l'ordre FK : `comic_series_author` → `tome` → `comic_series`
 
 ## Maintenance
 

@@ -9,6 +9,7 @@ use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
+use Knp\DoctrineBehaviors\Contract\Entity\SoftDeletableInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -55,6 +56,48 @@ class ComicSeriesTest extends TestCase
         self::assertFalse($series->isOneShot());
         self::assertFalse($series->isWishlist());
         self::assertFalse($series->isLatestPublishedIssueComplete());
+    }
+
+    /**
+     * Teste que ComicSeries implémente SoftDeletableInterface.
+     */
+    public function testImplementsSoftDeletableInterface(): void
+    {
+        $series = new ComicSeries();
+
+        self::assertInstanceOf(SoftDeletableInterface::class, $series);
+    }
+
+    /**
+     * Teste que delete() positionne deletedAt.
+     */
+    public function testDeleteSetsDeletedAt(): void
+    {
+        $series = new ComicSeries();
+
+        self::assertNull($series->getDeletedAt());
+        self::assertFalse($series->isDeleted());
+
+        $series->delete();
+
+        self::assertNotNull($series->getDeletedAt());
+        self::assertTrue($series->isDeleted());
+    }
+
+    /**
+     * Teste que restore() efface deletedAt.
+     */
+    public function testRestoreClearsDeletedAt(): void
+    {
+        $series = new ComicSeries();
+        $series->delete();
+
+        self::assertTrue($series->isDeleted());
+
+        $series->restore();
+
+        self::assertNull($series->getDeletedAt());
+        self::assertFalse($series->isDeleted());
     }
 
     /**

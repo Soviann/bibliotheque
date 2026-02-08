@@ -9,6 +9,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Soft delete pour les séries** : La suppression d'une série la déplace dans une corbeille au lieu de la supprimer définitivement
+  - Package `knplabs/doctrine-behaviors` pour le trait `SoftDeletable` sur `ComicSeries`
+  - Filtre SQL Doctrine `SoftDeleteFilter` excluant automatiquement les séries supprimées des requêtes
+  - Page **Corbeille** (`/trash`) avec liste des séries supprimées, restauration et suppression définitive
+  - Lien Corbeille dans la navigation desktop (top bar) et mobile (bottom nav)
+  - Commande `app:purge-deleted` pour purger les séries supprimées depuis plus de N jours (`--days=30`, `--dry-run`)
+  - 13 nouveaux tests (entité, filtre, contrôleur, commande)
+
 - **Spinner de chargement sur les boutons API** : Remplace l'icône de recherche par un spinner animé pendant les appels API (ISBN, titre, tome), avec désactivation du bouton
 
 - **Type picker avant scan rapide** : Sélection du type (BD, Comics, Manga, Livre) via bottom sheet avant d'ouvrir le scanner depuis la page d'accueil, permettant un lookup ISBN ciblé par type
