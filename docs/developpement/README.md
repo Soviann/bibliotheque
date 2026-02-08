@@ -15,8 +15,8 @@ Ce guide explique comment contribuer au développement de Ma Bibliotheque BD.
 ### Installation
 
 ```bash
-git clone https://github.com/Soviann/bibliotheqe.git
-cd bibliotheqe
+git clone https://github.com/Soviann/bibliotheque.git
+cd bibliotheque
 ddev start
 ddev composer install
 ddev exec bin/console doctrine:migrations:migrate -n

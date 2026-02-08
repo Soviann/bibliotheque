@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Soviann/bibliotheqe.git"
+    "url": "git+https://github.com/Soviann/bibliotheque.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Soviann/bibliotheqe/issues"
+    "url": "https://github.com/Soviann/bibliotheque/issues"
   },
-  "homepage": "https://github.com/Soviann/bibliotheqe#readme",
+  "homepage": "https://github.com/Soviann/bibliotheque#readme",
   "devDependencies": {
     "@hotwired/stimulus": "^3.2.2",
     "@playwright/test": "^1.58.1",

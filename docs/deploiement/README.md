@@ -87,7 +87,7 @@ mkdir -p /var/www/bibliotheque
 cd /var/www/bibliotheque
 
 # Clonage du projet
-git clone https://github.com/Soviann/bibliotheqe.git .
+git clone https://github.com/Soviann/bibliotheque.git .
 
 # Configuration de l'environnement
 cp .env.prod.example .env.prod.local
@@ -248,7 +248,7 @@ ssh votre-login@ssh.cluster0XX.hosting.ovh.net
 cd www
 
 # Cloner le projet (ou telecharger via FTP)
-git clone https://github.com/Soviann/bibliotheqe.git bibliotheque
+git clone https://github.com/Soviann/bibliotheque.git bibliotheque
 cd bibliotheque
 
 # Configuration
@@ -489,7 +489,7 @@ opcache.validate_timestamps = 0
 cd /volume1/docker/bibliotheque/app
 
 # Cloner le projet
-git clone https://github.com/Soviann/bibliotheqe.git .
+git clone https://github.com/Soviann/bibliotheque.git .
 
 # Configuration de l'environnement
 cat > .env.prod.local << 'EOF'

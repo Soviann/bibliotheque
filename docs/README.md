@@ -60,8 +60,8 @@ Cette application Symfony permet de gérer une collection de BD, Comics, Mangas 
 ## Liens rapides
 
 - [CHANGELOG](../CHANGELOG.md) - Historique des modifications
-- [GitHub](https://github.com/Soviann/bibliotheqe) - Code source
-- [Issues](https://github.com/Soviann/bibliotheqe/issues) - Signaler un bug
+- [GitHub](https://github.com/Soviann/bibliotheque) - Code source
+- [Issues](https://github.com/Soviann/bibliotheque/issues) - Signaler un bug
 
 ---
 

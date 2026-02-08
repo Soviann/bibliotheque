@@ -130,7 +130,7 @@ No `Co-Authored-By`.
 
 ## GitHub Issues & Project
 
-**Repo**: `Soviann/bibliotheqe` — **Project**: `Bibliotheqe - Roadmap` (number: 1, owner: Soviann)
+**Repo**: `Soviann/bibliotheque` — **Project**: `Bibliotheque - Roadmap` (number: 1, owner: Soviann)
 
 **Board columns** (Status field): `Backlog` → `Todo` → `In Progress` → `Done`
 
@@ -156,9 +156,9 @@ No `Co-Authored-By`.
 
 ```bash
 # Issues
-gh issue list --repo Soviann/bibliotheqe
-gh issue create --repo Soviann/bibliotheqe --title "..." --body "..." --label "..."
-gh issue close N --repo Soviann/bibliotheqe
+gh issue list --repo Soviann/bibliotheque
+gh issue create --repo Soviann/bibliotheque --title "..." --body "..." --label "..."
+gh issue close N --repo Soviann/bibliotheque
 
 # Project board — move item to a column
 # 1. Get item ID:  gh project item-list 1 --owner Soviann --format json

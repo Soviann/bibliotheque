@@ -63,8 +63,8 @@ La documentation complete est disponible dans le dossier [`docs/`](docs/README.m
 
 ```bash
 # Cloner le projet
-git clone https://github.com/Soviann/bibliotheqe.git
-cd bibliotheqe
+git clone https://github.com/Soviann/bibliotheque.git
+cd bibliotheque
 
 # Demarrer DDEV
 ddev start

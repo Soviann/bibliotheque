@@ -26,8 +26,8 @@ DDEV est l'outil recommandé car il fournit un environnement Docker pré-configu
 
 ```bash
 # 1. Cloner le projet
-git clone https://github.com/Soviann/bibliotheqe.git
-cd bibliotheqe
+git clone https://github.com/Soviann/bibliotheque.git
+cd bibliotheque
 
 # 2. Démarrer DDEV
 ddev start
@@ -59,8 +59,8 @@ Pour plus de détails sur DDEV, voir le [guide dédié](ddev.md).
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/Soviann/bibliotheqe.git
-cd bibliotheqe
+git clone https://github.com/Soviann/bibliotheque.git
+cd bibliotheque
 ```
 
 ### 2. Installer les dépendances
