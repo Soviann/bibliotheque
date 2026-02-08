@@ -56,6 +56,9 @@ add-apt-repository ppa:ondrej/php -y
 apt update
 apt install -y php8.3-fpm php8.3-cli php8.3-mysql php8.3-xml php8.3-mbstring php8.3-curl php8.3-zip php8.3-intl php8.3-gd
 
+# Verifier le support WebP dans GD (requis pour LiipImagineBundle)
+php8.3 -r "echo json_encode(gd_info());" | grep -q '"WebP Support":true' && echo "WebP OK" || echo "WebP manquant — installer libwebp-dev et recompiler GD"
+
 # Installation de Composer
 curl -sS https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
@@ -116,8 +119,8 @@ php bin/console app:create-user admin@example.com motdepasse
 # Cache et permissions
 php bin/console cache:clear --env=prod
 php bin/console cache:warmup --env=prod
-chown -R www-data:www-data var public/uploads
-chmod -R 755 var public/uploads
+chown -R www-data:www-data var public/uploads public/media
+chmod -R 755 var public/uploads public/media
 ```
 
 ### 4. Configuration Nginx
@@ -150,7 +153,7 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 
     # Assets statiques
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
@@ -216,7 +219,7 @@ git pull origin main
 composer install --no-dev --optimize-autoloader
 php bin/console doctrine:migrations:migrate -n
 php bin/console cache:clear --env=prod
-chown -R www-data:www-data var
+chown -R www-data:www-data var public/media
 ```
 
 ---
@@ -228,6 +231,7 @@ Pour les hebergements web mutualises OVH avec SSH.
 ### Prerequis
 
 - Hebergement OVH Pro ou Performance (PHP 8.3, SSH)
+- Extension GD avec support WebP activee (verifier dans le panneau PHP de l'espace client OVH)
 - Acces FTP/SSH
 - Base de donnees MySQL/MariaDB creee via l'espace client OVH
 
@@ -304,6 +308,7 @@ Creez `public/.htaccess` si necessaire :
     ExpiresActive On
     ExpiresByType image/png "access plus 1 year"
     ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
     ExpiresByType text/css "access plus 1 year"
     ExpiresByType application/javascript "access plus 1 year"
 </IfModule>
@@ -338,6 +343,7 @@ Cette section couvre le deploiement sur un NAS Synology DS920+ avec Docker (Cont
 │  │  /volume1/docker/bibliotheque/                  │   │
 │  │  ├── app/          # Code source                │   │
 │  │  ├── database/     # Donnees MariaDB            │   │
+│  │  ├── media/        # Cache images LiipImagine   │   │
 │  │  └── uploads/      # Couvertures                │   │
 │  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
@@ -352,7 +358,7 @@ Via **File Station** ou SSH, creez la structure :
 ssh admin@nas.local
 
 # Creation des dossiers
-mkdir -p /volume1/docker/bibliotheque/{app,database,uploads,nginx}
+mkdir -p /volume1/docker/bibliotheque/{app,database,media,uploads,nginx}
 cd /volume1/docker/bibliotheque
 ```
 
@@ -371,6 +377,7 @@ services:
     container_name: bibliotheque-app
     volumes:
       - ./app:/var/www/html
+      - ./media:/var/www/html/public/media
       - ./uploads:/var/www/html/public/uploads
       - ./php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
     environment:
@@ -403,6 +410,7 @@ services:
       - "8080:80"
     volumes:
       - ./app:/var/www/html:ro
+      - ./media:/var/www/html/public/media:ro
       - ./uploads:/var/www/html/public/uploads:ro
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
@@ -432,7 +440,7 @@ server {
     access_log /var/log/nginx/access.log;
 
     # Assets statiques
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
@@ -535,8 +543,9 @@ RUN apk add --no-cache \
     libzip-dev \
     libpng-dev \
     libjpeg-turbo-dev \
+    libwebp-dev \
     freetype-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
     pdo \
     pdo_mysql \
@@ -592,7 +601,7 @@ php bin/console cache:clear --env=prod
 php bin/console cache:warmup --env=prod
 
 # Permissions
-chown -R www-data:www-data var public/uploads
+chown -R www-data:www-data var public/uploads public/media
 
 # Sortir du container
 exit

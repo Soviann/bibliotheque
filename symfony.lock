@@ -89,6 +89,15 @@
             "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6"
         }
     },
+    "liip/imagine-bundle": {
+        "version": "2.17",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.8",
+            "ref": "d1227d002b70d1a1f941d91845fcd7ac7fbfc929"
+        }
+    },
     "nelmio/security-bundle": {
         "version": "3.8",
         "recipe": {
