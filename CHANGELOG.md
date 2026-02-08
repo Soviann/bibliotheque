@@ -9,6 +9,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Type picker avant scan rapide** : Sélection du type (BD, Comics, Manga, Livre) via bottom sheet avant d'ouvrir le scanner depuis la page d'accueil, permettant un lookup ISBN ciblé par type
+
 - **Scan ISBN via caméra** : Scanner de code-barres ISBN via l'API native BarcodeDetector (Chrome Android)
   - Scan depuis les formulaires (champ ISBN one-shot et tomes)
   - Saisie rapide : bouton scan sur la page d'accueil → pré-remplissage automatique du formulaire
