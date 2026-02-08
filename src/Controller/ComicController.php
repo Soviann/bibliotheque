@@ -115,7 +115,7 @@ class ComicController extends AbstractController
             $entityManager->remove($comic);
             $entityManager->flush();
 
-            $this->addFlash('success', 'La série a été supprimée avec succès.');
+            $this->addFlash('success', 'La série a été déplacée dans la corbeille.');
 
             if ($wasWishlist) {
                 return $this->redirectToRoute('app_wishlist');

@@ -11,18 +11,22 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Knp\DoctrineBehaviors\Contract\Entity\SoftDeletableInterface;
+use Knp\DoctrineBehaviors\Model\SoftDeletable\SoftDeletableTrait;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ComicSeriesRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\Index(columns: ['deleted_at'], name: 'idx_comic_series_deleted_at')]
 #[ORM\Index(columns: ['status'], name: 'idx_comic_series_status')]
 #[ORM\Index(columns: ['title'], name: 'idx_comic_series_title')]
 #[ORM\Index(columns: ['type'], name: 'idx_comic_series_type')]
 #[Vich\Uploadable]
-class ComicSeries
+class ComicSeries implements SoftDeletableInterface
 {
+    use SoftDeletableTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

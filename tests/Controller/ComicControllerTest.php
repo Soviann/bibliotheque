@@ -96,10 +96,22 @@ class ComicControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseRedirects('/');
 
-        // Vérifier que la série a été supprimée
+        // Vérifier que la série est invisible via le filtre (soft-deleted)
         $em->clear();
         $deletedSeries = $em->getRepository(ComicSeries::class)->find($seriesId);
-        self::assertNull($deletedSeries);
+        self::assertNull($deletedSeries, 'La série soft-deleted ne doit pas être visible via find()');
+
+        // Vérifier via DBAL que la série est bien soft-deleted (pas hard-deleted)
+        $row = $em->getConnection()->fetchAssociative(
+            'SELECT deleted_at FROM comic_series WHERE id = ?',
+            [$seriesId]
+        );
+        self::assertNotFalse($row, 'La série doit toujours exister en base de données');
+        self::assertNotNull($row['deleted_at'], 'deleted_at doit être positionné');
+
+        // Vérifier le message flash « corbeille »
+        $client->followRedirect();
+        self::assertSelectorTextContains('.alert-success', 'corbeille');
     }
 
     /**

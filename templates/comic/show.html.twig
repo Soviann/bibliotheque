@@ -154,7 +154,7 @@
             Modifier
         </a>
 
-        <form action="{{ path('app_comic_delete', {id: comic.id}) }}" method="post" class="inline-form" onsubmit="return confirm('Supprimer cette serie ?');">
+        <form action="{{ path('app_comic_delete', {id: comic.id}) }}" method="post" class="inline-form" onsubmit="return confirm('Déplacer cette série dans la corbeille ?');">
             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comic.id) }}">
             <button type="submit" class="btn btn-danger">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
