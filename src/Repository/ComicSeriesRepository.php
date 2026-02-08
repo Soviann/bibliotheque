@@ -36,7 +36,8 @@ class ComicSeriesRepository extends ServiceEntityRepository
     public function findWithFilters(array $filters = []): array
     {
         $qb = $this->createQueryBuilder('c')
-            ->leftJoin('c.tomes', 't');
+            ->leftJoin('c.tomes', 't')
+            ->addSelect('t');
 
         // Wishlist filter : isWishlist est calculé à partir du statut
         if (isset($filters['isWishlist'])) {
@@ -104,6 +105,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('c')
             ->leftJoin('c.tomes', 't')
+            ->addSelect('t')
             ->andWhere('c.title LIKE :query OR t.isbn LIKE :query')
             ->setParameter('query', '%'.$query.'%')
             ->distinct()

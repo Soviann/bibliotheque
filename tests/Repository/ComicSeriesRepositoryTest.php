@@ -10,6 +10,7 @@ use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\PersistentCollection;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -248,6 +249,55 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertNotNull($asterixIndex);
         self::assertNotNull($zorroIndex);
         self::assertGreaterThan($zorroIndex, $asterixIndex);
+    }
+
+    /**
+     * Teste que findWithFilters eager-load les tomes (pas de N+1).
+     */
+    public function testFindWithFiltersEagerLoadsTomes(): void
+    {
+        $series = $this->createSeries('Eager Load Test', false);
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $tome->setBought(true);
+        $series->addTome($tome);
+        $this->em->flush();
+        $this->em->clear();
+
+        $results = $this->repository->findWithFilters(['isWishlist' => false]);
+
+        $testSeries = null;
+        foreach ($results as $s) {
+            if ('Eager Load Test' === $s->getTitle()) {
+                $testSeries = $s;
+                break;
+            }
+        }
+
+        self::assertNotNull($testSeries);
+        $tomes = $testSeries->getTomes();
+        self::assertInstanceOf(PersistentCollection::class, $tomes);
+        self::assertTrue($tomes->isInitialized(), 'Les tomes doivent être eager-loadés par findWithFilters()');
+    }
+
+    /**
+     * Teste que search() eager-load les tomes (pas de N+1).
+     */
+    public function testSearchEagerLoadsTomes(): void
+    {
+        $series = $this->createSeries('Eager Search XYZ99', false);
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $series->addTome($tome);
+        $this->em->flush();
+        $this->em->clear();
+
+        $results = $this->repository->search('Eager Search XYZ99');
+
+        self::assertCount(1, $results);
+        $tomes = $results[0]->getTomes();
+        self::assertInstanceOf(PersistentCollection::class, $tomes);
+        self::assertTrue($tomes->isInitialized(), 'Les tomes doivent être eager-loadés par search()');
     }
 
     /**
