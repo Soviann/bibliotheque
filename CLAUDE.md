@@ -23,15 +23,28 @@
 
 **Search**: Packagist, symfony.com/bundles, npm, https://ux.symfony.com
 
-## DDEV Commands
+## Commands
+
+**Makefile** : `make help` pour la liste complète. Raccourcis principaux :
 
 ```bash
-ddev start && ddev composer install && ddev exec bin/console doctrine:migrations:migrate -n
-ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
-ddev exec bin/console cache:clear
-ddev exec bin/phpunit tests/PathToTest.php          # PHP Tests
-ddev exec npm test                                  # JS Tests (Vitest)
+make build          # ddev start + composer + npm + migrations + asset-map:compile
+make test           # PHP + JS tests
+make test-php       # PHPUnit uniquement
+make test-js        # Vitest uniquement
+make lint           # PHP-CS-Fixer (dry-run) + PHPStan
+make cc             # cache:clear
+make migration      # doctrine:migrations:diff
+make migrate        # doctrine:migrations:migrate
+make deploy         # docker-compose prod
+```
+
+**Commandes DDEV directes** (quand le Makefile ne suffit pas) :
+
+```bash
+ddev exec bin/phpunit tests/PathToTest.php          # Test spécifique
 ddev exec npm run test:watch                        # JS Tests (watch mode)
+ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 ```
 
 **PHP-CS-Fixer and PHPStan**: automated via PostToolUse hooks.
@@ -57,6 +70,8 @@ ddev exec npm run test:watch                        # JS Tests (watch mode)
 **Convention**: `src/X/Foo.php` → `tests/X/FooTest.php`
 
 **Test environment**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
+
+**Test helpers** : `AuthenticatedWebTestCase` (base class pour tests de contrôleurs avec login).
 
 **TDD exceptions**: Twig templates, YAML config, migrations, assets.
 
@@ -84,7 +99,7 @@ Never on `vendor/`, migrations, fixtures. Run PHP-CS-Fixer and tests afterwards.
 ## Frontend
 
 Priority: Symfony UX → npm → custom Stimulus.
-UX Packages: `ux-autocomplete`, `ux-live-component`, `ux-chartjs`, `ux-dropzone`.
+UX Packages: `ux-autocomplete`, `ux-dropzone`, `ux-turbo`.
 
 ## Git
 
@@ -151,20 +166,21 @@ Format: `- **Name**: Description`
 ## Structure
 
 ```
-src/{Command,Controller,DataFixtures,Entity,Enum,Form,Repository,Service,Twig}/
-templates/                    assets/controllers/
-tests/                        features/
+src/{Command,Controller,DataFixtures,Dto,Entity,Enum,Form,Repository,Service,Twig}/
+templates/                    assets/{controllers,utils}/
+tests/{Behat,Controller,Command,Dto,Entity,Enum,Form,js,Panther,playwright,Repository,Security,Service,Twig}/
+features/                     # Behat .feature files
 ```
 
 ## Architecture
 
 ### Entities
 
-**ComicSeries**: `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverImage?`, `coverUrl?`
+**ComicSeries**: `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverFile?:File(Vich)`, `coverImage?`, `coverUrl?`, `createdAt`, `updatedAt`
 - Relations: `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)`
-- Methods: `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `isCurrentIssueComplete()`
+- Methods: `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `getOwnedTomesNumbers()`, `getAuthorsAsString()`, `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`
 
-**Tome**: `number:int`, `bought:bool`, `downloaded:bool`, `onNas:bool`, `isbn?`, `title?` — Relation: `comicSeries:M2O→ComicSeries`
+**Tome**: `number:int`, `bought:bool`, `downloaded:bool`, `onNas:bool`, `isbn?`, `title?`, `createdAt`, `updatedAt` — Relation: `comicSeries:M2O→ComicSeries`
 
 **Author**: `name:string(unique)` — Relation: `comicSeries:M2M→ComicSeries`
 
@@ -172,6 +188,7 @@ tests/                        features/
 
 ### Enums
 
+**ApiLookupStatus**: `ERROR`, `NOT_FOUND`, `RATE_LIMITED`, `SUCCESS`
 **ComicStatus**: `BUYING`, `FINISHED`, `STOPPED`, `WISHLIST`
 **ComicType**: `BD`, `COMICS`, `LIVRE`, `MANGA`
 
@@ -188,7 +205,7 @@ tests/                        features/
 
 ### DTOs
 
-**ComicSeriesInput**: `title`, `status`, `type`, `latestPublishedIssue?`, `latestPublishedIssueComplete`, `isOneShot`, `isWishlist`, `description?`, `publishedDate?`, `publisher?`, `coverUrl?`, `coverImage?`, `deleteCover`, `coverFile?`, `tomes:list<TomeInput>`, `authors:list<AuthorInput>`
+**ComicSeriesInput**: `title`, `status`, `type`, `latestPublishedIssue?`, `latestPublishedIssueComplete`, `isOneShot`, `description?`, `publishedDate?`, `publisher?`, `coverUrl?`, `coverImage?`, `deleteCover`, `coverFile?`, `tomes:list<TomeInput>`, `authors:list<AuthorInput>`
 
 **TomeInput**: `number`, `bought`, `downloaded`, `onNas`, `isbn?`, `title?`
 
@@ -216,8 +233,19 @@ tests/                        features/
 
 ### Repositories
 
-**ComicSeriesRepository**: `findWithFilters()`, `search()`, `findAllForApi()`
 **AuthorRepository**: `findOrCreate()`, `findOrCreateMultiple()`
+**ComicSeriesRepository**: `findWithFilters()`, `findByStatus()`, `search()`, `findAllForApi()`
+**TomeRepository**: (pas de méthodes custom)
+**UserRepository**: (pas de méthodes custom)
+
+### Form Types
+
+**ComicSeriesType**, **TomeType**, **AuthorAutocompleteType**
+**DataTransformer**: `AuthorToInputTransformer`
+
+### Twig Extensions
+
+**SafeRefererExtension**: `safeReferer(fallback)` — retourne le HTTP referer filtré
 
 ### Console Commands
 
@@ -227,6 +255,15 @@ tests/                        features/
 ### Integrations
 
 VichUploaderBundle (covers), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
+
+### Behat
+
+**Features**: `features/*.feature` — tests d'acceptance (authentication, CRUD comics, tomes, filtrage, recherche, wishlist, one-shot)
+**Contexts**: `tests/Behat/Context/` — `AuthenticationContext`, `ComicSeriesContext`, `DatabaseContext`, `FeatureContext`, `FormContext`, `NavigationContext`, `PantherContext`
+
+### Playwright
+
+`tests/playwright/offline.spec.js` — test E2E du mode hors-ligne
 
 ## Deployment
 
