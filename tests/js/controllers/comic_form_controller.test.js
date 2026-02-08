@@ -564,4 +564,116 @@ describe('comic_form_controller', () => {
             expect(controller.getSelectedType()).toBeNull();
         });
     });
+
+    describe('handleBarcodeScan', () => {
+        it('remplit le champ ISBN one-shot et déclenche le lookup', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    sources: ['google_books'],
+                    title: 'Naruto',
+                }),
+                ok: true,
+            });
+
+            const controller = await setup({ isOneShot: true, existingTome: true });
+
+            // Simule un événement de scan avec contexte one-shot
+            const event = new CustomEvent('barcode-scanner:detected', {
+                detail: { rawValue: '9782723456789', format: 'ean_13' },
+            });
+            event.params = { context: 'oneshot' };
+            controller.handleBarcodeScan(event);
+
+            const oneShotIsbn = document.querySelector('[data-comic-form-target="oneShotIsbn"]');
+            expect(oneShotIsbn.value).toBe('9782723456789');
+
+            // Vérifie que le lookup a été appelé
+            await vi.waitFor(() => {
+                expect(global.fetch).toHaveBeenCalledWith(
+                    expect.stringContaining('isbn=9782723456789')
+                );
+            });
+        });
+
+        it('remplit le champ ISBN d\'un tome et déclenche le lookup', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    publisher: 'Kana',
+                    sources: ['google_books'],
+                }),
+                ok: true,
+            });
+
+            const controller = await setup({ existingTome: true });
+
+            const event = new CustomEvent('barcode-scanner:detected', {
+                detail: { rawValue: '9782723456789', format: 'ean_13' },
+            });
+            event.params = { context: 'tome-0' };
+            controller.handleBarcodeScan(event);
+
+            const tomeIsbn = document.querySelector('.tome-isbn-input');
+            expect(tomeIsbn.value).toBe('9782723456789');
+
+            await vi.waitFor(() => {
+                expect(global.fetch).toHaveBeenCalledWith(
+                    expect.stringContaining('isbn=9782723456789')
+                );
+            });
+        });
+    });
+
+    describe('scan_isbn URL param', () => {
+        it('déclenche le lookup automatique si scan_isbn est dans l\'URL', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    sources: ['google_books'],
+                    title: 'One Piece',
+                }),
+                ok: true,
+            });
+
+            // Simule le paramètre URL
+            const url = new URL(window.location.href);
+            url.searchParams.set('scan_isbn', '9782723456789');
+            window.history.replaceState({}, '', url.toString());
+
+            await setup();
+
+            // Vérifie que le lookup a été déclenché
+            await vi.waitFor(() => {
+                expect(global.fetch).toHaveBeenCalledWith(
+                    expect.stringContaining('isbn=9782723456789')
+                );
+            });
+
+            // Nettoie l'URL
+            window.history.replaceState({}, '', window.location.pathname);
+        });
+
+        it('remplit le champ ISBN avant le lookup', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    sources: [],
+                }),
+                ok: true,
+            });
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('scan_isbn', '9782723456789');
+            window.history.replaceState({}, '', url.toString());
+
+            await setup();
+
+            const isbnInput = document.querySelector('[data-comic-form-target="isbn"]');
+            expect(isbnInput.value).toBe('9782723456789');
+
+            // Nettoie l'URL
+            window.history.replaceState({}, '', window.location.pathname);
+        });
+    });
 });

@@ -60,6 +60,72 @@ export default class extends Controller {
         if (this.hasIsOneShotTarget) {
             this.applyOneShotState(this.isOneShotTarget.checked);
         }
+
+        // Auto-lookup si scan_isbn est dans l'URL (saisie rapide)
+        this.handleScanIsbnParam();
+    }
+
+    /**
+     * Vérifie le paramètre URL scan_isbn et déclenche le lookup automatique.
+     */
+    handleScanIsbnParam() {
+        const params = new URLSearchParams(window.location.search);
+        const scanIsbn = params.get('scan_isbn');
+
+        if (!scanIsbn) {
+            return;
+        }
+
+        // Pré-remplit le champ ISBN
+        if (this.hasIsbnTarget) {
+            this.isbnTarget.value = scanIsbn;
+        }
+
+        // Déclenche le lookup
+        this.performIsbnLookup(scanIsbn, null);
+
+        // Nettoie le paramètre de l'URL
+        params.delete('scan_isbn');
+        const newUrl = params.toString()
+            ? `${window.location.pathname}?${params}`
+            : window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+    }
+
+    /**
+     * Gère un événement de scan barcode et remplit le champ ISBN correspondant.
+     */
+    handleBarcodeScan(event) {
+        const isbn = event.detail.rawValue;
+        const context = event.params?.context || 'isbn';
+
+        if (context === 'oneshot') {
+            // Remplit le champ ISBN one-shot
+            if (this.hasOneShotIsbnTarget) {
+                this.oneShotIsbnTarget.value = isbn;
+                this.syncIsbnToTome();
+            }
+            this.performIsbnLookup(isbn, null);
+        } else if (context.startsWith('tome-')) {
+            // Remplit le champ ISBN du tome correspondant
+            const tomeIndex = context.replace('tome-', '');
+            const tomeEntries = this.tomesListTarget.querySelectorAll('[data-tomes-collection-target="entry"]');
+            const entry = tomeEntries[parseInt(tomeIndex, 10)];
+
+            if (entry) {
+                const isbnInput = entry.querySelector('.tome-isbn-input');
+                if (isbnInput) {
+                    isbnInput.value = isbn;
+                }
+            }
+            this.performIsbnLookup(isbn, null, { fromTome: true });
+        } else {
+            // Champ ISBN principal
+            if (this.hasIsbnTarget) {
+                this.isbnTarget.value = isbn;
+            }
+            this.performIsbnLookup(isbn, null);
+        }
     }
 
     /**
