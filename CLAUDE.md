@@ -105,7 +105,7 @@ UX Packages: `ux-autocomplete`, `ux-dropzone`, `ux-turbo`.
 
 ### Commits
 
-Format: `<type>(scope): description` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
+Format: `<type>(scope): description en français` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 No `Co-Authored-By`.
 
 ### Branches (GitHub Flow)
