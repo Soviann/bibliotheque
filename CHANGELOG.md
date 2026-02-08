@@ -9,6 +9,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Scan ISBN via caméra** : Scanner de code-barres ISBN via l'API native BarcodeDetector (Chrome Android)
+  - Scan depuis les formulaires (champ ISBN one-shot et tomes)
+  - Saisie rapide : bouton scan sur la page d'accueil → pré-remplissage automatique du formulaire
+  - Modal plein écran avec animation de balayage
+  - 19 tests Vitest pour les contrôleurs barcode-scanner et quick-scan
+
 - **Tests JavaScript (Vitest)** : Suite de tests unitaires pour tout le code JS du projet
   - 139 tests couvrant 3 modules utilitaires et 6 contrôleurs Stimulus
   - Framework Vitest avec jsdom (support ESM natif compatible AssetMapper)
