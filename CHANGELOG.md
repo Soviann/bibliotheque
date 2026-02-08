@@ -21,6 +21,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Lookup ISBN tome** : La recherche ISBN depuis un tome ne remplit plus que les champs pertinents au niveau série (auteurs, éditeur, couverture) — les champs volume-spécifiques (titre, date, description) et le flag one-shot sont ignorés
 - **Actions liste** : Les boutons "Supprimer" et "Ajouter à la bibliothèque" fonctionnent depuis la liste (tokens CSRF inclus dans l'API)
 - **Tests Panther flaky** : Correction des 5 tests `OneShotFormTest`/`TomeManagementTest` qui échouaient aléatoirement
   - Migration de `KernelTestCase` vers `TestCase` pour éviter l'isolation transactionnelle DAMA (invisible pour Selenium)
