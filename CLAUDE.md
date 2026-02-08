@@ -143,6 +143,15 @@ No `Co-Authored-By`.
 5. **Close issues** with commit references when the work is done (`fixes #N` in commit message).
 6. **Labels**: use existing repo labels (`enhancement`, `bug`, etc.). Don't create new labels without asking.
 
+7. **Single board move per issue**: move directly to `Done` at merge (skip `In Progress` → `Done`). The `fixes #N` in the PR auto-closes the issue — no need to close it manually.
+
+### Token optimization
+
+- **Prefer `gh` CLI** over MCP tools for simple queries (less verbose output, use `--json field1,field2` to filter)
+- **Always set `minimal_output: true`** on MCP list/search calls when full data isn't needed
+- **Max `perPage: 5`** unless more results are explicitly needed
+- **No exploratory chains**: one targeted call, not list → read → read
+
 ### Quick reference
 
 ```bash
