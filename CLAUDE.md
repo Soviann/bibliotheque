@@ -8,12 +8,20 @@
 
 **Context**: Claude = sole developer → maximum rigor, keep this file and tests up to date.
 
+## Approach
+
+- Act on user instructions directly — no exploratory glob/grep when the path is given.
+- Edit when asked to edit. No issues/plans unless requested.
+- Prefer acting over asking.
+
+## Plans
+
+- Location: `docs/plans/` (never global). Delete after PR merged.
+
 ## Workflow
 
 - **Complex tasks**: Plan mode → approval → implementation
 - **Splitting**: divide large changes into verifiable chunks
-- **Plans**: save to `docs/plans/YYYY-MM-DD-<feature>.md`, not `~/.claude/plans/`
-- **Cleanup**: delete the plan file from `docs/plans/` once fully executed and merged/PR'd
 
 ## Principle: Don't Reinvent the Wheel
 
@@ -118,6 +126,7 @@ No `Co-Authored-By`.
 - Commits directs sur `main` autorisés pour : typos, CLAUDE.md, config mineure
 - Lier les PRs aux issues : `fixes #N` ou `closes #N`
 - Branche remote supprimée automatiquement après merge (setting GitHub)
+- Update CHANGELOG after every merged PR.
 
 ### Tags et releases (SemVer)
 
@@ -129,6 +138,11 @@ No `Co-Authored-By`.
   2. Commit : `chore(release): vX.Y.Z`
   3. Tag : `git tag -a vX.Y.Z -m "vX.Y.Z"` + push
   4. GitHub Release : `gh release create vX.Y.Z`
+
+## Issue Workflow
+
+- "Next issue" → pick highest-priority Todo from board, start immediately (don't list/ask).
+- Full cycle: implement → test → PR → review fixes → squash merge → close → update board.
 
 ## GitHub Issues & Project
 
