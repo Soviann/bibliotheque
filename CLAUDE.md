@@ -35,13 +35,13 @@
 
 ## Commands
 
-**Makefile** : `make help` pour la liste complète. Raccourcis principaux :
+**Makefile**: `make help` for the full list. Main shortcuts:
 
 ```bash
 make build          # ddev start + composer + npm + migrations + asset-map:compile
 make test           # PHP + JS tests
-make test-php       # PHPUnit uniquement
-make test-js        # Vitest uniquement
+make test-php       # PHPUnit only
+make test-js        # Vitest only
 make lint           # PHP-CS-Fixer (dry-run) + PHPStan
 make cc             # cache:clear
 make migration      # doctrine:migrations:diff
@@ -49,10 +49,10 @@ make migrate        # doctrine:migrations:migrate
 make deploy         # docker-compose prod
 ```
 
-**Commandes DDEV directes** (quand le Makefile ne suffit pas) :
+**Direct DDEV commands** (when the Makefile isn't enough):
 
 ```bash
-ddev exec bin/phpunit tests/PathToTest.php          # Test spécifique
+ddev exec bin/phpunit tests/PathToTest.php          # Specific test
 ddev exec npm run test:watch                        # JS Tests (watch mode)
 ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 ```
@@ -81,21 +81,21 @@ ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 
 **Test environment**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 
-**Test helpers** : `AuthenticatedWebTestCase` (base class pour tests de contrôleurs avec login).
+**Test helpers**: `AuthenticatedWebTestCase` (base class for controller tests with login).
 
 **TDD exceptions**: Twig templates, YAML config, migrations, assets.
 
 ## JavaScript Tests (Vitest)
 
-**Framework**: Vitest + jsdom (ESM natif, compatible AssetMapper).
+**Framework**: Vitest + jsdom (native ESM, AssetMapper compatible).
 
 **Convention**: `assets/X/foo.js` → `tests/js/X/foo.test.js`
 
 **Helpers**:
-- `tests/js/setup.js` — mocks globaux (fetch, localStorage, Cache API, crypto)
+- `tests/js/setup.js` — global mocks (fetch, localStorage, Cache API, crypto)
 - `tests/js/helpers/stimulus-helper.js` — `startStimulusController()` / `stopStimulusController()`
 
-**Fake timers**: toujours activer `vi.useFakeTimers()` **APRÈS** `startStimulusController()` (sinon timeout Stimulus).
+**Fake timers**: always enable `vi.useFakeTimers()` **AFTER** `startStimulusController()` (otherwise Stimulus timeout).
 
 ## Rector (occasional use)
 
@@ -104,7 +104,7 @@ ddev exec vendor/bin/rector process --dry-run      # Always check first
 ddev exec vendor/bin/rector process src/File.php
 ```
 
-Never on `vendor/`, migrations, fixtures. Run PHP-CS-Fixer and tests afterwards.
+Run PHP-CS-Fixer and tests afterwards.
 
 ## Frontend
 
@@ -115,29 +115,28 @@ UX Packages: `ux-autocomplete`, `ux-dropzone`, `ux-turbo`.
 
 ### Commits
 
-Format: `<type>(scope): description en français` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
-No `Co-Authored-By`.
+Format: `<type>(scope): description in French` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 
 ### Branches (GitHub Flow)
 
-- `main` = toujours stable et déployable
-- Branches de travail : `<type>/<description-courte>` (ex: `feat/api-lookup-status`, `fix/cover-upload`)
-- Tout travail non trivial → branche + PR + **squash merge**
-- Commits directs sur `main` autorisés pour : typos, CLAUDE.md, config mineure
-- Lier les PRs aux issues : `fixes #N` ou `closes #N`
-- Branche remote supprimée automatiquement après merge (setting GitHub)
+- `main` = always stable and deployable
+- Working branches: `<type>/<short-description>` (e.g., `feat/api-lookup-status`, `fix/cover-upload`)
+- Non-trivial work → branch + PR + squash merge
+- Direct commits on `main` allowed for: typos, CLAUDE.md, minor config
+- Link PRs to issues: `fixes #N` or `closes #N`
+- Remote branch auto-deleted after merge (GitHub setting)
 - Update CHANGELOG after every merged PR.
 
-### Tags et releases (SemVer)
+### Tags and releases (SemVer)
 
-- Format : `vMAJOR.MINOR.PATCH`
-- MAJOR = breaking change, MINOR = nouvelle fonctionnalité, PATCH = bugfix/perf
-- Tag posé sur `main` uniquement, pas besoin de tagger chaque merge
-- Processus release :
-  1. CHANGELOG.md : `[Unreleased]` → `[vX.Y.Z] - YYYY-MM-DD`
-  2. Commit : `chore(release): vX.Y.Z`
-  3. Tag : `git tag -a vX.Y.Z -m "vX.Y.Z"` + push
-  4. GitHub Release : `gh release create vX.Y.Z`
+- Format: `vMAJOR.MINOR.PATCH`
+- MAJOR = breaking change, MINOR = new feature, PATCH = bugfix/perf
+- Tags on `main` only, no need to tag every merge
+- Release process:
+  1. CHANGELOG.md: `[Unreleased]` → `[vX.Y.Z] - YYYY-MM-DD`
+  2. Commit: `chore(release): vX.Y.Z`
+  3. Tag: `git tag -a vX.Y.Z -m "vX.Y.Z"` + push
+  4. GitHub Release: `gh release create vX.Y.Z`
 
 ## Issue Workflow
 
@@ -154,9 +153,9 @@ No `Co-Authored-By`.
 
 1. **All work starts from an issue.** If the user provides an issue number, use it. Otherwise create one directly — **never list/search issues first** (sole developer knows what exists).
 2. **No read-only GitHub queries.** Never call `list_issues`, `list_pull_requests`, `search_issues`, `search_pull_requests`, or `list_branches` to "check" state. The user will provide context. Only query GitHub when a specific ID or data point is needed and unknown.
-3. **Board automation** : les workflows GitHub Project déplacent automatiquement les issues vers `Done` à la fermeture. Ne pas déplacer manuellement. Seul `In Progress` au démarrage reste manuel.
+3. **Board automation**: GitHub Project workflows automatically move issues to `Done` on close. Don't move manually. Only `In Progress` at start needs manual move.
 4. **New feature ideas** without immediate implementation go to `Backlog`.
-5. **Close issues** via `fixes #N` dans le message de PR/commit — pas de fermeture manuelle.
+5. **Close issues** via `fixes #N` in PR/commit message — no manual closing.
 6. **Labels**: use existing repo labels (`enhancement`, `bug`, etc.). Don't create new labels without asking.
 
 ### Token optimization
@@ -198,7 +197,7 @@ features/                     # Behat .feature files
 ### Entities
 
 **ComicSeries**: `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverFile?:File(Vich)`, `coverImage?`, `coverUrl?`, `deletedAt?:datetime(SoftDeletable)`, `createdAt`, `updatedAt`
-- Implements: `SoftDeletableInterface` (trait `SoftDeletableTrait` de `knplabs/doctrine-behaviors`)
+- Implements: `SoftDeletableInterface` (trait `SoftDeletableTrait` from `knplabs/doctrine-behaviors`)
 - Relations: `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)`
 - Methods: `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `getOwnedTomesNumbers()`, `getAuthorsAsString()`, `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`, `delete()`, `restore()`, `isDeleted()`
 
@@ -218,14 +217,14 @@ features/                     # Behat .feature files
 
 **ComicSeriesMapper**: `mapToEntity(ComicSeriesInput, ?ComicSeries): ComicSeries`, `mapToInput(ComicSeries): ComicSeriesInput`
 
-**CoverRemoverInterface**: `remove(ComicSeries): void` — Impl: `VichCoverRemover` (invalide aussi le cache LiipImagine)
+**CoverRemoverInterface**: `remove(ComicSeries): void` — Impl: `VichCoverRemover` (also invalidates LiipImagine cache)
 
-**UploadHandlerInterface**: `remove(object, string): void` — Impl: `VichUploadHandlerAdapter` (adaptateur pour le `UploadHandler` final de VichUploader)
+**UploadHandlerInterface**: `remove(object, string): void` — Impl: `VichUploadHandlerAdapter` (adapter for VichUploader's final `UploadHandler`)
 
 **IsbnLookupService**: `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`, `getLastApiMessages(): array`
 - APIs: Google Books, Open Library, AniList (mangas)
 - Returns: `[title, authors, description, publishedDate, publisher, isbn, thumbnail, isOneShot, sources]`
-- `getLastApiMessages()`: statut de chaque API interrogée (`{api_name: {status, message}}`), utilise `ApiLookupStatus`
+- `getLastApiMessages()`: status of each queried API (`{api_name: {status, message}}`), uses `ApiLookupStatus`
 
 ### DTOs
 
@@ -262,8 +261,8 @@ features/                     # Behat .feature files
 
 **AuthorRepository**: `findOrCreate()`, `findOrCreateMultiple()`
 **ComicSeriesRepository**: `findWithFilters()`, `findByStatus()`, `search()`, `findAllForApi()`
-**TomeRepository**: (pas de méthodes custom)
-**UserRepository**: (pas de méthodes custom)
+**TomeRepository**: (no custom methods)
+**UserRepository**: (no custom methods)
 
 ### Form Types
 
@@ -272,9 +271,9 @@ features/                     # Behat .feature files
 
 ### Twig Extensions
 
-**CoverImageExtension**: `cover_image_url(comic, filter='cover_thumbnail')` — URL optimisée de la couverture (LiipImagine pour uploads, URL directe pour externes, chaîne vide si pas de cover)
+**CoverImageExtension**: `cover_image_url(comic, filter='cover_thumbnail')` — optimized cover URL (LiipImagine for uploads, direct URL for external, empty string if no cover)
 
-**SafeRefererExtension**: `safeReferer(fallback)` — retourne le HTTP referer filtré
+**SafeRefererExtension**: `safeReferer(fallback)` — returns filtered HTTP referer
 
 ### Console Commands
 
@@ -284,16 +283,16 @@ features/                     # Behat .feature files
 
 ### Integrations
 
-VichUploaderBundle (covers), LiipImagineBundle (redimensionnement + WebP), knplabs/doctrine-behaviors (soft delete), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
+VichUploaderBundle (covers), LiipImagineBundle (resize + WebP), knplabs/doctrine-behaviors (soft delete), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
 
 ### Behat
 
-**Features**: `features/*.feature` — tests d'acceptance (authentication, CRUD comics, tomes, filtrage, recherche, wishlist, one-shot)
+**Features**: `features/*.feature` — acceptance tests (authentication, CRUD comics, tomes, filtering, search, wishlist, one-shot)
 **Contexts**: `tests/Behat/Context/` — `AuthenticationContext`, `ComicSeriesContext`, `DatabaseContext`, `FeatureContext`, `FormContext`, `NavigationContext`, `PantherContext`
 
 ### Playwright
 
-`tests/playwright/offline.spec.js` — test E2E du mode hors-ligne
+`tests/playwright/offline.spec.js` — offline mode E2E test
 
 ## Deployment
 
@@ -312,8 +311,8 @@ docker compose -f docker-compose.prod.yml up --build -d
 - **`LAST_INSERT_ID()`** doesn't work across separate `bin/console` calls (each opens a new connection). Use `SELECT ... WHERE title = '...'` instead
 - **Turbo + Selenium**: use `executeScript` to fill forms + `form.submit()` (avoids `StaleElementReferenceException` from DOM replacement)
 - **AssetMapper + Panther**: after modifying JS, run `ddev exec bin/console asset-map:compile` — Selenium loads compiled assets from `public/assets/`, not source files
-- **Soft delete filter**: `SoftDeleteFilter` est activé par défaut dans `doctrine.yaml`. Pour accéder aux séries soft-deleted, désactiver avec `$em->getFilters()->disable('soft_delete')` puis réactiver après
-- **Suppression définitive**: `$em->remove()` est toujours intercepté par le `SoftDeletableEventSubscriber` — utiliser DBAL direct (`$connection->delete()`) pour supprimer réellement, en respectant l'ordre FK : `comic_series_author` → `tome` → `comic_series`
+- **Soft delete filter**: `SoftDeleteFilter` is enabled by default in `doctrine.yaml`. To access soft-deleted series, disable with `$em->getFilters()->disable('soft_delete')` then re-enable after
+- **Permanent deletion**: `$em->remove()` is always intercepted by `SoftDeletableEventSubscriber` — use direct DBAL (`$connection->delete()`) to actually delete, respecting FK order: `comic_series_author` → `tome` → `comic_series`
 
 ## Maintenance
 
