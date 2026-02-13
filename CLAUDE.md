@@ -10,7 +10,6 @@
 
 ## Approach
 
-- Act on user instructions directly — no exploratory glob/grep when the path is given.
 - Edit when asked to edit. No issues/plans unless requested.
 - Prefer acting over asking.
 
@@ -161,7 +160,6 @@ Format: `<type>(scope): description in French` — Types: `feat`, `fix`, `chore`
 ### Token optimization
 
 - **Prefer `gh` CLI** over MCP tools for simple queries (less verbose output, use `--json field1,field2` to filter)
-- **Always set `minimal_output: true`** on MCP list/search calls when full data isn't needed
 - **Max `perPage: 5`** unless more results are explicitly needed
 - **No exploratory chains**: one targeted call, not list → read → read
 
