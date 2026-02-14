@@ -320,6 +320,108 @@ class LookupOrchestratorTest extends TestCase
         self::assertNull($orchestrator->lookupByTitle('   '));
     }
 
+    // --- Gemini integration tests ---
+
+    public function testLookupCallsGeminiAsLastProvider(): void
+    {
+        $callOrder = [];
+        $google = $this->createOrderTrackingProvider('google_books', ['isbn'], new LookupResult(
+            source: 'google_books',
+            title: 'Google Title',
+        ), $callOrder);
+        $openLibrary = $this->createOrderTrackingProvider('open_library', ['isbn'], new LookupResult(
+            publisher: 'OL Pub',
+            source: 'open_library',
+        ), $callOrder);
+        $gemini = $this->createOrderTrackingProvider('gemini', ['isbn'], new LookupResult(
+            description: 'Gemini Desc',
+            source: 'gemini',
+        ), $callOrder);
+
+        $orchestrator = new LookupOrchestrator([$google, $openLibrary, $gemini]);
+        $orchestrator->lookup('9781234567890');
+
+        self::assertSame(['google_books', 'open_library', 'gemini'], $callOrder);
+    }
+
+    public function testLookupGeminiEnrichesIncompleteResult(): void
+    {
+        $google = $this->createProvider('google_books', ['isbn'], new LookupResult(
+            source: 'google_books',
+            title: 'Incomplete Book',
+        ));
+        $gemini = $this->createEnrichableProvider('gemini', ['isbn'], null, new LookupResult(
+            authors: 'Gemini Author',
+            description: 'Gemini Desc',
+            publisher: 'Gemini Pub',
+            source: 'gemini',
+        ));
+
+        $orchestrator = new LookupOrchestrator([$google, $gemini]);
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Incomplete Book', $result->title);
+        self::assertSame('Gemini Author', $result->authors);
+        self::assertSame('Gemini Desc', $result->description);
+        self::assertSame('Gemini Pub', $result->publisher);
+    }
+
+    public function testLookupGeminiNotCalledForEnrichWhenComplete(): void
+    {
+        $google = $this->createProvider('google_books', ['isbn'], new LookupResult(
+            authors: 'Author',
+            description: 'Desc',
+            publishedDate: '2020',
+            publisher: 'Pub',
+            source: 'google_books',
+            thumbnail: 'https://img.jpg',
+            title: 'Complete Book',
+        ));
+
+        $enrichCalled = false;
+        $gemini = $this->createEnrichableProvider('gemini', ['isbn'], null, null, $enrichCalled);
+
+        $orchestrator = new LookupOrchestrator([$google, $gemini]);
+        $orchestrator->lookup('1234567890');
+
+        self::assertFalse($enrichCalled);
+    }
+
+    public function testLookupGeminiFallbackWhenAllOthersReturnNull(): void
+    {
+        $google = $this->createProvider('google_books', ['isbn'], null);
+        $openLibrary = $this->createProvider('open_library', ['isbn'], null);
+        $gemini = $this->createEnrichableProvider('gemini', ['isbn'], new LookupResult(
+            authors: 'Gemini Author',
+            source: 'gemini',
+            title: 'Found by Gemini',
+        ), null);
+
+        $orchestrator = new LookupOrchestrator([$google, $openLibrary, $gemini]);
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Found by Gemini', $result->title);
+        self::assertSame('Gemini Author', $result->authors);
+    }
+
+    public function testLookupGeminiErrorDoesNotBreakResult(): void
+    {
+        $google = $this->createProvider('google_books', ['isbn'], new LookupResult(
+            source: 'google_books',
+            title: 'Google Book',
+        ));
+        // Gemini renvoie null en lookup (erreur) et ne casse pas le résultat
+        $gemini = $this->createEnrichableProvider('gemini', ['isbn'], null, null);
+
+        $orchestrator = new LookupOrchestrator([$google, $gemini]);
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Google Book', $result->title);
+    }
+
     // --- Helper methods ---
 
     /**
@@ -364,6 +466,49 @@ class LookupOrchestratorTest extends TestCase
                     return false;
                 }
 
+                return \in_array($mode, $this->supportedModes, true);
+            }
+        };
+    }
+
+    /**
+     * @param list<string>  $supportedModes
+     * @param list<string> &$callOrder
+     */
+    private function createOrderTrackingProvider(
+        string $name,
+        array $supportedModes,
+        ?LookupResult $result,
+        array &$callOrder,
+    ): LookupProviderInterface {
+        return new class($name, $supportedModes, $result, $callOrder) implements LookupProviderInterface {
+            public function __construct(
+                private readonly string $name,
+                private readonly array $supportedModes,
+                private readonly ?LookupResult $result,
+                private array &$callOrder,
+            ) {
+            }
+
+            public function getLastApiMessage(): ?array
+            {
+                return null;
+            }
+
+            public function getName(): string
+            {
+                return $this->name;
+            }
+
+            public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+            {
+                $this->callOrder[] = $this->name;
+
+                return $this->result;
+            }
+
+            public function supports(string $mode, ?ComicType $type): bool
+            {
                 return \in_array($mode, $this->supportedModes, true);
             }
         };
