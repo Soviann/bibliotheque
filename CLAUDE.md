@@ -12,6 +12,8 @@
 
 - Edit when asked to edit. No issues/plans unless requested.
 - Prefer acting over asking.
+- **No codebase exploration.** CLAUDE.md, MEMORY.md, and `memory/patterns.md` contain all needed context (file paths, patterns, conventions). Jump straight to implementation. Only read files you are about to edit — never glob/grep to "understand the codebase" first.
+- **Keep docs up to date.** When adding new entities, enums, services, routes, or commands, update the Architecture section in this file and `memory/patterns.md` in the same session.
 
 ## Plans
 
@@ -115,11 +117,12 @@ UX Packages: `ux-autocomplete`, `ux-dropzone`, `ux-turbo`.
 ### Commits
 
 Format: `<type>(scope): description in French` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
+**Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
 
 ### Branches (GitHub Flow)
 
 - `main` = always stable and deployable
-- Working branches: `<type>/<short-description>` (e.g., `feat/api-lookup-status`, `fix/cover-upload`)
+- Working branches: `<type>/<N>-<short-description>` (e.g., `feat/23-api-cache`, `fix/25-camera-permission`)
 - Non-trivial work → branch + PR + squash merge
 - Direct commits on `main` allowed for: typos, CLAUDE.md, minor config
 - Link PRs to issues: `fixes #N` or `closes #N`
@@ -314,5 +317,4 @@ docker compose -f docker-compose.prod.yml up --build -d
 
 ## Maintenance
 
-Update "Architecture" after: new entity/enum/service/route/command.
 Explore code only for: internal implementation, Twig templates, Stimulus controllers.
