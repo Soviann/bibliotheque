@@ -1,0 +1,6 @@
+framework:
+    rate_limiter:
+        gemini_api:
+            interval: '1 minute'
+            limit: 10
+            policy: sliding_window
