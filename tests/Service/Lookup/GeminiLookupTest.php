@@ -39,24 +39,21 @@ class GeminiLookupTest extends TestCase
 
     public function testLookupByIsbnReturnsData(): void
     {
+        $json = \json_encode([
+            'authors' => 'Hajime Isayama',
+            'description' => 'Un manga épique sur les titans',
+            'isOneShot' => false,
+            'publishedDate' => '2012-06-13',
+            'publisher' => 'Pika Édition',
+            'thumbnail' => 'https://example.com/cover.jpg',
+            'title' => "L'Attaque des Titans",
+        ]);
         $geminiClient = new ClientFake([
             GenerateContentResponse::fake([
                 'candidates' => [
                     [
                         'content' => [
-                            'parts' => [
-                                [
-                                    'text' => \json_encode([
-                                        'authors' => 'Hajime Isayama',
-                                        'description' => 'Un manga épique sur les titans',
-                                        'isOneShot' => false,
-                                        'publishedDate' => '2012-06-13',
-                                        'publisher' => 'Pika Édition',
-                                        'thumbnail' => 'https://example.com/cover.jpg',
-                                        'title' => "L'Attaque des Titans",
-                                    ]),
-                                ],
-                            ],
+                            'parts' => [['text' => "```json\n{$json}\n```"]],
                         ],
                     ],
                 ],
@@ -105,6 +102,30 @@ class GeminiLookupTest extends TestCase
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Eiichiro Oda', $result->authors);
         self::assertSame('One Piece', $result->title);
+    }
+
+    public function testLookupParsesJsonWithoutMarkdownWrapper(): void
+    {
+        $geminiClient = new ClientFake([
+            GenerateContentResponse::fake([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => '{"title": "Garfield", "authors": "Jim Davis"}'],
+                            ],
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $lookup = $this->createLookup(geminiClient: $geminiClient);
+        $result = $lookup->lookup('Garfield', null, 'title');
+
+        self::assertInstanceOf(LookupResult::class, $result);
+        self::assertSame('Garfield', $result->title);
+        self::assertSame('Jim Davis', $result->authors);
     }
 
     public function testEnrichCompletesPartialData(): void

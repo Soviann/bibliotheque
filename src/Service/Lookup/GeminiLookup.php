@@ -7,12 +7,8 @@ namespace App\Service\Lookup;
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use Gemini\Contracts\ClientContract as GeminiClient;
-use Gemini\Data\GenerationConfig;
 use Gemini\Data\GoogleSearch;
-use Gemini\Data\Schema;
 use Gemini\Data\Tool;
-use Gemini\Enums\DataType;
-use Gemini\Enums\ResponseMimeType;
 use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -26,6 +22,17 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 40])]
 class GeminiLookup implements EnrichableLookupProviderInterface
 {
+    private const string JSON_INSTRUCTIONS = <<<'TEXT'
+        Réponds UNIQUEMENT avec un objet JSON (sans bloc markdown) contenant ces champs :
+        - "title" (string|null) : titre de la série
+        - "authors" (string|null) : auteur(s) séparés par des virgules
+        - "publisher" (string|null) : éditeur français
+        - "publishedDate" (string|null) : date au format YYYY-MM-DD ou YYYY
+        - "description" (string|null) : synopsis de la série
+        - "thumbnail" (string|null) : URL image de couverture
+        - "isOneShot" (boolean|null) : true = tome unique, false = série multi-tomes
+        TEXT;
+
     private const string MODEL = 'gemini-2.5-flash';
 
     /** @var array{status: string, message: string}|null */
@@ -91,8 +98,8 @@ class GeminiLookup implements EnrichableLookupProviderInterface
             Complète les champs manquants en utilisant Google Search.
             Retourne UNIQUEMENT les informations que tu trouves avec certitude.
             Si tu n'es pas sûr d'une information, laisse le champ à null.
-            Pour isOneShot, retourne true si c'est un tome unique (one-shot, intégrale), false si c'est une série multi-tomes.
-            PROMPT;
+
+            PROMPT.self::JSON_INSTRUCTIONS;
     }
 
     private function buildLookupPrompt(string $query, ?ComicType $type, string $mode): string
@@ -109,24 +116,8 @@ class GeminiLookup implements EnrichableLookupProviderInterface
             Retourne UNIQUEMENT les informations que tu trouves avec certitude.
             Si tu n'es pas sûr d'une information, laisse le champ à null.
             Pour le titre, retourne le titre de la SÉRIE (pas du tome individuel).
-            Pour isOneShot, retourne true si c'est un tome unique (one-shot, intégrale), false si c'est une série multi-tomes.
-            PROMPT;
-    }
 
-    private function buildSchema(): Schema
-    {
-        return new Schema(
-            type: DataType::OBJECT,
-            properties: [
-                'authors' => new Schema(type: DataType::STRING, description: 'Auteur(s) séparés par des virgules', nullable: true),
-                'description' => new Schema(type: DataType::STRING, description: 'Synopsis de la série', nullable: true),
-                'isOneShot' => new Schema(type: DataType::BOOLEAN, description: 'true = tome unique', nullable: true),
-                'publishedDate' => new Schema(type: DataType::STRING, description: 'Date au format YYYY-MM-DD ou YYYY', nullable: true),
-                'publisher' => new Schema(type: DataType::STRING, description: 'Éditeur français', nullable: true),
-                'thumbnail' => new Schema(type: DataType::STRING, description: 'URL image de couverture', nullable: true),
-                'title' => new Schema(type: DataType::STRING, description: 'Titre de la série', nullable: true),
-            ],
-        );
+            PROMPT.self::JSON_INSTRUCTIONS;
     }
 
     /**
@@ -161,18 +152,13 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         try {
             $response = $this->geminiClient
                 ->generativeModel(model: self::MODEL)
-                ->withGenerationConfig(
-                    new GenerationConfig(
-                        responseMimeType: ResponseMimeType::APPLICATION_JSON,
-                        responseSchema: $this->buildSchema(),
-                    )
-                )
                 ->withTool(new Tool(googleSearch: GoogleSearch::from()))
                 ->generateContent($prompt);
 
-            $data = $response->json(associative: true);
+            $text = $response->text();
+            $data = $this->parseJsonFromText($text);
 
-            if (!\is_array($data)) {
+            if (null === $data) {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse JSON invalide');
 
                 return null;
@@ -223,6 +209,19 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         }
     }
 
+    private function consumeRateLimit(): bool
+    {
+        $limiter = $this->limiterFactory->create('gemini_global');
+
+        if (!$limiter->consume()->isAccepted()) {
+            $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota dépassé');
+
+            return false;
+        }
+
+        return true;
+    }
+
     private function doEnrich(LookupResult $partial, ?ComicType $type): ?LookupResult
     {
         if (!$this->consumeRateLimit()) {
@@ -245,17 +244,19 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         return $this->callGemini($prompt);
     }
 
-    private function consumeRateLimit(): bool
+    /**
+     * Parse le JSON depuis la réponse texte de Gemini (avec ou sans bloc markdown).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function parseJsonFromText(string $text): ?array
     {
-        $limiter = $this->limiterFactory->create('gemini_global');
+        // Supprime le bloc markdown ```json ... ``` si présent
+        $cleaned = \preg_replace('/^```(?:json)?\s*\n?(.*?)\n?```$/s', '$1', \trim($text));
 
-        if (!$limiter->consume()->isAccepted()) {
-            $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota dépassé');
+        $data = \json_decode($cleaned ?? $text, true);
 
-            return false;
-        }
-
-        return true;
+        return \is_array($data) ? $data : null;
     }
 
     private function recordApiMessage(ApiLookupStatus $status, string $message): void
