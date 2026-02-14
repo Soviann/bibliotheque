@@ -17,7 +17,7 @@
 
 ## Plans
 
-- Location: `docs/plans/` (never global). Delete after PR merged.
+- Location: `docs/plans/` (never global, gitignored). Delete after PR merged.
 
 ## Workflow
 
