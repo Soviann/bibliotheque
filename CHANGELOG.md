@@ -9,6 +9,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Enrichissement Gemini IA** : Intégration de l'API Google Gemini pour enrichir les données des séries
+  - Recherche par ISBN ou titre via Gemini 2.0 Flash avec Google Search grounding
+  - Enrichissement automatique des champs manquants après lookup classique
+  - Structured output JSON pour des réponses fiables et typées
+  - Cache filesystem (30 jours) pour économiser les quotas
+  - Rate limiting (10 requêtes/minute) pour respecter le plan gratuit
+
 - **Optimisation des couvertures** : Redimensionnement automatique et conversion WebP des images de couverture via LiipImagineBundle
   - Deux variantes : `cover_thumbnail` (300×450, WebP, q80) pour les listes et `cover_medium` (600×900, WebP, q85) pour les fiches détail
   - Extension Twig `cover_image_url()` centralisant la logique cover uploadée / URL externe / pas de cover
@@ -55,6 +62,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Remplacement des `usleep()`/`sleep()` par des WebDriver waits explicites
 
 ### Changed
+
+- **Refactoring architecture lookup** : Extraction du service monolithique `IsbnLookupService` en architecture provider-based
+  - Interface `LookupProviderInterface` avec méthode `supports()` pour filtrer les providers par mode (ISBN/titre) et type
+  - Providers individuels : `GoogleBooksLookup`, `OpenLibraryLookup`, `AniListLookup`, `GeminiLookup`
+  - `LookupOrchestrator` coordonne les appels et fusionne les résultats
+  - Interface `EnrichableLookupProviderInterface` pour les providers capables d'enrichir des données existantes
+  - DTO `LookupResult` (immutable, `JsonSerializable`) remplace les tableaux associatifs
 
 - **Lookup ISBN parallélisé** : Les appels Google Books et Open Library sont désormais lancés en parallèle (lazy responses de Symfony HttpClient), réduisant le temps d'attente de Google + OpenLibrary à ~max(Google, OpenLibrary). Les fetches d'auteurs Open Library sont également parallélisés.
 

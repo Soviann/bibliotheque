@@ -72,6 +72,8 @@ ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 
 **Entity validation**: `$this->validator->validate($entity)` before persist.
 
+**DB queries**: All database queries MUST live in dedicated entity repositories (`src/Repository/`). Use QueryBuilder exclusively (no raw DQL strings). Services and controllers inject repositories, never `EntityManagerInterface` for queries.
+
 ## Mandatory TDD
 
 1. **Test first**: write/modify test → must fail

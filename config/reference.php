@@ -354,6 +354,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         resolve_target_entities?: array<string, scalar|Param|null>,
  *     },
  * }
+ * @psalm-type GeminiConfig = array{
+ *     api_key?: scalar|Param|null, // Default: "%env(GEMINI_API_KEY)%"
+ * }
  * @psalm-type DoctrineMigrationsConfig = array{
  *     enable_service_migrations?: bool|Param, // Whether to enable fetching migrations from the service container. // Default: false
  *     migrations_paths?: array<string, scalar|Param|null>,
@@ -2045,6 +2048,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     parameters?: ParametersConfig,
  *     services?: ServicesConfig,
  *     doctrine?: DoctrineConfig,
+ *     gemini?: GeminiConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
  *     framework?: FrameworkConfig,
  *     security?: SecurityConfig,
@@ -2060,6 +2064,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
  *         doctrine?: DoctrineConfig,
+ *         gemini?: GeminiConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         framework?: FrameworkConfig,
  *         maker?: MakerConfig,
@@ -2077,6 +2082,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
  *         doctrine?: DoctrineConfig,
+ *         gemini?: GeminiConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         framework?: FrameworkConfig,
  *         security?: SecurityConfig,
@@ -2093,6 +2099,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
  *         doctrine?: DoctrineConfig,
+ *         gemini?: GeminiConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         dama_doctrine_test?: DamaDoctrineTestConfig,
  *         framework?: FrameworkConfig,
