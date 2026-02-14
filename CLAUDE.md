@@ -58,7 +58,7 @@ ddev exec npm run test:watch                        # JS Tests (watch mode)
 ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 ```
 
-**PHP-CS-Fixer and PHPStan**: automated via PostToolUse hooks.
+**PHP-CS-Fixer and PHPStan**: run before committing, only on modified files.
 
 ## PHP Rules
 
@@ -195,126 +195,10 @@ features/                     # Behat .feature files
 
 ## Architecture
 
-### Entities
-
-**ComicSeries**: `title`, `status:ComicStatus`, `type:ComicType`, `latestPublishedIssue?:int`, `latestPublishedIssueComplete:bool`, `isOneShot:bool`, `description?`, `publishedDate?`, `publisher?`, `coverFile?:File(Vich)`, `coverImage?`, `coverUrl?`, `deletedAt?:datetime(SoftDeletable)`, `createdAt`, `updatedAt`
-- Implements: `SoftDeletableInterface` (trait `SoftDeletableTrait` from `knplabs/doctrine-behaviors`)
-- Relations: `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)`
-- Methods: `isWishlist()`, `getCurrentIssue()`, `getLastBought()`, `getLastDownloaded()`, `getMissingTomesNumbers()`, `getOwnedTomesNumbers()`, `getAuthorsAsString()`, `isCurrentIssueComplete()`, `isLastBoughtComplete()`, `isLastDownloadedComplete()`, `delete()`, `restore()`, `isDeleted()`
-
-**Tome**: `number:int`, `bought:bool`, `downloaded:bool`, `onNas:bool`, `isbn?`, `title?`, `createdAt`, `updatedAt` — Relation: `comicSeries:M2O→ComicSeries`
-
-**Author**: `name:string(unique)` — Relation: `comicSeries:M2M→ComicSeries`
-
-**User**: `email:string(unique)`, `password`, `roles:array`
-
-### Enums
-
-**ApiLookupStatus**: `ERROR`, `NOT_FOUND`, `RATE_LIMITED`, `SUCCESS`
-**ComicStatus**: `BUYING`, `FINISHED`, `STOPPED`, `WISHLIST`
-**ComicType**: `BD`, `COMICS`, `LIVRE`, `MANGA`
-
-### Services
-
-**ComicSeriesMapper**: `mapToEntity(ComicSeriesInput, ?ComicSeries): ComicSeries`, `mapToInput(ComicSeries): ComicSeriesInput`
-
-**CoverRemoverInterface**: `remove(ComicSeries): void` — Impl: `VichCoverRemover` (also invalidates LiipImagine cache)
-
-**UploadHandlerInterface**: `remove(object, string): void` — Impl: `VichUploadHandlerAdapter` (adapter for VichUploader's final `UploadHandler`)
-
-**IsbnLookupService**: `lookup(isbn, ?type): ?array`, `lookupByTitle(title, ?type): ?array`, `getLastApiMessages(): array`
-- APIs: Google Books, Open Library, AniList (mangas)
-- Returns: `[title, authors, description, publishedDate, publisher, isbn, thumbnail, isOneShot, sources]`
-- `getLastApiMessages()`: status of each queried API (`{api_name: {status, message}}`), uses `ApiLookupStatus`
-
-### DTOs
-
-**ComicSeriesInput**: `title`, `status`, `type`, `latestPublishedIssue?`, `latestPublishedIssueComplete`, `isOneShot`, `description?`, `publishedDate?`, `publisher?`, `coverUrl?`, `coverImage?`, `deleteCover`, `coverFile?`, `tomes:list<TomeInput>`, `authors:list<AuthorInput>`
-
-**TomeInput**: `number`, `bought`, `downloaded`, `onNas`, `isbn?`, `title?`
-
-**AuthorInput**: `name`
-
-**ComicFilters**: `nas?`, `q?`, `sort`, `status?`, `type?` — Used with `#[MapQueryString]`
-
-### Routes
-
-| Route | Controller |
-|-------|------------|
-| `/` | HomeController::index |
-| `/comic/{id}` | ComicController::show |
-| `/comic/new` | ComicController::new |
-| `/comic/{id}/edit` | ComicController::edit |
-| `/comic/{id}/delete` | ComicController::delete |
-| `/comic/{id}/to-library` | ComicController::toLibrary |
-| `/wishlist` | WishlistController::index |
-| `/search` | SearchController::index |
-| `/trash` | TrashController::index |
-| `/trash/{id}/restore` | TrashController::restore |
-| `/trash/{id}/permanent-delete` | TrashController::permanentDelete |
-| `/login`, `/logout` | SecurityController |
-| `/offline` | OfflineController |
-| `/api/comics` | ApiController::comics |
-| `/api/isbn-lookup` | ApiController::isbnLookup |
-| `/api/title-lookup` | ApiController::titleLookup |
-
-### Repositories
-
-**AuthorRepository**: `findOrCreate()`, `findOrCreateMultiple()`
-**ComicSeriesRepository**: `findWithFilters()`, `findByStatus()`, `search()`, `findAllForApi()`
-**TomeRepository**: (no custom methods)
-**UserRepository**: (no custom methods)
-
-### Form Types
-
-**ComicSeriesType**, **TomeType**, **AuthorAutocompleteType**
-**DataTransformer**: `AuthorToInputTransformer`
-
-### Twig Extensions
-
-**CoverImageExtension**: `cover_image_url(comic, filter='cover_thumbnail')` — optimized cover URL (LiipImagine for uploads, direct URL for external, empty string if no cover)
-
-**SafeRefererExtension**: `safeReferer(fallback)` — returns filtered HTTP referer
-
-### Console Commands
-
-- `app:create-user <email> <password>`
-- `app:import-excel <file> [--dry-run]`
-- `app:purge-deleted [--days=30] [--dry-run]`
-
-### Integrations
-
-VichUploaderBundle (covers), LiipImagineBundle (resize + WebP), knplabs/doctrine-behaviors (soft delete), PWA (`/offline`, `/api/comics`), APIs (Google Books, Open Library, AniList)
-
-### Behat
-
-**Features**: `features/*.feature` — acceptance tests (authentication, CRUD comics, tomes, filtering, search, wishlist, one-shot)
-**Contexts**: `tests/Behat/Context/` — `AuthenticationContext`, `ComicSeriesContext`, `DatabaseContext`, `FeatureContext`, `FormContext`, `NavigationContext`, `PantherContext`
-
-### Playwright
-
-`tests/playwright/offline.spec.js` — offline mode E2E test
+See `memory/patterns.md` for the complete file map, implementation patterns, and conventions.
 
 ## Deployment
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
-
-## Gotchas
-
-- **Google Books**: may return partial data, verify `title`
-- **VichUploader**: removing `coverImage` doesn't delete the physical file
-- **Tomes**: `orphanRemoval=true`, be careful with direct manipulations
-- **Twig cache**: `cache:clear` sometimes needed in dev
-- **Panther tests must extend `TestCase`**, not `KernelTestCase` — DAMA wraps data in uncommitted transactions invisible to Selenium. Use `PantherTestHelper` trait (driver, login, `runSql()` via `Process`)
-- **Enum values are lowercase in DB**: `'buying'` not `'BUYING'` (PHP backed enum stores the value, not the case name)
-- **`LAST_INSERT_ID()`** doesn't work across separate `bin/console` calls (each opens a new connection). Use `SELECT ... WHERE title = '...'` instead
-- **Turbo + Selenium**: use `executeScript` to fill forms + `form.submit()` (avoids `StaleElementReferenceException` from DOM replacement)
-- **AssetMapper + Panther**: after modifying JS, run `ddev exec bin/console asset-map:compile` — Selenium loads compiled assets from `public/assets/`, not source files
-- **Soft delete filter**: `SoftDeleteFilter` is enabled by default in `doctrine.yaml`. To access soft-deleted series, disable with `$em->getFilters()->disable('soft_delete')` then re-enable after
-- **Permanent deletion**: `$em->remove()` is always intercepted by `SoftDeletableEventSubscriber` — use direct DBAL (`$connection->delete()`) to actually delete, respecting FK order: `comic_series_author` → `tome` → `comic_series`
-
-## Maintenance
-
-Explore code only for: internal implementation, Twig templates, Stimulus controllers.
