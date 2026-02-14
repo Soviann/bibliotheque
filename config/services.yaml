@@ -25,5 +25,8 @@ services:
     App\Service\UploadHandlerInterface:
         alias: App\Service\VichUploadHandlerAdapter
 
+    Gemini\Contracts\ClientContract:
+        alias: Gemini\Client
+
     Vich\UploaderBundle\Templating\Helper\UploaderHelperInterface:
         alias: Vich\UploaderBundle\Templating\Helper\UploaderHelper
