@@ -7,7 +7,7 @@ namespace App\Service\Lookup;
 /**
  * Résultat d'un lookup depuis un provider.
  */
-class LookupResult
+class LookupResult implements \JsonSerializable
 {
     public function __construct(
         public readonly ?string $authors = null,
@@ -64,6 +64,23 @@ class LookupResult
             thumbnail: $values['thumbnail'],
             title: $values['title'],
         );
+    }
+
+    /**
+     * @return array{authors: ?string, description: ?string, isbn: ?string, isOneShot: ?bool, publishedDate: ?string, publisher: ?string, thumbnail: ?string, title: ?string}
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'authors' => $this->authors,
+            'description' => $this->description,
+            'isbn' => $this->isbn,
+            'isOneShot' => $this->isOneShot,
+            'publishedDate' => $this->publishedDate,
+            'publisher' => $this->publisher,
+            'thumbnail' => $this->thumbnail,
+            'title' => $this->title,
+        ];
     }
 
     /**

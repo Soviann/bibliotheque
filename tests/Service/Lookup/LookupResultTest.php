@@ -166,4 +166,33 @@ class LookupResultTest extends TestCase
         self::assertSame('9781234567890', $withIsbn->isbn);
         self::assertSame('Book', $withIsbn->title);
     }
+
+    public function testJsonSerializeReturnsAllFieldsExceptSource(): void
+    {
+        $result = new LookupResult(
+            authors: 'John Doe',
+            description: 'A great book',
+            isbn: '9781234567890',
+            isOneShot: false,
+            publishedDate: '2020-01-01',
+            publisher: 'Great Publisher',
+            source: 'google_books',
+            thumbnail: 'https://example.com/cover.jpg',
+            title: 'Test Book',
+        );
+
+        $serialized = $result->jsonSerialize();
+
+        self::assertSame([
+            'authors' => 'John Doe',
+            'description' => 'A great book',
+            'isbn' => '9781234567890',
+            'isOneShot' => false,
+            'publishedDate' => '2020-01-01',
+            'publisher' => 'Great Publisher',
+            'thumbnail' => 'https://example.com/cover.jpg',
+            'title' => 'Test Book',
+        ], $serialized);
+        self::assertArrayNotHasKey('source', $serialized);
+    }
 }
