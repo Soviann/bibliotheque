@@ -30,6 +30,8 @@ export default class extends Controller {
     // Labels lisibles pour les APIs
     static apiLabels = {
         anilist: 'AniList',
+        gemini: 'Gemini',
+        'gemini.enrich': 'Gemini (enrichissement)',
         google_books: 'Google Books',
         open_library: 'Open Library',
     };

@@ -13,12 +13,12 @@ use Gemini\Data\Schema;
 use Gemini\Data\Tool;
 use Gemini\Enums\DataType;
 use Gemini\Enums\ResponseMimeType;
+use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * Provider de recherche via l'API Google Gemini avec Google Search grounding.
@@ -26,7 +26,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 40])]
 class GeminiLookup implements EnrichableLookupProviderInterface
 {
-    private const string MODEL = 'gemini-2.0-flash';
+    private const string MODEL = 'gemini-2.5-flash';
 
     /** @var array{status: string, message: string}|null */
     private ?array $lastApiMessage = null;
@@ -205,6 +205,16 @@ class GeminiLookup implements EnrichableLookupProviderInterface
                 thumbnail: \is_string($data['thumbnail'] ?? null) ? $data['thumbnail'] : null,
                 title: \is_string($data['title'] ?? null) ? $data['title'] : null,
             );
+        } catch (ErrorException $e) {
+            $this->logger->error('Erreur Gemini API : {error}', ['code' => $e->getErrorCode(), 'error' => $e->getMessage()]);
+
+            if (429 === $e->getErrorCode()) {
+                $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota API dépassé');
+            } else {
+                $this->recordApiMessage(ApiLookupStatus::ERROR, $e->getErrorMessage());
+            }
+
+            return null;
         } catch (\Throwable $e) {
             $this->logger->error('Erreur Gemini : {error}', ['error' => $e->getMessage()]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Erreur de connexion');

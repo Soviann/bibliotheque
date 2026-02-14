@@ -7,6 +7,7 @@ namespace App\Tests\Service\Lookup;
 use App\Enum\ComicType;
 use App\Service\Lookup\GeminiLookup;
 use App\Service\Lookup\LookupResult;
+use Gemini\Exceptions\ErrorException;
 use Gemini\Responses\GenerativeModel\GenerateContentResponse;
 use Gemini\Testing\ClientFake;
 use PHPUnit\Framework\TestCase;
@@ -166,6 +167,22 @@ class GeminiLookupTest extends TestCase
         self::assertNull($result);
         self::assertNotNull($lookup->getLastApiMessage());
         self::assertSame('error', $lookup->getLastApiMessage()['status']);
+        self::assertSame('Erreur de connexion', $lookup->getLastApiMessage()['message']);
+    }
+
+    public function testLookupReturnsRateLimitedOnQuotaExhausted(): void
+    {
+        $geminiClient = new ClientFake([
+            new ErrorException(['code' => 429, 'message' => 'Quota exceeded', 'status' => 'RESOURCE_EXHAUSTED']),
+        ]);
+
+        $lookup = $this->createLookup(geminiClient: $geminiClient);
+        $result = $lookup->lookup('9781234567890', null, 'isbn');
+
+        self::assertNull($result);
+        self::assertNotNull($lookup->getLastApiMessage());
+        self::assertSame('rate_limited', $lookup->getLastApiMessage()['status']);
+        self::assertSame('Quota API dépassé', $lookup->getLastApiMessage()['message']);
     }
 
     public function testLookupReturnsNullOnRateLimit(): void
@@ -242,7 +259,7 @@ class GeminiLookupTest extends TestCase
         self::assertSame('Cached Book', $result2->title);
 
         // Un seul appel API
-        $geminiClient->generativeModel(model: 'gemini-2.0-flash')->assertSent(1);
+        $geminiClient->generativeModel(model: 'gemini-2.5-flash')->assertSent(1);
     }
 
     public function testLookupReturnsNullWhenGeminiReturnsEmptyData(): void
