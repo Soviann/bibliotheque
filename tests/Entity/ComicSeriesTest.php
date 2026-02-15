@@ -241,6 +241,222 @@ class ComicSeriesTest extends TestCase
     }
 
     /**
+     * Teste getLastRead avec aucun tome lu.
+     */
+    public function testGetLastReadWithNoReadTomes(): void
+    {
+        $series = new ComicSeries();
+
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $tome->setRead(false);
+        $series->addTome($tome);
+
+        self::assertNull($series->getLastRead());
+    }
+
+    /**
+     * Teste getLastRead retourne le numéro maximum des tomes lus.
+     */
+    public function testGetLastReadReturnsMaxReadNumber(): void
+    {
+        $series = new ComicSeries();
+
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setRead(true);
+        $series->addTome($tome1);
+
+        $tome2 = new Tome();
+        $tome2->setNumber(4);
+        $tome2->setRead(true);
+        $series->addTome($tome2);
+
+        $tome3 = new Tome();
+        $tome3->setNumber(6);
+        $tome3->setRead(false);
+        $series->addTome($tome3);
+
+        self::assertSame(4, $series->getLastRead());
+    }
+
+    /**
+     * Teste isLastReadComplete quand complet.
+     */
+    public function testIsLastReadCompleteWhenComplete(): void
+    {
+        $series = new ComicSeries();
+        $series->setLatestPublishedIssue(3);
+
+        $tome = new Tome();
+        $tome->setNumber(3);
+        $tome->setRead(true);
+        $series->addTome($tome);
+
+        self::assertTrue($series->isLastReadComplete());
+    }
+
+    /**
+     * Teste isLastReadComplete quand incomplet.
+     */
+    public function testIsLastReadCompleteWhenIncomplete(): void
+    {
+        $series = new ComicSeries();
+        $series->setLatestPublishedIssue(5);
+
+        $tome = new Tome();
+        $tome->setNumber(3);
+        $tome->setRead(true);
+        $series->addTome($tome);
+
+        self::assertFalse($series->isLastReadComplete());
+    }
+
+    /**
+     * Teste getReadTomesCount retourne le nombre de tomes lus.
+     */
+    public function testGetReadTomesCount(): void
+    {
+        $series = new ComicSeries();
+
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setRead(true);
+        $series->addTome($tome1);
+
+        $tome2 = new Tome();
+        $tome2->setNumber(2);
+        $tome2->setRead(false);
+        $series->addTome($tome2);
+
+        $tome3 = new Tome();
+        $tome3->setNumber(3);
+        $tome3->setRead(true);
+        $series->addTome($tome3);
+
+        self::assertSame(2, $series->getReadTomesCount());
+    }
+
+    /**
+     * Teste getReadTomesCount avec aucun tome lu.
+     */
+    public function testGetReadTomesCountWithNoReadTomes(): void
+    {
+        $series = new ComicSeries();
+
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $series->addTome($tome);
+
+        self::assertSame(0, $series->getReadTomesCount());
+    }
+
+    /**
+     * Teste isCurrentlyReading quand en cours de lecture.
+     */
+    public function testIsCurrentlyReadingWhenReading(): void
+    {
+        $series = new ComicSeries();
+
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setRead(true);
+        $series->addTome($tome1);
+
+        $tome2 = new Tome();
+        $tome2->setNumber(2);
+        $tome2->setRead(false);
+        $series->addTome($tome2);
+
+        self::assertTrue($series->isCurrentlyReading());
+    }
+
+    /**
+     * Teste isCurrentlyReading quand aucun tome lu.
+     */
+    public function testIsCurrentlyReadingWithNoReadTomes(): void
+    {
+        $series = new ComicSeries();
+
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $tome->setRead(false);
+        $series->addTome($tome);
+
+        self::assertFalse($series->isCurrentlyReading());
+    }
+
+    /**
+     * Teste isCurrentlyReading quand tous les tomes sont lus.
+     */
+    public function testIsCurrentlyReadingWhenAllRead(): void
+    {
+        $series = new ComicSeries();
+
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setRead(true);
+        $series->addTome($tome1);
+
+        $tome2 = new Tome();
+        $tome2->setNumber(2);
+        $tome2->setRead(true);
+        $series->addTome($tome2);
+
+        self::assertFalse($series->isCurrentlyReading());
+    }
+
+    /**
+     * Teste isFullyRead quand tous les tomes sont lus.
+     */
+    public function testIsFullyReadWhenAllRead(): void
+    {
+        $series = new ComicSeries();
+
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setRead(true);
+        $series->addTome($tome1);
+
+        $tome2 = new Tome();
+        $tome2->setNumber(2);
+        $tome2->setRead(true);
+        $series->addTome($tome2);
+
+        self::assertTrue($series->isFullyRead());
+    }
+
+    /**
+     * Teste isFullyRead quand certains tomes ne sont pas lus.
+     */
+    public function testIsFullyReadWhenNotAllRead(): void
+    {
+        $series = new ComicSeries();
+
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setRead(true);
+        $series->addTome($tome1);
+
+        $tome2 = new Tome();
+        $tome2->setNumber(2);
+        $tome2->setRead(false);
+        $series->addTome($tome2);
+
+        self::assertFalse($series->isFullyRead());
+    }
+
+    /**
+     * Teste isFullyRead avec une collection vide.
+     */
+    public function testIsFullyReadWithEmptyCollection(): void
+    {
+        $series = new ComicSeries();
+
+        self::assertFalse($series->isFullyRead());
+    }
+
+    /**
      * Teste getOwnedTomesNumbers retourne les numéros des tomes.
      */
     public function testGetOwnedTomesNumbers(): void

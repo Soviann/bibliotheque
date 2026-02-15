@@ -44,6 +44,10 @@ class TomeType extends AbstractType
                 'label' => 'Sur NAS',
                 'required' => false,
             ])
+            ->add('read', CheckboxType::class, [
+                'label' => 'Lu',
+                'required' => false,
+            ])
             ->add('title', TextType::class, [
                 'attr' => ['placeholder' => 'Titre du tome (optionnel)'],
                 'label' => 'Titre',

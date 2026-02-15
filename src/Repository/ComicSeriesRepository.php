@@ -25,6 +25,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
      * @param array{
      *     isWishlist?: bool,
      *     onNas?: bool|null,
+     *     reading?: string|null,
      *     search?: string|null,
      *     sort?: string,
      *     status?: ComicStatus|null,
@@ -71,6 +72,20 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 // Séries sans aucun tome sur NAS
                 $qb->andWhere('NOT EXISTS (SELECT t2.id FROM App\Entity\Tome t2 WHERE t2.comicSeries = c AND t2.onNas = true)');
             }
+        }
+
+        // Reading filter
+        if (!empty($filters['reading'])) {
+            match ($filters['reading']) {
+                'reading' => $qb
+                    ->andWhere('EXISTS (SELECT r1.id FROM App\Entity\Tome r1 WHERE r1.comicSeries = c AND r1.read = true)')
+                    ->andWhere('EXISTS (SELECT r2.id FROM App\Entity\Tome r2 WHERE r2.comicSeries = c AND r2.read = false)'),
+                'read' => $qb
+                    ->andWhere('NOT EXISTS (SELECT r3.id FROM App\Entity\Tome r3 WHERE r3.comicSeries = c AND r3.read = false)'),
+                'unread' => $qb
+                    ->andWhere('NOT EXISTS (SELECT r4.id FROM App\Entity\Tome r4 WHERE r4.comicSeries = c AND r4.read = true)'),
+                default => null,
+            };
         }
 
         // Search filter (titre uniquement, ISBN est maintenant sur les tomes)
@@ -159,18 +174,23 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 'description' => $comic->getDescription(),
                 'hasNasTome' => $hasNasTome,
                 'id' => $comic->getId(),
+                'isCurrentlyReading' => $comic->isCurrentlyReading(),
+                'isFullyRead' => $comic->isFullyRead(),
                 'isOneShot' => $comic->isOneShot(),
                 'isWishlist' => $comic->isWishlist(),
                 'lastBought' => $comic->getLastBought(),
                 'lastBoughtComplete' => $comic->isLastBoughtComplete(),
                 'lastDownloaded' => $comic->getLastDownloaded(),
                 'lastDownloadedComplete' => $comic->isLastDownloadedComplete(),
+                'lastRead' => $comic->getLastRead(),
+                'lastReadComplete' => $comic->isLastReadComplete(),
                 'latestPublishedIssue' => $comic->getLatestPublishedIssue(),
                 'latestPublishedIssueComplete' => $comic->isLatestPublishedIssueComplete(),
                 'missingTomesNumbers' => $comic->getMissingTomesNumbers(),
                 'ownedTomesNumbers' => $comic->getOwnedTomesNumbers(),
                 'publishedDate' => $comic->getPublishedDate(),
                 'publisher' => $comic->getPublisher(),
+                'readTomesCount' => $comic->getReadTomesCount(),
                 'status' => $comic->getStatus()->value,
                 'statusLabel' => $comic->getStatus()->getLabel(),
                 'title' => $comic->getTitle(),

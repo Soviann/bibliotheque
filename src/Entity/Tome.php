@@ -65,6 +65,12 @@ class Tome
     private bool $onNas = false;
 
     /**
+     * Indique si le tome a été lu.
+     */
+    #[ORM\Column(name: '`read`')]
+    private bool $read = false;
+
+    /**
      * Titre spécifique du tome (optionnel).
      */
     #[ORM\Column(length: 255, nullable: true)]
@@ -170,6 +176,18 @@ class Tome
     public function setOnNas(bool $onNas): static
     {
         $this->onNas = $onNas;
+
+        return $this;
+    }
+
+    public function isRead(): bool
+    {
+        return $this->read;
+    }
+
+    public function setRead(bool $read): static
+    {
+        $this->read = $read;
 
         return $this;
     }

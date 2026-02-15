@@ -17,6 +17,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Suivi de lecture** : Nouveau champ `read` sur les tomes pour suivre la progression de lecture
+  - Propriété `read` (lu) sur `Tome` avec checkbox dans le formulaire d'édition
+  - Méthodes calculées sur `ComicSeries` : `getLastRead()`, `isLastReadComplete()`, `getReadTomesCount()`, `isCurrentlyReading()`, `isFullyRead()`
+  - Filtre "Lecture" sur la page d'accueil (Tous / En cours / Lus / Non lus)
+  - Statistique "Lecture" et indicateur visuel (bordure verte) sur la fiche série
+  - Données de lecture exposées dans l'API PWA
 - **Notification mise à jour SW** : Bandeau "Nouvelle version disponible — Rafraîchir" affiché automatiquement quand le Service Worker se met à jour, avec bouton de rechargement et possibilité de fermer
 - **BnfLookup** : Nouveau provider de recherche via l'API SRU du catalogue général de la BnF
   - Recherche par ISBN (`bib.isbn`) et par titre (`bib.title`)
