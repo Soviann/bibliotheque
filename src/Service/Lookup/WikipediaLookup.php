@@ -77,17 +77,6 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
     ) {
     }
 
-    public function enrich(LookupResult $partial, ?ComicType $type): ?LookupResult
-    {
-        $this->lastApiMessage = null;
-
-        if (null === $partial->title || '' === $partial->title) {
-            return null;
-        }
-
-        return $this->lookup($partial->title, $type, 'title');
-    }
-
     public function getLastApiMessage(): ?array
     {
         return $this->lastApiMessage;
@@ -107,7 +96,18 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
         return 'wikipedia';
     }
 
-    public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    public function prepareEnrich(LookupResult $partial, ?ComicType $type): mixed
+    {
+        $this->lastApiMessage = null;
+
+        if (null === $partial->title || '' === $partial->title) {
+            return null;
+        }
+
+        return $this->prepareLookup($partial->title, $type, 'title');
+    }
+
+    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
         $this->lastApiMessage = null;
 
@@ -124,10 +124,61 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
             }
         }
 
+        if ('isbn' === $mode) {
+            $isbnProp = 13 === \strlen(\str_replace('-', '', $query)) ? 'P212' : 'P957';
+
+            $sparql = \sprintf(
+                'SELECT ?item WHERE { ?item wdt:%s "%s" . } LIMIT 1',
+                $isbnProp,
+                \addslashes($query),
+            );
+
+            $response = $this->httpClient->request('GET', self::WIKIDATA_SPARQL, [
+                'headers' => [
+                    'Accept' => 'application/sparql-results+json',
+                    'User-Agent' => self::USER_AGENT,
+                ],
+                'query' => ['query' => $sparql],
+                'timeout' => 15,
+            ]);
+        } else {
+            $response = $this->httpClient->request('GET', self::WIKIDATA_API, [
+                'headers' => ['User-Agent' => self::USER_AGENT],
+                'query' => [
+                    'action' => 'wbsearchentities',
+                    'format' => 'json',
+                    'language' => 'fr',
+                    'limit' => 5,
+                    'search' => $query,
+                    'type' => 'item',
+                ],
+                'timeout' => 10,
+            ]);
+        }
+
+        return ['cacheKey' => $cacheKey, 'mode' => $mode, 'response' => $response];
+    }
+
+    public function resolveEnrich(mixed $state): ?LookupResult
+    {
+        if (null === $state) {
+            return null;
+        }
+
+        return $this->resolveLookup($state);
+    }
+
+    public function resolveLookup(mixed $state): ?LookupResult
+    {
+        if ($state instanceof LookupResult) {
+            return $state;
+        }
+
+        /* @var array{cacheKey: string, mode: string, response: \Symfony\Contracts\HttpClient\ResponseInterface} $state */
         try {
-            $result = 'isbn' === $mode
-                ? $this->lookupByIsbn($query)
-                : $this->lookupByTitle($query);
+            $result = 'isbn' === $state['mode']
+                ? $this->resolveIsbnLookup($state['response'])
+                : $this->resolveTitleLookup($state['response']);
         } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
             $code = $e->getResponse()->getStatusCode();
             if (429 === $code) {
@@ -154,6 +205,7 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
             return null;
         }
 
+        $item = $this->cache->getItem($state['cacheKey']);
         $item->set($result);
         $item->expiresAfter(self::CACHE_TTL);
         $this->cache->save($item);
@@ -401,28 +453,13 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
     }
 
     /**
-     * Recherche par ISBN via SPARQL Wikidata.
+     * Traite la réponse SPARQL pour résoudre l'entité Wikidata.
      */
-    private function lookupByIsbn(string $isbn): ?LookupResult
+    /**
+     * @param \Symfony\Contracts\HttpClient\ResponseInterface $response
+     */
+    private function resolveIsbnLookup(mixed $response): ?LookupResult
     {
-        // Déterminer la propriété ISBN selon la longueur
-        $isbnProp = 13 === \strlen(\str_replace('-', '', $isbn)) ? 'P212' : 'P957';
-
-        $sparql = \sprintf(
-            'SELECT ?item WHERE { ?item wdt:%s "%s" . } LIMIT 1',
-            $isbnProp,
-            \addslashes($isbn),
-        );
-
-        $response = $this->httpClient->request('GET', self::WIKIDATA_SPARQL, [
-            'headers' => [
-                'Accept' => 'application/sparql-results+json',
-                'User-Agent' => self::USER_AGENT,
-            ],
-            'query' => ['query' => $sparql],
-            'timeout' => 15,
-        ]);
-
         $data = $response->toArray();
         $bindings = $data['results']['bindings'] ?? [];
 
@@ -432,7 +469,6 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
             return null;
         }
 
-        // Extraire l'ID de l'entité depuis l'URI
         $firstBinding = $bindings[0] ?? [];
         $item = \is_array($firstBinding) && \is_array($firstBinding['item'] ?? null) ? $firstBinding['item'] : [];
         $entityUri = \is_string($item['value'] ?? null) ? $item['value'] : '';
@@ -448,23 +484,13 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
     }
 
     /**
-     * Recherche par titre via wbsearchentities Wikidata.
+     * Traite la réponse wbsearchentities pour résoudre l'entité Wikidata.
      */
-    private function lookupByTitle(string $title): ?LookupResult
+    /**
+     * @param \Symfony\Contracts\HttpClient\ResponseInterface $response
+     */
+    private function resolveTitleLookup(mixed $response): ?LookupResult
     {
-        $response = $this->httpClient->request('GET', self::WIKIDATA_API, [
-            'headers' => ['User-Agent' => self::USER_AGENT],
-            'query' => [
-                'action' => 'wbsearchentities',
-                'format' => 'json',
-                'language' => 'fr',
-                'limit' => 5,
-                'search' => $title,
-                'type' => 'item',
-            ],
-            'timeout' => 10,
-        ]);
-
         $data = $response->toArray();
         $searchResults = $data['search'] ?? [];
 
@@ -474,7 +500,6 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
             return null;
         }
 
-        // Tester chaque candidat pour trouver un résultat pertinent
         foreach ($searchResults as $candidate) {
             if (!\is_array($candidate)) {
                 continue;

@@ -10,6 +10,7 @@ use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupProviderInterface;
 use App\Service\Lookup\LookupResult;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 class LookupOrchestratorTest extends TestCase
 {
@@ -24,7 +25,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'open_library',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $result = $orchestrator->lookup('9781234567890');
 
         self::assertNotNull($result);
@@ -47,7 +48,7 @@ class LookupOrchestratorTest extends TestCase
             thumbnail: 'https://ol.jpg',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $result = $orchestrator->lookup('9781234567890');
 
         self::assertNotNull($result);
@@ -65,7 +66,7 @@ class LookupOrchestratorTest extends TestCase
         $google = $this->createProvider('google_books', ['isbn'], null);
         $openLibrary = $this->createProvider('open_library', ['isbn'], null);
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $result = $orchestrator->lookup('0000000000');
 
         self::assertNull($result);
@@ -73,7 +74,7 @@ class LookupOrchestratorTest extends TestCase
 
     public function testLookupByIsbnWithEmptyQueryReturnsNull(): void
     {
-        $orchestrator = new LookupOrchestrator([]);
+        $orchestrator = $this->createOrchestrator([]);
 
         self::assertNull($orchestrator->lookup(''));
         self::assertNull($orchestrator->lookup('   '));
@@ -87,7 +88,7 @@ class LookupOrchestratorTest extends TestCase
             title: 'Test',
         ), $queryCaptured);
 
-        $orchestrator = new LookupOrchestrator([$google]);
+        $orchestrator = $this->createOrchestrator([$google]);
         $orchestrator->lookup('978-2-505-00123-4');
 
         self::assertSame('9782505001234', $queryCaptured);
@@ -100,7 +101,7 @@ class LookupOrchestratorTest extends TestCase
             title: 'Test',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google]);
+        $orchestrator = $this->createOrchestrator([$google]);
         $result = $orchestrator->lookup('9781234567890');
 
         self::assertSame('9781234567890', $result->isbn);
@@ -118,7 +119,7 @@ class LookupOrchestratorTest extends TestCase
             thumbnail: 'https://anilist.jpg',
         ), ComicType::MANGA);
 
-        $orchestrator = new LookupOrchestrator([$google, $anilist]);
+        $orchestrator = $this->createOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Test Manga', ComicType::MANGA);
 
         self::assertNotNull($result);
@@ -138,7 +139,7 @@ class LookupOrchestratorTest extends TestCase
             thumbnail: 'https://anilist.jpg',
         ), requiredType: ComicType::MANGA, defaultPriority: 60, fieldPriorities: ['isOneShot' => 200, 'thumbnail' => 200]);
 
-        $orchestrator = new LookupOrchestrator([$google, $anilist]);
+        $orchestrator = $this->createOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
 
         self::assertSame('https://anilist.jpg', $result->thumbnail);
@@ -156,7 +157,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'anilist',
         ), requiredType: ComicType::MANGA, defaultPriority: 60, fieldPriorities: ['isOneShot' => 200, 'thumbnail' => 200]);
 
-        $orchestrator = new LookupOrchestrator([$google, $anilist]);
+        $orchestrator = $this->createOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
 
         self::assertFalse($result->isOneShot);
@@ -176,7 +177,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'anilist',
         ), requiredType: ComicType::MANGA, defaultPriority: 60, fieldPriorities: ['isOneShot' => 200, 'thumbnail' => 200]);
 
-        $orchestrator = new LookupOrchestrator([$google, $anilist]);
+        $orchestrator = $this->createOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
 
         self::assertSame('Google Author', $result->authors);
@@ -195,7 +196,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'open_library',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $result = $orchestrator->lookupByTitle('Test');
 
         self::assertNull($result->publisher);
@@ -209,7 +210,7 @@ class LookupOrchestratorTest extends TestCase
         ), null, ['message' => 'Données trouvées', 'status' => 'success']);
         $openLibrary = $this->createProvider('open_library', ['isbn'], null, null, ['message' => 'Aucun résultat', 'status' => 'not_found']);
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $orchestrator->lookup('1234567890');
 
         $messages = $orchestrator->getLastApiMessages();
@@ -226,7 +227,7 @@ class LookupOrchestratorTest extends TestCase
             title: 'Test',
         ), null, ['message' => 'Données trouvées', 'status' => 'success']);
 
-        $orchestrator = new LookupOrchestrator([$google]);
+        $orchestrator = $this->createOrchestrator([$google]);
         $orchestrator->lookup('1111111111');
         self::assertNotEmpty($orchestrator->getLastApiMessages());
 
@@ -247,7 +248,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'gemini',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google, $enrichable]);
+        $orchestrator = $this->createOrchestrator([$google, $enrichable]);
         $result = $orchestrator->lookup('1234567890');
 
         self::assertNotNull($result);
@@ -271,7 +272,7 @@ class LookupOrchestratorTest extends TestCase
         $enrichCalled = false;
         $enrichable = $this->createEnrichableProvider('gemini', ['isbn'], null, null, $enrichCalled);
 
-        $orchestrator = new LookupOrchestrator([$google, $enrichable]);
+        $orchestrator = $this->createOrchestrator([$google, $enrichable]);
         $result = $orchestrator->lookup('1234567890');
 
         self::assertNotNull($result);
@@ -286,7 +287,7 @@ class LookupOrchestratorTest extends TestCase
             title: 'OL Book',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $result = $orchestrator->lookup('1234567890');
 
         self::assertNotNull($result);
@@ -304,7 +305,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'open_library',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $result = $orchestrator->lookup('1234567890');
 
         $sources = $orchestrator->getLastSources();
@@ -314,7 +315,7 @@ class LookupOrchestratorTest extends TestCase
 
     public function testLookupByTitleWithEmptyQueryReturnsNull(): void
     {
-        $orchestrator = new LookupOrchestrator([]);
+        $orchestrator = $this->createOrchestrator([]);
 
         self::assertNull($orchestrator->lookupByTitle(''));
         self::assertNull($orchestrator->lookupByTitle('   '));
@@ -338,7 +339,7 @@ class LookupOrchestratorTest extends TestCase
             title: 'Title B',
         ), defaultPriority: 50);
 
-        $orchestrator = new LookupOrchestrator([$providerA, $providerB]);
+        $orchestrator = $this->createOrchestrator([$providerA, $providerB]);
         $result = $orchestrator->lookup('9781234567890');
 
         self::assertNotNull($result);
@@ -364,7 +365,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'google_books',
         ), defaultPriority: 100);
 
-        $orchestrator = new LookupOrchestrator([$wikipedia, $google]);
+        $orchestrator = $this->createOrchestrator([$wikipedia, $google]);
         $result = $orchestrator->lookup('9781234567890');
 
         self::assertNotNull($result);
@@ -389,7 +390,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'google_books',
         ), defaultPriority: 100);
 
-        $orchestrator = new LookupOrchestrator([$wikipedia, $google]);
+        $orchestrator = $this->createOrchestrator([$wikipedia, $google]);
         $result = $orchestrator->lookup('9781234567890');
 
         self::assertNotNull($result);
@@ -424,7 +425,7 @@ class LookupOrchestratorTest extends TestCase
             defaultPriority: 40,
         );
 
-        $orchestrator = new LookupOrchestrator([$google, $wikipedia, $gemini]);
+        $orchestrator = $this->createOrchestrator([$google, $wikipedia, $gemini]);
         $result = $orchestrator->lookup('1234567890');
 
         self::assertNotNull($result);
@@ -451,7 +452,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'gemini',
         ), $callOrder);
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary, $gemini]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary, $gemini]);
         $orchestrator->lookup('9781234567890');
 
         self::assertSame(['google_books', 'open_library', 'gemini'], $callOrder);
@@ -470,7 +471,7 @@ class LookupOrchestratorTest extends TestCase
             source: 'gemini',
         ));
 
-        $orchestrator = new LookupOrchestrator([$google, $gemini]);
+        $orchestrator = $this->createOrchestrator([$google, $gemini]);
         $result = $orchestrator->lookup('1234567890');
 
         self::assertNotNull($result);
@@ -495,7 +496,7 @@ class LookupOrchestratorTest extends TestCase
         $enrichCalled = false;
         $gemini = $this->createEnrichableProvider('gemini', ['isbn'], null, null, $enrichCalled);
 
-        $orchestrator = new LookupOrchestrator([$google, $gemini]);
+        $orchestrator = $this->createOrchestrator([$google, $gemini]);
         $orchestrator->lookup('1234567890');
 
         self::assertFalse($enrichCalled);
@@ -511,7 +512,7 @@ class LookupOrchestratorTest extends TestCase
             title: 'Found by Gemini',
         ), null);
 
-        $orchestrator = new LookupOrchestrator([$google, $openLibrary, $gemini]);
+        $orchestrator = $this->createOrchestrator([$google, $openLibrary, $gemini]);
         $result = $orchestrator->lookup('1234567890');
 
         self::assertNotNull($result);
@@ -528,14 +529,93 @@ class LookupOrchestratorTest extends TestCase
         // Gemini renvoie null en lookup (erreur) et ne casse pas le résultat
         $gemini = $this->createEnrichableProvider('gemini', ['isbn'], null, null);
 
-        $orchestrator = new LookupOrchestrator([$google, $gemini]);
+        $orchestrator = $this->createOrchestrator([$google, $gemini]);
         $result = $orchestrator->lookup('1234567890');
 
         self::assertNotNull($result);
         self::assertSame('Google Book', $result->title);
     }
 
+    // --- Error handling tests (two-phase) ---
+
+    public function testPrepareLookupExceptionSkipsProviderAndContinues(): void
+    {
+        $failing = $this->createThrowingProvider('failing_provider', ['isbn'], throwOnPrepare: true);
+        $working = $this->createProvider('working_provider', ['isbn'], new LookupResult(
+            source: 'working_provider',
+            title: 'Working Title',
+        ));
+
+        $orchestrator = $this->createOrchestrator([$failing, $working]);
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Working Title', $result->title);
+
+        // Le provider en erreur doit avoir un message API ERROR
+        $messages = $orchestrator->getLastApiMessages();
+        self::assertArrayHasKey('failing_provider', $messages);
+        self::assertSame('error', $messages['failing_provider']['status']);
+    }
+
+    public function testResolveLookupExceptionSkipsProviderAndContinues(): void
+    {
+        $failing = $this->createThrowingProvider('failing_provider', ['isbn'], throwOnResolve: true);
+        $working = $this->createProvider('working_provider', ['isbn'], new LookupResult(
+            source: 'working_provider',
+            title: 'Working Title',
+        ));
+
+        $orchestrator = $this->createOrchestrator([$failing, $working]);
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Working Title', $result->title);
+
+        $messages = $orchestrator->getLastApiMessages();
+        self::assertArrayHasKey('failing_provider', $messages);
+        self::assertSame('error', $messages['failing_provider']['status']);
+    }
+
+    public function testGlobalTimeoutSkipsRemainingProviders(): void
+    {
+        // Le premier provider consomme le budget de timeout
+        $slow = $this->createSlowProvider('slow_provider', ['isbn'], new LookupResult(
+            source: 'slow_provider',
+            title: 'Slow Title',
+        ), resolveDelay: 0.2);
+        // Le second provider n'aura plus le temps d'être résolu
+        $late = $this->createProvider('late_provider', ['isbn'], new LookupResult(
+            source: 'late_provider',
+            title: 'Late Title',
+        ));
+
+        // Timeout de 0.1s → slow_provider résout (check passe avant resolve),
+        // puis late_provider est skippé car le budget est épuisé
+        $orchestrator = $this->createOrchestrator([$slow, $late], globalTimeout: 0.1);
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Slow Title', $result->title);
+
+        $messages = $orchestrator->getLastApiMessages();
+        self::assertArrayHasKey('late_provider', $messages);
+        self::assertSame('timeout', $messages['late_provider']['status']);
+    }
+
     // --- Helper methods ---
+
+    /**
+     * @param list<LookupProviderInterface> $providers
+     */
+    private function createOrchestrator(array $providers, float $globalTimeout = 15.0): LookupOrchestrator
+    {
+        return new LookupOrchestrator(
+            globalTimeout: $globalTimeout,
+            logger: new NullLogger(),
+            providers: $providers,
+        );
+    }
 
     /**
      * @param list<string>                                $supportedModes
@@ -578,9 +658,14 @@ class LookupOrchestratorTest extends TestCase
                 return $this->name;
             }
 
-            public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
             {
-                return $this->result;
+                return ['result' => $this->result];
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                return $state['result'] ?? null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -595,7 +680,7 @@ class LookupOrchestratorTest extends TestCase
     }
 
     /**
-     * @param list<string>  $supportedModes
+     * @param list<string> $supportedModes
      * @param list<string> &$callOrder
      */
     private function createOrderTrackingProvider(
@@ -628,11 +713,16 @@ class LookupOrchestratorTest extends TestCase
                 return $this->name;
             }
 
-            public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
             {
                 $this->callOrder[] = $this->name;
 
-                return $this->result;
+                return ['result' => $this->result];
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                return $state['result'] ?? null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -675,11 +765,16 @@ class LookupOrchestratorTest extends TestCase
                 return $this->name;
             }
 
-            public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
             {
                 $this->capturedQuery = $query;
 
-                return $this->result;
+                return ['result' => $this->result];
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                return $state['result'] ?? null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -690,8 +785,8 @@ class LookupOrchestratorTest extends TestCase
     }
 
     /**
-     * @param list<string>        $supportedModes
-     * @param array<string, int>  $fieldPriorities
+     * @param list<string>       $supportedModes
+     * @param array<string, int> $fieldPriorities
      */
     private function createEnrichableProvider(
         string $name,
@@ -714,13 +809,6 @@ class LookupOrchestratorTest extends TestCase
             ) {
             }
 
-            public function enrich(LookupResult $partial, ?ComicType $type): ?LookupResult
-            {
-                $this->enrichCalled = true;
-
-                return $this->enrichResult;
-            }
-
             public function getFieldPriority(string $field, ?ComicType $type = null): int
             {
                 return $this->fieldPriorities[$field] ?? $this->defaultPriority;
@@ -736,9 +824,140 @@ class LookupOrchestratorTest extends TestCase
                 return $this->name;
             }
 
-            public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+            public function prepareEnrich(LookupResult $partial, ?ComicType $type): mixed
             {
-                return $this->lookupResult;
+                $this->enrichCalled = true;
+
+                return ['result' => $this->enrichResult];
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            {
+                return ['result' => $this->lookupResult];
+            }
+
+            public function resolveEnrich(mixed $state): ?LookupResult
+            {
+                return $state['result'] ?? null;
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                return $state['result'] ?? null;
+            }
+
+            public function supports(string $mode, ?ComicType $type): bool
+            {
+                return \in_array($mode, $this->supportedModes, true);
+            }
+        };
+    }
+
+    /**
+     * Crée un provider qui lance une exception dans prepareLookup ou resolveLookup.
+     *
+     * @param list<string> $supportedModes
+     */
+    private function createThrowingProvider(
+        string $name,
+        array $supportedModes,
+        bool $throwOnPrepare = false,
+        bool $throwOnResolve = false,
+    ): LookupProviderInterface {
+        return new class($name, $supportedModes, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
+            public function __construct(
+                private readonly string $name,
+                private readonly array $supportedModes,
+                private readonly bool $throwOnPrepare,
+                private readonly bool $throwOnResolve,
+            ) {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return 0;
+            }
+
+            public function getLastApiMessage(): ?array
+            {
+                return null;
+            }
+
+            public function getName(): string
+            {
+                return $this->name;
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            {
+                if ($this->throwOnPrepare) {
+                    throw new \RuntimeException('prepareLookup failed');
+                }
+
+                return ['result' => null];
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                if ($this->throwOnResolve) {
+                    throw new \RuntimeException('resolveLookup failed');
+                }
+
+                return null;
+            }
+
+            public function supports(string $mode, ?ComicType $type): bool
+            {
+                return \in_array($mode, $this->supportedModes, true);
+            }
+        };
+    }
+
+    /**
+     * Crée un provider dont le resolveLookup est lent (pour tester le timeout global).
+     *
+     * @param list<string> $supportedModes
+     */
+    private function createSlowProvider(
+        string $name,
+        array $supportedModes,
+        ?LookupResult $result,
+        float $resolveDelay,
+    ): LookupProviderInterface {
+        return new class($name, $supportedModes, $result, $resolveDelay) implements LookupProviderInterface {
+            public function __construct(
+                private readonly string $name,
+                private readonly array $supportedModes,
+                private readonly ?LookupResult $result,
+                private readonly float $resolveDelay,
+            ) {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return 0;
+            }
+
+            public function getLastApiMessage(): ?array
+            {
+                return null;
+            }
+
+            public function getName(): string
+            {
+                return $this->name;
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            {
+                return ['result' => $this->result];
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                \usleep((int) ($this->resolveDelay * 1_000_000));
+
+                return $state['result'] ?? null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool

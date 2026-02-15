@@ -47,22 +47,26 @@ class GoogleBooksLookup implements LookupProviderInterface
         return 'google_books';
     }
 
-    public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
         $this->lastApiMessage = null;
 
         $q = 'isbn' === $mode ? 'isbn:'.$query : $query;
 
-        try {
-            $response = $this->httpClient->request('GET', self::API_URL, [
-                'query' => [
-                    'maxResults' => 10,
-                    'q' => $q,
-                ],
-                'timeout' => 10,
-            ]);
+        return $this->httpClient->request('GET', self::API_URL, [
+            'query' => [
+                'maxResults' => 10,
+                'q' => $q,
+            ],
+            'timeout' => 10,
+        ]);
+    }
 
-            $data = $response->toArray();
+    public function resolveLookup(mixed $state): ?LookupResult
+    {
+        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        try {
+            $data = $state->toArray();
 
             if (empty($data['items'])) {
                 $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
@@ -75,9 +79,8 @@ class GoogleBooksLookup implements LookupProviderInterface
 
             return $result;
         } catch (TransportExceptionInterface $e) {
-            $this->logger->error('Erreur réseau Google Books pour "{query}": {error}', [
+            $this->logger->error('Erreur réseau Google Books : {error}', [
                 'error' => $e->getMessage(),
-                'query' => $query,
             ]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Erreur de connexion');
 
@@ -89,16 +92,14 @@ class GoogleBooksLookup implements LookupProviderInterface
             } else {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
             }
-            $this->logger->warning('Erreur HTTP Google Books pour "{query}": {error}', [
+            $this->logger->warning('Erreur HTTP Google Books : {error}', [
                 'error' => $e->getMessage(),
-                'query' => $query,
             ]);
 
             return null;
         } catch (DecodingExceptionInterface $e) {
-            $this->logger->error('Réponse JSON invalide de Google Books pour "{query}": {error}', [
+            $this->logger->error('Réponse JSON invalide de Google Books : {error}', [
                 'error' => $e->getMessage(),
-                'query' => $query,
             ]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse invalide');
 

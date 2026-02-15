@@ -7,6 +7,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Lookup parallélisé** : Les appels API des providers sont désormais lancés en parallèle grâce au multiplexage natif de Symfony HttpClient (`curl_multi`)
+  - Interface deux phases : `prepareLookup`/`resolveLookup` (et `prepareEnrich`/`resolveEnrich` pour les enrichables)
+  - Timeout global configurable (15s par défaut) protège contre les providers lents
+  - Chaque provider en erreur est ignoré sans bloquer les autres
+  - Nouveau statut `ApiLookupStatus::TIMEOUT` pour les providers dépassant le timeout
+
 ### Added
 
 - **BnfLookup** : Nouveau provider de recherche via l'API SRU du catalogue général de la BnF

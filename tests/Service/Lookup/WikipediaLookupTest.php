@@ -60,7 +60,7 @@ class WikipediaLookupTest extends TestCase
         $mockClient = new MockHttpClient($this->createTitleLookupResponder());
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('One Piece', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'One Piece', ComicType::MANGA, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('One Piece', $result->title);
@@ -80,7 +80,7 @@ class WikipediaLookupTest extends TestCase
         $mockClient = new MockHttpClient($this->createIsbnLookupResponder());
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('9782723428262', null, 'isbn');
+        $result = $this->doLookup($provider, '9782723428262', null, 'isbn');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Astérix', $result->title);
@@ -142,7 +142,7 @@ class WikipediaLookupTest extends TestCase
         });
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('9782012101340', null, 'isbn');
+        $result = $this->doLookup($provider, '9782012101340', null, 'isbn');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Astérix', $result->title);
@@ -161,7 +161,7 @@ class WikipediaLookupTest extends TestCase
         });
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('ZZZZZZ', null, 'title');
+        $result = $this->doLookup($provider, 'ZZZZZZ', null, 'title');
 
         self::assertNull($result);
         self::assertNotNull($provider->getLastApiMessage());
@@ -181,7 +181,7 @@ class WikipediaLookupTest extends TestCase
         });
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('0000000000000', null, 'isbn');
+        $result = $this->doLookup($provider, '0000000000000', null, 'isbn');
 
         self::assertNull($result);
         self::assertNotNull($provider->getLastApiMessage());
@@ -193,7 +193,7 @@ class WikipediaLookupTest extends TestCase
         $mockClient = new MockHttpClient(static fn (): MockResponse => new MockResponse('', ['error' => 'Connection failed']));
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('One Piece', null, 'title');
+        $result = $this->doLookup($provider, 'One Piece', null, 'title');
 
         self::assertNull($result);
         self::assertNotNull($provider->getLastApiMessage());
@@ -205,7 +205,7 @@ class WikipediaLookupTest extends TestCase
         $mockClient = new MockHttpClient(static fn (): MockResponse => new MockResponse('Too Many Requests', ['http_code' => 429]));
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('One Piece', null, 'title');
+        $result = $this->doLookup($provider, 'One Piece', null, 'title');
 
         self::assertNull($result);
         self::assertNotNull($provider->getLastApiMessage());
@@ -217,7 +217,7 @@ class WikipediaLookupTest extends TestCase
         $mockClient = new MockHttpClient(static fn (): MockResponse => new MockResponse('Internal Server Error', ['http_code' => 500]));
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('One Piece', null, 'title');
+        $result = $this->doLookup($provider, 'One Piece', null, 'title');
 
         self::assertNull($result);
         self::assertNotNull($provider->getLastApiMessage());
@@ -234,7 +234,7 @@ class WikipediaLookupTest extends TestCase
         );
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->enrich($partial, ComicType::MANGA);
+        $result = $this->doEnrich($provider, $partial, ComicType::MANGA);
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('One Piece', $result->title);
@@ -246,7 +246,7 @@ class WikipediaLookupTest extends TestCase
         $provider = $this->createProvider(new MockHttpClient());
 
         $partial = new LookupResult(source: 'google_books');
-        $result = $provider->enrich($partial, null);
+        $result = $this->doEnrich($provider, $partial, null);
 
         self::assertNull($result);
     }
@@ -264,13 +264,13 @@ class WikipediaLookupTest extends TestCase
         $provider = $this->createProvider($mockClient, $cache);
 
         // Premier appel → requêtes HTTP
-        $result1 = $provider->lookup('One Piece', ComicType::MANGA, 'title');
+        $result1 = $this->doLookup($provider, 'One Piece', ComicType::MANGA, 'title');
         $firstCallCount = $callCount;
         self::assertNotNull($result1);
         self::assertGreaterThan(0, $firstCallCount);
 
         // Deuxième appel → depuis le cache, pas de nouvelles requêtes
-        $result2 = $provider->lookup('One Piece', ComicType::MANGA, 'title');
+        $result2 = $this->doLookup($provider, 'One Piece', ComicType::MANGA, 'title');
         self::assertNotNull($result2);
         self::assertSame($firstCallCount, $callCount);
         self::assertSame($result1->title, $result2->title);
@@ -332,7 +332,7 @@ class WikipediaLookupTest extends TestCase
         });
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('One Piece', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'One Piece', ComicType::MANGA, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         // Doit avoir pris Q222 (manga series), pas Q111 (film)
@@ -374,7 +374,7 @@ class WikipediaLookupTest extends TestCase
         });
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('Maus', ComicType::BD, 'title');
+        $result = $this->doLookup($provider, 'Maus', ComicType::BD, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertTrue($result->isOneShot);
@@ -408,7 +408,7 @@ class WikipediaLookupTest extends TestCase
         });
 
         $provider = $this->createProvider($mockClient);
-        $result = $provider->lookup('Test', null, 'title');
+        $result = $this->doLookup($provider, 'Test', null, 'title');
 
         self::assertNotNull($result);
         self::assertNotNull($result->thumbnail);
@@ -431,6 +431,20 @@ class WikipediaLookupTest extends TestCase
     private function claimTimeValue(string $time): array
     {
         return ['mainsnak' => ['datavalue' => ['value' => ['time' => $time]]]];
+    }
+
+    private function doEnrich(WikipediaLookup $provider, LookupResult $partial, ?ComicType $type): ?LookupResult
+    {
+        $state = $provider->prepareEnrich($partial, $type);
+
+        return $provider->resolveEnrich($state);
+    }
+
+    private function doLookup(WikipediaLookup $provider, string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    {
+        $state = $provider->prepareLookup($query, $type, $mode);
+
+        return $provider->resolveLookup($state);
     }
 
     private function createIsbnLookupResponder(): \Closure
