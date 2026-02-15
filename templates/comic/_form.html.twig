@@ -67,7 +67,7 @@
     <div class="form-row">
         <div class="mdc-text-field">
             <label for="{{ form.publishedDate.vars.id }}">Date de publication</label>
-            {{ form_widget(form.publishedDate, {attr: {'data-comic-form-target': 'publishedDate'}}) }}
+            {{ form_widget(form.publishedDate, {attr: {'data-comic-form-target': 'publishedDate', 'data-controller': 'datepicker'}}) }}
             {{ form_errors(form.publishedDate) }}
         </div>
 

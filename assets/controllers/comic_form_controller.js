@@ -602,9 +602,46 @@ export default class extends Controller {
             return false;
         }
 
-        this[target].value = value;
+        // Normalise la date pour le champ date natif (YYYY-MM-DD)
+        const normalizedValue = targetName === 'publishedDate' ? this.normalizeDate(value) : value;
+
+        if (!normalizedValue) {
+            return false;
+        }
+
+        this[target].value = normalizedValue;
         this.highlightField(this[target]);
         return true;
+    }
+
+    /**
+     * Normalise une date en format YYYY-MM-DD pour le champ date natif.
+     * @param {string} date - Date dans un format variable (YYYY, YYYY-MM, YYYY-MM-DD, etc.)
+     * @returns {string|null} Date au format YYYY-MM-DD ou null
+     */
+    normalizeDate(date) {
+        if (!date) return null;
+
+        // Déjà au format YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+
+        // Format YYYY-MM-DD suivi d'une heure
+        const dateTimeMatch = date.match(/^(\d{4}-\d{2}-\d{2})\s/);
+        if (dateTimeMatch) return dateTimeMatch[1];
+
+        // Format YYYY-MM
+        if (/^\d{4}-\d{2}$/.test(date)) return `${date}-01`;
+
+        // Format YYYY
+        if (/^\d{4}$/.test(date)) return `${date}-01-01`;
+
+        // Tente un parsing générique
+        const parsed = new Date(date);
+        if (!isNaN(parsed.getTime())) {
+            return parsed.toISOString().slice(0, 10);
+        }
+
+        return null;
     }
 
     /**

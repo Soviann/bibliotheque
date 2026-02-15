@@ -746,6 +746,48 @@ body {
     padding: var(--md-spacing-sm);
 }
 
+/* Datepicker */
+.flatpickr-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.datepicker-icons {
+    align-items: center;
+    display: flex;
+    gap: 2px;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.datepicker-clear,
+.datepicker-calendar {
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--md-text-medium);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    padding: var(--md-spacing-xs);
+}
+
+.datepicker-clear {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.datepicker-calendar svg {
+    fill: currentColor;
+}
+
+.datepicker-clear:hover,
+.datepicker-calendar:hover {
+    color: var(--md-text-high);
+}
+
 /* Checkbox Field */
 .mdc-checkbox-field {
     align-items: center;

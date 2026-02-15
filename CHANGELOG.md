@@ -54,6 +54,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Date de publication** : Remplacement du champ texte par un datepicker Flatpickr en français (DD/MM/YYYY) avec bouton d'effacement — supprime l'heure inutile et normalise le format en YYYY-MM-DD
 - **Icône de chargement** : Correction du spinner qui se déplaçait en diagonale lors d'une recherche par titre ou ISBN — conflit entre deux `@keyframes spin` (btn-icon vs fab-scan)
 - **Lookup ISBN tome** : La recherche ISBN depuis un tome ne remplit plus que les champs pertinents au niveau série (auteurs, éditeur, couverture) — les champs volume-spécifiques (titre, date, description) et le flag one-shot sont ignorés
 - **Actions liste** : Les boutons "Supprimer" et "Ajouter à la bibliothèque" fonctionnent depuis la liste (tokens CSRF inclus dans l'API)
