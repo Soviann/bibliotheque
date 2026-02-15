@@ -192,6 +192,122 @@ class ComicSeriesRepositoryTest extends KernelTestCase
     }
 
     /**
+     * Teste findWithFilters avec filtre reading='reading' (en cours de lecture).
+     */
+    public function testFindWithFiltersReadingInProgress(): void
+    {
+        // Série en cours de lecture : 1 tome lu, 1 non lu
+        $reading = $this->createSeries('Reading In Progress Test', false);
+        $tomeRead = new Tome();
+        $tomeRead->setNumber(1);
+        $tomeRead->setRead(true);
+        $reading->addTome($tomeRead);
+        $tomeUnread = new Tome();
+        $tomeUnread->setNumber(2);
+        $tomeUnread->setRead(false);
+        $reading->addTome($tomeUnread);
+
+        // Série entièrement lue
+        $fullyRead = $this->createSeries('Fully Read Test', false);
+        $tomeAllRead = new Tome();
+        $tomeAllRead->setNumber(1);
+        $tomeAllRead->setRead(true);
+        $fullyRead->addTome($tomeAllRead);
+
+        // Série non lue
+        $unread = $this->createSeries('Unread Test', false);
+        $tomeNotRead = new Tome();
+        $tomeNotRead->setNumber(1);
+        $tomeNotRead->setRead(false);
+        $unread->addTome($tomeNotRead);
+
+        $this->em->flush();
+
+        $results = $this->repository->findWithFilters([
+            'isWishlist' => false,
+            'reading' => 'reading',
+        ]);
+
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
+
+        self::assertContains('Reading In Progress Test', $titles);
+        self::assertNotContains('Fully Read Test', $titles);
+        self::assertNotContains('Unread Test', $titles);
+    }
+
+    /**
+     * Teste findWithFilters avec filtre reading='read' (entièrement lus).
+     */
+    public function testFindWithFiltersReadingRead(): void
+    {
+        // Série entièrement lue
+        $fullyRead = $this->createSeries('All Read Test', false);
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setRead(true);
+        $fullyRead->addTome($tome1);
+        $tome2 = new Tome();
+        $tome2->setNumber(2);
+        $tome2->setRead(true);
+        $fullyRead->addTome($tome2);
+
+        // Série en cours
+        $reading = $this->createSeries('Partial Read Test', false);
+        $tomeRead = new Tome();
+        $tomeRead->setNumber(1);
+        $tomeRead->setRead(true);
+        $reading->addTome($tomeRead);
+        $tomeUnread = new Tome();
+        $tomeUnread->setNumber(2);
+        $tomeUnread->setRead(false);
+        $reading->addTome($tomeUnread);
+
+        $this->em->flush();
+
+        $results = $this->repository->findWithFilters([
+            'isWishlist' => false,
+            'reading' => 'read',
+        ]);
+
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
+
+        self::assertContains('All Read Test', $titles);
+        self::assertNotContains('Partial Read Test', $titles);
+    }
+
+    /**
+     * Teste findWithFilters avec filtre reading='unread' (non lus).
+     */
+    public function testFindWithFiltersReadingUnread(): void
+    {
+        // Série non lue
+        $unread = $this->createSeries('Not Read Test', false);
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $tome->setRead(false);
+        $unread->addTome($tome);
+
+        // Série avec au moins 1 tome lu
+        $partialRead = $this->createSeries('Some Read Test', false);
+        $tomeRead = new Tome();
+        $tomeRead->setNumber(1);
+        $tomeRead->setRead(true);
+        $partialRead->addTome($tomeRead);
+
+        $this->em->flush();
+
+        $results = $this->repository->findWithFilters([
+            'isWishlist' => false,
+            'reading' => 'unread',
+        ]);
+
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
+
+        self::assertContains('Not Read Test', $titles);
+        self::assertNotContains('Some Read Test', $titles);
+    }
+
+    /**
      * Teste findWithFilters tri par titre ascendant.
      */
     public function testFindWithFiltersSortTitleAsc(): void
@@ -365,6 +481,11 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame(5, $testResult['latestPublishedIssue']);
         self::assertIsArray($testResult['missingTomesNumbers']);
         self::assertIsArray($testResult['ownedTomesNumbers']);
+        self::assertArrayHasKey('isCurrentlyReading', $testResult);
+        self::assertArrayHasKey('isFullyRead', $testResult);
+        self::assertArrayHasKey('lastRead', $testResult);
+        self::assertArrayHasKey('lastReadComplete', $testResult);
+        self::assertArrayHasKey('readTomesCount', $testResult);
     }
 
     /**

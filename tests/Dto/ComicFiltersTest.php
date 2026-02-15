@@ -23,6 +23,7 @@ class ComicFiltersTest extends TestCase
 
         self::assertNull($filters->nas);
         self::assertNull($filters->q);
+        self::assertNull($filters->reading);
         self::assertSame('title_asc', $filters->sort);
         self::assertNull($filters->status);
         self::assertNull($filters->type);
@@ -89,6 +90,46 @@ class ComicFiltersTest extends TestCase
     }
 
     /**
+     * Teste getReading retourne la valeur du filtre lecture.
+     */
+    public function testGetReadingReturnsValue(): void
+    {
+        $filters = new ComicFilters(reading: 'reading');
+
+        self::assertSame('reading', $filters->getReading());
+    }
+
+    /**
+     * Teste getReading retourne null pour une valeur invalide.
+     */
+    public function testGetReadingReturnsNullForInvalidValue(): void
+    {
+        $filters = new ComicFilters(reading: 'invalid');
+
+        self::assertNull($filters->getReading());
+    }
+
+    /**
+     * Teste getReading retourne null quand non défini.
+     */
+    public function testGetReadingReturnsNullWhenNotSet(): void
+    {
+        $filters = new ComicFilters();
+
+        self::assertNull($filters->getReading());
+    }
+
+    /**
+     * Teste les trois valeurs valides de getReading.
+     */
+    public function testGetReadingValidValues(): void
+    {
+        self::assertSame('read', (new ComicFilters(reading: 'read'))->getReading());
+        self::assertSame('reading', (new ComicFilters(reading: 'reading'))->getReading());
+        self::assertSame('unread', (new ComicFilters(reading: 'unread'))->getReading());
+    }
+
+    /**
      * Teste la construction avec tous les paramètres.
      */
     public function testConstructWithAllParameters(): void
@@ -96,6 +137,7 @@ class ComicFiltersTest extends TestCase
         $filters = new ComicFilters(
             nas: '1',
             q: 'asterix',
+            reading: 'reading',
             sort: 'updated_desc',
             status: 'buying',
             type: 'bd',
@@ -103,10 +145,12 @@ class ComicFiltersTest extends TestCase
 
         self::assertSame('1', $filters->nas);
         self::assertSame('asterix', $filters->q);
+        self::assertSame('reading', $filters->reading);
         self::assertSame('updated_desc', $filters->sort);
         self::assertSame('buying', $filters->status);
         self::assertSame('bd', $filters->type);
         self::assertTrue($filters->getOnNas());
+        self::assertSame('reading', $filters->getReading());
         self::assertSame('asterix', $filters->getSearch());
         self::assertSame(ComicStatus::BUYING, $filters->getStatus());
         self::assertSame(ComicType::BD, $filters->getType());

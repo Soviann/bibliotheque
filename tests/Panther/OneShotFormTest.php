@@ -231,7 +231,7 @@ final class OneShotFormTest extends TestCase
         $seriesId = (int) $matches[1];
 
         self::runSql(\sprintf(
-            "INSERT INTO tome (comic_series_id, number, bought, downloaded, on_nas, isbn, created_at, updated_at) VALUES (%d, 1, 1, 0, 0, '978-2-1234-0000-0', '%s', '%s')",
+            "INSERT INTO tome (comic_series_id, number, bought, downloaded, on_nas, `read`, isbn, created_at, updated_at) VALUES (%d, 1, 1, 0, 0, 0, '978-2-1234-0000-0', '%s', '%s')",
             $seriesId,
             $now,
             $now,

@@ -99,6 +99,15 @@
                     </div>
                 {% endif %}
 
+                {% set readCount = comic.readTomesCount %}
+                {% set totalCount = comic.tomes|length %}
+                {% if readCount > 0 or comic.fullyRead %}
+                    <div class="stat-item">
+                        <span class="stat-label">Lecture</span>
+                        <span class="stat-value">{% if comic.fullyRead %}Complet{% else %}{{ readCount }}/{{ totalCount }} lus{% endif %}</span>
+                    </div>
+                {% endif %}
+
                 {% set missingNumbers = comic.missingTomesNumbers %}
                 {% if missingNumbers|length > 0 %}
                     <div class="stat-item stat-item-full">
@@ -114,10 +123,11 @@
                     <div class="tomes-legend">
                         <span class="legend-item"><span class="legend-dot legend-dot--bought"></span> Acheté</span>
                         <span class="legend-item"><span class="legend-dot legend-dot--nas"></span> Sur NAS</span>
+                        <span class="legend-item"><span class="legend-dot legend-dot--read"></span> Lu</span>
                     </div>
                     <div class="tomes-grid">
                         {% for tome in comic.tomes %}
-                            <div class="tome-cell{% if tome.bought %} tome-cell--bought{% endif %}{% if tome.onNas %} tome-cell--nas{% endif %}">
+                            <div class="tome-cell{% if tome.bought %} tome-cell--bought{% endif %}{% if tome.onNas %} tome-cell--nas{% endif %}{% if tome.read %} tome-cell--read{% endif %}">
                                 <span class="tome-cell-number">{{ tome.number }}</span>
                                 <div class="tome-cell-icons">
                                     {% if tome.bought %}
@@ -131,6 +141,13 @@
                                         <span class="tome-icon tome-icon--nas" title="Sur NAS">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14">
                                                 <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/>
+                                            </svg>
+                                        </span>
+                                    {% endif %}
+                                    {% if tome.read %}
+                                        <span class="tome-icon tome-icon--read" title="Lu">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14">
+                                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                                             </svg>
                                         </span>
                                     {% endif %}

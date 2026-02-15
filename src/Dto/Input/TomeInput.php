@@ -24,6 +24,8 @@ class TomeInput
 
     public bool $onNas = false;
 
+    public bool $read = false;
+
     public ?string $isbn = null;
 
     public ?string $title = null;

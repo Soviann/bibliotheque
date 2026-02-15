@@ -23,6 +23,7 @@ class HomeController extends AbstractController
         $comics = $comicSeriesRepository->findWithFilters([
             'isWishlist' => false,
             'onNas' => $filters->getOnNas(),
+            'reading' => $filters->getReading(),
             'search' => $filters->getSearch(),
             'sort' => $filters->sort,
             'status' => $filters->getStatus(),
@@ -38,6 +39,7 @@ class HomeController extends AbstractController
         return $this->render('home/index.html.twig', [
             'comics' => $comics,
             'currentNas' => $filters->nas,
+            'currentReading' => $filters->reading,
             'currentSearch' => $filters->q ?? '',
             'currentSort' => $filters->sort,
             'currentStatus' => $filters->getStatus(),
