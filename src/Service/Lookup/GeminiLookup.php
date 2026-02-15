@@ -49,19 +49,6 @@ class GeminiLookup implements EnrichableLookupProviderInterface
     ) {
     }
 
-    public function enrich(LookupResult $partial, ?ComicType $type): ?LookupResult
-    {
-        $this->lastApiMessage = null;
-
-        if (null === $partial->title || '' === $partial->title) {
-            return null;
-        }
-
-        $cacheKey = 'gemini_enrich_'.\md5(\json_encode($partial->jsonSerialize()).($type?->value ?? ''));
-
-        return $this->cachedCall($cacheKey, fn () => $this->doEnrich($partial, $type));
-    }
-
     public function getLastApiMessage(): ?array
     {
         return $this->lastApiMessage;
@@ -77,13 +64,54 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         return 'gemini';
     }
 
-    public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    public function prepareEnrich(LookupResult $partial, ?ComicType $type): mixed
     {
         $this->lastApiMessage = null;
 
-        $cacheKey = 'gemini_'.\md5($query.$mode.($type?->value ?? ''));
+        if (null === $partial->title || '' === $partial->title) {
+            return null;
+        }
 
-        return $this->cachedCall($cacheKey, fn () => $this->doLookup($query, $type, $mode));
+        $cacheKey = 'gemini_enrich_'.\md5(\json_encode($partial->jsonSerialize()).(null !== $type ? $type->value : ''));
+
+        return $this->prepareWithCache($cacheKey, fn () => $this->buildEnrichPrompt($partial, $type));
+    }
+
+    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    {
+        $this->lastApiMessage = null;
+
+        $cacheKey = 'gemini_'.\md5($query.$mode.(null !== $type ? $type->value : ''));
+
+        return $this->prepareWithCache($cacheKey, fn () => $this->buildLookupPrompt($query, $type, $mode));
+    }
+
+    public function resolveEnrich(mixed $state): ?LookupResult
+    {
+        return $this->resolveLookup($state);
+    }
+
+    public function resolveLookup(mixed $state): ?LookupResult
+    {
+        if ($state instanceof LookupResult) {
+            return $state;
+        }
+
+        if (null === $state) {
+            return null;
+        }
+
+        /** @var array{cacheKey: string, prompt: string} $state */
+        $result = $this->callGemini($state['prompt']);
+
+        if (null !== $result) {
+            $item = $this->cache->getItem($state['cacheKey']);
+            $item->set($result);
+            $item->expiresAfter(2592000); // 30 jours
+            $this->cache->save($item);
+        }
+
+        return $result;
     }
 
     public function supports(string $mode, ?ComicType $type): bool
@@ -93,7 +121,7 @@ class GeminiLookup implements EnrichableLookupProviderInterface
 
     private function buildEnrichPrompt(LookupResult $partial, ?ComicType $type): string
     {
-        $typeLabel = $type?->value ?? 'bande dessinée/comics/manga';
+        $typeLabel = null !== $type ? $type->value : 'bande dessinée/comics/manga';
         $existingData = \json_encode(\array_filter($partial->jsonSerialize(), static fn ($v) => null !== $v));
 
         return <<<PROMPT
@@ -110,7 +138,7 @@ class GeminiLookup implements EnrichableLookupProviderInterface
 
     private function buildLookupPrompt(string $query, ?ComicType $type, string $mode): string
     {
-        $typeLabel = $type?->value ?? 'bande dessinée/comics/manga';
+        $typeLabel = null !== $type ? $type->value : 'bande dessinée/comics/manga';
         $searchBy = 'isbn' === $mode ? "l'ISBN {$query}" : "le titre \"{$query}\"";
 
         return <<<PROMPT
@@ -124,33 +152,6 @@ class GeminiLookup implements EnrichableLookupProviderInterface
             Pour le titre, retourne le titre de la SÉRIE (pas du tome individuel).
 
             PROMPT.self::JSON_INSTRUCTIONS;
-    }
-
-    /**
-     * Exécute un appel Gemini avec cache.
-     */
-    private function cachedCall(string $cacheKey, callable $callback): ?LookupResult
-    {
-        $item = $this->cache->getItem($cacheKey);
-
-        if ($item->isHit()) {
-            $cached = $item->get();
-            if ($cached instanceof LookupResult) {
-                $this->recordApiMessage(ApiLookupStatus::SUCCESS, 'Résultat depuis le cache');
-
-                return $cached;
-            }
-        }
-
-        $result = $callback();
-
-        if (null !== $result) {
-            $item->set($result);
-            $item->expiresAfter(2592000); // 30 jours
-            $this->cache->save($item);
-        }
-
-        return $result;
     }
 
     private function callGemini(string $prompt): ?LookupResult
@@ -229,26 +230,27 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         return true;
     }
 
-    private function doEnrich(LookupResult $partial, ?ComicType $type): ?LookupResult
+    /**
+     * Vérifie le cache et le rate limit, retourne LookupResult|array|null.
+     */
+    private function prepareWithCache(string $cacheKey, callable $buildPrompt): mixed
     {
+        $item = $this->cache->getItem($cacheKey);
+
+        if ($item->isHit()) {
+            $cached = $item->get();
+            if ($cached instanceof LookupResult) {
+                $this->recordApiMessage(ApiLookupStatus::SUCCESS, 'Résultat depuis le cache');
+
+                return $cached;
+            }
+        }
+
         if (!$this->consumeRateLimit()) {
             return null;
         }
 
-        $prompt = $this->buildEnrichPrompt($partial, $type);
-
-        return $this->callGemini($prompt);
-    }
-
-    private function doLookup(string $query, ?ComicType $type, string $mode): ?LookupResult
-    {
-        if (!$this->consumeRateLimit()) {
-            return null;
-        }
-
-        $prompt = $this->buildLookupPrompt($query, $type, $mode);
-
-        return $this->callGemini($prompt);
+        return ['cacheKey' => $cacheKey, 'prompt' => $buildPrompt()];
     }
 
     /**

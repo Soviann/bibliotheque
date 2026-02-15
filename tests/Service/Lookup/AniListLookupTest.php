@@ -77,7 +77,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Solo Leveling', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Solo Leveling', ComicType::MANGA, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Solo Leveling', $result->title);
@@ -112,7 +112,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test Manga', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test Manga', ComicType::MANGA, 'title');
 
         self::assertSame('Writer Name, Artist Name', $result->authors);
     }
@@ -145,7 +145,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertSame('Author', $result->authors);
     }
@@ -163,7 +163,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertSame('2018-03-05', $result->publishedDate);
     }
@@ -181,7 +181,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertSame('2020-07', $result->publishedDate);
     }
@@ -199,7 +199,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertSame('2015', $result->publishedDate);
     }
@@ -217,7 +217,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertTrue($result->isOneShot);
     }
@@ -237,7 +237,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertTrue($result->isOneShot);
     }
@@ -257,7 +257,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertFalse($result->isOneShot);
     }
@@ -277,7 +277,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('One Piece', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'One Piece', ComicType::MANGA, 'title');
 
         self::assertSame(109, $result->latestPublishedIssue);
     }
@@ -294,7 +294,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertNull($result->latestPublishedIssue);
     }
@@ -311,7 +311,7 @@ class AniListLookupTest extends TestCase
         });
 
         $provider = new AniListLookup($mockClient, new NullLogger());
-        $provider->lookup('Solo Leveling Tome 2', ComicType::MANGA, 'title');
+        $this->doLookup($provider, 'Solo Leveling Tome 2', ComicType::MANGA, 'title');
 
         self::assertCount(1, $requestedBodies);
         $body = \json_decode($requestedBodies[0], true);
@@ -323,7 +323,7 @@ class AniListLookupTest extends TestCase
         $response = new MockResponse(\json_encode(['data' => ['Media' => null]]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Nonexistent Manga', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Nonexistent Manga', ComicType::MANGA, 'title');
 
         self::assertNull($result);
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
@@ -334,7 +334,7 @@ class AniListLookupTest extends TestCase
         $response = new MockResponse('', ['error' => 'Connection failed']);
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertNull($result);
         self::assertSame('error', $provider->getLastApiMessage()['status']);
@@ -345,7 +345,7 @@ class AniListLookupTest extends TestCase
         $response = new MockResponse('Rate limit', ['http_code' => 429]);
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertNull($result);
         self::assertSame('rate_limited', $provider->getLastApiMessage()['status']);
@@ -367,7 +367,7 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertSame('English Title', $result->title);
     }
@@ -388,8 +388,15 @@ class AniListLookupTest extends TestCase
         ]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertSame('Romaji Title', $result->title);
+    }
+
+    private function doLookup(AniListLookup $provider, string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    {
+        $state = $provider->prepareLookup($query, $type, $mode);
+
+        return $provider->resolveLookup($state);
     }
 }

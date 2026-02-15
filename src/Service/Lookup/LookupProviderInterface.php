@@ -8,6 +8,9 @@ use App\Enum\ComicType;
 
 /**
  * Interface pour les providers de recherche de données bibliographiques.
+ *
+ * Utilise un modèle deux phases (prepare/resolve) pour permettre
+ * le multiplexage HTTP via curl_multi de Symfony HttpClient.
  */
 interface LookupProviderInterface
 {
@@ -36,13 +39,22 @@ interface LookupProviderInterface
     public function getLastApiMessage(): ?array;
 
     /**
-     * Recherche des informations sur une série.
+     * Phase 1 : lance la requête HTTP (non bloquante) et retourne un état intermédiaire.
      *
      * @param string         $query ISBN ou titre selon le mode
      * @param ComicType|null $type  Le type de série
      * @param string         $mode  'isbn' ou 'title'
+     *
+     * @return mixed État intermédiaire (ResponseInterface, LookupResult depuis cache, null, etc.)
      */
-    public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult;
+    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed;
+
+    /**
+     * Phase 2 : traite la réponse et retourne le résultat.
+     *
+     * @param mixed $state État retourné par prepareLookup()
+     */
+    public function resolveLookup(mixed $state): ?LookupResult;
 
     /**
      * Indique si le provider supporte le mode donné.
