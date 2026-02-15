@@ -37,6 +37,11 @@ class OpenLibraryLookup implements LookupProviderInterface
         return $this->lastApiMessage;
     }
 
+    public function getFieldPriority(string $field, ?ComicType $type = null): int
+    {
+        return 80;
+    }
+
     public function getName(): string
     {
         return 'open_library';

@@ -21,6 +21,16 @@ class GoogleBooksLookupTest extends TestCase
         self::assertSame('google_books', $provider->getName());
     }
 
+    public function testGetFieldPriorityReturnsDefaultForAllFields(): void
+    {
+        $provider = new GoogleBooksLookup(new MockHttpClient(), new NullLogger());
+
+        self::assertSame(100, $provider->getFieldPriority('title'));
+        self::assertSame(100, $provider->getFieldPriority('description'));
+        self::assertSame(100, $provider->getFieldPriority('authors'));
+        self::assertSame(100, $provider->getFieldPriority('thumbnail', ComicType::MANGA));
+    }
+
     public function testSupportsIsbnAndTitle(): void
     {
         $provider = new GoogleBooksLookup(new MockHttpClient(), new NullLogger());

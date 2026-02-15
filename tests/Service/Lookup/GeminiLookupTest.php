@@ -25,6 +25,15 @@ class GeminiLookupTest extends TestCase
         self::assertSame('gemini', $lookup->getName());
     }
 
+    public function testGetFieldPriorityReturnsDefaultForAllFields(): void
+    {
+        $lookup = $this->createLookup();
+
+        self::assertSame(40, $lookup->getFieldPriority('title'));
+        self::assertSame(40, $lookup->getFieldPriority('description'));
+        self::assertSame(40, $lookup->getFieldPriority('authors'));
+    }
+
     public function testSupportsIsbnAndTitle(): void
     {
         $lookup = $this->createLookup();

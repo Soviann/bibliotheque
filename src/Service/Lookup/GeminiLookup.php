@@ -67,6 +67,11 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         return $this->lastApiMessage;
     }
 
+    public function getFieldPriority(string $field, ?ComicType $type = null): int
+    {
+        return 40;
+    }
+
     public function getName(): string
     {
         return 'gemini';
