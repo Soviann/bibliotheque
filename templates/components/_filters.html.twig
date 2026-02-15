@@ -5,6 +5,7 @@
     - currentType: ComicType|null
     - currentStatus: ComicStatus|null (optional)
     - currentNas: string|null ('1', '0', or null)
+    - currentReading: string|null ('reading', 'read', 'unread', or null) (optional)
     - currentSort: string
     - currentSearch: string
     - types: ComicType[]
@@ -19,6 +20,7 @@
             {% if currentType %}<input type="hidden" name="type" value="{{ currentType.value }}">{% endif %}
             {% if currentStatus is defined and currentStatus %}<input type="hidden" name="status" value="{{ currentStatus.value }}">{% endif %}
             {% if currentNas is not null %}<input type="hidden" name="nas" value="{{ currentNas }}">{% endif %}
+            {% if currentReading is defined and currentReading %}<input type="hidden" name="reading" value="{{ currentReading }}">{% endif %}
             <input type="hidden" name="sort" value="{{ currentSort }}">
 
             <div class="search-input-wrapper">
@@ -38,6 +40,7 @@
                         type: currentType ? currentType.value : null,
                         status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
                         nas: currentNas,
+                        reading: (currentReading is defined and currentReading) ? currentReading : null,
                         sort: currentSort
                     }|filter(v => v is not null)) }}" class="search-clear">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -69,6 +72,7 @@
                 q: currentSearch ?: null,
                 status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
                 nas: currentNas,
+                reading: (currentReading is defined and currentReading) ? currentReading : null,
                 sort: currentSort
             }|filter(v => v is not null)) }}" class="chip {% if currentType is null %}active{% endif %}">Tous</a>
             {% for type in types %}
@@ -77,6 +81,7 @@
                     q: currentSearch ?: null,
                     status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
                     nas: currentNas,
+                    reading: (currentReading is defined and currentReading) ? currentReading : null,
                     sort: currentSort
                 }|filter(v => v is not null)) }}" class="chip {% if currentType == type %}active{% endif %}">{{ type.label }}</a>
             {% endfor %}
@@ -92,6 +97,7 @@
                     type: currentType ? currentType.value : null,
                     q: currentSearch ?: null,
                     nas: currentNas,
+                    reading: (currentReading is defined and currentReading) ? currentReading : null,
                     sort: currentSort
                 }|filter(v => v is not null)) }}" class="chip {% if currentStatus is null %}active{% endif %}">Tous</a>
                 {% for status in statuses %}
@@ -100,6 +106,7 @@
                         status: status.value,
                         q: currentSearch ?: null,
                         nas: currentNas,
+                        reading: (currentReading is defined and currentReading) ? currentReading : null,
                         sort: currentSort
                     }|filter(v => v is not null)) }}" class="chip {% if currentStatus == status %}active{% endif %}">{{ status.label }}</a>
                 {% endfor %}
@@ -115,6 +122,7 @@
                 type: currentType ? currentType.value : null,
                 status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
                 q: currentSearch ?: null,
+                reading: (currentReading is defined and currentReading) ? currentReading : null,
                 sort: currentSort
             }|filter(v => v is not null)) }}" class="chip {% if currentNas is null %}active{% endif %}">Tous</a>
             <a href="{{ path(route, {
@@ -122,6 +130,7 @@
                 status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
                 q: currentSearch ?: null,
                 nas: '1',
+                reading: (currentReading is defined and currentReading) ? currentReading : null,
                 sort: currentSort
             }|filter(v => v is not null)) }}" class="chip {% if currentNas == '1' %}active{% endif %}">Sur NAS</a>
             <a href="{{ path(route, {
@@ -129,10 +138,51 @@
                 status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
                 q: currentSearch ?: null,
                 nas: '0',
+                reading: (currentReading is defined and currentReading) ? currentReading : null,
                 sort: currentSort
             }|filter(v => v is not null)) }}" class="chip {% if currentNas == '0' %}active{% endif %}">Pas sur NAS</a>
         </div>
     </div>
+
+    {# Reading chips #}
+    {% if currentReading is defined %}
+        <div class="filter-section">
+            <span class="filter-label">Lecture</span>
+            <div class="chips-container">
+                <a href="{{ path(route, {
+                    type: currentType ? currentType.value : null,
+                    status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
+                    q: currentSearch ?: null,
+                    nas: currentNas,
+                    sort: currentSort
+                }|filter(v => v is not null)) }}" class="chip {% if currentReading is null %}active{% endif %}">Tous</a>
+                <a href="{{ path(route, {
+                    type: currentType ? currentType.value : null,
+                    status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
+                    q: currentSearch ?: null,
+                    nas: currentNas,
+                    reading: 'reading',
+                    sort: currentSort
+                }|filter(v => v is not null)) }}" class="chip {% if currentReading == 'reading' %}active{% endif %}">En cours</a>
+                <a href="{{ path(route, {
+                    type: currentType ? currentType.value : null,
+                    status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
+                    q: currentSearch ?: null,
+                    nas: currentNas,
+                    reading: 'read',
+                    sort: currentSort
+                }|filter(v => v is not null)) }}" class="chip {% if currentReading == 'read' %}active{% endif %}">Lus</a>
+                <a href="{{ path(route, {
+                    type: currentType ? currentType.value : null,
+                    status: (currentStatus is defined and currentStatus) ? currentStatus.value : null,
+                    q: currentSearch ?: null,
+                    nas: currentNas,
+                    reading: 'unread',
+                    sort: currentSort
+                }|filter(v => v is not null)) }}" class="chip {% if currentReading == 'unread' %}active{% endif %}">Non lus</a>
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 <script>

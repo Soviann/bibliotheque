@@ -49,6 +49,7 @@ class TomeTest extends TestCase
         self::assertFalse($tome->isBought());
         self::assertFalse($tome->isDownloaded());
         self::assertFalse($tome->isOnNas());
+        self::assertFalse($tome->isRead());
     }
 
     /**
@@ -93,6 +94,17 @@ class TomeTest extends TestCase
         $tome->setOnNas(true);
 
         self::assertTrue($tome->isOnNas());
+    }
+
+    /**
+     * Teste le getter et setter de read.
+     */
+    public function testReadGetterAndSetter(): void
+    {
+        $tome = new Tome();
+        $tome->setRead(true);
+
+        self::assertTrue($tome->isRead());
     }
 
     /**
@@ -243,6 +255,18 @@ class TomeTest extends TestCase
         $tome = new Tome();
 
         $result = $tome->setOnNas(true);
+
+        self::assertSame($tome, $result);
+    }
+
+    /**
+     * Teste que setRead retourne l'instance pour le chaînage.
+     */
+    public function testSetReadReturnsInstance(): void
+    {
+        $tome = new Tome();
+
+        $result = $tome->setRead(true);
 
         self::assertSame($tome, $result);
     }

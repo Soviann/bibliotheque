@@ -269,6 +269,14 @@ class ComicSeries implements SoftDeletableInterface
         return $this->getMaxTomeNumber(static fn (Tome $t): bool => $t->isDownloaded());
     }
 
+    /**
+     * Retourne le dernier numéro de tome lu.
+     */
+    public function getLastRead(): ?int
+    {
+        return $this->getMaxTomeNumber(static fn (Tome $t): bool => $t->isRead());
+    }
+
     public function getLatestPublishedIssue(): ?int
     {
         return $this->latestPublishedIssue;
@@ -323,6 +331,14 @@ class ComicSeries implements SoftDeletableInterface
     public function getPublisher(): ?string
     {
         return $this->publisher;
+    }
+
+    /**
+     * Retourne le nombre de tomes lus.
+     */
+    public function getReadTomesCount(): int
+    {
+        return $this->tomes->filter(static fn (Tome $t): bool => $t->isRead())->count();
     }
 
     public function setPublisher(?string $publisher): static
@@ -408,11 +424,37 @@ class ComicSeries implements SoftDeletableInterface
     }
 
     /**
+     * Indique si la série est en cours de lecture (au moins 1 lu, pas tous).
+     */
+    public function isCurrentlyReading(): bool
+    {
+        if ($this->tomes->isEmpty()) {
+            return false;
+        }
+
+        $readCount = $this->getReadTomesCount();
+
+        return $readCount > 0 && $readCount < $this->tomes->count();
+    }
+
+    /**
      * Indique si le dernier tome possédé correspond au dernier tome paru.
      */
     public function isCurrentIssueComplete(): bool
     {
         return $this->isIssueComplete($this->getCurrentIssue());
+    }
+
+    /**
+     * Indique si tous les tomes sont lus.
+     */
+    public function isFullyRead(): bool
+    {
+        if ($this->tomes->isEmpty()) {
+            return false;
+        }
+
+        return $this->getReadTomesCount() === $this->tomes->count();
     }
 
     /**
@@ -429,6 +471,14 @@ class ComicSeries implements SoftDeletableInterface
     public function isLastDownloadedComplete(): bool
     {
         return $this->isIssueComplete($this->getLastDownloaded());
+    }
+
+    /**
+     * Indique si le dernier tome lu correspond au dernier tome paru.
+     */
+    public function isLastReadComplete(): bool
+    {
+        return $this->isIssueComplete($this->getLastRead());
     }
 
     public function isLatestPublishedIssueComplete(): bool

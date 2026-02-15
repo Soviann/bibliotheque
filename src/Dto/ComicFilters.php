@@ -19,6 +19,7 @@ class ComicFilters
     public function __construct(
         public ?string $nas = null,
         public ?string $q = null,
+        public ?string $reading = null,
         public string $sort = 'title_asc',
         public ?string $status = null,
         public ?string $type = null,
@@ -33,6 +34,17 @@ class ComicFilters
         return match ($this->nas) {
             '1' => true,
             '0' => false,
+            default => null,
+        };
+    }
+
+    /**
+     * Retourne la valeur du filtre lecture (null si invalide ou non défini).
+     */
+    public function getReading(): ?string
+    {
+        return match ($this->reading) {
+            'read', 'reading', 'unread' => $this->reading,
             default => null,
         };
     }

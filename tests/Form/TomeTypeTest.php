@@ -26,6 +26,7 @@ class TomeTypeTest extends TypeTestCase
             'isbn' => '978-2-505-00123-4',
             'number' => 5,
             'onNas' => true,
+            'read' => true,
             'title' => 'Le Retour du Héros',
         ];
 
@@ -40,6 +41,7 @@ class TomeTypeTest extends TypeTestCase
         self::assertTrue($input->bought);
         self::assertFalse($input->downloaded);
         self::assertTrue($input->onNas);
+        self::assertTrue($input->read);
         self::assertSame('978-2-505-00123-4', $input->isbn);
         self::assertSame('Le Retour du Héros', $input->title);
     }
@@ -55,6 +57,7 @@ class TomeTypeTest extends TypeTestCase
             'isbn' => '',
             'number' => 1,
             'onNas' => false,
+            'read' => false,
             'title' => '',
         ];
 
@@ -73,11 +76,12 @@ class TomeTypeTest extends TypeTestCase
     {
         $form = $this->factory->create(TomeType::class);
 
-        self::assertTrue($form->has('number'));
         self::assertTrue($form->has('bought'));
         self::assertTrue($form->has('downloaded'));
-        self::assertTrue($form->has('onNas'));
         self::assertTrue($form->has('isbn'));
+        self::assertTrue($form->has('number'));
+        self::assertTrue($form->has('onNas'));
+        self::assertTrue($form->has('read'));
         self::assertTrue($form->has('title'));
     }
 
@@ -91,6 +95,7 @@ class TomeTypeTest extends TypeTestCase
         $input->bought = true;
         $input->downloaded = true;
         $input->onNas = true;
+        $input->read = true;
         $input->isbn = '123-456';
         $input->title = 'Existing Title';
 
@@ -102,6 +107,7 @@ class TomeTypeTest extends TypeTestCase
         self::assertTrue($view->children['bought']->vars['checked']);
         self::assertTrue($view->children['downloaded']->vars['checked']);
         self::assertTrue($view->children['onNas']->vars['checked']);
+        self::assertTrue($view->children['read']->vars['checked']);
         self::assertSame('123-456', $view->children['isbn']->vars['value']);
         self::assertSame('Existing Title', $view->children['title']->vars['value']);
     }
@@ -136,6 +142,7 @@ class TomeTypeTest extends TypeTestCase
         self::assertFalse($form->get('bought')->isRequired());
         self::assertFalse($form->get('downloaded')->isRequired());
         self::assertFalse($form->get('onNas')->isRequired());
+        self::assertFalse($form->get('read')->isRequired());
     }
 
     /**
@@ -165,5 +172,6 @@ class TomeTypeTest extends TypeTestCase
         self::assertFalse($input->bought);
         self::assertFalse($input->downloaded);
         self::assertFalse($input->onNas);
+        self::assertFalse($input->read);
     }
 }
