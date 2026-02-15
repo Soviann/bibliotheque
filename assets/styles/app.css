@@ -62,7 +62,7 @@ body {
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height: 1.5;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
 }
 
@@ -657,13 +657,13 @@ body {
     box-shadow: var(--md-elevation-1);
     margin: 0 auto;
     max-width: 600px;
-    overflow-x: hidden;
+    overflow-x: clip;
     padding: var(--md-spacing-lg);
 }
 
 /* Prevent horizontal scroll on forms */
 .comic-form {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 /* Material Text Field */
@@ -871,11 +871,17 @@ body {
 
 /* Form Actions */
 .form-actions {
+    background: var(--md-surface);
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     gap: var(--md-spacing-md);
     justify-content: flex-end;
     margin-top: var(--md-spacing-lg);
-    padding-top: var(--md-spacing-md);
+    padding: var(--md-spacing-md) 0;
+    position: sticky;
+    z-index: 10;
 }
 
 /* Checkboxes Row */
@@ -1185,6 +1191,10 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
 
     .bottom-nav {
         display: none;
+    }
+
+    .form-actions {
+        bottom: 0;
     }
 
     .fab {
