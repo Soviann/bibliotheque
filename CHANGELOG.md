@@ -9,6 +9,20 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **WikipediaLookup** : Nouveau provider de recherche via Wikidata + Wikipedia FR
+  - Recherche par ISBN (SPARQL) et par titre (wbsearchentities)
+  - Extraction des métadonnées (auteurs, éditeur, date, couverture, one-shot) depuis les claims Wikidata
+  - Synopsis depuis l'API REST Wikipedia FR
+  - Gestion des éditions (P629) pour remonter automatiquement à l'œuvre originale
+  - Cache filesystem (7 jours)
+
+### Changed
+
+- **Priorité par champ dans le lookup** : L'orchestrateur fusionne les résultats par la plus haute priorité *par champ* au lieu du "first wins" global
+  - Chaque provider déclare sa priorité via `getFieldPriority(field, ?type)`
+  - Wikipedia : description en dernier recours (priorité 10), autres champs priorité 120
+  - AniList : thumbnail/isOneShot priorité 200 pour les mangas (remplace le cas spécial hardcodé)
+
 - **Enrichissement Gemini IA** : Intégration de l'API Google Gemini pour enrichir les données des séries
   - Recherche par ISBN ou titre via Gemini 2.0 Flash avec Google Search grounding
   - Enrichissement automatique des champs manquants après lookup classique
