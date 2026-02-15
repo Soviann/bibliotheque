@@ -34,6 +34,8 @@ export default class extends Controller {
         'gemini.enrich': 'Gemini (enrichissement)',
         google_books: 'Google Books',
         open_library: 'Open Library',
+        wikipedia: 'Wikipedia',
+        'wikipedia.enrich': 'Wikipedia (enrichissement)',
     };
 
     // Labels lisibles pour les champs

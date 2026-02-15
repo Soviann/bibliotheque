@@ -37,6 +37,11 @@ class GoogleBooksLookup implements LookupProviderInterface
         return $this->lastApiMessage;
     }
 
+    public function getFieldPriority(string $field, ?ComicType $type = null): int
+    {
+        return 100;
+    }
+
     public function getName(): string
     {
         return 'google_books';

@@ -21,6 +21,25 @@ class AniListLookupTest extends TestCase
         self::assertSame('anilist', $provider->getName());
     }
 
+    public function testGetFieldPriorityHighForMangaThumbnailAndOneShot(): void
+    {
+        $provider = new AniListLookup(new MockHttpClient(), new NullLogger());
+
+        self::assertSame(200, $provider->getFieldPriority('thumbnail', ComicType::MANGA));
+        self::assertSame(200, $provider->getFieldPriority('isOneShot', ComicType::MANGA));
+    }
+
+    public function testGetFieldPriorityDefaultForNonMangaOrOtherFields(): void
+    {
+        $provider = new AniListLookup(new MockHttpClient(), new NullLogger());
+
+        self::assertSame(60, $provider->getFieldPriority('thumbnail', ComicType::BD));
+        self::assertSame(60, $provider->getFieldPriority('isOneShot', ComicType::COMICS));
+        self::assertSame(60, $provider->getFieldPriority('title', ComicType::MANGA));
+        self::assertSame(60, $provider->getFieldPriority('authors', ComicType::MANGA));
+        self::assertSame(60, $provider->getFieldPriority('description'));
+    }
+
     public function testSupportsTitleForMangaOnly(): void
     {
         $provider = new AniListLookup(new MockHttpClient(), new NullLogger());

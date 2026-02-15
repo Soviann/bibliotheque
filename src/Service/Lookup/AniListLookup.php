@@ -75,6 +75,15 @@ class AniListLookup implements LookupProviderInterface
         return $this->lastApiMessage;
     }
 
+    public function getFieldPriority(string $field, ?ComicType $type = null): int
+    {
+        if (ComicType::MANGA === $type && \in_array($field, ['isOneShot', 'thumbnail'], true)) {
+            return 200;
+        }
+
+        return 60;
+    }
+
     public function getName(): string
     {
         return 'anilist';

@@ -12,6 +12,18 @@ use App\Enum\ComicType;
 interface LookupProviderInterface
 {
     /**
+     * Retourne la priorité de ce provider pour un champ donné.
+     *
+     * Plus la valeur est haute, plus le provider est prioritaire pour ce champ.
+     * Permet de découpler la priorité d'exécution (tag priority) de la priorité
+     * de préremplissage par champ.
+     *
+     * @param string         $field Nom du champ (ex: 'description', 'title', 'authors')
+     * @param ComicType|null $type  Contexte de type (certains providers sont plus pertinents pour certains types)
+     */
+    public function getFieldPriority(string $field, ?ComicType $type = null): int;
+
+    /**
      * Nom unique du provider (ex: 'google_books', 'anilist', 'gemini').
      */
     public function getName(): string;
