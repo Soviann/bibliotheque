@@ -132,11 +132,11 @@ class LookupOrchestratorTest extends TestCase
             source: 'google_books',
             thumbnail: 'https://google.jpg',
             title: 'Manga',
-        ));
+        ), defaultPriority: 100);
         $anilist = $this->createProvider('anilist', ['title'], new LookupResult(
             source: 'anilist',
             thumbnail: 'https://anilist.jpg',
-        ), ComicType::MANGA);
+        ), requiredType: ComicType::MANGA, defaultPriority: 60, fieldPriorities: ['isOneShot' => 200, 'thumbnail' => 200]);
 
         $orchestrator = new LookupOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
@@ -150,11 +150,11 @@ class LookupOrchestratorTest extends TestCase
             isOneShot: true,
             source: 'google_books',
             title: 'Manga',
-        ));
+        ), defaultPriority: 100);
         $anilist = $this->createProvider('anilist', ['title'], new LookupResult(
             isOneShot: false,
             source: 'anilist',
-        ), ComicType::MANGA);
+        ), requiredType: ComicType::MANGA, defaultPriority: 60, fieldPriorities: ['isOneShot' => 200, 'thumbnail' => 200]);
 
         $orchestrator = new LookupOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
@@ -169,12 +169,12 @@ class LookupOrchestratorTest extends TestCase
             description: 'Google Desc',
             source: 'google_books',
             title: 'Manga',
-        ));
+        ), defaultPriority: 100);
         $anilist = $this->createProvider('anilist', ['title'], new LookupResult(
             authors: 'AniList Author',
             description: 'AniList Desc',
             source: 'anilist',
-        ), ComicType::MANGA);
+        ), requiredType: ComicType::MANGA, defaultPriority: 60, fieldPriorities: ['isOneShot' => 200, 'thumbnail' => 200]);
 
         $orchestrator = new LookupOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
@@ -320,6 +320,119 @@ class LookupOrchestratorTest extends TestCase
         self::assertNull($orchestrator->lookupByTitle('   '));
     }
 
+    // --- Per-field priority tests ---
+
+    public function testMergeUsesPerFieldPriority(): void
+    {
+        // Provider A : haute priorité globale (100), mais basse pour description (10)
+        $providerA = $this->createProvider('provider_a', ['isbn'], new LookupResult(
+            description: 'Description A',
+            source: 'provider_a',
+            title: 'Title A',
+        ), defaultPriority: 100, fieldPriorities: ['description' => 10]);
+
+        // Provider B : basse priorité globale (50), donc description à 50 par défaut
+        $providerB = $this->createProvider('provider_b', ['isbn'], new LookupResult(
+            description: 'Description B',
+            source: 'provider_b',
+            title: 'Title B',
+        ), defaultPriority: 50);
+
+        $orchestrator = new LookupOrchestrator([$providerA, $providerB]);
+        $result = $orchestrator->lookup('9781234567890');
+
+        self::assertNotNull($result);
+        // Title : provider A gagne (100 > 50)
+        self::assertSame('Title A', $result->title);
+        // Description : provider B gagne (50 > 10)
+        self::assertSame('Description B', $result->description);
+    }
+
+    public function testWikipediaDescriptionLosesToOtherProviders(): void
+    {
+        // Wikipedia : priorité 120 globale, mais description à 10
+        $wikipedia = $this->createProvider('wikipedia', ['isbn'], new LookupResult(
+            authors: 'Wiki Author',
+            description: 'Synopsis Wikipedia générique',
+            source: 'wikipedia',
+            title: 'Wiki Title',
+        ), defaultPriority: 120, fieldPriorities: ['description' => 10]);
+
+        // Google Books : priorité 100 globale
+        $google = $this->createProvider('google_books', ['isbn'], new LookupResult(
+            description: 'Synopsis Google Books détaillé',
+            source: 'google_books',
+        ), defaultPriority: 100);
+
+        $orchestrator = new LookupOrchestrator([$wikipedia, $google]);
+        $result = $orchestrator->lookup('9781234567890');
+
+        self::assertNotNull($result);
+        // Wikipedia gagne pour les champs normaux
+        self::assertSame('Wiki Author', $result->authors);
+        self::assertSame('Wiki Title', $result->title);
+        // Google Books gagne pour la description (100 > 10)
+        self::assertSame('Synopsis Google Books détaillé', $result->description);
+    }
+
+    public function testWikipediaDescriptionUsedWhenOnlySource(): void
+    {
+        $wikipedia = $this->createProvider('wikipedia', ['isbn'], new LookupResult(
+            description: 'Synopsis Wikipedia',
+            source: 'wikipedia',
+            title: 'Wiki Title',
+        ), defaultPriority: 120, fieldPriorities: ['description' => 10]);
+
+        // Google Books sans description
+        $google = $this->createProvider('google_books', ['isbn'], new LookupResult(
+            authors: 'Google Author',
+            source: 'google_books',
+        ), defaultPriority: 100);
+
+        $orchestrator = new LookupOrchestrator([$wikipedia, $google]);
+        $result = $orchestrator->lookup('9781234567890');
+
+        self::assertNotNull($result);
+        // Wikipedia description utilisée en dernier recours (seule source)
+        self::assertSame('Synopsis Wikipedia', $result->description);
+    }
+
+    public function testEnrichmentRespectsFieldPriority(): void
+    {
+        // Résultat initial incomplet (pas de description)
+        $google = $this->createProvider('google_books', ['isbn'], new LookupResult(
+            source: 'google_books',
+            title: 'Book Title',
+        ), defaultPriority: 100);
+
+        // Wikipedia enrichit avec description (priorité 10)
+        $wikipedia = $this->createEnrichableProvider(
+            'wikipedia',
+            ['isbn'],
+            null,
+            new LookupResult(description: 'Synopsis Wikipedia', source: 'wikipedia'),
+            defaultPriority: 120,
+            fieldPriorities: ['description' => 10],
+        );
+
+        // Gemini enrichit avec description (priorité 40)
+        $gemini = $this->createEnrichableProvider(
+            'gemini',
+            ['isbn'],
+            null,
+            new LookupResult(description: 'Synopsis Gemini détaillé', source: 'gemini'),
+            defaultPriority: 40,
+        );
+
+        $orchestrator = new LookupOrchestrator([$google, $wikipedia, $gemini]);
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Book Title', $result->title);
+        // Gemini gagne pour la description enrichie (40 > 10)
+        self::assertSame('Synopsis Gemini détaillé', $result->description);
+    }
+
     // --- Gemini integration tests ---
 
     public function testLookupCallsGeminiAsLastProvider(): void
@@ -425,8 +538,9 @@ class LookupOrchestratorTest extends TestCase
     // --- Helper methods ---
 
     /**
-     * @param list<string>                              $supportedModes
+     * @param list<string>                                $supportedModes
      * @param array{status: string, message: string}|null $apiMessage
+     * @param array<string, int>                          $fieldPriorities
      */
     private function createProvider(
         string $name,
@@ -434,15 +548,24 @@ class LookupOrchestratorTest extends TestCase
         ?LookupResult $result,
         ?ComicType $requiredType = null,
         ?array $apiMessage = null,
+        int $defaultPriority = 0,
+        array $fieldPriorities = [],
     ): LookupProviderInterface {
-        return new class($name, $supportedModes, $result, $requiredType, $apiMessage) implements LookupProviderInterface {
+        return new class($name, $supportedModes, $result, $requiredType, $apiMessage, $defaultPriority, $fieldPriorities) implements LookupProviderInterface {
             public function __construct(
                 private readonly string $name,
                 private readonly array $supportedModes,
                 private readonly ?LookupResult $result,
                 private readonly ?ComicType $requiredType,
                 private readonly ?array $apiMessage,
+                private readonly int $defaultPriority,
+                private readonly array $fieldPriorities,
             ) {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return $this->fieldPriorities[$field] ?? $this->defaultPriority;
             }
 
             public function getLastApiMessage(): ?array
@@ -490,6 +613,11 @@ class LookupOrchestratorTest extends TestCase
             ) {
             }
 
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return 0;
+            }
+
             public function getLastApiMessage(): ?array
             {
                 return null;
@@ -532,6 +660,11 @@ class LookupOrchestratorTest extends TestCase
             ) {
             }
 
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return 0;
+            }
+
             public function getLastApiMessage(): ?array
             {
                 return null;
@@ -557,7 +690,8 @@ class LookupOrchestratorTest extends TestCase
     }
 
     /**
-     * @param list<string> $supportedModes
+     * @param list<string>        $supportedModes
+     * @param array<string, int>  $fieldPriorities
      */
     private function createEnrichableProvider(
         string $name,
@@ -565,14 +699,18 @@ class LookupOrchestratorTest extends TestCase
         ?LookupResult $lookupResult,
         ?LookupResult $enrichResult,
         bool &$enrichCalled = false,
+        int $defaultPriority = 0,
+        array $fieldPriorities = [],
     ): EnrichableLookupProviderInterface {
-        return new class($name, $supportedModes, $lookupResult, $enrichResult, $enrichCalled) implements EnrichableLookupProviderInterface {
+        return new class($name, $supportedModes, $lookupResult, $enrichResult, $enrichCalled, $defaultPriority, $fieldPriorities) implements EnrichableLookupProviderInterface {
             public function __construct(
                 private readonly string $name,
                 private readonly array $supportedModes,
                 private readonly ?LookupResult $lookupResult,
                 private readonly ?LookupResult $enrichResult,
                 private bool &$enrichCalled,
+                private readonly int $defaultPriority,
+                private readonly array $fieldPriorities,
             ) {
             }
 
@@ -581,6 +719,11 @@ class LookupOrchestratorTest extends TestCase
                 $this->enrichCalled = true;
 
                 return $this->enrichResult;
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return $this->fieldPriorities[$field] ?? $this->defaultPriority;
             }
 
             public function getLastApiMessage(): ?array

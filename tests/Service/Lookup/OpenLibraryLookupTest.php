@@ -21,6 +21,15 @@ class OpenLibraryLookupTest extends TestCase
         self::assertSame('open_library', $provider->getName());
     }
 
+    public function testGetFieldPriorityReturnsDefaultForAllFields(): void
+    {
+        $provider = new OpenLibraryLookup(new MockHttpClient(), new NullLogger());
+
+        self::assertSame(80, $provider->getFieldPriority('title'));
+        self::assertSame(80, $provider->getFieldPriority('description'));
+        self::assertSame(80, $provider->getFieldPriority('publisher'));
+    }
+
     public function testSupportsIsbnOnly(): void
     {
         $provider = new OpenLibraryLookup(new MockHttpClient(), new NullLogger());

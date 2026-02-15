@@ -81,7 +81,9 @@ class LookupOrchestrator
     {
         $this->apiMessages = [];
         $this->sources = [];
-        $results = [];
+
+        /** @var list<array{LookupProviderInterface, LookupResult}> $providerResults */
+        $providerResults = [];
 
         foreach ($this->providers as $provider) {
             if (!$provider->supports($mode, $type)) {
@@ -96,53 +98,80 @@ class LookupOrchestrator
             }
 
             if (null !== $result) {
-                $results[] = $result;
+                $providerResults[] = [$provider, $result];
                 $this->sources[] = $provider->getName();
             }
         }
 
-        if (0 === \count($results)) {
+        if (0 === \count($providerResults)) {
             return null;
         }
 
-        $merged = $this->mergeResults($results, $type);
+        $merged = $this->mergeByFieldPriority($providerResults, $type);
 
         if (!$merged->isComplete()) {
-            $merged = $this->tryEnrich($merged, $type);
+            $merged = $this->tryEnrich($merged, $providerResults, $type);
         }
 
         return $merged;
     }
 
     /**
-     * Fusionne les LookupResult avec règles de priorité.
-     * L'ordre des providers détermine la priorité (premier = plus prioritaire).
-     * AniList a des règles spéciales pour les mangas : remplace thumbnail et isOneShot.
+     * Fusionne les résultats en utilisant la priorité par champ de chaque provider.
      *
-     * @param list<LookupResult> $results
+     * Pour chaque champ, la valeur du provider avec la plus haute priorité l'emporte.
+     * À priorité égale, le premier provider (ordre d'exécution) gagne.
+     *
+     * @param list<array{LookupProviderInterface, LookupResult}> $providerResults
      */
-    private function mergeResults(array $results, ?ComicType $type): LookupResult
+    private function mergeByFieldPriority(array $providerResults, ?ComicType $type): LookupResult
     {
-        $merged = $results[0];
+        $fields = ['authors', 'description', 'isbn', 'isOneShot', 'latestPublishedIssue', 'publishedDate', 'publisher', 'thumbnail', 'title'];
+        $bestPriorities = \array_fill_keys($fields, -1);
+        $bestValues = \array_fill_keys($fields, null);
 
-        for ($i = 1, $count = \count($results); $i < $count; ++$i) {
-            $current = $results[$i];
+        foreach ($providerResults as [$provider, $result]) {
+            foreach ($fields as $field) {
+                if (null === $result->$field) {
+                    continue;
+                }
 
-            if ('anilist' === $current->source && ComicType::MANGA === $type) {
-                $merged = $merged->mergeWith($current, overrideFields: ['isOneShot', 'thumbnail']);
-            } else {
-                $merged = $merged->mergeWith($current);
+                $priority = $provider->getFieldPriority($field, $type);
+
+                if ($priority > $bestPriorities[$field]) {
+                    $bestPriorities[$field] = $priority;
+                    $bestValues[$field] = $result->$field;
+                }
             }
         }
 
-        return $merged;
+        return new LookupResult(
+            authors: $bestValues['authors'], // @phpstan-ignore argument.type (accès dynamique aux propriétés typées)
+            description: $bestValues['description'], // @phpstan-ignore argument.type
+            isbn: $bestValues['isbn'], // @phpstan-ignore argument.type
+            isOneShot: $bestValues['isOneShot'], // @phpstan-ignore argument.type
+            latestPublishedIssue: $bestValues['latestPublishedIssue'], // @phpstan-ignore argument.type
+            publishedDate: $bestValues['publishedDate'], // @phpstan-ignore argument.type
+            publisher: $bestValues['publisher'], // @phpstan-ignore argument.type
+            source: $providerResults[0][1]->source,
+            thumbnail: $bestValues['thumbnail'], // @phpstan-ignore argument.type
+            title: $bestValues['title'], // @phpstan-ignore argument.type
+        );
     }
 
     /**
-     * Tente d'enrichir les données via un provider enrichable.
+     * Tente d'enrichir les données via les providers enrichables.
+     *
+     * Collecte les résultats d'enrichissement puis les fusionne par priorité de champ.
+     * Les champs déjà remplis par le lookup principal sont conservés.
+     *
+     * @param list<array{LookupProviderInterface, LookupResult}> $existingResults
      */
-    private function tryEnrich(LookupResult $merged, ?ComicType $type): LookupResult
+    private function tryEnrich(LookupResult $merged, array $existingResults, ?ComicType $type): LookupResult
     {
+        /** @var list<array{LookupProviderInterface, LookupResult}> $enrichResults */
+        $enrichResults = [];
+
         foreach ($this->providers as $provider) {
             if (!$provider instanceof EnrichableLookupProviderInterface) {
                 continue;
@@ -156,11 +185,16 @@ class LookupOrchestrator
             }
 
             if (null !== $enriched) {
+                $enrichResults[] = [$provider, $enriched];
                 $this->sources[] = $enriched->source;
-                $merged = $merged->mergeWith($enriched);
             }
         }
 
-        return $merged;
+        if (0 === \count($enrichResults)) {
+            return $merged;
+        }
+
+        // Fusionne tous les résultats (lookup + enrichissement) par priorité de champ
+        return $this->mergeByFieldPriority(\array_merge($existingResults, $enrichResults), $type);
     }
 }

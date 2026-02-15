@@ -19,3 +19,6 @@ framework:
             gemini.cache:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 2592000 # 30 jours
+            wikipedia.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 604800 # 7 jours
