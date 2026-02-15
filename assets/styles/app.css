@@ -2170,7 +2170,7 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
 }
 
 .fab-scan--loading::after {
-    animation: spin 1s linear infinite;
+    animation: spin-centered 1s linear infinite;
     border: 2px solid transparent;
     border-radius: 50%;
     border-top-color: var(--md-on-primary);
@@ -2187,7 +2187,7 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
     visibility: hidden;
 }
 
-@keyframes spin {
+@keyframes spin-centered {
     to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
