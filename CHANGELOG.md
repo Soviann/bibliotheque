@@ -7,10 +7,6 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
-### Changed
-
-- **Boutons de formulaire sticky** : Les boutons « Enregistrer » et « Annuler » restent visibles en bas de l'écran lors du scroll sur les formulaires longs
-
 ### Added
 
 - **Enrichissement Gemini IA** : Intégration de l'API Google Gemini pour enrichir les données des séries
@@ -58,6 +54,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Détection one-shot Google Books** : Ne marque plus les séries comme one-shot par défaut quand l'information `seriesInfo` est absente de l'API
+- **Cache lookup périmé** : Gestion de la désérialisation d'objets en cache après l'ajout de nouvelles propriétés (évite les erreurs de connexion)
 - **Date de publication** : Remplacement du champ texte par un datepicker Flatpickr en français (DD/MM/YYYY) avec bouton d'effacement — supprime l'heure inutile et normalise le format en YYYY-MM-DD
 - **Icône de chargement** : Correction du spinner qui se déplaçait en diagonale lors d'une recherche par titre ou ISBN — conflit entre deux `@keyframes spin` (btn-icon vs fab-scan)
 - **Lookup ISBN tome** : La recherche ISBN depuis un tome ne remplit plus que les champs pertinents au niveau série (auteurs, éditeur, couverture) — les champs volume-spécifiques (titre, date, description) et le flag one-shot sont ignorés
@@ -69,6 +67,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Nombre de tomes parus** : Le champ « Dernier tome paru » est désormais mis à jour systématiquement lors de l'enrichissement, même s'il est déjà renseigné
+- **Boutons de formulaire sticky** : Les boutons « Enregistrer » et « Annuler » restent visibles en bas de l'écran lors du scroll sur les formulaires longs
 - **Refactoring architecture lookup** : Extraction du service monolithique `IsbnLookupService` en architecture provider-based
   - Interface `LookupProviderInterface` avec méthode `supports()` pour filtrer les providers par mode (ISBN/titre) et type
   - Providers individuels : `GoogleBooksLookup`, `OpenLibraryLookup`, `AniListLookup`, `GeminiLookup`

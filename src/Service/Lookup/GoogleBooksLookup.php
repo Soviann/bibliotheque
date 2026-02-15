@@ -184,8 +184,8 @@ class GoogleBooksLookup implements LookupProviderInterface
                 $isbn = $this->extractIsbnFromIdentifiers($volumeInfo['industryIdentifiers']);
             }
 
-            if (null === $isOneShot && \is_array($volumeInfo)) {
-                $isOneShot = !\array_key_exists('seriesInfo', $volumeInfo) || null === $volumeInfo['seriesInfo'];
+            if (null === $isOneShot && \is_array($volumeInfo) && \array_key_exists('seriesInfo', $volumeInfo) && null !== $volumeInfo['seriesInfo']) {
+                $isOneShot = false;
             }
 
             if (null !== $authors && null !== $description && null !== $publishedDate && null !== $publisher && null !== $thumbnail && null !== $title) {

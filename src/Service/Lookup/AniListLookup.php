@@ -138,6 +138,7 @@ class AniListLookup implements LookupProviderInterface
                 authors: $authors,
                 description: $description,
                 isOneShot: $isOneShot,
+                latestPublishedIssue: \is_int($volumes) ? $volumes : null,
                 publishedDate: $publishedDate,
                 source: 'anilist',
                 thumbnail: $thumbnail,
