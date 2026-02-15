@@ -91,7 +91,7 @@ class ComicSeriesMapper
         $input->latestPublishedIssueComplete = $entity->isLatestPublishedIssueComplete();
         $input->isOneShot = $entity->isOneShot();
         $input->description = $entity->getDescription();
-        $input->publishedDate = $entity->getPublishedDate();
+        $input->publishedDate = $this->normalizeDate($entity->getPublishedDate());
         $input->publisher = $entity->getPublisher();
         $input->coverUrl = $entity->getCoverUrl();
         $input->coverImage = $entity->getCoverImage();
@@ -155,6 +155,45 @@ class ComicSeriesMapper
                 $tome = $this->mapper->map($tomeInput, Tome::class);
                 $entity->addTome($tome);
             }
+        }
+    }
+
+    /**
+     * Normalise une date en format YYYY-MM-DD pour le champ DateType.
+     */
+    private function normalizeDate(?string $date): ?string
+    {
+        if (null === $date || '' === $date) {
+            return null;
+        }
+
+        // Déjà au format YYYY-MM-DD
+        if (\preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $date;
+        }
+
+        // Format YYYY-MM-DD suivi d'une heure (ex: "2023-01-15 10:30:00")
+        if (\preg_match('/^(\d{4}-\d{2}-\d{2})\s/', $date)) {
+            return \substr($date, 0, 10);
+        }
+
+        // Format YYYY-MM (ex: "2023-06")
+        if (\preg_match('/^\d{4}-\d{2}$/', $date)) {
+            return $date.'-01';
+        }
+
+        // Format YYYY (ex: "2023")
+        if (\preg_match('/^\d{4}$/', $date)) {
+            return $date.'-01-01';
+        }
+
+        // Tente un parsing générique
+        try {
+            $parsed = new \DateTimeImmutable($date);
+
+            return $parsed->format('Y-m-d');
+        } catch (\Exception) {
+            return null;
         }
     }
 

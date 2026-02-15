@@ -491,6 +491,76 @@ class ComicSeriesMapperTest extends TestCase
     }
 
     /**
+     * Teste que mapToInput normalise une date avec heure en date seule.
+     */
+    public function testMapToInputNormalizesDateWithTime(): void
+    {
+        $entity = new ComicSeries();
+        $entity->setTitle('Test');
+        $entity->setPublishedDate('2023-01-15 10:30:00');
+
+        $input = $this->mapper->mapToInput($entity);
+
+        self::assertSame('2023-01-15', $input->publishedDate);
+    }
+
+    /**
+     * Teste que mapToInput normalise une année seule en date complète.
+     */
+    public function testMapToInputNormalizesYearOnlyDate(): void
+    {
+        $entity = new ComicSeries();
+        $entity->setTitle('Test');
+        $entity->setPublishedDate('2023');
+
+        $input = $this->mapper->mapToInput($entity);
+
+        self::assertSame('2023-01-01', $input->publishedDate);
+    }
+
+    /**
+     * Teste que mapToInput normalise une date année-mois en date complète.
+     */
+    public function testMapToInputNormalizesYearMonthDate(): void
+    {
+        $entity = new ComicSeries();
+        $entity->setTitle('Test');
+        $entity->setPublishedDate('2023-06');
+
+        $input = $this->mapper->mapToInput($entity);
+
+        self::assertSame('2023-06-01', $input->publishedDate);
+    }
+
+    /**
+     * Teste que mapToInput conserve une date déjà au bon format.
+     */
+    public function testMapToInputKeepsValidDate(): void
+    {
+        $entity = new ComicSeries();
+        $entity->setTitle('Test');
+        $entity->setPublishedDate('2024-01-15');
+
+        $input = $this->mapper->mapToInput($entity);
+
+        self::assertSame('2024-01-15', $input->publishedDate);
+    }
+
+    /**
+     * Teste que mapToInput gère une date nulle.
+     */
+    public function testMapToInputHandlesNullDate(): void
+    {
+        $entity = new ComicSeries();
+        $entity->setTitle('Test');
+        $entity->setPublishedDate(null);
+
+        $input = $this->mapper->mapToInput($entity);
+
+        self::assertNull($input->publishedDate);
+    }
+
+    /**
      * Teste que les auteurs sont effacés avant réassignation.
      */
     public function testMapToEntityClearsExistingAuthors(): void

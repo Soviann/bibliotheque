@@ -157,7 +157,7 @@ describe('Intégration : scan code-barres → formulaire', () => {
                 expect(form.querySelector('[data-comic-form-target="title"]').value).toBe('One Piece');
             });
             expect(form.querySelector('[data-comic-form-target="publisher"]').value).toBe('Glénat');
-            expect(form.querySelector('[data-comic-form-target="publishedDate"]').value).toBe('1997');
+            expect(form.querySelector('[data-comic-form-target="publishedDate"]').value).toBe('1997-01-01');
             expect(form.querySelector('[data-comic-form-target="description"]').value).toBe('Aventure pirate');
             expect(form.querySelector('[data-comic-form-target="coverUrl"]').value).toBe('https://covers.example.com/onepiece.jpg');
         });
