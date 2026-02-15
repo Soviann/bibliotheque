@@ -151,15 +151,19 @@ class BnfLookup implements LookupProviderInterface
      */
     private function parseResponse(string $xml): ?LookupResult
     {
-        \libxml_use_internal_errors(true);
+        $previousLibxmlState = \libxml_use_internal_errors(true);
         $doc = \simplexml_load_string($xml);
 
         if (false === $doc) {
             \libxml_clear_errors();
+            \libxml_use_internal_errors($previousLibxmlState);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse XML invalide');
 
             return null;
         }
+
+        \libxml_clear_errors();
+        \libxml_use_internal_errors($previousLibxmlState);
 
         $doc->registerXPathNamespace('srw', 'http://www.loc.gov/zing/srw/');
         $doc->registerXPathNamespace('oai_dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');

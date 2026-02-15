@@ -28,6 +28,7 @@ class BnfLookupTest extends TestCase
         self::assertSame(90, $provider->getFieldPriority('title'));
         self::assertSame(90, $provider->getFieldPriority('authors'));
         self::assertSame(90, $provider->getFieldPriority('publisher'));
+        self::assertSame(90, $provider->getFieldPriority('isbn'));
         self::assertSame(90, $provider->getFieldPriority('publishedDate'));
     }
 
