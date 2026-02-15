@@ -18,6 +18,7 @@
 ## Plans
 
 - Location: `docs/plans/` (never global, gitignored). Delete after PR merged.
+- **Concise plans only**: describe what to do (files, logic, order), not how (no code blocks). Code is written at implementation time.
 
 ## Workflow
 
