@@ -69,7 +69,7 @@ class GeminiLookupTest extends TestCase
         ]);
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->lookup('9782811607418', ComicType::MANGA, 'isbn');
+        $result = $this->doLookup($lookup, '9782811607418', ComicType::MANGA, 'isbn');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Hajime Isayama', $result->authors);
@@ -105,7 +105,7 @@ class GeminiLookupTest extends TestCase
         ]);
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->lookup('One Piece', ComicType::MANGA, 'title');
+        $result = $this->doLookup($lookup, 'One Piece', ComicType::MANGA, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Eiichiro Oda', $result->authors);
@@ -129,7 +129,7 @@ class GeminiLookupTest extends TestCase
         ]);
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->lookup('Garfield', null, 'title');
+        $result = $this->doLookup($lookup, 'Garfield', null, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Garfield', $result->title);
@@ -165,7 +165,7 @@ class GeminiLookupTest extends TestCase
         );
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->enrich($partial, ComicType::MANGA);
+        $result = $this->doEnrich($lookup, $partial, ComicType::MANGA);
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Hajime Isayama', $result->authors);
@@ -179,7 +179,7 @@ class GeminiLookupTest extends TestCase
         $lookup = $this->createLookup();
         $partial = new LookupResult(source: 'google_books');
 
-        $result = $lookup->enrich($partial, null);
+        $result = $this->doEnrich($lookup, $partial, null);
 
         self::assertNull($result);
     }
@@ -207,7 +207,7 @@ class GeminiLookupTest extends TestCase
         ]);
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->lookup('One Piece', ComicType::MANGA, 'title');
+        $result = $this->doLookup($lookup, 'One Piece', ComicType::MANGA, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame(109, $result->latestPublishedIssue);
@@ -220,7 +220,7 @@ class GeminiLookupTest extends TestCase
         ]);
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->lookup('9781234567890', null, 'isbn');
+        $result = $this->doLookup($lookup, '9781234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertNotNull($lookup->getLastApiMessage());
@@ -235,7 +235,7 @@ class GeminiLookupTest extends TestCase
         ]);
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->lookup('9781234567890', null, 'isbn');
+        $result = $this->doLookup($lookup, '9781234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertNotNull($lookup->getLastApiMessage());
@@ -274,10 +274,10 @@ class GeminiLookupTest extends TestCase
         $lookup = $this->createLookup(geminiClient: $geminiClient, limiterFactory: $limiterFactory);
 
         // Premier appel : consomme le quota (limit=1)
-        $lookup->lookup('isbn1', null, 'isbn');
+        $this->doLookup($lookup, 'isbn1', null, 'isbn');
 
         // Deuxième appel : rate limited
-        $result = $lookup->lookup('isbn2', null, 'isbn');
+        $result = $this->doLookup($lookup, 'isbn2', null, 'isbn');
 
         self::assertNull($result);
         self::assertNotNull($lookup->getLastApiMessage());
@@ -308,9 +308,9 @@ class GeminiLookupTest extends TestCase
         $lookup = $this->createLookup(geminiClient: $geminiClient);
 
         // Premier appel
-        $result1 = $lookup->lookup('9781234567890', null, 'isbn');
+        $result1 = $this->doLookup($lookup, '9781234567890', null, 'isbn');
         // Deuxième appel (même query) — doit venir du cache
-        $result2 = $lookup->lookup('9781234567890', null, 'isbn');
+        $result2 = $this->doLookup($lookup, '9781234567890', null, 'isbn');
 
         self::assertInstanceOf(LookupResult::class, $result1);
         self::assertInstanceOf(LookupResult::class, $result2);
@@ -337,11 +337,25 @@ class GeminiLookupTest extends TestCase
         ]);
 
         $lookup = $this->createLookup(geminiClient: $geminiClient);
-        $result = $lookup->lookup('9781234567890', null, 'isbn');
+        $result = $this->doLookup($lookup, '9781234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertNotNull($lookup->getLastApiMessage());
         self::assertSame('not_found', $lookup->getLastApiMessage()['status']);
+    }
+
+    private function doEnrich(GeminiLookup $lookup, LookupResult $partial, ?ComicType $type): ?LookupResult
+    {
+        $state = $lookup->prepareEnrich($partial, $type);
+
+        return $lookup->resolveEnrich($state);
+    }
+
+    private function doLookup(GeminiLookup $lookup, string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    {
+        $state = $lookup->prepareLookup($query, $type, $mode);
+
+        return $lookup->resolveLookup($state);
     }
 
     private function createLookup(

@@ -50,7 +50,7 @@ class OpenLibraryLookupTest extends TestCase
         ]));
 
         $provider = new OpenLibraryLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Open Library Book', $result->title);
@@ -78,7 +78,7 @@ class OpenLibraryLookupTest extends TestCase
             new MockHttpClient([$bookResponse, $authorResponse1, $authorResponse2]),
             new NullLogger(),
         );
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNotNull($result);
         self::assertSame('Author One, Author Two', $result->authors);
@@ -89,7 +89,7 @@ class OpenLibraryLookupTest extends TestCase
         $response = new MockResponse('', ['http_code' => 404]);
 
         $provider = new OpenLibraryLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('0000000000', null, 'isbn');
+        $result = $this->doLookup($provider, '0000000000', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
@@ -102,7 +102,7 @@ class OpenLibraryLookupTest extends TestCase
         ]));
 
         $provider = new OpenLibraryLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
@@ -113,7 +113,7 @@ class OpenLibraryLookupTest extends TestCase
         $response = new MockResponse('', ['error' => 'Connection failed']);
 
         $provider = new OpenLibraryLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('error', $provider->getLastApiMessage()['status']);
@@ -124,9 +124,16 @@ class OpenLibraryLookupTest extends TestCase
         $response = new MockResponse('Rate limit', ['http_code' => 429]);
 
         $provider = new OpenLibraryLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('rate_limited', $provider->getLastApiMessage()['status']);
+    }
+
+    private function doLookup(OpenLibraryLookup $provider, string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    {
+        $state = $provider->prepareLookup($query, $type, $mode);
+
+        return $provider->resolveLookup($state);
     }
 }

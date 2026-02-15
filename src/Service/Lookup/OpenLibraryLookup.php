@@ -47,16 +47,20 @@ class OpenLibraryLookup implements LookupProviderInterface
         return 'open_library';
     }
 
-    public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
         $this->lastApiMessage = null;
 
-        try {
-            $response = $this->httpClient->request('GET', self::API_URL.$query.'.json', [
-                'timeout' => 10,
-            ]);
+        return $this->httpClient->request('GET', self::API_URL.$query.'.json', [
+            'timeout' => 10,
+        ]);
+    }
 
-            $statusCode = $response->getStatusCode();
+    public function resolveLookup(mixed $state): ?LookupResult
+    {
+        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        try {
+            $statusCode = $state->getStatusCode();
 
             if (429 === $statusCode) {
                 $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
@@ -70,7 +74,7 @@ class OpenLibraryLookup implements LookupProviderInterface
                 return null;
             }
 
-            $data = $response->toArray();
+            $data = $state->toArray();
 
             if (empty($data['title'])) {
                 $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
@@ -103,9 +107,8 @@ class OpenLibraryLookup implements LookupProviderInterface
                 title: $data['title'],
             );
         } catch (TransportExceptionInterface $e) {
-            $this->logger->error('Erreur réseau Open Library pour ISBN {isbn}: {error}', [
+            $this->logger->error('Erreur réseau Open Library : {error}', [
                 'error' => $e->getMessage(),
-                'isbn' => $query,
             ]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Erreur de connexion');
 
@@ -117,16 +120,14 @@ class OpenLibraryLookup implements LookupProviderInterface
             } else {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
             }
-            $this->logger->warning('Erreur HTTP Open Library pour ISBN {isbn}: {error}', [
+            $this->logger->warning('Erreur HTTP Open Library : {error}', [
                 'error' => $e->getMessage(),
-                'isbn' => $query,
             ]);
 
             return null;
         } catch (DecodingExceptionInterface $e) {
-            $this->logger->error('Réponse JSON invalide de Open Library pour ISBN {isbn}: {error}', [
+            $this->logger->error('Réponse JSON invalide de Open Library : {error}', [
                 'error' => $e->getMessage(),
-                'isbn' => $query,
             ]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse invalide');
 

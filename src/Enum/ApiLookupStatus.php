@@ -13,4 +13,5 @@ enum ApiLookupStatus: string
     case NOT_FOUND = 'not_found';
     case RATE_LIMITED = 'rate_limited';
     case SUCCESS = 'success';
+    case TIMEOUT = 'timeout';
 }

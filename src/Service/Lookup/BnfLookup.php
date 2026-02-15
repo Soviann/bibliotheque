@@ -53,7 +53,7 @@ class BnfLookup implements LookupProviderInterface
         return 'bnf';
     }
 
-    public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
         $this->lastApiMessage = null;
 
@@ -61,19 +61,23 @@ class BnfLookup implements LookupProviderInterface
             ? \sprintf('bib.isbn adj "%s"', $query)
             : \sprintf('bib.title all "%s"', $query);
 
-        try {
-            $response = $this->httpClient->request('GET', self::API_URL, [
-                'query' => [
-                    'maximumRecords' => 1,
-                    'operation' => 'searchRetrieve',
-                    'query' => $sruQuery,
-                    'recordSchema' => 'dublincore',
-                    'version' => '1.2',
-                ],
-                'timeout' => 10,
-            ]);
+        return $this->httpClient->request('GET', self::API_URL, [
+            'query' => [
+                'maximumRecords' => 1,
+                'operation' => 'searchRetrieve',
+                'query' => $sruQuery,
+                'recordSchema' => 'dublincore',
+                'version' => '1.2',
+            ],
+            'timeout' => 10,
+        ]);
+    }
 
-            $content = $response->getContent();
+    public function resolveLookup(mixed $state): ?LookupResult
+    {
+        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        try {
+            $content = $state->getContent();
         } catch (TransportExceptionInterface $e) {
             $this->logger->error('Erreur réseau BnF : {error}', ['error' => $e->getMessage()]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Erreur de connexion');

@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Service\Lookup;
 
+use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 /**
- * Coordonne les providers de lookup, fusionne les résultats et enrichit si nécessaire.
+ * Coordonne les providers de lookup en deux phases (prepare/resolve)
+ * pour exploiter le multiplexage HTTP natif de Symfony HttpClient.
  */
 class LookupOrchestrator
 {
@@ -19,9 +23,13 @@ class LookupOrchestrator
     private array $sources = [];
 
     /**
+     * @param float                             $globalTimeout Timeout global en secondes
      * @param iterable<LookupProviderInterface> $providers
      */
     public function __construct(
+        #[Autowire('%app.lookup_global_timeout%')]
+        private readonly float $globalTimeout,
+        private readonly LoggerInterface $logger,
         #[AutowireIterator('app.lookup_provider')]
         private readonly iterable $providers,
     ) {
@@ -82,24 +90,69 @@ class LookupOrchestrator
         $this->apiMessages = [];
         $this->sources = [];
 
-        /** @var list<array{LookupProviderInterface, LookupResult}> $providerResults */
-        $providerResults = [];
+        $startTime = \microtime(true);
+
+        // Phase 1 : lancer toutes les requêtes (non bloquant)
+        /** @var list<array{provider: LookupProviderInterface, state: mixed}> $prepared */
+        $prepared = [];
 
         foreach ($this->providers as $provider) {
             if (!$provider->supports($mode, $type)) {
                 continue;
             }
 
-            $result = $provider->lookup($query, $type, $mode);
-            $apiMessage = $provider->getLastApiMessage();
+            try {
+                $state = $provider->prepareLookup($query, $type, $mode);
+                $prepared[] = ['provider' => $provider, 'state' => $state];
+            } catch (\Throwable $e) {
+                $this->logger->error('Erreur prepareLookup {provider} : {error}', [
+                    'error' => $e->getMessage(),
+                    'provider' => $provider->getName(),
+                ]);
+                $this->apiMessages[$provider->getName()] = [
+                    'message' => $e->getMessage(),
+                    'status' => ApiLookupStatus::ERROR->value,
+                ];
+            }
+        }
 
-            if (null !== $apiMessage) {
-                $this->apiMessages[$provider->getName()] = $apiMessage;
+        // Phase 2 : résoudre les réponses (bloquant, avec timeout global)
+        /** @var list<array{LookupProviderInterface, LookupResult}> $providerResults */
+        $providerResults = [];
+
+        foreach ($prepared as ['provider' => $provider, 'state' => $state]) {
+            $elapsed = \microtime(true) - $startTime;
+
+            if ($elapsed >= $this->globalTimeout) {
+                $this->apiMessages[$provider->getName()] = [
+                    'message' => 'Timeout global dépassé',
+                    'status' => ApiLookupStatus::TIMEOUT->value,
+                ];
+
+                continue;
             }
 
-            if (null !== $result) {
-                $providerResults[] = [$provider, $result];
-                $this->sources[] = $provider->getName();
+            try {
+                $result = $provider->resolveLookup($state);
+                $apiMessage = $provider->getLastApiMessage();
+
+                if (null !== $apiMessage) {
+                    $this->apiMessages[$provider->getName()] = $apiMessage;
+                }
+
+                if (null !== $result) {
+                    $providerResults[] = [$provider, $result];
+                    $this->sources[] = $provider->getName();
+                }
+            } catch (\Throwable $e) {
+                $this->logger->error('Erreur resolveLookup {provider} : {error}', [
+                    'error' => $e->getMessage(),
+                    'provider' => $provider->getName(),
+                ]);
+                $this->apiMessages[$provider->getName()] = [
+                    'message' => $e->getMessage(),
+                    'status' => ApiLookupStatus::ERROR->value,
+                ];
             }
         }
 
@@ -160,33 +213,62 @@ class LookupOrchestrator
     }
 
     /**
-     * Tente d'enrichir les données via les providers enrichables.
-     *
-     * Collecte les résultats d'enrichissement puis les fusionne par priorité de champ.
-     * Les champs déjà remplis par le lookup principal sont conservés.
+     * Tente d'enrichir les données via les providers enrichables (deux phases).
      *
      * @param list<array{LookupProviderInterface, LookupResult}> $existingResults
      */
     private function tryEnrich(LookupResult $merged, array $existingResults, ?ComicType $type): LookupResult
     {
-        /** @var list<array{LookupProviderInterface, LookupResult}> $enrichResults */
-        $enrichResults = [];
+        // Phase 1 : préparer les enrichissements
+        /** @var list<array{provider: EnrichableLookupProviderInterface, state: mixed}> $prepared */
+        $prepared = [];
 
         foreach ($this->providers as $provider) {
             if (!$provider instanceof EnrichableLookupProviderInterface) {
                 continue;
             }
 
-            $enriched = $provider->enrich($merged, $type);
-            $apiMessage = $provider->getLastApiMessage();
-
-            if (null !== $apiMessage) {
-                $this->apiMessages[$provider->getName().'.enrich'] = $apiMessage;
+            try {
+                $state = $provider->prepareEnrich($merged, $type);
+                $prepared[] = ['provider' => $provider, 'state' => $state];
+            } catch (\Throwable $e) {
+                $this->logger->error('Erreur prepareEnrich {provider} : {error}', [
+                    'error' => $e->getMessage(),
+                    'provider' => $provider->getName(),
+                ]);
+                $this->apiMessages[$provider->getName().'.enrich'] = [
+                    'message' => $e->getMessage(),
+                    'status' => ApiLookupStatus::ERROR->value,
+                ];
             }
+        }
 
-            if (null !== $enriched) {
-                $enrichResults[] = [$provider, $enriched];
-                $this->sources[] = $enriched->source;
+        // Phase 2 : résoudre les enrichissements
+        /** @var list<array{LookupProviderInterface, LookupResult}> $enrichResults */
+        $enrichResults = [];
+
+        foreach ($prepared as ['provider' => $provider, 'state' => $state]) {
+            try {
+                $enriched = $provider->resolveEnrich($state);
+                $apiMessage = $provider->getLastApiMessage();
+
+                if (null !== $apiMessage) {
+                    $this->apiMessages[$provider->getName().'.enrich'] = $apiMessage;
+                }
+
+                if (null !== $enriched) {
+                    $enrichResults[] = [$provider, $enriched];
+                    $this->sources[] = $enriched->source;
+                }
+            } catch (\Throwable $e) {
+                $this->logger->error('Erreur resolveEnrich {provider} : {error}', [
+                    'error' => $e->getMessage(),
+                    'provider' => $provider->getName(),
+                ]);
+                $this->apiMessages[$provider->getName().'.enrich'] = [
+                    'message' => $e->getMessage(),
+                    'status' => ApiLookupStatus::ERROR->value,
+                ];
             }
         }
 

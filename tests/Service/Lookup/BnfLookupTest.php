@@ -64,7 +64,7 @@ class BnfLookupTest extends TestCase
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('9782012101333', ComicType::BD, 'isbn');
+        $result = $this->doLookup($provider, '9782012101333', ComicType::BD, 'isbn');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Astérix le Gaulois', $result->title);
@@ -86,7 +86,7 @@ class BnfLookupTest extends TestCase
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('One Piece', ComicType::MANGA, 'title');
+        $result = $this->doLookup($provider, 'One Piece', ComicType::MANGA, 'title');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('One Piece. 56', $result->title);
@@ -105,7 +105,7 @@ class BnfLookupTest extends TestCase
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('9782723428071', null, 'isbn');
+        $result = $this->doLookup($provider, '9782723428071', null, 'isbn');
 
         self::assertSame('La colère du papillon', $result->title);
     }
@@ -121,7 +121,7 @@ class BnfLookupTest extends TestCase
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('9782203001190', null, 'isbn');
+        $result = $this->doLookup($provider, '9782203001190', null, 'isbn');
 
         self::assertSame('Hergé, Yves Rodier', $result->authors);
         self::assertSame('Casterman', $result->publisher);
@@ -137,7 +137,7 @@ class BnfLookupTest extends TestCase
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('test', null, 'title');
+        $result = $this->doLookup($provider, 'test', null, 'title');
 
         self::assertSame('Hergé', $result->authors);
     }
@@ -155,7 +155,7 @@ XML;
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('0000000000000', null, 'isbn');
+        $result = $this->doLookup($provider, '0000000000000', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
@@ -166,7 +166,7 @@ XML;
         $response = new MockResponse('', ['error' => 'Connection failed']);
 
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('9782012101333', null, 'isbn');
+        $result = $this->doLookup($provider, '9782012101333', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('error', $provider->getLastApiMessage()['status']);
@@ -177,7 +177,7 @@ XML;
         $response = new MockResponse('not xml at all', ['response_headers' => ['content-type' => 'text/xml']]);
 
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('9782012101333', null, 'isbn');
+        $result = $this->doLookup($provider, '9782012101333', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('error', $provider->getLastApiMessage()['status']);
@@ -192,7 +192,7 @@ XML;
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('test', null, 'title');
+        $result = $this->doLookup($provider, 'test', null, 'title');
 
         self::assertSame('978-2-01-210133-3', $result->isbn);
     }
@@ -206,10 +206,17 @@ XML;
 
         $response = new MockResponse($xml, ['response_headers' => ['content-type' => 'text/xml']]);
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('test', null, 'isbn');
+        $result = $this->doLookup($provider, 'test', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
+    }
+
+    private function doLookup(BnfLookup $provider, string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    {
+        $state = $provider->prepareLookup($query, $type, $mode);
+
+        return $provider->resolveLookup($state);
     }
 
     /**

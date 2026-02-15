@@ -60,7 +60,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('9781234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '9781234567890', null, 'isbn');
 
         self::assertInstanceOf(LookupResult::class, $result);
         self::assertSame('Test Book', $result->title);
@@ -96,7 +96,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('2800152850', null, 'isbn');
+        $result = $this->doLookup($provider, '2800152850', null, 'isbn');
 
         self::assertNotNull($result);
         self::assertSame('L\'Agent 212', $result->title);
@@ -122,7 +122,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertSame('https://example.com/large.jpg', $result->thumbnail);
     }
@@ -143,7 +143,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertSame('https://example.com/small.jpg', $result->thumbnail);
     }
@@ -165,7 +165,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertSame('9781234567890', $result->isbn);
     }
@@ -183,7 +183,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result->isOneShot);
     }
@@ -202,7 +202,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertFalse($result->isOneShot);
     }
@@ -221,7 +221,7 @@ class GoogleBooksLookupTest extends TestCase
         ]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('Found by Title', null, 'title');
+        $result = $this->doLookup($provider, 'Found by Title', null, 'title');
 
         self::assertNotNull($result);
         self::assertSame('Found by Title', $result->title);
@@ -240,7 +240,7 @@ class GoogleBooksLookupTest extends TestCase
         });
 
         $provider = new GoogleBooksLookup($mockClient, new NullLogger());
-        $provider->lookup('9781234567890', null, 'isbn');
+        $this->doLookup($provider, '9781234567890', null, 'isbn');
 
         self::assertCount(1, $requestedUrls);
         self::assertStringContainsString('isbn:9781234567890', $requestedUrls[0]);
@@ -258,7 +258,7 @@ class GoogleBooksLookupTest extends TestCase
         });
 
         $provider = new GoogleBooksLookup($mockClient, new NullLogger());
-        $provider->lookup('My Book Title', null, 'title');
+        $this->doLookup($provider, 'My Book Title', null, 'title');
 
         self::assertCount(1, $requestedUrls);
         self::assertStringNotContainsString('isbn:', $requestedUrls[0]);
@@ -270,7 +270,7 @@ class GoogleBooksLookupTest extends TestCase
         $response = new MockResponse(\json_encode(['items' => []]));
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('0000000000', null, 'isbn');
+        $result = $this->doLookup($provider, '0000000000', null, 'isbn');
 
         self::assertNull($result);
         self::assertNotNull($provider->getLastApiMessage());
@@ -282,7 +282,7 @@ class GoogleBooksLookupTest extends TestCase
         $response = new MockResponse('', ['error' => 'Connection failed']);
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('error', $provider->getLastApiMessage()['status']);
@@ -293,7 +293,7 @@ class GoogleBooksLookupTest extends TestCase
         $response = new MockResponse('Rate limit exceeded', ['http_code' => 429]);
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('rate_limited', $provider->getLastApiMessage()['status']);
@@ -304,7 +304,7 @@ class GoogleBooksLookupTest extends TestCase
         $response = new MockResponse('Internal Server Error', ['http_code' => 500]);
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('error', $provider->getLastApiMessage()['status']);
@@ -315,9 +315,16 @@ class GoogleBooksLookupTest extends TestCase
         $response = new MockResponse('not json', ['http_code' => 200]);
 
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
-        $result = $provider->lookup('1234567890', null, 'isbn');
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
         self::assertSame('error', $provider->getLastApiMessage()['status']);
+    }
+
+    private function doLookup(GoogleBooksLookup $provider, string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    {
+        $state = $provider->prepareLookup($query, $type, $mode);
+
+        return $provider->resolveLookup($state);
     }
 }

@@ -89,26 +89,30 @@ class AniListLookup implements LookupProviderInterface
         return 'anilist';
     }
 
-    public function lookup(string $query, ?ComicType $type, string $mode = 'title'): ?LookupResult
+    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
         $this->lastApiMessage = null;
 
         $searchTitle = $this->cleanTitle($query);
 
-        try {
-            $response = $this->httpClient->request('POST', self::API_URL, [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'query' => self::GRAPHQL_QUERY,
-                    'variables' => ['search' => $searchTitle],
-                ],
-                'timeout' => 10,
-            ]);
+        return $this->httpClient->request('POST', self::API_URL, [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'query' => self::GRAPHQL_QUERY,
+                'variables' => ['search' => $searchTitle],
+            ],
+            'timeout' => 10,
+        ]);
+    }
 
-            $data = $response->toArray();
+    public function resolveLookup(mixed $state): ?LookupResult
+    {
+        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        try {
+            $data = $state->toArray();
             $media = $data['data']['Media'] ?? null;
 
             if (null === $media) {
@@ -154,9 +158,8 @@ class AniListLookup implements LookupProviderInterface
                 title: $title,
             );
         } catch (TransportExceptionInterface $e) {
-            $this->logger->error('Erreur réseau AniList pour "{title}": {error}', [
+            $this->logger->error('Erreur réseau AniList : {error}', [
                 'error' => $e->getMessage(),
-                'title' => $query,
             ]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Erreur de connexion');
 
@@ -168,16 +171,14 @@ class AniListLookup implements LookupProviderInterface
             } else {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
             }
-            $this->logger->warning('Erreur HTTP AniList pour "{title}": {error}', [
+            $this->logger->warning('Erreur HTTP AniList : {error}', [
                 'error' => $e->getMessage(),
-                'title' => $query,
             ]);
 
             return null;
         } catch (DecodingExceptionInterface $e) {
-            $this->logger->error('Réponse JSON invalide de AniList pour "{title}": {error}', [
+            $this->logger->error('Réponse JSON invalide de AniList : {error}', [
                 'error' => $e->getMessage(),
-                'title' => $query,
             ]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse invalide');
 
