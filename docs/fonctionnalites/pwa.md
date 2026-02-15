@@ -122,11 +122,15 @@ Quand une page non mise en cache est demandée hors-ligne :
 
 ## Mise à jour
 
-### Mise à jour automatique
+### Notification de mise à jour
 
-1. À chaque visite, le navigateur vérifie les mises à jour du Service Worker
-2. Si une nouvelle version existe, elle est téléchargée en arrière-plan
-3. Au prochain rechargement, la nouvelle version s'active
+Quand une nouvelle version du Service Worker est détectée :
+
+1. Le navigateur télécharge la mise à jour en arrière-plan
+2. Le nouveau SW s'active automatiquement (`skipWaiting` + `clients.claim`)
+3. Un bandeau bleu **"Nouvelle version disponible — Rafraîchir"** apparaît en haut de l'écran
+4. Cliquez sur **Rafraîchir** pour recharger la page avec la nouvelle version
+5. Vous pouvez aussi fermer le bandeau (×) et continuer sans recharger
 
 ### Forcer une mise à jour
 
