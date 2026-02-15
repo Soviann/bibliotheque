@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Boutons de formulaire sticky** : Les boutons « Enregistrer » et « Annuler » restent visibles en bas de l'écran lors du scroll sur les formulaires longs
+
 ### Added
 
 - **Enrichissement Gemini IA** : Intégration de l'API Google Gemini pour enrichir les données des séries
