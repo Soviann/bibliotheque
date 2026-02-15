@@ -1017,6 +1017,51 @@ body[data-connection-status="OFFLINE"] .offline-indicator {
     display: block;
 }
 
+/* SW Update Banner */
+.sw-update-banner {
+    align-items: center;
+    animation: slideDown 0.3s ease-out;
+    background-color: var(--md-primary);
+    color: var(--md-on-primary);
+    display: flex;
+    font-size: 0.875rem;
+    gap: var(--md-spacing-sm);
+    justify-content: center;
+    left: 0;
+    padding: var(--md-spacing-sm) var(--md-spacing-md);
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 101;
+}
+
+.sw-update-banner__refresh {
+    background-color: var(--md-on-primary);
+    border: none;
+    border-radius: var(--md-radius-full);
+    color: var(--md-primary);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: var(--md-spacing-xs) var(--md-spacing-md);
+}
+
+.sw-update-banner__close {
+    background: none;
+    border: none;
+    color: var(--md-on-primary);
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    opacity: 0.8;
+    padding: var(--md-spacing-xs);
+}
+
+.sw-update-banner__close:hover {
+    opacity: 1;
+}
+
 /* ISBN Lookup */
 .isbn-field {
     flex: 1;

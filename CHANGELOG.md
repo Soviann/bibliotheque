@@ -17,6 +17,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Notification mise à jour SW** : Bandeau "Nouvelle version disponible — Rafraîchir" affiché automatiquement quand le Service Worker se met à jour, avec bouton de rechargement et possibilité de fermer
 - **BnfLookup** : Nouveau provider de recherche via l'API SRU du catalogue général de la BnF
   - Recherche par ISBN (`bib.isbn`) et par titre (`bib.title`)
   - Extraction des métadonnées (titre, auteurs, éditeur, date, ISBN) au format Dublin Core

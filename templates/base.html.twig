@@ -27,6 +27,7 @@
             urls: [path('api_comics'), path('app_home'), path('app_wishlist'), path('app_comic_new')]
         }) }} hidden></div>
         {% endif %}
+        <div data-controller="sw-update"></div>
         <div class="app-container">
             {% if app.user %}
             {# Top App Bar - Desktop only #}
