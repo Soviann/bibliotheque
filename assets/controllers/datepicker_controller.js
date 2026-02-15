@@ -19,6 +19,7 @@ export default class extends Controller {
             altFormat: 'd/m/Y',
             altInput: true,
             dateFormat: 'Y-m-d',
+            disableMobile: true,
             locale: French,
             onChange: () => this.toggleClearButton(),
         });
