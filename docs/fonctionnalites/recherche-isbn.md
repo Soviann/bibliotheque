@@ -13,6 +13,9 @@ Trois APIs sont interrogées pour enrichir les données :
 | **Google Books** | ISBN, Titre | Titre, auteurs, éditeur, date, description, couverture |
 | **Open Library** | ISBN | Auteurs, éditeur (enrichissement) |
 | **AniList** | Titre (mangas) | Couverture HD, détection one-shot |
+| **Wikipedia/Wikidata** | ISBN, Titre | Titre, auteurs, éditeur, date, couverture, description |
+| **BnF** | ISBN, Titre | Titre, auteurs, éditeur, date, ISBN (catalogue national français) |
+| **Gemini** | ISBN, Titre | Enrichissement IA (titre, auteurs, éditeur, description) |
 
 ---
 
