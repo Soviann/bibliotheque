@@ -13,7 +13,6 @@ use Gemini\Testing\ClientFake;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
-use Symfony\Component\Cache\Psr16Cache;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
@@ -174,6 +173,35 @@ class GeminiLookupTest extends TestCase
         $result = $lookup->enrich($partial, null);
 
         self::assertNull($result);
+    }
+
+    public function testLookupReturnsLatestPublishedIssue(): void
+    {
+        $geminiClient = new ClientFake([
+            GenerateContentResponse::fake([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                [
+                                    'text' => \json_encode([
+                                        'authors' => 'Eiichiro Oda',
+                                        'latestPublishedIssue' => 109,
+                                        'title' => 'One Piece',
+                                    ]),
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $lookup = $this->createLookup(geminiClient: $geminiClient);
+        $result = $lookup->lookup('One Piece', ComicType::MANGA, 'title');
+
+        self::assertInstanceOf(LookupResult::class, $result);
+        self::assertSame(109, $result->latestPublishedIssue);
     }
 
     public function testLookupReturnsNullOnApiError(): void

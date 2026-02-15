@@ -160,13 +160,13 @@ class GoogleBooksLookupTest extends TestCase
         self::assertSame('9781234567890', $result->isbn);
     }
 
-    public function testLookupByIsbnDetectsOneShot(): void
+    public function testLookupByIsbnReturnsNullOneShotWhenNoSeriesInfo(): void
     {
         $response = new MockResponse(\json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
-                        'title' => 'One Shot Book',
+                        'title' => 'Aquablue',
                     ],
                 ],
             ],
@@ -175,7 +175,7 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $provider->lookup('1234567890', null, 'isbn');
 
-        self::assertTrue($result->isOneShot);
+        self::assertNull($result->isOneShot);
     }
 
     public function testLookupByIsbnDetectsSeriesAsNotOneShot(): void

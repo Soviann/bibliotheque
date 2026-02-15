@@ -42,6 +42,7 @@ export default class extends Controller {
         coverUrl: 'Couverture',
         description: 'Description',
         isOneShot: 'One-shot',
+        latestPublishedIssue: 'Dernier tome paru',
         publishedDate: 'Date de publication',
         publisher: 'Éditeur',
         title: 'Titre',
@@ -322,6 +323,7 @@ export default class extends Controller {
             if (this.fillAuthors(data.authors)) filledFields.push('authors');
             if (this.fillField('publisher', data.publisher)) filledFields.push('publisher');
             if (this.fillField('coverUrl', data.thumbnail)) filledFields.push('coverUrl');
+            if (this.forceUpdateField('latestPublishedIssue', data.latestPublishedIssue)) filledFields.push('latestPublishedIssue');
 
             // Gère le one-shot détecté (uniquement en mode normal)
             if (!fromTome && data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
@@ -390,6 +392,7 @@ export default class extends Controller {
             if (this.fillField('publishedDate', data.publishedDate)) filledFields.push('publishedDate');
             if (this.fillField('description', data.description)) filledFields.push('description');
             if (this.fillField('coverUrl', data.thumbnail)) filledFields.push('coverUrl');
+            if (this.forceUpdateField('latestPublishedIssue', data.latestPublishedIssue)) filledFields.push('latestPublishedIssue');
 
             // Gère le one-shot détecté
             if (data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
@@ -515,6 +518,7 @@ export default class extends Controller {
             if (this.fillField('description', data.description)) filledFields.push('description');
             if (this.fillField('coverUrl', data.thumbnail)) filledFields.push('coverUrl');
             if (this.fillSelect('type', data.type)) filledFields.push('type');
+            if (this.forceUpdateField('latestPublishedIssue', data.latestPublishedIssue)) filledFields.push('latestPublishedIssue');
 
             // Gère le one-shot détecté
             if (data.isOneShot === true && this.hasIsOneShotTarget && !this.isOneShotTarget.checked) {
@@ -610,6 +614,28 @@ export default class extends Controller {
         }
 
         this[target].value = normalizedValue;
+        this.highlightField(this[target]);
+        return true;
+    }
+
+    /**
+     * Met à jour un champ même s'il est déjà rempli.
+     * @returns {boolean} true si le champ a été mis à jour
+     */
+    forceUpdateField(targetName, value) {
+        const targetMethod = `has${targetName.charAt(0).toUpperCase() + targetName.slice(1)}Target`;
+        const target = `${targetName}Target`;
+
+        if (!this[targetMethod] || value === null || value === undefined) {
+            return false;
+        }
+
+        const stringValue = String(value);
+        if (this[target].value === stringValue) {
+            return false;
+        }
+
+        this[target].value = stringValue;
         this.highlightField(this[target]);
         return true;
     }

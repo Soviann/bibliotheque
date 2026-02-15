@@ -31,6 +31,7 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         - "description" (string|null) : synopsis de la série
         - "thumbnail" (string|null) : URL image de couverture
         - "isOneShot" (boolean|null) : true = tome unique, false = série multi-tomes
+        - "latestPublishedIssue" (integer|null) : nombre de tomes parus
         TEXT;
 
     private const string MODEL = 'gemini-2.5-flash';
@@ -185,6 +186,7 @@ class GeminiLookup implements EnrichableLookupProviderInterface
                 authors: \is_string($data['authors'] ?? null) ? $data['authors'] : null,
                 description: \is_string($data['description'] ?? null) ? $data['description'] : null,
                 isOneShot: \is_bool($data['isOneShot'] ?? null) ? $data['isOneShot'] : null,
+                latestPublishedIssue: \is_int($data['latestPublishedIssue'] ?? null) ? $data['latestPublishedIssue'] : null,
                 publishedDate: \is_string($data['publishedDate'] ?? null) ? $data['publishedDate'] : null,
                 publisher: \is_string($data['publisher'] ?? null) ? $data['publisher'] : null,
                 source: 'gemini',
