@@ -10,6 +10,7 @@ use App\Enum\ComicType;
 use App\Form\ComicSeriesType;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormFactoryInterface;
 
 /**
@@ -194,6 +195,49 @@ class ComicSeriesTypeTest extends KernelTestCase
         self::assertSame('978-2-1234-5678-9', $form->get('isbn')->getData());
         // Le DTO n'a pas de propriété isbn — la soumission ne crashe pas
         self::assertSame('Test ISBN', $input->title);
+    }
+
+    /**
+     * Teste que publishedDate est un TextType (Flatpickr gère le widget côté JS).
+     */
+    public function testPublishedDateIsTextType(): void
+    {
+        $form = $this->formFactory->create(ComicSeriesType::class);
+        $publishedDateConfig = $form->get('publishedDate')->getConfig();
+
+        self::assertInstanceOf(TextType::class, $publishedDateConfig->getType()->getInnerType());
+    }
+
+    /**
+     * Teste la soumission d'une date au format YYYY-MM-DD.
+     */
+    public function testPublishedDateSubmitsCorrectly(): void
+    {
+        $input = new ComicSeriesInput();
+        $form = $this->formFactory->create(ComicSeriesType::class, $input);
+        $form->submit([
+            'publishedDate' => '2023-06-15',
+            'status' => 'buying',
+            'title' => 'Test',
+            'type' => 'bd',
+        ]);
+
+        self::assertTrue($form->isSynchronized());
+        self::assertSame('2023-06-15', $input->publishedDate);
+    }
+
+    /**
+     * Teste que le champ date se pré-remplit correctement.
+     */
+    public function testPublishedDatePrefillsCorrectly(): void
+    {
+        $input = new ComicSeriesInput();
+        $input->publishedDate = '2024-03-20';
+
+        $form = $this->formFactory->create(ComicSeriesType::class, $input);
+        $view = $form->createView();
+
+        self::assertSame('2024-03-20', $view->children['publishedDate']->vars['value']);
     }
 
     /**

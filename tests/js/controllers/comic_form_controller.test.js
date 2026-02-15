@@ -181,6 +181,34 @@ describe('comic_form_controller', () => {
         });
     });
 
+    describe('normalizeDate', () => {
+        it('garde une date déjà au format YYYY-MM-DD', async () => {
+            const controller = await setup();
+            expect(controller.normalizeDate('2023-01-15')).toBe('2023-01-15');
+        });
+
+        it('supprime l\'heure d\'une date avec heure', async () => {
+            const controller = await setup();
+            expect(controller.normalizeDate('2023-01-15 10:30:00')).toBe('2023-01-15');
+        });
+
+        it('complète une année seule', async () => {
+            const controller = await setup();
+            expect(controller.normalizeDate('1999')).toBe('1999-01-01');
+        });
+
+        it('complète une date année-mois', async () => {
+            const controller = await setup();
+            expect(controller.normalizeDate('2023-06')).toBe('2023-06-01');
+        });
+
+        it('retourne null pour une valeur vide', async () => {
+            const controller = await setup();
+            expect(controller.normalizeDate(null)).toBeNull();
+            expect(controller.normalizeDate('')).toBeNull();
+        });
+    });
+
     describe('fillSelect', () => {
         it('remplit un select avec une valeur valide', async () => {
             const controller = await setup();
@@ -381,7 +409,7 @@ describe('comic_form_controller', () => {
             await controller.performIsbnLookup('978-123', button);
 
             expect(document.querySelector('[data-comic-form-target="title"]').value).toBe('Naruto');
-            expect(document.querySelector('[data-comic-form-target="publishedDate"]').value).toBe('1999');
+            expect(document.querySelector('[data-comic-form-target="publishedDate"]').value).toBe('1999-01-01');
             expect(document.querySelector('[data-comic-form-target="description"]').value).toBe('Ninja manga');
             expect(document.querySelector('[data-comic-form-target="publisher"]').value).toBe('Kana');
             expect(document.querySelector('[data-comic-form-target="coverUrl"]').value).toBe('http://img.jpg');
