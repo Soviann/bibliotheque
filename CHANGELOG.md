@@ -9,6 +9,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **BnfLookup** : Nouveau provider de recherche via l'API SRU du catalogue général de la BnF
+  - Recherche par ISBN (`bib.isbn`) et par titre (`bib.title`)
+  - Extraction des métadonnées (titre, auteurs, éditeur, date, ISBN) au format Dublin Core
+  - Nettoyage automatique des données BnF (auteurs, éditeurs, titres)
+  - Priorité 90 (source autoritaire pour les publications françaises)
 - **WikipediaLookup** : Nouveau provider de recherche via Wikidata + Wikipedia FR
   - Recherche par ISBN (SPARQL) et par titre (wbsearchentities)
   - Extraction des métadonnées (auteurs, éditeur, date, couverture, one-shot) depuis les claims Wikidata
