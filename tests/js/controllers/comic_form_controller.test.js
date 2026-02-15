@@ -279,6 +279,7 @@ describe('comic_form_controller', () => {
                     description: 'Ninja manga',
                     isbn: null,
                     isOneShot: false,
+                    latestPublishedIssue: 72,
                     publishedDate: '1999',
                     publisher: 'Kana',
                     sources: ['google_books'],
@@ -296,6 +297,43 @@ describe('comic_form_controller', () => {
             expect(document.querySelector('[data-comic-form-target="publisher"]').value).toBe('Kana');
             expect(document.querySelector('[data-comic-form-target="description"]').value).toBe('Ninja manga');
             expect(document.querySelector('[data-comic-form-target="coverUrl"]').value).toBe('http://img.jpg');
+            expect(document.querySelector('[data-comic-form-target="latestPublishedIssue"]').value).toBe('72');
+        });
+
+        it('met à jour latestPublishedIssue même si déjà renseigné', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    latestPublishedIssue: 109,
+                    sources: ['anilist'],
+                    title: 'One Piece',
+                }),
+                ok: true,
+            });
+
+            const controller = await setup();
+            document.querySelector('[data-comic-form-target="latestPublishedIssue"]').value = '100';
+            await controller.performIsbnLookup('978-123', null);
+
+            expect(document.querySelector('[data-comic-form-target="latestPublishedIssue"]').value).toBe('109');
+        });
+
+        it('ne met pas à jour latestPublishedIssue si l\'API ne le fournit pas', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    latestPublishedIssue: null,
+                    sources: ['google_books'],
+                    title: 'Test',
+                }),
+                ok: true,
+            });
+
+            const controller = await setup();
+            document.querySelector('[data-comic-form-target="latestPublishedIssue"]').value = '5';
+            await controller.performIsbnLookup('978-123', null);
+
+            expect(document.querySelector('[data-comic-form-target="latestPublishedIssue"]').value).toBe('5');
         });
 
         it('affiche une erreur si l\'API retourne une erreur', async () => {
@@ -472,6 +510,24 @@ describe('comic_form_controller', () => {
             const flash = document.querySelector('.api-lookup-flash');
             expect(flash).not.toBeNull();
             expect(flash.textContent).toContain('Veuillez saisir un titre');
+        });
+
+        it('met à jour latestPublishedIssue même si déjà renseigné', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                json: () => Promise.resolve({
+                    apiMessages: {},
+                    latestPublishedIssue: 50,
+                    sources: ['anilist'],
+                }),
+                ok: true,
+            });
+
+            const controller = await setup();
+            document.querySelector('[data-comic-form-target="title"]').value = 'Naruto';
+            document.querySelector('[data-comic-form-target="latestPublishedIssue"]').value = '40';
+            await controller.lookupByTitle();
+
+            expect(document.querySelector('[data-comic-form-target="latestPublishedIssue"]').value).toBe('50');
         });
 
         it('pré-remplit l\'ISBN du tome si one-shot détecté', async () => {

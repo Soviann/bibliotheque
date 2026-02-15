@@ -243,6 +243,43 @@ class AniListLookupTest extends TestCase
         self::assertFalse($result->isOneShot);
     }
 
+    public function testLookupReturnsLatestPublishedIssue(): void
+    {
+        $response = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://cover.jpg'],
+                    'format' => 'MANGA',
+                    'status' => 'RELEASING',
+                    'title' => ['romaji' => 'One Piece'],
+                    'volumes' => 109,
+                ],
+            ],
+        ]));
+
+        $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
+        $result = $provider->lookup('One Piece', ComicType::MANGA, 'title');
+
+        self::assertSame(109, $result->latestPublishedIssue);
+    }
+
+    public function testLookupReturnsNullLatestPublishedIssueWhenNotAvailable(): void
+    {
+        $response = new MockResponse(\json_encode([
+            'data' => [
+                'Media' => [
+                    'coverImage' => ['large' => 'https://cover.jpg'],
+                    'title' => ['romaji' => 'Test'],
+                ],
+            ],
+        ]));
+
+        $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
+        $result = $provider->lookup('Test', ComicType::MANGA, 'title');
+
+        self::assertNull($result->latestPublishedIssue);
+    }
+
     public function testLookupCleansTitleSuffixes(): void
     {
         $requestedBodies = [];

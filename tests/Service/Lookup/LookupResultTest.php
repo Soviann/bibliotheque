@@ -16,6 +16,7 @@ class LookupResultTest extends TestCase
             description: 'A great book',
             isbn: '9781234567890',
             isOneShot: false,
+            latestPublishedIssue: 10,
             publishedDate: '2020-01-01',
             publisher: 'Great Publisher',
             source: 'google_books',
@@ -27,6 +28,7 @@ class LookupResultTest extends TestCase
         self::assertSame('A great book', $result->description);
         self::assertSame('9781234567890', $result->isbn);
         self::assertFalse($result->isOneShot);
+        self::assertSame(10, $result->latestPublishedIssue);
         self::assertSame('2020-01-01', $result->publishedDate);
         self::assertSame('Great Publisher', $result->publisher);
         self::assertSame('google_books', $result->source);
@@ -42,6 +44,7 @@ class LookupResultTest extends TestCase
         self::assertNull($result->description);
         self::assertNull($result->isbn);
         self::assertNull($result->isOneShot);
+        self::assertNull($result->latestPublishedIssue);
         self::assertNull($result->publishedDate);
         self::assertNull($result->publisher);
         self::assertSame('open_library', $result->source);
@@ -77,6 +80,7 @@ class LookupResultTest extends TestCase
         $other = new LookupResult(
             authors: 'Author B',
             description: 'A description',
+            latestPublishedIssue: 15,
             publisher: 'Publisher X',
             source: 'open_library',
             thumbnail: 'https://img.jpg',
@@ -89,6 +93,7 @@ class LookupResultTest extends TestCase
         self::assertSame('My Book', $merged->title);
         // Missing fields filled from other
         self::assertSame('A description', $merged->description);
+        self::assertSame(15, $merged->latestPublishedIssue);
         self::assertSame('Publisher X', $merged->publisher);
         self::assertSame('https://img.jpg', $merged->thumbnail);
         // Source stays from base
@@ -159,12 +164,26 @@ class LookupResultTest extends TestCase
 
     public function testWithIsbnReturnsNewInstanceWithIsbn(): void
     {
-        $result = new LookupResult(source: 'test', title: 'Book');
+        $result = new LookupResult(latestPublishedIssue: 5, source: 'test', title: 'Book');
         $withIsbn = $result->withIsbn('9781234567890');
 
         self::assertNull($result->isbn);
         self::assertSame('9781234567890', $withIsbn->isbn);
         self::assertSame('Book', $withIsbn->title);
+        self::assertSame(5, $withIsbn->latestPublishedIssue);
+    }
+
+    public function testUnserializeHandlesMissingProperties(): void
+    {
+        // Simule un objet sérialisé avant l'ajout de latestPublishedIssue (cache périmé)
+        $oldSerialized = 'O:31:"App\Service\Lookup\LookupResult":9:{s:7:"authors";s:9:"Jim Davis";s:11:"description";s:7:"Un chat";s:4:"isbn";N;s:9:"isOneShot";N;s:13:"publishedDate";N;s:9:"publisher";N;s:6:"source";s:6:"gemini";s:9:"thumbnail";N;s:5:"title";s:8:"Garfield";}';
+
+        $result = \unserialize($oldSerialized);
+
+        self::assertInstanceOf(LookupResult::class, $result);
+        self::assertSame('Jim Davis', $result->authors);
+        self::assertSame('Garfield', $result->title);
+        self::assertNull($result->latestPublishedIssue);
     }
 
     public function testJsonSerializeReturnsAllFieldsExceptSource(): void
@@ -174,6 +193,7 @@ class LookupResultTest extends TestCase
             description: 'A great book',
             isbn: '9781234567890',
             isOneShot: false,
+            latestPublishedIssue: 10,
             publishedDate: '2020-01-01',
             publisher: 'Great Publisher',
             source: 'google_books',
@@ -188,6 +208,7 @@ class LookupResultTest extends TestCase
             'description' => 'A great book',
             'isbn' => '9781234567890',
             'isOneShot' => false,
+            'latestPublishedIssue' => 10,
             'publishedDate' => '2020-01-01',
             'publisher' => 'Great Publisher',
             'thumbnail' => 'https://example.com/cover.jpg',
