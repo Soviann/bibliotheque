@@ -1,3 +1,17 @@
+include .env
+
+# Si ENV est défini, inclure le fichier d'environnement correspondant
+ifdef ENV
+ifneq ("$(wildcard .env.$(ENV))","")
+	include .env.$(ENV)
+endif
+endif
+
+# .env.local prévaut toujours (chargé en dernier)
+ifneq ("$(wildcard .env.local)","")
+	include .env.local
+endif
+
 .PHONY: help build start stop proxy proxy-stop test test-php test-js test-js-watch \
 	cc migrate migration lint deploy
 
