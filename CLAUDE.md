@@ -145,7 +145,7 @@ Format: `<type>(scope): description in French` — Types: `feat`, `fix`, `chore`
 
 ## Issue Workflow
 
-- "Next issue" → pick highest-priority Todo from board, start immediately (don't list/ask).
+- "Next issue" → pick highest-priority Todo from board (use Priority field: Urgent > High > Medium > Low), start immediately (don't list/ask).
 - Full cycle: implement → test → PR → review fixes → squash merge → close → update board.
 
 ## GitHub Issues & Project
@@ -153,6 +153,7 @@ Format: `<type>(scope): description in French` — Types: `feat`, `fix`, `chore`
 **Repo**: `Soviann/bibliotheque` — **Project**: `Bibliotheque - Roadmap` (number: 1, owner: Soviann)
 
 **Board columns** (Status field): `Backlog` → `Todo` → `In Progress` → `Done`
+**Priority field**: `Urgent` → `High` → `Medium` → `Low`
 
 ### Rules
 
@@ -180,6 +181,11 @@ gh issue create --repo Soviann/bibliotheque --title "..." --body "..." --label "
 # 2. Edit status:  gh project item-edit --project-id PVT_kwHOANG8LM4BObgL --id <ITEM_ID> \
 #      --field-id PVTSSF_lAHOANG8LM4BObgLzg9IoUA --single-select-option-id <OPTION_ID>
 # Column option IDs: Backlog=d55ad18f  Todo=31c84745  InProgress=7c2874a8  Done=automated
+
+# Priority field
+#   gh project item-edit --project-id PVT_kwHOANG8LM4BObgL --id <ITEM_ID> \
+#      --field-id PVTSSF_lAHOANG8LM4BObgLzg-FnaM --single-select-option-id <OPTION_ID>
+# Priority IDs: Urgent=76f5d51a  High=e40c620b  Medium=df6c7ff1  Low=8d76e9b3
 ```
 
 ## Changelog
