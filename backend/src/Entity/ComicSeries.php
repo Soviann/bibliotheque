@@ -20,6 +20,7 @@ use App\State\ComicSeriesDeleteProcessor;
 use App\State\ComicSeriesPermanentDeleteProcessor;
 use App\State\ComicSeriesRestoreProcessor;
 use App\State\SoftDeletedComicSeriesProvider;
+use App\State\TrashCollectionProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -36,6 +37,11 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
         new GetCollection(
             paginationItemsPerPage: 20,
             order: ['title' => 'ASC'],
+        ),
+        new GetCollection(
+            uriTemplate: '/trash',
+            paginationEnabled: false,
+            provider: TrashCollectionProvider::class,
         ),
         new Get(),
         new Post(denormalizationContext: ['groups' => ['comic:write']]),

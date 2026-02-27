@@ -5,7 +5,7 @@ import type { ComicSeries, HydraCollection } from "../types/api";
 export function useTrash() {
   return useQuery({
     queryFn: () =>
-      apiFetch<HydraCollection<ComicSeries>>("/comic_series?deleted=true"),
+      apiFetch<HydraCollection<ComicSeries>>("/trash"),
     queryKey: ["trash"],
   });
 }

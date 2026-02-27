@@ -9,6 +9,7 @@ export function useDeleteComic() {
       apiFetch(`/comic_series/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["comics"] });
+      void queryClient.invalidateQueries({ queryKey: ["trash"] });
     },
   });
 }
