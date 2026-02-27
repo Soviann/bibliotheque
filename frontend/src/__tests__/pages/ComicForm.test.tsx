@@ -27,7 +27,11 @@ vi.mock("react-router-dom", async () => {
 // Mock hooks
 const mockUseLookupIsbn = vi.fn().mockReturnValue({ data: null, isFetching: false });
 const mockUseLookupTitle = vi.fn().mockReturnValue({ data: null, isFetching: false });
+const mockFetchLookupIsbn = vi.fn();
+const mockFetchLookupTitle = vi.fn();
 vi.mock("../../hooks/useLookup", () => ({
+  fetchLookupIsbn: (...args: unknown[]) => mockFetchLookupIsbn(...args),
+  fetchLookupTitle: (...args: unknown[]) => mockFetchLookupTitle(...args),
   useLookupIsbn: (...args: unknown[]) => mockUseLookupIsbn(...args),
   useLookupTitle: (...args: unknown[]) => mockUseLookupTitle(...args),
 }));
@@ -73,6 +77,8 @@ describe("ComicForm — applyLookup", () => {
     mockUseLookupTitle.mockReturnValue({ data: null, isFetching: false });
     mockCreateMutate.mockReset();
     mockApiFetch.mockReset();
+    mockFetchLookupIsbn.mockReset();
+    mockFetchLookupTitle.mockReset();
   });
 
   async function renderAndApplyLookup(lookupData: LookupResult) {
@@ -319,5 +325,181 @@ describe("ComicForm — handleSubmit with new authors", () => {
     expect(payload.authors).toEqual([]);
     // No apiFetch call for author creation
     expect(mockApiFetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("ComicForm — ISBN→title chaining", () => {
+  beforeEach(() => {
+    mockUseLookupIsbn.mockReturnValue({ data: null, isFetching: false });
+    mockUseLookupTitle.mockReturnValue({ data: null, isFetching: false });
+    mockCreateMutate.mockReset();
+    mockApiFetch.mockReset();
+    mockFetchLookupIsbn.mockReset();
+    mockFetchLookupTitle.mockReset();
+  });
+
+  it("chains ISBN→title lookup and applies title result fields", async () => {
+    const isbnResult: LookupResult = {
+      ...fullLookup,
+      title: "Aquablue - Tome 1",
+    };
+    const titleResult: LookupResult = {
+      ...fullLookup,
+      authors: "Cailleteau, Vatine",
+      description: "Description de la série",
+      publisher: "Delcourt",
+      thumbnail: "https://example.com/series-cover.jpg",
+      title: "Aquablue",
+    };
+
+    // ISBN lookup returns tome-specific data
+    mockUseLookupIsbn.mockReturnValue({ data: isbnResult, isFetching: false });
+    // fetchLookupTitle is called imperatively during chaining
+    mockFetchLookupTitle.mockResolvedValue(titleResult);
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    const { MemoryRouter } = await import("react-router-dom");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Stay in ISBN mode (default) — click Appliquer
+    const applyButton = await screen.findByRole("button", { name: "Appliquer" });
+    await userEvent.click(applyButton);
+
+    // fetchLookupTitle should have been called with the ISBN result's title
+    await waitFor(() => {
+      expect(mockFetchLookupTitle).toHaveBeenCalledWith("Aquablue - Tome 1", "bd");
+    });
+
+    // Fields should come from the title result
+    await waitFor(() => {
+      expect((screen.getByLabelText(/Titre \*/) as HTMLInputElement).value).toBe("Aquablue");
+    });
+    expect((screen.getByLabelText("Éditeur") as HTMLInputElement).value).toBe("Delcourt");
+    expect((screen.getByLabelText("Description") as HTMLTextAreaElement).value).toBe("Description de la série");
+    expect((screen.getByLabelText("URL de couverture") as HTMLInputElement).value).toBe("https://example.com/series-cover.jpg");
+  });
+
+  it("falls back to ISBN result when title lookup fails", async () => {
+    const isbnResult: LookupResult = {
+      ...fullLookup,
+      description: "Description ISBN",
+      publisher: "Éditeur ISBN",
+      title: "Aquablue - Tome 1",
+    };
+
+    mockUseLookupIsbn.mockReturnValue({ data: isbnResult, isFetching: false });
+    mockFetchLookupTitle.mockRejectedValue(new Error("Network error"));
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    const { MemoryRouter } = await import("react-router-dom");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const applyButton = await screen.findByRole("button", { name: "Appliquer" });
+    await userEvent.click(applyButton);
+
+    // Should fall back to ISBN result
+    await waitFor(() => {
+      expect((screen.getByLabelText(/Titre \*/) as HTMLInputElement).value).toBe("Aquablue - Tome 1");
+    });
+    expect((screen.getByLabelText("Éditeur") as HTMLInputElement).value).toBe("Éditeur ISBN");
+  });
+});
+
+describe("ComicForm — tome ISBN lookup", () => {
+  beforeEach(() => {
+    mockUseLookupIsbn.mockReturnValue({ data: null, isFetching: false });
+    mockUseLookupTitle.mockReturnValue({ data: null, isFetching: false });
+    mockCreateMutate.mockReset();
+    mockApiFetch.mockReset();
+    mockFetchLookupIsbn.mockReset();
+    mockFetchLookupTitle.mockReset();
+  });
+
+  it("fills tome title and ISBN from lookup result", async () => {
+    const tomeIsbnResult: LookupResult = {
+      ...fullLookup,
+      isbn: "9782756001340",
+      title: "Nao de Brown",
+    };
+    mockFetchLookupIsbn.mockResolvedValue(tomeIsbnResult);
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    const { MemoryRouter } = await import("react-router-dom");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Type an ISBN in the first tome row
+    const isbnInputs = screen.getAllByPlaceholderText("ISBN");
+    await userEvent.type(isbnInputs[0], "9782756001340");
+
+    // Click the search button for that tome
+    const searchButton = screen.getByTitle("Rechercher par ISBN");
+    await userEvent.click(searchButton);
+
+    await waitFor(() => {
+      expect(mockFetchLookupIsbn).toHaveBeenCalledWith("9782756001340", "bd");
+    });
+
+    // Tome title should be filled
+    await waitFor(() => {
+      const titleInputs = screen.getAllByPlaceholderText("Titre");
+      expect((titleInputs[0] as HTMLInputElement).value).toBe("Nao de Brown");
+    });
+  });
+
+  it("disables search button when ISBN is too short", async () => {
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    const { MemoryRouter } = await import("react-router-dom");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const searchButton = screen.getByTitle("Rechercher par ISBN");
+    expect(searchButton).toBeDisabled();
   });
 });

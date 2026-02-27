@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useLookupIsbn, useLookupTitle } from "../../hooks/useLookup";
+import { fetchLookupIsbn, fetchLookupTitle, useLookupIsbn, useLookupTitle } from "../../hooks/useLookup";
 import type { LookupResult } from "../../types/api";
 
 const mockApiFetch = vi.fn();
@@ -156,5 +156,51 @@ describe("useLookupTitle", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data?.title).toBeNull();
+  });
+});
+
+describe("fetchLookupIsbn", () => {
+  beforeEach(() => {
+    mockApiFetch.mockReset();
+  });
+
+  it("calls apiFetch with correct URL and returns result", async () => {
+    mockApiFetch.mockResolvedValue(fakeLookup);
+
+    const result = await fetchLookupIsbn("9782756001340", "bd");
+
+    expect(mockApiFetch).toHaveBeenCalledWith("/lookup/isbn?isbn=9782756001340&type=bd");
+    expect(result).toEqual(fakeLookup);
+  });
+
+  it("omits type param when not provided", async () => {
+    mockApiFetch.mockResolvedValue(fakeLookup);
+
+    await fetchLookupIsbn("9782756001340");
+
+    expect(mockApiFetch).toHaveBeenCalledWith("/lookup/isbn?isbn=9782756001340");
+  });
+});
+
+describe("fetchLookupTitle", () => {
+  beforeEach(() => {
+    mockApiFetch.mockReset();
+  });
+
+  it("calls apiFetch with correct URL and returns result", async () => {
+    mockApiFetch.mockResolvedValue(fakeLookup);
+
+    const result = await fetchLookupTitle("Aquablue", "manga");
+
+    expect(mockApiFetch).toHaveBeenCalledWith("/lookup/title?title=Aquablue&type=manga");
+    expect(result).toEqual(fakeLookup);
+  });
+
+  it("omits type param when not provided", async () => {
+    mockApiFetch.mockResolvedValue(fakeLookup);
+
+    await fetchLookupTitle("Aquablue");
+
+    expect(mockApiFetch).toHaveBeenCalledWith("/lookup/title?title=Aquablue");
   });
 });

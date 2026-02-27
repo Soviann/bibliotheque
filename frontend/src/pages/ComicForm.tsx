@@ -17,7 +17,7 @@ import { useAuthors } from "../hooks/useAuthors";
 import { apiFetch } from "../services/api";
 import { useComic } from "../hooks/useComic";
 import { useCreateComic } from "../hooks/useCreateComic";
-import { useLookupIsbn, useLookupTitle } from "../hooks/useLookup";
+import { fetchLookupIsbn, fetchLookupTitle, useLookupIsbn, useLookupTitle } from "../hooks/useLookup";
 import { useUpdateComic } from "../hooks/useUpdateComic";
 import type { Author, ComicSeries } from "../types/api";
 import {
@@ -157,9 +157,11 @@ export default function ComicForm() {
   const [initialized, setInitialized] = useState(!isEdit);
 
   // Lookup state
+  const [isApplying, setIsApplying] = useState(false);
   const [lookupIsbn, setLookupIsbn] = useState("");
   const [lookupTitle, setLookupTitle] = useState("");
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("isbn");
+  const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(null);
 
   const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
   const titleLookup = useLookupTitle(lookupMode === "title" ? lookupTitle : "", form.type);
@@ -186,10 +188,7 @@ export default function ComicForm() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const applyLookup = () => {
-    const result = lookupResult.data;
-    if (!result) return;
-
+  const applySeriesFields = (result: import("../types/api").LookupResult) => {
     setForm((prev) => ({
       ...prev,
       coverUrl: result.thumbnail ?? prev.coverUrl,
@@ -207,8 +206,30 @@ export default function ComicForm() {
         authorNames.map((name, i) => ({ "@id": "", id: -(i + 1), name })),
       );
     }
+  };
 
-    toast.success("Informations récupérées");
+  const applyLookup = async () => {
+    const result = lookupResult.data;
+    if (!result) return;
+
+    if (lookupMode === "isbn" && result.title) {
+      // Chaînage ISBN → titre : l'ISBN donne le titre de la série, puis le lookup titre remplit les champs
+      setIsApplying(true);
+      try {
+        const titleResult = await fetchLookupTitle(result.title, form.type);
+        applySeriesFields(titleResult);
+        toast.success("Informations récupérées (ISBN → titre)");
+      } catch {
+        // Fallback : appliquer directement le résultat ISBN
+        applySeriesFields(result);
+        toast.success("Informations récupérées (ISBN uniquement)");
+      } finally {
+        setIsApplying(false);
+      }
+    } else {
+      applySeriesFields(result);
+      toast.success("Informations récupérées");
+    }
   };
 
   const addTome = () => {
@@ -228,6 +249,29 @@ export default function ComicForm() {
       "tomes",
       form.tomes.map((t, i) => (i === index ? { ...t, [key]: value } : t)),
     );
+  };
+
+  const lookupTomeIsbn = async (index: number) => {
+    const isbn = form.tomes[index]?.isbn;
+    if (!isbn || isbn.length < 10) return;
+
+    setTomeLookupLoading(index);
+    try {
+      const result = await fetchLookupIsbn(isbn, form.type);
+      update(
+        "tomes",
+        form.tomes.map((t, i) =>
+          i === index
+            ? { ...t, isbn: result.isbn ?? t.isbn, title: result.title ?? t.title }
+            : t,
+        ),
+      );
+      toast.success(`Tome ${form.tomes[index].number} : informations récupérées`);
+    } catch {
+      toast.error("Échec de la recherche ISBN");
+    } finally {
+      setTomeLookupLoading(null);
+    }
   };
 
   const addAuthor = (author: Author) => {
@@ -384,10 +428,12 @@ export default function ComicForm() {
               </p>
             </div>
             <button
-              className="shrink-0 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+              disabled={isApplying}
               onClick={applyLookup}
               type="button"
             >
+              {isApplying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Appliquer
             </button>
           </div>
@@ -605,12 +651,25 @@ export default function ComicForm() {
                         />
                       </td>
                       <td className="px-3 py-1.5">
-                        <input
-                          className="w-full min-w-[120px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
-                          onChange={(e) => updateTome(i, "isbn", e.target.value)}
-                          placeholder="ISBN"
-                          value={tome.isbn}
-                        />
+                        <div className="flex items-center gap-1">
+                          <input
+                            className="w-full min-w-[120px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
+                            onChange={(e) => updateTome(i, "isbn", e.target.value)}
+                            placeholder="ISBN"
+                            value={tome.isbn}
+                          />
+                          <button
+                            className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
+                            disabled={tome.isbn.length < 10 || tomeLookupLoading === i}
+                            onClick={() => lookupTomeIsbn(i)}
+                            title="Rechercher par ISBN"
+                            type="button"
+                          >
+                            {tomeLookupLoading === i
+                              ? <Loader2 className="h-4 w-4 animate-spin" />
+                              : <Search className="h-4 w-4" />}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-3 py-1.5 text-center">
                         <input
