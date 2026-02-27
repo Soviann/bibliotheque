@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Import Excel** : Les titres avec un article entre parenthèses (`(le)`, `(la)`, `(les)`, `(l')`) sont désormais normalisés lors de l'import (ex: `monde perdu (le)` → `le monde perdu`)
+
 ### Changed
 
 - **Refactoring SRP/DRY** : Extraction de la logique métier des contrôleurs vers `ComicSeriesService`, ajout de `findSoftDeleted()`/`findSoftDeletedById()` dans `ComicSeriesRepository`, factorisation des réponses lookup dans `ApiController`
