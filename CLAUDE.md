@@ -110,32 +110,21 @@ ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 
 ## Frontend (React + TypeScript)
 
-**Stack**: React 19, TypeScript, Vite, TanStack Query v5, React Router v7, Tailwind CSS 4, Headless UI, Lucide React, Sonner.
-
-**Tests**: Vitest + jsdom + React Testing Library.
+**Stack**: React 19, TypeScript, Vite, TanStack Query v5, React Router v7, Tailwind CSS 4, Headless UI, Lucide React, Sonner. **Tests**: Vitest + jsdom + React Testing Library.
 
 **Patterns**:
-- Hooks for all API interactions (`useComics`, `useComic`, `useCreateComic`, etc.)
-- `apiFetch<T>()` in `services/api.ts` handles JWT token, Content-Type, 401 redirects
+- Hooks for all API interactions — `apiFetch<T>()` handles JWT, Content-Type, 401 redirects
 - Mutations invalidate relevant query keys on success
-- Pages are lazy-loaded via `React.lazy()` in `App.tsx`
-
-**JWT Auth**: Token stored in `localStorage`, 30-day TTL for PWA offline use. `AuthGuard` component redirects to `/login` if not authenticated.
+- Pages lazy-loaded via `React.lazy()` in `App.tsx`
+- JWT in `localStorage`, 30-day TTL (PWA offline). `AuthGuard` redirects to `/login`
+- Dark mode via `useDarkMode` hook (`.dark` class on `<html>`, localStorage)
+- Offline: `useOnlineStatus` + `OfflineBanner`, SW updates via `useServiceWorker` + Sonner toast
 
 ## API (API Platform 4)
 
-**Format**: JSON-LD (`application/ld+json`).
+**Format**: JSON-LD (`application/ld+json`). **Login**: `POST /api/login` with `{email, password}` → `{token}`.
 
-**Resources**:
-- `ComicSeries` — CRUD + custom restore/permanent-delete operations
-- `Author` — GetCollection (search by name), Get, Post
-- `Tome` — Sub-resource of ComicSeries via `uriTemplate`
-
-**Processors**: `ComicSeriesDeleteProcessor` (soft delete), `ComicSeriesRestoreProcessor`, `ComicSeriesPermanentDeleteProcessor`.
-
-**Lookup**: `/api/lookup/isbn?isbn=...&type=...` and `/api/lookup/title?title=...&type=...` (JWT protected).
-
-**Login**: `POST /api/login` with `{email, password}` → `{token}`.
+Resources, processors, providers, lookup endpoints → see `memory/patterns.md`.
 
 ## Rector (occasional use)
 
@@ -226,21 +215,13 @@ Format: `- **Name**: Description`
 
 ## Structure
 
-```
-backend/
-  src/{Command,Controller,Doctrine/Filter,Dto,Entity,Enum,Repository,Service,State}/
-  tests/{Command,Entity,Enum,Repository,Service,State}/
-  config/  migrations/
+Full file map with all entities, hooks, components, services → `memory/patterns.md`
 
-frontend/
-  src/
-    components/   # AuthGuard, BarcodeScanner, ComicCard, ConfirmModal, ErrorFallback, Filters, Layout
-    hooks/        # useAuth, useAuthors, useComic, useComics, useCreateComic, useDeleteComic,
-                  # useLookup, useTrash, useUpdateComic
-    pages/        # ComicDetail, ComicForm, Home, Login, NotFound, Search, Trash, Wishlist
-    services/     # api.ts (apiFetch, JWT token management)
-    types/        # api.ts (interfaces), enums.ts (ComicStatus, ComicType)
-    __tests__/    # test-utils.tsx
+```
+backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,Dto,Entity,Enum,Repository,Service,State}/
+backend/tests/{Command,Doctrine/Filter,Dto,Entity,Enum,Repository,Service,State}/
+
+frontend/src/{components,hooks,pages,services,types,__tests__}/
 ```
 
 ## Deployment
