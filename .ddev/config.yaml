@@ -1,6 +1,6 @@
 name: bibliotheque
 type: php
-docroot: public
+docroot: backend/public
 php_version: "8.3"
 webimage_extra_packages:
   - build-essential
@@ -14,3 +14,18 @@ upload_dirs:
 bind_all_interfaces: true
 additional_hostnames:
   - test.bibliotheque
+use_dns_when_possible: true
+composer_version: "2"
+composer_root: backend
+corepack_enable: false
+
+web_extra_exposed_ports:
+  - name: vite-preview
+    container_port: 4173
+    http_port: 4172
+    https_port: 4173
+
+web_extra_daemons:
+  - name: vite
+    command: bash -c 'cd /var/www/html/frontend && npm install && npm run dev'
+    directory: /var/www/html/frontend
