@@ -424,6 +424,8 @@ class ImportExcelCommandTest extends KernelTestCase
         yield 'casse majuscule La' => ['rose écarlate (La)', 'La rose écarlate'];
         yield 'casse majuscule Les' => ['légendaires (Les)', 'Les légendaires'];
         yield "casse majuscule L'" => ["age d'ombre (L')", "L'age d'ombre"];
+        yield 'chaîne vide' => ['', ''];
+        yield 'article au milieu' => ['château (le) fort', 'château (le) fort'];
     }
 
     /**
