@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Dto\Input\ComicSeriesInput;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use Doctrine\DBAL\Connection;
@@ -16,7 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
 class ComicSeriesService
 {
     public function __construct(
-        private readonly ComicSeriesMapper $comicSeriesMapper,
         private readonly Connection $connection,
         private readonly CoverRemoverInterface $coverRemover,
         private readonly EntityManagerInterface $entityManager,
@@ -24,15 +22,12 @@ class ComicSeriesService
     }
 
     /**
-     * Crée une nouvelle série à partir d'un DTO.
+     * Déplace une série de la wishlist vers la bibliothèque.
      */
-    public function create(ComicSeriesInput $input): ComicSeries
+    public function moveToLibrary(ComicSeries $comic): void
     {
-        $comic = $this->comicSeriesMapper->mapToEntity($input);
-        $this->entityManager->persist($comic);
+        $comic->setStatus(ComicStatus::BUYING);
         $this->entityManager->flush();
-
-        return $comic;
     }
 
     /**
@@ -63,25 +58,5 @@ class ComicSeriesService
     {
         $this->entityManager->remove($comic);
         $this->entityManager->flush();
-    }
-
-    /**
-     * Déplace une série de la wishlist vers la bibliothèque.
-     */
-    public function moveToLibrary(ComicSeries $comic): void
-    {
-        $comic->setStatus(ComicStatus::BUYING);
-        $this->entityManager->flush();
-    }
-
-    /**
-     * Met à jour une série existante à partir d'un DTO.
-     */
-    public function update(ComicSeriesInput $input, ComicSeries $comic): ComicSeries
-    {
-        $this->comicSeriesMapper->mapToEntity($input, $comic);
-        $this->entityManager->flush();
-
-        return $comic;
     }
 }
