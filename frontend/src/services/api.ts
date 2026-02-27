@@ -36,14 +36,26 @@ export async function apiFetch<T>(
     headers["Content-Type"] = "application/ld+json";
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    // Network error — if offline, don't clear token
+    if (!navigator.onLine) {
+      throw new Error("Vous êtes hors ligne");
+    }
+    throw err;
+  }
 
   if (response.status === 401) {
-    removeToken();
-    window.location.href = "/login";
+    // Only clear token if genuinely online (not a network fluke)
+    if (navigator.onLine) {
+      removeToken();
+      window.location.href = "/login";
+    }
     throw new Error("Non authentifié");
   }
 
