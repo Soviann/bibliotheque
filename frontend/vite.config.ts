@@ -70,18 +70,18 @@ export default defineConfig({
     port: 5173,
     origin: process.env.DDEV_PRIMARY_URL,
     hmr: {
-      host: process.env.DDEV_HOSTNAME,
+      host: process.env.DDEV_HOSTNAME?.split(",")[0],
       protocol: "wss",
-      clientPort: 443,
+      clientPort: 5173,
     },
     proxy: {
       "/api": {
-        target: "https://bibliotheque.ddev.site",
+        target: "https://localhost",
         changeOrigin: true,
         secure: false,
       },
       "/uploads": {
-        target: "https://bibliotheque.ddev.site",
+        target: "https://localhost",
         changeOrigin: true,
         secure: false,
       },
