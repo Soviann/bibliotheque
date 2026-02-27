@@ -31,6 +31,35 @@ export default defineConfig({
           },
         ],
       },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: /^\/api\//,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-cache",
+              expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              networkTimeoutSeconds: 5,
+            },
+          },
+          {
+            urlPattern: /\/uploads\/covers\//,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "cover-cache",
+              expiration: { maxEntries: 500, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/books\.google\.com\//,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "external-cover-cache",
+              expiration: { maxEntries: 500, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
+        ],
+      },
     }),
   ],
   build: {
@@ -47,6 +76,11 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
+        target: "https://bibliotheque.ddev.site",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/uploads": {
         target: "https://bibliotheque.ddev.site",
         changeOrigin: true,
         secure: false,
