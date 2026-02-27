@@ -30,7 +30,11 @@
                             Restaurer
                         </button>
                     </form>
-                    <form action="{{ path('app_trash_permanent_delete', {id: comic.id}) }}" method="post" class="inline-form" onsubmit="return confirm('Supprimer définitivement cette série ? Cette action est irréversible.');">
+                    <form action="{{ path('app_trash_permanent_delete', {id: comic.id}) }}" method="post" class="inline-form"
+                          data-controller="confirm-modal"
+                          data-confirm-modal-message-value="Supprimer définitivement cette série ? Cette action est irréversible."
+                          data-confirm-modal-destructive-value="true"
+                          data-action="submit->confirm-modal#intercept">
                         <input type="hidden" name="_token" value="{{ csrf_token('permanent-delete' ~ comic.id) }}">
                         <button type="submit" class="btn btn-danger btn-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">

@@ -84,6 +84,20 @@
             .btn:hover {
                 opacity: 0.9;
             }
+
+            .offline-alert {
+                background-color: #fff3e0;
+                border-radius: 8px;
+                color: #e65100;
+                display: none;
+                font-size: 0.875rem;
+                margin-top: 1rem;
+                padding: 0.75rem 1rem;
+            }
+
+            .offline-alert--visible {
+                display: block;
+            }
         </style>
     </head>
     <body>
@@ -96,6 +110,7 @@
             <button class="btn btn-secondary" onclick="history.back()">Retour</button>
             <button class="btn btn-primary" id="retry-btn">Reessayer</button>
         </div>
+        <div class="offline-alert" id="offline-alert">Toujours hors ligne. Vérifiez votre connexion.</div>
 
         <script>
             const params = new URLSearchParams(window.location.search);
@@ -105,7 +120,7 @@
                 if (navigator.onLine) {
                     window.location.href = targetUrl;
                 } else {
-                    alert('Toujours hors ligne. Verifiez votre connexion.');
+                    document.getElementById('offline-alert').classList.add('offline-alert--visible');
                 }
             });
 
