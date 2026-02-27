@@ -7,6 +7,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Modales de confirmation** : Les `confirm()` et `alert()` natifs du navigateur sont remplacés par des modales `<dialog>` custom Material Design via un nouveau Stimulus controller `confirm-modal` (suppression de séries dans les cartes, la page détail et la corbeille)
+- **Page hors ligne** : Le message d'erreur "Toujours hors ligne" s'affiche désormais en inline dans la page au lieu d'un `alert()` natif
+
 ### Fixed
 
 - **Couvertures Google Books** : Les couvertures provenant de Google Books sont désormais récupérées en meilleure résolution (`zoom=0`), suppression de l'effet de page cornée (`edge=curl`) et passage en HTTPS

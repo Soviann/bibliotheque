@@ -85,7 +85,11 @@
             </form>
         {% endif %}
 
-        <form action="{{ path('app_comic_delete', {id: comic.id}) }}" method="post" class="inline-form" data-turbo-frame="_top" onsubmit="return confirm('Supprimer cette serie ?');">
+        <form action="{{ path('app_comic_delete', {id: comic.id}) }}" method="post" class="inline-form" data-turbo-frame="_top"
+              data-controller="confirm-modal"
+              data-confirm-modal-message-value="Supprimer cette série ?"
+              data-confirm-modal-destructive-value="true"
+              data-action="submit->confirm-modal#intercept">
             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comic.id) }}">
             <button type="submit" class="btn btn-danger btn-full-width">Supprimer</button>
         </form>

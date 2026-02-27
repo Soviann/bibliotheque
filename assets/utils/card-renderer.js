@@ -123,7 +123,11 @@ export function renderCard(comic, options = {}) {
     }
 
     actionsHtml += `
-            <form action="/comic/${comic.id}/delete" method="post" class="inline-form" data-turbo-frame="_top" onsubmit="return confirm('Supprimer cette serie ?');">
+            <form action="/comic/${comic.id}/delete" method="post" class="inline-form" data-turbo-frame="_top"
+                  data-controller="confirm-modal"
+                  data-confirm-modal-message-value="Supprimer cette série ?"
+                  data-confirm-modal-destructive-value="true"
+                  data-action="submit->confirm-modal#intercept">
                 <input type="hidden" name="_token" value="${escapeHtml(comic.deleteToken || '')}">
                 <button type="submit" class="btn btn-danger btn-full-width">Supprimer</button>
             </form>
