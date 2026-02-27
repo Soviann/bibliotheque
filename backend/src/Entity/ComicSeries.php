@@ -19,6 +19,7 @@ use App\Repository\ComicSeriesRepository;
 use App\State\ComicSeriesDeleteProcessor;
 use App\State\ComicSeriesPermanentDeleteProcessor;
 use App\State\ComicSeriesRestoreProcessor;
+use App\State\SoftDeletedComicSeriesProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -42,12 +43,14 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
         new Delete(processor: ComicSeriesDeleteProcessor::class),
         new Put(
             uriTemplate: '/comic_series/{id}/restore',
-            denormalizationContext: ['groups' => ['comic:restore']],
+            input: false,
             processor: ComicSeriesRestoreProcessor::class,
+            provider: SoftDeletedComicSeriesProvider::class,
         ),
         new Delete(
             uriTemplate: '/trash/{id}/permanent',
             processor: ComicSeriesPermanentDeleteProcessor::class,
+            provider: SoftDeletedComicSeriesProvider::class,
         ),
     ],
     normalizationContext: ['groups' => ['comic:read']],
