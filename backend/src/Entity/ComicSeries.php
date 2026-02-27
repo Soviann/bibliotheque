@@ -4,9 +4,21 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
+use App\State\ComicSeriesDeleteProcessor;
+use App\State\ComicSeriesPermanentDeleteProcessor;
+use App\State\ComicSeriesRestoreProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -14,9 +26,39 @@ use Doctrine\ORM\Mapping as ORM;
 use Knp\DoctrineBehaviors\Contract\Entity\SoftDeletableInterface;
 use Knp\DoctrineBehaviors\Model\SoftDeletable\SoftDeletableTrait;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            paginationItemsPerPage: 20,
+            order: ['title' => 'ASC'],
+        ),
+        new Get(),
+        new Post(denormalizationContext: ['groups' => ['comic:write']]),
+        new Put(denormalizationContext: ['groups' => ['comic:write']]),
+        new Delete(processor: ComicSeriesDeleteProcessor::class),
+        new Put(
+            uriTemplate: '/comic_series/{id}/restore',
+            denormalizationContext: ['groups' => ['comic:restore']],
+            processor: ComicSeriesRestoreProcessor::class,
+        ),
+        new Delete(
+            uriTemplate: '/trash/{id}/permanent',
+            processor: ComicSeriesPermanentDeleteProcessor::class,
+        ),
+    ],
+    normalizationContext: ['groups' => ['comic:read']],
+    denormalizationContext: ['groups' => ['comic:write']],
+)]
+#[ApiFilter(BooleanFilter::class, properties: ['isOneShot'])]
+#[ApiFilter(SearchFilter::class, properties: [
+    'status' => 'exact',
+    'title' => 'partial',
+    'type' => 'exact',
+])]
 #[ORM\Entity(repositoryClass: ComicSeriesRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Index(columns: ['deleted_at'], name: 'idx_comic_series_deleted_at')]
@@ -27,24 +69,29 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 class ComicSeries implements SoftDeletableInterface
 {
     use SoftDeletableTrait;
+    #[Groups(['comic:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private string $title = '';
 
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(type: Types::STRING, length: 20, enumType: ComicStatus::class)]
     private ComicStatus $status = ComicStatus::BUYING;
 
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(type: Types::STRING, length: 20, enumType: ComicType::class)]
     private ComicType $type = ComicType::BD;
 
     /**
      * Dernier tome paru (numéro du dernier tome publié).
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero]
     private ?int $latestPublishedIssue = null;
@@ -52,12 +99,14 @@ class ComicSeries implements SoftDeletableInterface
     /**
      * Indique si la série est terminée (plus aucun tome à paraître).
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column]
     private bool $latestPublishedIssueComplete = false;
 
     /**
      * Indique si c'est un one-shot (tome unique, intégrale).
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column]
     private bool $isOneShot = false;
 
@@ -66,6 +115,7 @@ class ComicSeries implements SoftDeletableInterface
      *
      * @var Collection<int, Author>
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'comicSeries')]
     #[ORM\JoinTable(name: 'comic_series_author')]
     private Collection $authors;
@@ -84,33 +134,39 @@ class ComicSeries implements SoftDeletableInterface
     /**
      * Nom du fichier de couverture uploadé.
      */
+    #[Groups(['comic:read'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $coverImage = null;
 
     /**
      * URL de la couverture.
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $coverUrl = null;
 
+    #[Groups(['comic:read'])]
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
     /**
      * Description ou résumé.
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     /**
      * Date de publication.
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $publishedDate = null;
 
     /**
      * Éditeur.
      */
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $publisher = null;
 
@@ -119,10 +175,12 @@ class ComicSeries implements SoftDeletableInterface
      *
      * @var Collection<int, Tome>
      */
+    #[Groups(['comic:read'])]
     #[ORM\OneToMany(targetEntity: Tome::class, mappedBy: 'comicSeries', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['number' => 'ASC'])]
     private Collection $tomes;
 
+    #[Groups(['comic:read'])]
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
