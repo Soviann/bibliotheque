@@ -243,7 +243,7 @@ server {
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
     gzip_min_length 1000;
 
-    # Assets statiques du frontend (cache long)
+    # Assets statiques du frontend (cache long, hash dans le nom)
     location /assets/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
@@ -251,25 +251,21 @@ server {
     }
 
     # Icônes, manifest PWA, service worker
-    location ~* \.(png|ico|webmanifest|js|json)$ {
+    location ~* \.(png|ico|webmanifest)$ {
         expires 7d;
         add_header Cache-Control "public";
         try_files $uri =404;
     }
 
-    # API → PHP-FPM (backend Symfony)
-    location /api/ {
-        alias /home/bibliotheque/app/backend/public/;
-        try_files $uri /api/index.php$is_args$args;
-
-        location ~ \.php$ {
-            fastcgi_pass unix:/run/php/php8.3-fpm-bibliotheque.sock;
-            fastcgi_split_path_info ^(.+\.php)(/.*)$;
-            include fastcgi_params;
-            fastcgi_param SCRIPT_FILENAME /home/bibliotheque/app/backend/public/index.php;
-            fastcgi_param DOCUMENT_ROOT /home/bibliotheque/app/backend/public;
-            internal;
-        }
+    # ──────────────────────────────────────────────
+    # API : /api/* → PHP-FPM (Symfony)
+    # ──────────────────────────────────────────────
+    location ~ ^/api(/|$) {
+        fastcgi_pass unix:/run/php/php8.3-fpm-bibliotheque.sock;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /home/bibliotheque/app/backend/public/index.php;
+        fastcgi_param DOCUMENT_ROOT /home/bibliotheque/app/backend/public;
+        fastcgi_read_timeout 30s;
     }
 
     # Uploads (couvertures servies directement par nginx)
