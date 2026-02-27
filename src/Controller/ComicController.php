@@ -9,8 +9,8 @@ use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Form\ComicSeriesType;
 use App\Service\ComicSeriesMapper;
+use App\Service\ComicSeriesService;
 use Doctrine\DBAL\Exception\DriverException;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +21,7 @@ class ComicController extends AbstractController
 {
     public function __construct(
         private readonly ComicSeriesMapper $comicSeriesMapper,
+        private readonly ComicSeriesService $comicSeriesService,
     ) {
     }
 
@@ -33,7 +34,7 @@ class ComicController extends AbstractController
     }
 
     #[Route('/new', name: 'app_comic_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request): Response
     {
         $input = new ComicSeriesInput();
 
@@ -48,9 +49,7 @@ class ComicController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $comic = $this->comicSeriesMapper->mapToEntity($input);
-                $entityManager->persist($comic);
-                $entityManager->flush();
+                $comic = $this->comicSeriesService->create($input);
 
                 $this->addFlash('success', 'La série a été ajoutée avec succès.');
 
@@ -70,7 +69,7 @@ class ComicController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_comic_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, ComicSeries $comic): Response
     {
         $input = $this->comicSeriesMapper->mapToInput($comic);
         $form = $this->createForm(ComicSeriesType::class, $input);
@@ -79,8 +78,7 @@ class ComicController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $this->comicSeriesMapper->mapToEntity($input, $comic);
-                $entityManager->flush();
+                $this->comicSeriesService->update($input, $comic);
 
                 $this->addFlash('success', 'La série a été modifiée avec succès.');
 
@@ -101,7 +99,7 @@ class ComicController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_comic_delete', methods: ['POST'])]
-    public function delete(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, ComicSeries $comic): Response
     {
         if (!$this->isCsrfTokenValid('delete'.$comic->getId(), $request->request->getString('_token'))) {
             $this->addFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
@@ -112,8 +110,7 @@ class ComicController extends AbstractController
         $wasWishlist = $comic->isWishlist();
 
         try {
-            $entityManager->remove($comic);
-            $entityManager->flush();
+            $this->comicSeriesService->softDelete($comic);
 
             $this->addFlash('success', 'La série a été déplacée dans la corbeille.');
 
@@ -128,7 +125,7 @@ class ComicController extends AbstractController
     }
 
     #[Route('/{id}/to-library', name: 'app_comic_to_library', methods: ['POST'])]
-    public function toLibrary(Request $request, ComicSeries $comic, EntityManagerInterface $entityManager): Response
+    public function toLibrary(Request $request, ComicSeries $comic): Response
     {
         if (!$this->isCsrfTokenValid('to-library'.$comic->getId(), $request->request->getString('_token'))) {
             $this->addFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
@@ -136,9 +133,7 @@ class ComicController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        // Passer le statut à BUYING fait automatiquement que isWishlist() retourne false
-        $comic->setStatus(ComicStatus::BUYING);
-        $entityManager->flush();
+        $this->comicSeriesService->moveToLibrary($comic);
 
         $this->addFlash('success', 'La série a été déplacée vers la bibliothèque.');
 
