@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Navigation** : Les boutons précédent/suivant du navigateur fonctionnent désormais correctement vers les pages de liste (bibliothèque, wishlist, recherche) — remplacement des `<turbo-frame>` inutilisés par des `<div>` pour ne pas interférer avec la restauration de page Turbo Drive
 - **Import Excel** : Les titres avec un article entre parenthèses (`(le)`, `(la)`, `(les)`, `(l')`) sont désormais normalisés lors de l'import (ex: `monde perdu (le)` → `le monde perdu`)
 
 ### Changed

@@ -18,7 +18,7 @@
         types: types
     } %}
 
-    <turbo-frame id="comics-list" {{ stimulus_target('library', 'results') }}>
+    <div {{ stimulus_target('library', 'results') }}>
         {% if comics|length > 0 %}
             <div class="cards-grid">
                 {% for comic in comics %}
@@ -30,6 +30,6 @@
                 <p>Aucune serie trouvee dans la liste de souhaits.</p>
             </div>
         {% endif %}
-    </turbo-frame>
+    </div>
 </div>
 {% endblock %}

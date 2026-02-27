@@ -25,7 +25,7 @@
         </button>
     </form>
 
-    <turbo-frame id="search-results" {{ stimulus_target('search', 'results') }}>
+    <div {{ stimulus_target('search', 'results') }}>
         {% if query %}
             <p class="text-subtitle" style="margin-bottom: 16px;">{{ comics|length }} resultat(s) pour "{{ query }}"</p>
 
@@ -45,6 +45,6 @@
                 <p>Entrez un terme de recherche pour trouver des series.</p>
             </div>
         {% endif %}
-    </turbo-frame>
+    </div>
 </div>
 {% endblock %}
