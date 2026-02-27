@@ -42,7 +42,7 @@ export default function Layout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 px-4 py-4 pb-16 lg:pb-20">
+      <main className="flex-1 px-4 py-4 pb-14">
         <Outlet />
       </main>
 

@@ -10,21 +10,21 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto border-t border-surface-border bg-surface-primary pb-safe lg:max-w-4xl lg:left-1/2 lg:-translate-x-1/2 lg:rounded-t-xl lg:border-x">
-      <div className="flex items-end justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto h-14 border-t border-surface-border bg-surface-primary pb-safe lg:max-w-4xl lg:left-1/2 lg:-translate-x-1/2 lg:rounded-t-xl lg:border-x">
+      <div className="flex h-full items-center justify-around">
         {tabs.map(({ activeColor, icon: Icon, label, to }) => (
           <NavLink
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-3 pt-1 pb-2 text-xs font-medium border-t-2 transition-colors ${
+              `flex flex-col items-center justify-center gap-0.5 px-3 text-xs font-medium transition-colors ${
                 isActive
                   ? activeColor
-                  : "border-transparent text-text-secondary"
+                  : "text-text-secondary"
               }`
             }
             key={to}
             to={to}
           >
-            <Icon className="h-5 w-5 -mt-3.5" />
+            <Icon className="h-5 w-5" />
             {label}
           </NavLink>
         ))}
