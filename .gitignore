@@ -61,4 +61,11 @@ node_modules/
 .worktrees/
 docs/plans/
 .ddev/share-providers/
+.phpunit.cache/
+.playwright-mcp/
+assets/
+public/
+test-results/
+var/
+vendor/
 ###< local ###
