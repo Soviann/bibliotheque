@@ -3,6 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { LookupResult } from "../../types/api";
 
+// Mock apiFetch to intercept author creation
+const mockApiFetch = vi.fn();
+vi.mock("../../services/api", () => ({
+  apiFetch: (...args: unknown[]) => mockApiFetch(...args),
+  getToken: () => "fake-token",
+  isAuthenticated: () => true,
+  removeToken: vi.fn(),
+  setToken: vi.fn(),
+}));
+
 // Mock react-router hooks
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -26,8 +36,9 @@ vi.mock("../../hooks/useComic", () => ({
   useComic: () => ({ data: undefined }),
 }));
 
+const mockCreateMutate = vi.fn();
 vi.mock("../../hooks/useCreateComic", () => ({
-  useCreateComic: () => ({ isPending: false, mutate: vi.fn() }),
+  useCreateComic: () => ({ isPending: false, mutate: (...args: unknown[]) => mockCreateMutate(...args) }),
 }));
 
 vi.mock("../../hooks/useUpdateComic", () => ({
@@ -60,6 +71,8 @@ describe("ComicForm — applyLookup", () => {
   beforeEach(() => {
     mockUseLookupIsbn.mockReturnValue({ data: null, isFetching: false });
     mockUseLookupTitle.mockReturnValue({ data: null, isFetching: false });
+    mockCreateMutate.mockReset();
+    mockApiFetch.mockReset();
   });
 
   async function renderAndApplyLookup(lookupData: LookupResult) {
@@ -158,5 +171,153 @@ describe("ComicForm — applyLookup", () => {
 
     // Value should be preserved
     expect(input.value).toBe("15");
+  });
+});
+
+describe("ComicForm — handleSubmit with new authors", () => {
+  beforeEach(() => {
+    mockUseLookupIsbn.mockReturnValue({ data: null, isFetching: false });
+    mockUseLookupTitle.mockReturnValue({ data: null, isFetching: false });
+    mockCreateMutate.mockReset();
+    mockApiFetch.mockReset();
+  });
+
+  it("creates new authors via API before submitting and uses their IRIs", async () => {
+    // Mock apiFetch: POST /authors returns created author with IRI
+    mockApiFetch.mockResolvedValue({
+      "@id": "/api/authors/42",
+      id: 42,
+      name: "Thierry Cailleteau",
+    });
+
+    // Set up lookup with authors
+    mockUseLookupTitle.mockReturnValue({ data: fullLookup, isFetching: false });
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    const { MemoryRouter } = await import("react-router-dom");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Apply lookup to get authors
+    await userEvent.click(screen.getByRole("button", { name: "Titre" }));
+    const applyButton = await screen.findByRole("button", { name: "Appliquer" });
+    await userEvent.click(applyButton);
+
+    // Submit the form
+    const submitButton = screen.getByRole("button", { name: "Créer" });
+    await userEvent.click(submitButton);
+
+    // Wait for author creation API call
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalledWith("/authors", expect.objectContaining({
+        body: JSON.stringify({ name: "Thierry Cailleteau" }),
+        method: "POST",
+      }));
+    });
+
+    // Verify createComic was called with IRI, not nested object
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled();
+    });
+
+    const payload = mockCreateMutate.mock.calls[0][0];
+    expect(payload.authors).toEqual(["/api/authors/42"]);
+  });
+
+  it("sends payload with all required fields on submit", async () => {
+    mockApiFetch.mockResolvedValue({
+      "@id": "/api/authors/42",
+      id: 42,
+      name: "Thierry Cailleteau",
+    });
+
+    mockUseLookupTitle.mockReturnValue({ data: fullLookup, isFetching: false });
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    const { MemoryRouter } = await import("react-router-dom");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Apply lookup
+    await userEvent.click(screen.getByRole("button", { name: "Titre" }));
+    const applyButton = await screen.findByRole("button", { name: "Appliquer" });
+    await userEvent.click(applyButton);
+
+    // Submit
+    await userEvent.click(screen.getByRole("button", { name: "Créer" }));
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled();
+    });
+
+    const payload = mockCreateMutate.mock.calls[0][0];
+    expect(payload.title).toBe("Aquablue");
+    expect(payload.publisher).toBe("Delcourt");
+    expect(payload.description).toBe("Une saga spatiale");
+    expect(payload.coverUrl).toBe("https://example.com/cover.jpg");
+    expect(payload.latestPublishedIssue).toBe(20);
+    expect(payload.isOneShot).toBe(false);
+    expect(payload.type).toBe("bd");
+    expect(payload.status).toBe("buying");
+  });
+
+  it("submits without authors when none are provided", async () => {
+    const lookupNoAuthors = { ...fullLookup, authors: null };
+    mockUseLookupTitle.mockReturnValue({ data: lookupNoAuthors, isFetching: false });
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    const { MemoryRouter } = await import("react-router-dom");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Apply lookup (no authors)
+    await userEvent.click(screen.getByRole("button", { name: "Titre" }));
+    const applyButton = await screen.findByRole("button", { name: "Appliquer" });
+    await userEvent.click(applyButton);
+
+    // Submit
+    await userEvent.click(screen.getByRole("button", { name: "Créer" }));
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled();
+    });
+
+    const payload = mockCreateMutate.mock.calls[0][0];
+    expect(payload.authors).toEqual([]);
+    // No apiFetch call for author creation
+    expect(mockApiFetch).not.toHaveBeenCalled();
   });
 });
