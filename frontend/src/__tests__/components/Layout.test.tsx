@@ -28,19 +28,24 @@ describe("Layout", () => {
     expect(screen.getByText("Bibliothèque")).toBeInTheDocument();
   });
 
-  it("renders navigation links", () => {
+  it("renders bottom navigation links", () => {
     renderLayout();
 
-    expect(screen.getAllByText("Accueil")).toHaveLength(2); // desktop + mobile
-    expect(screen.getAllByText("Wishlist")).toHaveLength(2);
-    expect(screen.getAllByText("Ajouter")).toHaveLength(2);
-    expect(screen.getAllByText("Recherche")).toHaveLength(2);
-    expect(screen.getAllByText("Corbeille")).toHaveLength(2);
+    expect(screen.getByText("Accueil")).toBeInTheDocument();
+    expect(screen.getByText("Wishlist")).toBeInTheDocument();
+    expect(screen.getByText("Ajouter")).toBeInTheDocument();
+    expect(screen.getByText("Corbeille")).toBeInTheDocument();
   });
 
   it("renders the logout button", () => {
     renderLayout();
 
-    expect(screen.getByText("Déconnexion")).toBeInTheDocument();
+    expect(screen.getByTitle("Déconnexion")).toBeInTheDocument();
+  });
+
+  it("renders the dark mode toggle", () => {
+    renderLayout();
+
+    expect(screen.getByTitle("Mode sombre")).toBeInTheDocument();
   });
 });
