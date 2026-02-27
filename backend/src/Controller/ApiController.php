@@ -5,35 +5,22 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Enum\ComicType;
-use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api')]
+#[IsGranted('ROLE_USER')]
+#[Route('/api/lookup')]
 class ApiController extends AbstractController
 {
-    #[Route('/comics', name: 'api_comics', methods: ['GET'])]
-    public function comics(ComicSeriesRepository $comicSeriesRepository, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
-    {
-        $comics = $comicSeriesRepository->findAllForApi();
-
-        foreach ($comics as &$comic) {
-            $comic['deleteToken'] = $csrfTokenManager->getToken('delete'.$comic['id'])->getValue();
-            $comic['toLibraryToken'] = $csrfTokenManager->getToken('to-library'.$comic['id'])->getValue();
-        }
-
-        return $this->json($comics);
-    }
-
     /**
      * Recherche les informations d'un livre par ISBN.
      */
-    #[Route('/isbn-lookup', name: 'api_isbn_lookup', methods: ['GET'])]
+    #[Route('/isbn', name: 'api_lookup_isbn', methods: ['GET'])]
     public function isbnLookup(Request $request, LookupOrchestrator $lookupOrchestrator): JsonResponse
     {
         $isbn = $request->query->get('isbn', '');
@@ -51,7 +38,7 @@ class ApiController extends AbstractController
     /**
      * Recherche les informations par titre.
      */
-    #[Route('/title-lookup', name: 'api_title_lookup', methods: ['GET'])]
+    #[Route('/title', name: 'api_lookup_title', methods: ['GET'])]
     public function titleLookup(Request $request, LookupOrchestrator $lookupOrchestrator): JsonResponse
     {
         $title = $request->query->get('title', '');
