@@ -26,6 +26,12 @@ final readonly class ComicSeriesPermanentDeleteProcessor implements ProcessorInt
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): void
     {
-        $this->comicSeriesService->permanentDelete($data->getId(), $data);
+        $id = $data->getId();
+
+        if (null === $id) {
+            throw new \LogicException('Impossible de supprimer définitivement une série sans identifiant.');
+        }
+
+        $this->comicSeriesService->permanentDelete($id, $data);
     }
 }
