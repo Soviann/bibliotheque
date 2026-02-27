@@ -10,33 +10,24 @@ security:
 
     firewalls:
         dev:
-            pattern: ^/(_profiler|_wdt|assets|build)/
+            pattern: ^/(_profiler|_wdt)/
             security: false
-        main:
-            lazy: true
-            login_throttling:
-                interval: '15 minutes'
-                max_attempts: 5
-            provider: app_user_provider
-            form_login:
-                login_path: app_login
-                check_path: app_login
-                default_target_path: app_home
-                enable_csrf: true
-            logout:
-                path: app_logout
-                target: app_login
-            remember_me:
-                secret: '%kernel.secret%'
-                lifetime: 31536000
-                always_remember_me: true
+        login:
+            pattern: ^/api/login$
+            stateless: true
+            json_login:
+                check_path: /api/login
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        api:
+            pattern: ^/api/
+            stateless: true
+            jwt: ~
 
     access_control:
-        - { path: ^/login, roles: PUBLIC_ACCESS }
-        - { path: ^/manifest\.webmanifest$, roles: PUBLIC_ACCESS }
-        - { path: ^/offline, roles: PUBLIC_ACCESS }
-        - { path: ^/sw\.js$, roles: PUBLIC_ACCESS }
-        - { path: ^/, roles: ROLE_USER }
+        - { path: ^/api/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/, roles: ROLE_USER }
 
 when@test:
     security:

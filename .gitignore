@@ -29,6 +29,10 @@ backend/public/uploads/
 backend/public/media/
 ###< liip/imagine-bundle ###
 
+###> lexik/jwt-authentication-bundle ###
+backend/config/jwt/
+###< lexik/jwt-authentication-bundle ###
+
 ###> phpunit/phpunit ###
 backend/phpunit.xml
 backend/.phpunit.cache/
