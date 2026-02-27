@@ -304,7 +304,7 @@ export default function ComicForm() {
   const isSaving = createComic.isPending || updateComic.isPending;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 pb-20">
+    <div className="mx-auto max-w-3xl space-y-6 pb-28">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
@@ -691,21 +691,21 @@ export default function ComicForm() {
       </form>
 
       {/* Sticky save/cancel bar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-2 lg:bottom-20">
+      <div className="fixed bottom-14 left-0 right-0 z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
         <button
-          className="rounded-lg px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-tertiary"
+          className="rounded-lg px-5 py-2.5 text-base font-medium text-text-secondary hover:bg-surface-tertiary"
           onClick={() => navigate(-1)}
           type="button"
         >
           Annuler
         </button>
         <button
-          className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700 disabled:opacity-50"
           disabled={isSaving || !form.title}
           onClick={handleSubmit}
           type="button"
         >
-          {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSaving && <Loader2 className="h-5 w-5 animate-spin" />}
           {isEdit ? "Enregistrer" : "Créer"}
         </button>
       </div>

@@ -114,20 +114,20 @@ export default function ComicDetail() {
       )}
 
       {/* Sticky action bar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-2 lg:bottom-20">
+      <div className="fixed bottom-14 left-0 right-0 z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
         <Link
-          className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+          className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
           to={`/comic/${comic.id}/edit`}
         >
-          <Edit className="h-4 w-4" />
+          <Edit className="h-5 w-5" />
           Modifier
         </Link>
         <button
-          className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-base font-medium text-white hover:bg-red-700"
           onClick={() => setShowDelete(true)}
           type="button"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-5 w-5" />
           Supprimer
         </button>
       </div>
