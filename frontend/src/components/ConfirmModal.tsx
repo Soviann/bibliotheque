@@ -28,21 +28,21 @@ export default function ConfirmModal({
     <Dialog className="relative z-50" onClose={onClose} open={open}>
       <DialogBackdrop className="fixed inset-0 bg-black/30" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg">
+        <DialogPanel className="w-full max-w-sm rounded-xl bg-surface-primary p-6 shadow-lg">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-red-500" />
             <div>
-              <DialogTitle className="text-lg font-semibold text-slate-900">
+              <DialogTitle className="text-lg font-semibold text-text-primary">
                 {title}
               </DialogTitle>
-              <Description className="mt-1 text-sm text-slate-600">
+              <Description className="mt-1 text-sm text-text-secondary">
                 {description}
               </Description>
             </div>
           </div>
           <div className="mt-6 flex justify-end gap-3">
             <button
-              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-tertiary"
               onClick={onClose}
               type="button"
             >

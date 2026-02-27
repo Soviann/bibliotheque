@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import Filters from "../../components/Filters";
 
 describe("Filters", () => {
-  it("renders type and status selects", () => {
+  it("renders type and status listboxes", () => {
     render(
       <Filters
         onStatusChange={vi.fn()}
@@ -14,17 +14,14 @@ describe("Filters", () => {
       />,
     );
 
-    expect(
-      screen.getByDisplayValue("Tous les types"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByDisplayValue("Tous les statuts"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Tous les types")).toBeInTheDocument();
+    expect(screen.getByText("Tous les statuts")).toBeInTheDocument();
   });
 
-  it("lists all comic types", () => {
+  it("hides status when hideStatus is true", () => {
     render(
       <Filters
+        hideStatus
         onStatusChange={vi.fn()}
         onTypeChange={vi.fn()}
         status=""
@@ -32,31 +29,11 @@ describe("Filters", () => {
       />,
     );
 
-    expect(screen.getByText("Manga")).toBeInTheDocument();
-    expect(screen.getByText("BD")).toBeInTheDocument();
-    expect(screen.getByText("Comics")).toBeInTheDocument();
-    expect(screen.getByText("Roman")).toBeInTheDocument();
-    expect(screen.getByText("Webtoon")).toBeInTheDocument();
+    expect(screen.getByText("Tous les types")).toBeInTheDocument();
+    expect(screen.queryByText("Tous les statuts")).not.toBeInTheDocument();
   });
 
-  it("lists all comic statuses", () => {
-    render(
-      <Filters
-        onStatusChange={vi.fn()}
-        onTypeChange={vi.fn()}
-        status=""
-        type=""
-      />,
-    );
-
-    expect(screen.getByText("En cours d'achat")).toBeInTheDocument();
-    expect(screen.getByText("Complet")).toBeInTheDocument();
-    expect(screen.getByText("Abandonné")).toBeInTheDocument();
-    expect(screen.getByText("En pause")).toBeInTheDocument();
-    expect(screen.getByText("Liste de souhaits")).toBeInTheDocument();
-  });
-
-  it("calls onTypeChange when type select changes", async () => {
+  it("calls onTypeChange when a type is selected", async () => {
     const onTypeChange = vi.fn();
     const user = userEvent.setup();
 
@@ -69,14 +46,12 @@ describe("Filters", () => {
       />,
     );
 
-    await user.selectOptions(
-      screen.getByDisplayValue("Tous les types"),
-      "manga",
-    );
+    await user.click(screen.getByText("Tous les types"));
+    await user.click(screen.getByText("Manga"));
     expect(onTypeChange).toHaveBeenCalledWith("manga");
   });
 
-  it("calls onStatusChange when status select changes", async () => {
+  it("calls onStatusChange when a status is selected", async () => {
     const onStatusChange = vi.fn();
     const user = userEvent.setup();
 
@@ -89,10 +64,8 @@ describe("Filters", () => {
       />,
     );
 
-    await user.selectOptions(
-      screen.getByDisplayValue("Tous les statuts"),
-      "complete",
-    );
+    await user.click(screen.getByText("Tous les statuts"));
+    await user.click(screen.getByText("Complet"));
     expect(onStatusChange).toHaveBeenCalledWith("complete");
   });
 });

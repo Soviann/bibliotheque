@@ -3,8 +3,12 @@ import {
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
 } from "@headlessui/react";
-import { ArrowLeft, Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -88,11 +92,63 @@ function buildInitialForm(comic?: ComicSeries): FormData {
   };
 }
 
+function FormListbox({
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  label: string;
+  onChange: (v: string) => void;
+  options: { label: string; value: string }[];
+  value: string;
+}) {
+  const selected = options.find((o) => o.value === value) ?? options[0];
+
+  return (
+    <div>
+      <span className="mb-1 block text-sm font-medium text-text-secondary">{label}</span>
+      <Listbox onChange={onChange} value={value}>
+        <div className="relative">
+          <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+            <span>{selected.label}</span>
+            <ChevronDown className="h-4 w-4 text-text-muted" />
+          </ListboxButton>
+          <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary py-1 shadow-lg focus:outline-none">
+            {options.map((option) => (
+              <ListboxOption
+                className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
+                key={option.value}
+                value={option.value}
+              >
+                <Check
+                  className={`h-4 w-4 shrink-0 ${option.value === value ? "text-primary-600" : "invisible"}`}
+                />
+                {option.label}
+              </ListboxOption>
+            ))}
+          </ListboxOptions>
+        </div>
+      </Listbox>
+    </div>
+  );
+}
+
+const typeOptions = Object.entries(ComicType).map(([, value]) => ({
+  label: ComicTypeLabel[value],
+  value,
+}));
+
+const statusOptions = Object.entries(ComicStatus).map(([, value]) => ({
+  label: ComicStatusLabel[value],
+  value,
+}));
+
 export default function ComicForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
-  const { data: comic, isLoading: comicLoading } = useComic(id ? Number(id) : undefined);
+  const { data: comic } = useComic(id ? Number(id) : undefined);
   const createComic = useCreateComic();
   const updateComic = useUpdateComic();
 
@@ -103,6 +159,7 @@ export default function ComicForm() {
   const [lookupIsbn, setLookupIsbn] = useState("");
   const [lookupTitle, setLookupTitle] = useState("");
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("isbn");
+  const [lookupTypeSelected, setLookupTypeSelected] = useState(false);
 
   const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
   const titleLookup = useLookupTitle(lookupMode === "title" ? lookupTitle : "", form.type);
@@ -122,7 +179,7 @@ export default function ComicForm() {
   }, [comic, isEdit, initialized]);
 
   if (isEdit && !initialized) {
-    return <div className="py-12 text-center text-slate-400">Chargement…</div>;
+    return <div className="py-12 text-center text-text-muted">Chargement…</div>;
   }
 
   const update = <K extends keyof FormData>(key: K, value: FormData[K]) => {
@@ -247,94 +304,133 @@ export default function ComicForm() {
   const isSaving = createComic.isPending || updateComic.isPending;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 pb-20">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button className="text-slate-400 hover:text-slate-600" onClick={() => navigate(-1)} type="button">
+        <button className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">
+        <h1 className="text-xl font-bold text-text-primary">
           {isEdit ? "Modifier la série" : "Nouvelle série"}
         </h1>
       </div>
 
-      {/* Lookup section */}
-      {!isEdit && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
-          <h2 className="text-sm font-semibold text-slate-700">Recherche automatique</h2>
+      {/* Lookup section — visible on create AND edit */}
+      <div className="rounded-lg border border-surface-border bg-surface-tertiary p-4 space-y-3">
+        <h2 className="text-sm font-semibold text-text-secondary">Recherche automatique</h2>
 
-          <div className="flex gap-2">
-            <button
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "isbn" ? "bg-primary-100 text-primary-700" : "text-slate-500 hover:bg-slate-100"}`}
-              onClick={() => setLookupMode("isbn")}
-              type="button"
-            >
-              ISBN
-            </button>
-            <button
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "title" ? "bg-primary-100 text-primary-700" : "text-slate-500 hover:bg-slate-100"}`}
-              onClick={() => setLookupMode("title")}
-              type="button"
-            >
-              Titre
-            </button>
+        {/* Type picker before scan */}
+        {!lookupTypeSelected ? (
+          <div className="space-y-2">
+            <p className="text-sm text-text-muted">Sélectionnez le type avant de rechercher :</p>
+            <div className="flex flex-wrap gap-2">
+              {typeOptions.map((opt) => (
+                <button
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                    form.type === opt.value
+                      ? "bg-primary-600 text-white"
+                      : "bg-surface-primary text-text-secondary hover:bg-surface-border"
+                  }`}
+                  key={opt.value}
+                  onClick={() => {
+                    update("type", opt.value);
+                    setLookupTypeSelected(true);
+                  }}
+                  type="button"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
-
-          {lookupMode === "isbn" ? (
-            <div className="flex gap-2">
-              <input
-                className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-                onChange={(e) => setLookupIsbn(e.target.value)}
-                placeholder="ISBN (10 ou 13 chiffres)"
-                value={lookupIsbn}
-              />
-              <BarcodeScanner onScan={setLookupIsbn} />
-            </div>
-          ) : (
-            <input
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-              onChange={(e) => setLookupTitle(e.target.value)}
-              placeholder="Titre de la série"
-              value={lookupTitle}
-            />
-          )}
-
-          {lookupResult.isFetching && (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Loader2 className="h-4 w-4 animate-spin" /> Recherche en cours…
-            </div>
-          )}
-
-          {lookupResult.data && !lookupResult.isFetching && (
-            <div className="flex items-center justify-between rounded-lg bg-white p-3 border border-slate-200">
-              <div className="text-sm">
-                <p className="font-medium text-slate-900">{lookupResult.data.title}</p>
-                <p className="text-slate-500">
-                  {lookupResult.data.authors.join(", ")}
-                  {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
-                </p>
-              </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
+                {ComicTypeLabel[form.type as ComicType]}
+              </span>
               <button
-                className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
-                onClick={applyLookup}
+                className="text-xs text-text-muted hover:text-text-secondary"
+                onClick={() => setLookupTypeSelected(false)}
                 type="button"
               >
-                Appliquer
+                Changer
               </button>
             </div>
-          )}
-        </div>
-      )}
+
+            <div className="flex gap-2">
+              <button
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "isbn" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/30 dark:text-primary-400" : "text-text-muted hover:bg-surface-primary"}`}
+                onClick={() => setLookupMode("isbn")}
+                type="button"
+              >
+                ISBN
+              </button>
+              <button
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "title" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/30 dark:text-primary-400" : "text-text-muted hover:bg-surface-primary"}`}
+                onClick={() => setLookupMode("title")}
+                type="button"
+              >
+                Titre
+              </button>
+            </div>
+
+            {lookupMode === "isbn" ? (
+              <div className="flex gap-2">
+                <input
+                  className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+                  onChange={(e) => setLookupIsbn(e.target.value)}
+                  placeholder="ISBN (10 ou 13 chiffres)"
+                  value={lookupIsbn}
+                />
+                <BarcodeScanner onScan={setLookupIsbn} />
+              </div>
+            ) : (
+              <input
+                className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+                onChange={(e) => setLookupTitle(e.target.value)}
+                placeholder="Titre de la série"
+                value={lookupTitle}
+              />
+            )}
+
+            {lookupResult.isFetching && (
+              <div className="flex items-center gap-2 text-sm text-text-muted">
+                <Loader2 className="h-4 w-4 animate-spin" /> Recherche en cours…
+              </div>
+            )}
+
+            {lookupResult.data && !lookupResult.isFetching && (
+              <div className="flex items-center justify-between rounded-lg bg-surface-primary p-3 border border-surface-border">
+                <div className="text-sm">
+                  <p className="font-medium text-text-primary">{lookupResult.data.title}</p>
+                  <p className="text-text-muted">
+                    {lookupResult.data.authors.join(", ")}
+                    {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
+                  </p>
+                </div>
+                <button
+                  className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+                  onClick={applyLookup}
+                  type="button"
+                >
+                  Appliquer
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Form */}
       <form className="space-y-5" onSubmit={handleSubmit}>
         {/* Title */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="title">
+          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="title">
             Titre *
           </label>
           <input
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
             id="title"
             onChange={(e) => update("title", e.target.value)}
             required
@@ -344,60 +440,38 @@ export default function ComicForm() {
 
         {/* Type + Status */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="type">
-              Type *
-            </label>
-            <select
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-              id="type"
-              onChange={(e) => update("type", e.target.value)}
-              value={form.type}
-            >
-              {Object.entries(ComicType).map(([key, value]) => (
-                <option key={key} value={value}>
-                  {ComicTypeLabel[value]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="status">
-              Statut *
-            </label>
-            <select
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-              id="status"
-              onChange={(e) => update("status", e.target.value)}
-              value={form.status}
-            >
-              {Object.entries(ComicStatus).map(([key, value]) => (
-                <option key={key} value={value}>
-                  {ComicStatusLabel[value]}
-                </option>
-              ))}
-            </select>
-          </div>
+          <FormListbox
+            label="Type *"
+            onChange={(v) => update("type", v)}
+            options={typeOptions}
+            value={form.type}
+          />
+          <FormListbox
+            label="Statut *"
+            onChange={(v) => update("status", v)}
+            options={statusOptions}
+            value={form.status}
+          />
         </div>
 
         {/* One-shot toggle */}
         <label className="flex items-center gap-2">
           <input
             checked={form.isOneShot}
-            className="h-4 w-4 rounded border-slate-300 text-primary-600"
+            className="h-4 w-4 rounded border-surface-border text-primary-600"
             onChange={(e) => update("isOneShot", e.target.checked)}
             type="checkbox"
           />
-          <span className="text-sm font-medium text-slate-700">One-shot (pas de tomes)</span>
+          <span className="text-sm font-medium text-text-secondary">One-shot (pas de tomes)</span>
         </label>
 
         {/* Publisher */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="publisher">
+          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="publisher">
             Éditeur
           </label>
           <input
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
             id="publisher"
             onChange={(e) => update("publisher", e.target.value)}
             value={form.publisher}
@@ -406,11 +480,11 @@ export default function ComicForm() {
 
         {/* Cover URL */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="coverUrl">
+          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="coverUrl">
             URL de couverture
           </label>
           <input
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
             id="coverUrl"
             onChange={(e) => update("coverUrl", e.target.value)}
             placeholder="https://..."
@@ -424,16 +498,16 @@ export default function ComicForm() {
 
         {/* Authors */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Auteurs</label>
+          <label className="mb-1 block text-sm font-medium text-text-secondary">Auteurs</label>
           <div className="flex flex-wrap gap-2 mb-2">
             {form.authors.map((author, i) => (
               <span
-                className="flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700"
+                className="flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400"
                 key={author.id}
               >
                 {author.name}
                 <button
-                  className="ml-1 rounded-full p-0.5 hover:bg-primary-200"
+                  className="ml-1 rounded-full p-0.5 hover:bg-primary-200 dark:hover:bg-primary-900/40"
                   onClick={() => removeAuthor(i)}
                   type="button"
                 >
@@ -449,17 +523,17 @@ export default function ComicForm() {
             value={null}
           >
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
               <ComboboxInput
-                className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-3 text-sm"
+                className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-3 text-sm text-text-primary"
                 displayValue={() => authorSearch}
                 onChange={(e) => setAuthorSearch(e.target.value)}
                 placeholder="Rechercher ou créer un auteur…"
               />
-              <ComboboxOptions className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+              <ComboboxOptions className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary shadow-lg">
                 {authorOptions.map((author) => (
                   <ComboboxOption
-                    className="cursor-pointer px-3 py-2 text-sm text-slate-700 data-[focus]:bg-primary-50"
+                    className="cursor-pointer px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
                     key={author.id}
                     value={author}
                   >
@@ -468,7 +542,7 @@ export default function ComicForm() {
                 ))}
                 {authorSearch.length >= 2 && !authorOptions.some((a) => a.name.toLowerCase() === authorSearch.toLowerCase()) && (
                   <ComboboxOption
-                    className="cursor-pointer px-3 py-2 text-sm text-primary-700 data-[focus]:bg-primary-50"
+                    className="cursor-pointer px-3 py-2 text-sm text-primary-700 dark:text-primary-400 data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
                     value={{ "@id": "", id: -Date.now(), name: authorSearch } as Author}
                   >
                     <Plus className="mr-1 inline h-3 w-3" />
@@ -482,11 +556,11 @@ export default function ComicForm() {
 
         {/* Description */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="description">
+          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="description">
             Description
           </label>
           <textarea
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
             id="description"
             onChange={(e) => update("description", e.target.value)}
             rows={3}
@@ -496,11 +570,11 @@ export default function ComicForm() {
 
         {/* Latest published issue */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="latestPublishedIssue">
+          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="latestPublishedIssue">
             Dernier tome paru
           </label>
           <input
-            className="w-32 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="w-32 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
             id="latestPublishedIssue"
             min="0"
             onChange={(e) => update("latestPublishedIssue", e.target.value)}
@@ -513,37 +587,37 @@ export default function ComicForm() {
         {!form.isOneShot && (
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-700">
+              <h2 className="text-sm font-semibold text-text-secondary">
                 Tomes ({form.tomes.length})
               </h2>
               <button
-                className="flex items-center gap-1 rounded-lg bg-primary-100 px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-200"
+                className="flex items-center gap-1 rounded-lg bg-primary-100 px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-200 dark:bg-primary-950/30 dark:text-primary-400 dark:hover:bg-primary-900/40"
                 onClick={addTome}
                 type="button"
               >
                 <Plus className="h-4 w-4" /> Ajouter
               </button>
             </div>
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <div className="overflow-x-auto rounded-lg border border-surface-border">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50">
+                <thead className="bg-surface-tertiary">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium text-slate-600">#</th>
-                    <th className="px-3 py-2 text-left font-medium text-slate-600">Titre</th>
-                    <th className="px-3 py-2 text-left font-medium text-slate-600">ISBN</th>
-                    <th className="px-3 py-2 text-center font-medium text-slate-600">Acheté</th>
-                    <th className="px-3 py-2 text-center font-medium text-slate-600">DL</th>
-                    <th className="px-3 py-2 text-center font-medium text-slate-600">Lu</th>
-                    <th className="px-3 py-2 text-center font-medium text-slate-600">NAS</th>
+                    <th className="px-3 py-2 text-left font-medium text-text-secondary">#</th>
+                    <th className="px-3 py-2 text-left font-medium text-text-secondary">Titre</th>
+                    <th className="px-3 py-2 text-left font-medium text-text-secondary">ISBN</th>
+                    <th className="px-3 py-2 text-center font-medium text-text-secondary">Acheté</th>
+                    <th className="px-3 py-2 text-center font-medium text-text-secondary">DL</th>
+                    <th className="px-3 py-2 text-center font-medium text-text-secondary">Lu</th>
+                    <th className="px-3 py-2 text-center font-medium text-text-secondary">NAS</th>
                     <th className="px-3 py-2" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-surface-border">
                   {form.tomes.map((tome, i) => (
                     <tr key={i}>
                       <td className="px-3 py-1.5">
                         <input
-                          className="w-14 rounded border border-slate-300 px-2 py-1 text-center text-sm"
+                          className="w-14 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
                           min="0"
                           onChange={(e) => updateTome(i, "number", Number(e.target.value))}
                           type="number"
@@ -552,7 +626,7 @@ export default function ComicForm() {
                       </td>
                       <td className="px-3 py-1.5">
                         <input
-                          className="w-full min-w-[100px] rounded border border-slate-300 px-2 py-1 text-sm"
+                          className="w-full min-w-[100px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
                           onChange={(e) => updateTome(i, "title", e.target.value)}
                           placeholder="Titre"
                           value={tome.title}
@@ -560,7 +634,7 @@ export default function ComicForm() {
                       </td>
                       <td className="px-3 py-1.5">
                         <input
-                          className="w-full min-w-[120px] rounded border border-slate-300 px-2 py-1 text-sm"
+                          className="w-full min-w-[120px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
                           onChange={(e) => updateTome(i, "isbn", e.target.value)}
                           placeholder="ISBN"
                           value={tome.isbn}
@@ -569,7 +643,7 @@ export default function ComicForm() {
                       <td className="px-3 py-1.5 text-center">
                         <input
                           checked={tome.bought}
-                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          className="h-4 w-4 rounded border-surface-border text-primary-600"
                           onChange={(e) => updateTome(i, "bought", e.target.checked)}
                           type="checkbox"
                         />
@@ -577,7 +651,7 @@ export default function ComicForm() {
                       <td className="px-3 py-1.5 text-center">
                         <input
                           checked={tome.downloaded}
-                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          className="h-4 w-4 rounded border-surface-border text-primary-600"
                           onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
                           type="checkbox"
                         />
@@ -585,7 +659,7 @@ export default function ComicForm() {
                       <td className="px-3 py-1.5 text-center">
                         <input
                           checked={tome.read}
-                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          className="h-4 w-4 rounded border-surface-border text-primary-600"
                           onChange={(e) => updateTome(i, "read", e.target.checked)}
                           type="checkbox"
                         />
@@ -593,14 +667,14 @@ export default function ComicForm() {
                       <td className="px-3 py-1.5 text-center">
                         <input
                           checked={tome.onNas}
-                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          className="h-4 w-4 rounded border-surface-border text-primary-600"
                           onChange={(e) => updateTome(i, "onNas", e.target.checked)}
                           type="checkbox"
                         />
                       </td>
                       <td className="px-3 py-1.5">
                         <button
-                          className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600"
+                          className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                           onClick={() => removeTome(i)}
                           type="button"
                         >
@@ -614,26 +688,27 @@ export default function ComicForm() {
             </div>
           </div>
         )}
-
-        {/* Submit */}
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
-            onClick={() => navigate(-1)}
-            type="button"
-          >
-            Annuler
-          </button>
-          <button
-            className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-            disabled={isSaving || !form.title}
-            type="submit"
-          >
-            {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isEdit ? "Enregistrer" : "Créer"}
-          </button>
-        </div>
       </form>
+
+      {/* Sticky save/cancel bar */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-2 lg:bottom-20">
+        <button
+          className="rounded-lg px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-tertiary"
+          onClick={() => navigate(-1)}
+          type="button"
+        >
+          Annuler
+        </button>
+        <button
+          className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+          disabled={isSaving || !form.title}
+          onClick={handleSubmit}
+          type="button"
+        >
+          {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isEdit ? "Enregistrer" : "Créer"}
+        </button>
+      </div>
     </div>
   );
 }
