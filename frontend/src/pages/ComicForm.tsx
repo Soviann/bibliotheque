@@ -160,7 +160,7 @@ export default function ComicForm() {
   const [isApplying, setIsApplying] = useState(false);
   const [lookupIsbn, setLookupIsbn] = useState("");
   const [lookupTitle, setLookupTitle] = useState("");
-  const [lookupMode, setLookupMode] = useState<"isbn" | "title">("isbn");
+  const [lookupMode, setLookupMode] = useState<"isbn" | "title">("title");
   const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(null);
 
   const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
