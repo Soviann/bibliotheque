@@ -38,16 +38,6 @@ describe("ComicCard", () => {
     expect(screen.getByText("One Piece")).toBeInTheDocument();
   });
 
-  it("renders author names", () => {
-    render(
-      <MemoryRouter>
-        <ComicCard comic={makeComic()} />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText("Eiichiro Oda")).toBeInTheDocument();
-  });
-
   it("renders cover image when coverUrl is set", () => {
     render(
       <MemoryRouter>
@@ -59,37 +49,18 @@ describe("ComicCard", () => {
     expect(img).toHaveAttribute("src", "https://example.com/cover.jpg");
   });
 
-  it("renders type badge", () => {
+  it("renders placeholder when no cover", () => {
     render(
       <MemoryRouter>
-        <ComicCard comic={makeComic()} />
+        <ComicCard comic={makeComic({ coverImage: null, coverUrl: null })} />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Manga")).toBeInTheDocument();
+    const img = screen.getByAltText("One Piece");
+    expect(img).toHaveAttribute("src", "/placeholder-cover.png");
   });
 
-  it("renders status label", () => {
-    render(
-      <MemoryRouter>
-        <ComicCard comic={makeComic()} />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText("En cours d'achat")).toBeInTheDocument();
-  });
-
-  it("shows One-shot for one-shot comics", () => {
-    render(
-      <MemoryRouter>
-        <ComicCard comic={makeComic({ isOneShot: true })} />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText("One-shot")).toBeInTheDocument();
-  });
-
-  it("shows tome count for series", () => {
+  it("renders type and tome count", () => {
     render(
       <MemoryRouter>
         <ComicCard
@@ -114,7 +85,8 @@ describe("ComicCard", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("1 t.")).toBeInTheDocument();
+    expect(screen.getByText(/Manga/)).toBeInTheDocument();
+    expect(screen.getByText(/1 t\./)).toBeInTheDocument();
   });
 
   it("links to comic detail page", () => {
@@ -128,13 +100,13 @@ describe("ComicCard", () => {
     expect(link).toHaveAttribute("href", "/comic/1");
   });
 
-  it("renders dash when no authors", () => {
+  it("renders edit button", () => {
     render(
       <MemoryRouter>
-        <ComicCard comic={makeComic({ authors: [] })} />
+        <ComicCard comic={makeComic()} />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByTitle("Modifier")).toBeInTheDocument();
   });
 });

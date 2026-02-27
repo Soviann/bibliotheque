@@ -1,4 +1,3 @@
-import { BookOpen } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 
@@ -13,27 +12,27 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-surface-primary px-4 dark:bg-surface-secondary">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <BookOpen className="mx-auto h-12 w-12 text-primary-400" />
-          <h1 className="mt-4 text-2xl font-bold text-white">Bibliothèque</h1>
+          <img alt="" className="mx-auto h-20 w-20 rounded-2xl" src="/app-icon.png" />
+          <h1 className="mt-4 text-2xl font-bold text-text-primary">Bibliothèque</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {loginError && (
-            <p className="rounded bg-red-900/50 p-3 text-sm text-red-300">
+            <p className="rounded-lg bg-red-100 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-400">
               {loginError.message}
             </p>
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="email" className="block text-sm font-medium text-text-secondary">
               Email
             </label>
             <input
               autoComplete="email"
-              className="mt-1 block w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500 focus:outline-none"
+              className="mt-1 block w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-text-primary placeholder-text-muted focus:border-primary-500 focus:ring-primary-500 focus:outline-none"
               id="email"
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -43,12 +42,12 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="password" className="block text-sm font-medium text-text-secondary">
               Mot de passe
             </label>
             <input
               autoComplete="current-password"
-              className="mt-1 block w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500 focus:outline-none"
+              className="mt-1 block w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-text-primary placeholder-text-muted focus:border-primary-500 focus:ring-primary-500 focus:outline-none"
               id="password"
               onChange={(e) => setPassword(e.target.value)}
               required
