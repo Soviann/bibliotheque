@@ -35,6 +35,10 @@
 
 **Search**: Packagist, symfony.com/bundles, npm
 
+## DDEV — Mandatory
+
+**All commands run inside DDEV** (`ddev exec ...`) or via `make` targets. NEVER run `npm`, `npx`, `composer`, `php`, `bin/console`, `bin/phpunit` directly on the host. Only exceptions: `git`, `gh`, `make`, and host-only tools (`docker`, `ssh`, `curl`).
+
 ## Commands
 
 **Root Makefile** delegates to `backend/` and `frontend/`. Main shortcuts:

@@ -88,7 +88,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     status: ComicStatus.BUYING,
     title: "",
     tomes: [emptyTome(1)],
-    type: ComicType.MANGA,
+    type: ComicType.BD,
   };
 }
 
@@ -159,7 +159,6 @@ export default function ComicForm() {
   const [lookupIsbn, setLookupIsbn] = useState("");
   const [lookupTitle, setLookupTitle] = useState("");
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("isbn");
-  const [lookupTypeSelected, setLookupTypeSelected] = useState(false);
 
   const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
   const titleLookup = useLookupTitle(lookupMode === "title" ? lookupTitle : "", form.type);
@@ -192,27 +191,19 @@ export default function ComicForm() {
 
     setForm((prev) => ({
       ...prev,
-      coverUrl: result.coverUrl ?? prev.coverUrl,
+      coverUrl: result.thumbnail ?? prev.coverUrl,
       description: result.description ?? prev.description,
       isOneShot: result.isOneShot || prev.isOneShot,
       publisher: result.publisher ?? prev.publisher,
       title: result.title || prev.title,
-      type: (result.type as FormData["type"]) || prev.type,
     }));
 
-    if (result.authors.length > 0) {
+    if (result.authors) {
+      const authorNames = result.authors.split(",").map((n) => n.trim()).filter(Boolean);
       update(
         "authors",
-        result.authors.map((name, i) => ({ "@id": "", id: -(i + 1), name })),
+        authorNames.map((name, i) => ({ "@id": "", id: -(i + 1), name })),
       );
-    }
-
-    if (result.totalVolumes && form.tomes.length <= 1) {
-      const tomes: TomeFormData[] = [];
-      for (let i = 1; i <= result.totalVolumes; i++) {
-        tomes.push(emptyTome(i));
-      }
-      update("tomes", tomes);
     }
 
     toast.success("Informations récupérées");
@@ -317,108 +308,68 @@ export default function ComicForm() {
 
       {/* Lookup section — visible on create AND edit */}
       <div className="rounded-lg border border-surface-border bg-surface-tertiary p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-text-secondary">Recherche automatique</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-text-secondary">Recherche automatique</h2>
+          <div className="flex rounded-lg bg-surface-primary p-0.5 border border-surface-border">
+            <button
+              className={`rounded-md px-3 py-1 text-sm font-medium transition ${lookupMode === "isbn" ? "bg-primary-600 text-white shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
+              onClick={() => setLookupMode("isbn")}
+              type="button"
+            >
+              ISBN
+            </button>
+            <button
+              className={`rounded-md px-3 py-1 text-sm font-medium transition ${lookupMode === "title" ? "bg-primary-600 text-white shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
+              onClick={() => setLookupMode("title")}
+              type="button"
+            >
+              Titre
+            </button>
+          </div>
+        </div>
 
-        {/* Type picker before scan */}
-        {!lookupTypeSelected ? (
-          <div className="space-y-2">
-            <p className="text-sm text-text-muted">Sélectionnez le type avant de rechercher :</p>
-            <div className="flex flex-wrap gap-2">
-              {typeOptions.map((opt) => (
-                <button
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                    form.type === opt.value
-                      ? "bg-primary-600 text-white"
-                      : "bg-surface-primary text-text-secondary hover:bg-surface-border"
-                  }`}
-                  key={opt.value}
-                  onClick={() => {
-                    update("type", opt.value);
-                    setLookupTypeSelected(true);
-                  }}
-                  type="button"
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+        {lookupMode === "isbn" ? (
+          <div className="flex gap-2">
+            <input
+              className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+              onChange={(e) => setLookupIsbn(e.target.value)}
+              placeholder="ISBN (10 ou 13 chiffres)"
+              value={lookupIsbn}
+            />
+            <BarcodeScanner onScan={setLookupIsbn} />
           </div>
         ) : (
-          <>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
-                {ComicTypeLabel[form.type as ComicType]}
-              </span>
-              <button
-                className="text-xs text-text-muted hover:text-text-secondary"
-                onClick={() => setLookupTypeSelected(false)}
-                type="button"
-              >
-                Changer
-              </button>
+          <input
+            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+            onChange={(e) => setLookupTitle(e.target.value)}
+            placeholder="Titre de la série"
+            value={lookupTitle}
+          />
+        )}
+
+        {lookupResult.isFetching && (
+          <div className="flex items-center gap-2 text-sm text-text-muted">
+            <Loader2 className="h-4 w-4 animate-spin" /> Recherche en cours…
+          </div>
+        )}
+
+        {lookupResult.data && !lookupResult.isFetching && (
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-primary p-3 border border-surface-border">
+            <div className="min-w-0 text-sm">
+              <p className="truncate font-medium text-text-primary">{lookupResult.data.title}</p>
+              <p className="truncate text-text-muted">
+                {lookupResult.data.authors ?? ""}
+                {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
+              </p>
             </div>
-
-            <div className="flex gap-2">
-              <button
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "isbn" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/30 dark:text-primary-400" : "text-text-muted hover:bg-surface-primary"}`}
-                onClick={() => setLookupMode("isbn")}
-                type="button"
-              >
-                ISBN
-              </button>
-              <button
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "title" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/30 dark:text-primary-400" : "text-text-muted hover:bg-surface-primary"}`}
-                onClick={() => setLookupMode("title")}
-                type="button"
-              >
-                Titre
-              </button>
-            </div>
-
-            {lookupMode === "isbn" ? (
-              <div className="flex gap-2">
-                <input
-                  className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
-                  onChange={(e) => setLookupIsbn(e.target.value)}
-                  placeholder="ISBN (10 ou 13 chiffres)"
-                  value={lookupIsbn}
-                />
-                <BarcodeScanner onScan={setLookupIsbn} />
-              </div>
-            ) : (
-              <input
-                className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
-                onChange={(e) => setLookupTitle(e.target.value)}
-                placeholder="Titre de la série"
-                value={lookupTitle}
-              />
-            )}
-
-            {lookupResult.isFetching && (
-              <div className="flex items-center gap-2 text-sm text-text-muted">
-                <Loader2 className="h-4 w-4 animate-spin" /> Recherche en cours…
-              </div>
-            )}
-
-            {lookupResult.data && !lookupResult.isFetching && (
-              <div className="flex items-center justify-between rounded-lg bg-surface-primary p-3 border border-surface-border">
-                <div className="text-sm">
-                  <p className="font-medium text-text-primary">{lookupResult.data.title}</p>
-                  <p className="text-text-muted">
-                    {lookupResult.data.authors.join(", ")}
-                    {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
-                  </p>
-                </div>
-                <button
-                  className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
-                  onClick={applyLookup}
-                  type="button"
-                >
-                  Appliquer
-                </button>
-              </div>
-            )}
-          </>
+            <button
+              className="shrink-0 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+              onClick={applyLookup}
+              type="button"
+            >
+              Appliquer
+            </button>
+          </div>
         )}
       </div>
 

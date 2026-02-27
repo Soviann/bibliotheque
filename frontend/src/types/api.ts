@@ -58,13 +58,14 @@ export interface ComicSeries {
 
 export interface LookupResult {
   apiMessages: Array<{ level: string; message: string; source: string }>;
-  authors: string[];
-  coverUrl: string | null;
+  authors: string | null;
   description: string | null;
-  isOneShot: boolean;
+  isbn: string | null;
+  isOneShot: boolean | null;
+  latestPublishedIssue: number | null;
+  publishedDate: string | null;
   publisher: string | null;
   sources: string[];
-  title: string;
-  totalVolumes: number | null;
-  type: string | null;
+  thumbnail: string | null;
+  title: string | null;
 }
