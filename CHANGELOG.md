@@ -9,8 +9,19 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
-- **Modales de confirmation** : Les `confirm()` et `alert()` natifs du navigateur sont remplacés par des modales `<dialog>` custom Material Design via un nouveau Stimulus controller `confirm-modal` (suppression de séries dans les cartes, la page détail et la corbeille)
-- **Page hors ligne** : Le message d'erreur "Toujours hors ligne" s'affiche désormais en inline dans la page au lieu d'un `alert()` natif
+- **Migration React + API Platform** : Refonte complète de l'architecture
+  - **Backend** : Suppression de Twig/Stimulus/AssetMapper, exposition des entités via API Platform 4 (JSON-LD)
+  - **Frontend** : Nouveau SPA React 19 + TypeScript + Vite + TanStack Query + Tailwind CSS 4
+  - **Auth** : Migration de session/formulaire vers JWT (LexikJWTAuthenticationBundle, TTL 30 jours pour PWA offline)
+  - **Structure** : Monorepo `backend/` + `frontend/` avec Makefile racine délégant aux sous-dossiers
+  - **PWA** : vite-plugin-pwa avec Workbox runtime caching (NetworkFirst API, CacheFirst covers)
+  - Pages : Bibliothèque, Wishlist, Détail série, Formulaire création/édition (lookup ISBN/titre + scanner), Recherche, Corbeille
+  - Composants : Layout responsive (nav mobile bottom + header desktop), ComicCard, Filters, ConfirmModal, BarcodeScanner
+
+### Removed
+
+- **Twig/Stimulus/AssetMapper** : Templates, contrôleurs Stimulus, formulaires Symfony Forms, Behat, Panther, Playwright
+- **Packages** : symfony/ux-*, symfony/asset-mapper, symfony/stimulus-bundle, symfony/twig-bundle, symfony/form, spomky-labs/pwa-bundle, dbrekelmans/bdi, friends-of-behat/*, knpuniversity/oauth2-client-bundle
 
 ### Fixed
 
