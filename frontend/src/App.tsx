@@ -14,12 +14,11 @@ const ComicDetail = lazy(() => import("./pages/ComicDetail"));
 const ComicForm = lazy(() => import("./pages/ComicForm"));
 const Login = lazy(() => import("./pages/Login"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const Search = lazy(() => import("./pages/Search"));
 const Trash = lazy(() => import("./pages/Trash"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 
 function Loading() {
-  return <div className="py-12 text-center text-slate-400">Chargement…</div>;
+  return <div className="py-12 text-center text-text-muted">Chargement…</div>;
 }
 
 export default function App() {
@@ -42,14 +41,13 @@ export default function App() {
                 <Route element={<ComicForm />} path="comic/new" />
                 <Route element={<ComicDetail />} path="comic/:id" />
                 <Route element={<ComicForm />} path="comic/:id/edit" />
-                <Route element={<Search />} path="search" />
                 <Route element={<Trash />} path="trash" />
                 <Route element={<NotFound />} path="*" />
               </Route>
             </Routes>
           </Suspense>
         </BrowserRouter>
-        <Toaster position="top-right" richColors />
+        <Toaster position="top-center" richColors />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ErrorBoundary>
