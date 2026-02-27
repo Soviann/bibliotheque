@@ -51,6 +51,26 @@ class ImportExcelCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * Normalise un titre contenant un article entre parenthèses en fin de chaîne.
+     *
+     * Exemples : "age d'ombre (l')" → "l'age d'ombre", "monde perdu (le)" → "le monde perdu"
+     */
+    public static function normalizeTitle(string $title): string
+    {
+        if (1 === \preg_match('/^(.+?)\s+\((l\'|le|la|les)\)$/iu', $title, $matches)) {
+            $article = $matches[2];
+            $rest = $matches[1];
+
+            // l' colle au mot suivant, les autres ajoutent un espace
+            $separator = \str_ends_with($article, "'") ? '' : ' ';
+
+            return $article.$separator.$rest;
+        }
+
+        return $title;
+    }
+
     protected function configure(): void
     {
         $this
@@ -162,6 +182,8 @@ class ImportExcelCommand extends Command
         if ('' === $title) {
             return null;
         }
+
+        $title = self::normalizeTitle($title);
 
         // Création de la série
         $comic = new ComicSeries();

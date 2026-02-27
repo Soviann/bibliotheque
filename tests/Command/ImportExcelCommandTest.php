@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Command;
 
+use App\Command\ImportExcelCommand;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -393,6 +395,59 @@ class ImportExcelCommandTest extends KernelTestCase
                 \unlink($corruptedFilePath);
             }
         }
+    }
+
+    /**
+     * Teste la normalisation des titres avec articles entre parenthèses.
+     *
+     * @param string $input    Titre brut depuis le fichier Excel
+     * @param string $expected Titre attendu après normalisation
+     */
+    #[DataProvider('titleNormalizationProvider')]
+    public function testNormalizeTitleWithArticles(string $input, string $expected): void
+    {
+        self::assertSame($expected, ImportExcelCommand::normalizeTitle($input));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function titleNormalizationProvider(): iterable
+    {
+        yield "l' (apostrophe)" => ["age d'ombre (l')", "l'age d'ombre"];
+        yield 'le' => ['monde perdu (le)', 'le monde perdu'];
+        yield 'la' => ['rose écarlate (la)', 'la rose écarlate'];
+        yield 'les' => ['légendaires (les)', 'les légendaires'];
+        yield 'sans article' => ['Naruto', 'Naruto'];
+        yield 'parenthèses non-article' => ['titre (tome 1)', 'titre (tome 1)'];
+        yield 'casse majuscule Le' => ['monde perdu (Le)', 'Le monde perdu'];
+        yield 'casse majuscule La' => ['rose écarlate (La)', 'La rose écarlate'];
+        yield 'casse majuscule Les' => ['légendaires (Les)', 'Les légendaires'];
+        yield "casse majuscule L'" => ["age d'ombre (L')", "L'age d'ombre"];
+        yield 'chaîne vide' => ['', ''];
+        yield 'article au milieu' => ['château (le) fort', 'château (le) fort'];
+    }
+
+    /**
+     * Teste l'import avec un titre contenant un article entre parenthèses.
+     */
+    public function testImportNormalizesArticleTitle(): void
+    {
+        $this->createTestExcel([
+            'BD' => [
+                ['monde perdu (le)', 'oui', '1', '1', '5', '', ''],
+            ],
+        ]);
+
+        $application = new Application(self::$kernel);
+        $command = $application->find('app:import-excel');
+        $commandTester = new CommandTester($command);
+
+        $commandTester->execute(['file' => $this->testFilePath]);
+        $commandTester->assertCommandIsSuccessful();
+
+        $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'le monde perdu']);
+        self::assertNotNull($series, 'Le titre devrait être normalisé en "le monde perdu"');
     }
 
     /**
