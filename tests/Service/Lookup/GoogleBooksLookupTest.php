@@ -148,6 +148,93 @@ class GoogleBooksLookupTest extends TestCase
         self::assertSame('https://example.com/small.jpg', $result->thumbnail);
     }
 
+    public function testThumbnailUrlIsOptimizedForLargerResolution(): void
+    {
+        $response = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => [
+                            'thumbnail' => 'http://books.google.com/books/content?id=ABC123&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api',
+                        ],
+                        'title' => 'Book with Google Books URL',
+                    ],
+                ],
+            ],
+        ]));
+
+        $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
+
+        self::assertSame(
+            'https://books.google.com/books/content?id=ABC123&printsec=frontcover&img=1&zoom=0&source=gbs_api',
+            $result->thumbnail,
+        );
+    }
+
+    public function testThumbnailUrlReplacesHttpWithHttps(): void
+    {
+        $response = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => [
+                            'thumbnail' => 'http://books.google.com/books/content?id=XYZ&img=1&zoom=1&source=gbs_api',
+                        ],
+                        'title' => 'HTTP URL book',
+                    ],
+                ],
+            ],
+        ]));
+
+        $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
+
+        self::assertStringStartsWith('https://', $result->thumbnail);
+    }
+
+    public function testThumbnailUrlRemovesEdgeCurl(): void
+    {
+        $response = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => [
+                            'thumbnail' => 'https://books.google.com/books/content?id=ABC&img=1&zoom=1&edge=curl&source=gbs_api',
+                        ],
+                        'title' => 'Book with edge curl',
+                    ],
+                ],
+            ],
+        ]));
+
+        $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
+
+        self::assertStringNotContainsString('edge=curl', $result->thumbnail);
+    }
+
+    public function testThumbnailUrlLeavesNonGoogleUrlsUntouched(): void
+    {
+        $response = new MockResponse(\json_encode([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => [
+                            'thumbnail' => 'https://example.com/cover.jpg',
+                        ],
+                        'title' => 'Book with external URL',
+                    ],
+                ],
+            ],
+        ]));
+
+        $provider = new GoogleBooksLookup(new MockHttpClient([$response]), new NullLogger());
+        $result = $this->doLookup($provider, '1234567890', null, 'isbn');
+
+        self::assertSame('https://example.com/cover.jpg', $result->thumbnail);
+    }
+
     public function testLookupByIsbnExtractsIsbn13(): void
     {
         $response = new MockResponse(\json_encode([
