@@ -1,90 +1,176 @@
-include .env
+# ──────────────────────────────────────────────────
+# Bibliothèque — Makefile
+# ──────────────────────────────────────────────────
+# Raccourcis pour les commandes courantes.
+# Usage : make <cible>   (ex. make test, make lint)
+# ──────────────────────────────────────────────────
+
+include backend/.env
 
 # Si ENV est défini, inclure le fichier d'environnement correspondant
 ifdef ENV
-ifneq ("$(wildcard .env.$(ENV))","")
-	include .env.$(ENV)
+ifneq ("$(wildcard backend/.env.$(ENV))","")
+	include backend/.env.$(ENV)
 endif
 endif
 
 # .env.local prévaut toujours (chargé en dernier)
-ifneq ("$(wildcard .env.local)","")
-	include .env.local
+ifneq ("$(wildcard backend/.env.local)","")
+	include backend/.env.local
 endif
-
-.PHONY: help build start stop proxy proxy-stop test test-php test-js test-js-watch \
-	cc migrate migration lint deploy
 
 .DEFAULT_GOAL := help
 
-# Couleurs
-GREEN  := \033[32m
-YELLOW := \033[33m
-RESET  := \033[0m
+# ── Couleurs ──────────────────────────────────────
+CYAN  := \033[36m
+GREEN := \033[32m
+RESET := \033[0m
 
-## —— Bibliotheqe Makefile ——————————————————————————————————————
+# ── Chemins ─────────────────────────────────────
+BACK  := backend
+FRONT := frontend
 
-help: ## Affiche cette aide
-	@grep -E '(^[a-zA-Z_-]+:.*?##.*$$)|(^## )' Makefile \
-		| awk 'BEGIN {FS = ":.*?## "} /^## /{printf "\n$(YELLOW)%s$(RESET)\n", substr($$0,4)} /^[a-zA-Z_-]+:/{printf "  $(GREEN)%-15s$(RESET) %s\n", $$1, $$2}'
+# ── Workflows ─────────────────────────────────────
 
-## —— DDEV ——————————————————————————————————————————————————————
+.PHONY: dev prod ci
 
-build: ## Build complet du projet en local
-	ddev start
-	ddev composer install
-	ddev exec npm install
-	ddev exec bin/console doctrine:migrations:migrate -n
-	ddev exec bin/console asset-map:compile
+dev: ## Premier lancement dev (dépendances + migrations)
+	$(MAKE) install
+	$(MAKE) jwt db-migrate
 
-start: ## Démarre DDEV
-	ddev start
+prod: ## Déploiement prod (dépendances --no-dev + dump env + build + migrations + cache)
+	$(MAKE) install-back-prod install-front-prod
+	$(MAKE) dump-env APP_ENV=prod
+	$(MAKE) build db-migrate cc
 
-stop: ## Arrête DDEV
-	ddev stop
+ci: ## Intégration continue (lint + tests)
+	$(MAKE) lint
+	$(MAKE) test
 
-## —— Réseau ————————————————————————————————————————————————————
+# ── Installation ──────────────────────────────────
 
-proxy: ## Expose le site sur le port 8080 (accès réseau local)
-	@HTTPS_PORT=$$(ddev describe -j 2>/dev/null \
-		| python3 -c "import sys,json; urls=json.load(sys.stdin)['raw']['httpsURLs']; print([u.split(':')[-1] for u in urls if '127.0.0.1' in u][0])"); \
-	echo "socat: 0.0.0.0:8080 → 127.0.0.1:$$HTTPS_PORT"; \
-	socat TCP-LISTEN:8080,fork,reuseaddr,bind=0.0.0.0 TCP:127.0.0.1:$$HTTPS_PORT
+.PHONY: install install-back install-back-prod install-front install-front-prod dump-env
 
-proxy-stop: ## Arrête le proxy socat
-	@pkill -f 'socat.*TCP-LISTEN:8080' 2>/dev/null && echo "socat arrêté" || echo "aucun socat en cours"
+install: ## Installer toutes les dépendances (backend + frontend)
+	$(MAKE) install-back install-front
 
-## —— Tests —————————————————————————————————————————————————————
+install-back: ## Installer les dépendances Composer
+	cd $(BACK) && composer install
 
-test: test-php test-js ## Lance tous les tests
+install-back-prod: ## Installer les dépendances Composer (sans dev, optimisé)
+	cd $(BACK) && composer install --no-dev --optimize-autoloader
 
-test-php: ## Lance les tests PHP (PHPUnit)
-	ddev exec bin/phpunit
+install-front: ## Installer les dépendances npm
+	cd $(FRONT) && npm install
 
-test-js: ## Lance les tests JS (Vitest)
-	ddev exec npm test
+install-front-prod: ## Installer les dépendances npm (prod, lockfile exact)
+	cd $(FRONT) && npm ci
 
-test-js-watch: ## Lance les tests JS en mode watch
-	ddev exec npm run test:watch
+dump-env: ## Compiler .env pour Symfony (utilise APP_ENV)
+	cd $(BACK) && composer dump-env $(APP_ENV)
 
-## —— Qualité ———————————————————————————————————————————————————
+# ── Base de données ───────────────────────────────
 
-lint: ## Lance PHP-CS-Fixer et PHPStan
-	ddev exec vendor/bin/php-cs-fixer fix --dry-run --diff
-	ddev exec vendor/bin/phpstan analyse
+.PHONY: db-diff db-migrate db-reset db-seed
 
-## —— Symfony ———————————————————————————————————————————————————
+db-diff: ## Générer une migration Doctrine
+	$(MAKE) sf CMD="doctrine:migrations:diff -n"
 
-cc: ## Vide le cache Symfony
-	ddev exec bin/console cache:clear
+db-migrate: ## Exécuter les migrations
+	$(MAKE) sf CMD="doctrine:migrations:migrate -n"
 
-migrate: ## Exécute les migrations en attente
-	ddev exec bin/console doctrine:migrations:migrate -n
+db-reset: ## Recréer la base de données et jouer les migrations
+	$(MAKE) sf CMD="doctrine:database:drop --force --if-exists"
+	$(MAKE) sf CMD="doctrine:database:create"
+	$(MAKE) sf CMD="doctrine:migrations:migrate -n"
 
-migration: ## Génère une migration depuis les diff d'entités
-	ddev exec bin/console doctrine:migrations:diff -n
+db-seed: ## Charger les fixtures de test
+	$(MAKE) sf CMD="doctrine:fixtures:load -n"
 
-## —— Production ————————————————————————————————————————————————
+# ── Tests ─────────────────────────────────────────
+
+.PHONY: test test-back test-front
+
+test: ## Lancer tous les tests (backend + frontend)
+	$(MAKE) test-back test-front
+
+test-back: ## Lancer les tests PHPUnit
+	cd $(BACK) && vendor/bin/phpunit
+
+test-front: ## Lancer les tests Vitest
+	cd $(FRONT) && npx vitest run
+
+# ── Qualité de code ───────────────────────────────
+
+.PHONY: lint lint-back lint-front phpstan cs cs-dry rector rector-dry
+
+lint: ## Vérifier la qualité (PHPStan + CS Fixer dry-run + TypeScript)
+	$(MAKE) lint-back lint-front
+
+lint-back: ## Vérifier le backend (PHPStan + CS Fixer dry-run)
+	$(MAKE) phpstan cs-dry
+
+lint-front: ## Vérifier le frontend (TypeScript)
+	cd $(FRONT) && npx tsc --noEmit
+
+phpstan: ## Lancer PHPStan (analyse statique PHP)
+	cd $(BACK) && vendor/bin/phpstan analyse
+
+cs-dry: ## Vérifier le style PHP (dry-run, sans modifier)
+	cd $(BACK) && vendor/bin/php-cs-fixer fix --dry-run --diff
+
+cs: ## Corriger le style PHP (modifie les fichiers)
+	cd $(BACK) && vendor/bin/php-cs-fixer fix
+
+rector: ## Appliquer les refactorings Rector
+	cd $(BACK) && vendor/bin/rector process
+
+rector-dry: ## Prévisualiser les refactorings Rector (dry-run)
+	cd $(BACK) && vendor/bin/rector process --dry-run
+
+# ── Build ─────────────────────────────────────────
+
+.PHONY: build serve-prod verify-build
+
+build: ## Compiler le frontend pour la production
+	cd $(FRONT) && npm run build
+
+serve-prod: ## Compiler et servir le build prod (port 4173)
+	$(MAKE) build
+	cd $(FRONT) && npx vite preview --host 0.0.0.0 --port 4173
+
+verify-build: ## Vérifier que le build prod ne contient pas de code de debug
+	$(MAKE) build
+	@cd $(FRONT) && ! grep -q "ReactQueryDevtools" dist/assets/*.js \
+		&& printf "  $(GREEN)✓$(RESET) Pas de ReactQueryDevtools dans le bundle\n" \
+		|| (printf "  $(CYAN)✗$(RESET) ReactQueryDevtools trouvé dans le bundle !\n" && exit 1)
+
+# ── Symfony ───────────────────────────────────────
+
+.PHONY: cc sf jwt
+
+cc: ## Vider le cache Symfony
+	$(MAKE) sf CMD="cache:clear"
+
+sf: ## Lancer une commande Symfony (usage : make sf CMD="debug:router")
+	cd $(BACK) && php bin/console $(CMD)
+
+jwt: ## Générer les clés JWT
+	$(MAKE) sf CMD="lexik:jwt:generate-keypair --skip-if-exists"
+
+# ── Production ────────────────────────────────────
+
+.PHONY: deploy
 
 deploy: ## Déploie en production (docker-compose)
-	docker compose -f docker-compose.prod.yml up --build -d
+	cd $(BACK) && docker compose -f docker-compose.prod.yml up --build -d
+
+# ── Aide ──────────────────────────────────────────
+
+.PHONY: help
+
+help: ## Afficher cette aide
+	@printf "\n$(CYAN)Bibliothèque$(RESET) — Commandes disponibles :\n\n"
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-18s$(RESET) %s\n", $$1, $$2}'
+	@printf "\n"

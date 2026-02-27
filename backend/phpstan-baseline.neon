@@ -1,0 +1,109 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Property App\\Entity\\Author\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Author.php
+
+		-
+			message: '#^Property App\\Entity\\ComicSeries\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/ComicSeries.php
+
+		-
+			message: '#^Property App\\Entity\\Tome\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Tome.php
+
+		-
+			message: '#^Method App\\Entity\\User\:\:getRoles\(\) should return list\<string\> but returns non\-empty\-array\<int\<0, max\>, string\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Method App\\Entity\\User\:\:getUserIdentifier\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findByStatus\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findWithFilters\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:search\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between null and bool will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
+			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
+			identifier: argument.type
+			count: 6
+			path: tests/Command/CreateUserCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
+			identifier: argument.type
+			count: 15
+			path: tests/Command/ImportExcelCommandTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Entity/UserTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 2
+			path: tests/Enum/ComicStatusTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 3
+			path: tests/Enum/ComicTypeTest.php
+
+		-
+			message: '#^Property App\\Tests\\Repository\\AuthorRepositoryTest\:\:\$repository \(App\\Repository\\AuthorRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\Author\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: tests/Repository/AuthorRepositoryTest.php
+
+		-
+			message: '#^Property App\\Tests\\Repository\\ComicSeriesRepositoryTest\:\:\$repository \(App\\Repository\\ComicSeriesRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\ComicSeries\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: tests/Repository/ComicSeriesRepositoryTest.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/bootstrap.php

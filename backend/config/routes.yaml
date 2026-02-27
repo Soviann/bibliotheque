@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=../vendor/symfony/routing/Loader/schema/routing.schema.json
+
+controllers:
+    resource: routing.controllers
+
+api_platform:
+    resource: .
+    type: api_platform
+    prefix: /api
+
+api_login:
+    path: /api/login
+    methods: POST
