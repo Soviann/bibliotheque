@@ -1,0 +1,9 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Gemini\Testing\ClientFake: ~
+
+    Gemini\Contracts\ClientContract:
+        alias: Gemini\Testing\ClientFake

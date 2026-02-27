@@ -1,67 +1,64 @@
 ###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
+backend/.env.local
+backend/.env.local.php
+backend/.env.*.local
+backend/config/secrets/prod/prod.decrypt.private.php
+backend/public/bundles/
+backend/var/
+backend/vendor/
 ###< symfony/framework-bundle ###
 
 ###> symfony/asset-mapper ###
-/public/assets/
-/assets/vendor/
+backend/public/assets/
+backend/assets/vendor/
 ###< symfony/asset-mapper ###
 
 ###> spomky-labs/pwa-bundle ###
-/public/idb/
-/public/manifest.webmanifest
-/public/pwa/
-/public/sw.js
-/public/workbox/
+backend/public/idb/
+backend/public/manifest.webmanifest
+backend/public/pwa/
+backend/public/sw.js
+backend/public/workbox/
 ###< spomky-labs/pwa-bundle ###
 
 ###> vich/uploader-bundle ###
-/public/uploads/
+backend/public/uploads/
 ###< vich/uploader-bundle ###
 
 ###> liip/imagine-bundle ###
-/public/media/
+backend/public/media/
 ###< liip/imagine-bundle ###
 
+###> lexik/jwt-authentication-bundle ###
+backend/config/jwt/
+###< lexik/jwt-authentication-bundle ###
+
 ###> phpunit/phpunit ###
-/phpunit.xml
-/.phpunit.cache/
+backend/phpunit.xml
+backend/.phpunit.cache/
 ###< phpunit/phpunit ###
 
 ###> friendsofphp/php-cs-fixer ###
-/.php-cs-fixer.php
-/.php-cs-fixer.cache
+backend/.php-cs-fixer.php
+backend/.php-cs-fixer.cache
+.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
 
-###> symfony/docker ###
-/compose.override.yaml
-###< symfony/docker ###
-
-###> symfony/cli ###
-/.symfony.local.yaml
-###< symfony/cli ###
-
-###> ide ###
-/.idea/
-/.vscode/
-###< ide ###
-
 ###> node ###
-/node_modules/
+frontend/node_modules/
+frontend/dist/
+node_modules/
 ###< node ###
 
-###> playwright ###
-/test-results/
-###< playwright ###
+###> ide ###
+.idea/
+.vscode/
+###< ide ###
 
 ###> local ###
 .DS_Store
 .claude/
-/docs/plans/
+.worktrees/
+docs/plans/
+.ddev/share-providers/
 ###< local ###

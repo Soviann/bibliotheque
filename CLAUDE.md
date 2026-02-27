@@ -4,7 +4,7 @@
 
 ## Project
 
-**Comic/Manga Library** — Symfony 7.4, PHP 8.3, MariaDB 10.11, DDEV, Doctrine ORM, Symfony UX, PWA.
+**Comic/Manga Library** — Monorepo: `backend/` (Symfony 7.4, PHP 8.3, API Platform 4, JWT) + `frontend/` (React 19, TypeScript, Vite, TanStack Query). MariaDB 10.11, DDEV, PWA.
 
 **Context**: Claude = sole developer → maximum rigor, keep this file and tests up to date.
 
@@ -28,26 +28,41 @@
 ## Principle: Don't Reinvent the Wheel
 
 **Before any implementation**, search in order:
-1. Native Symfony/Doctrine component
-2. Official bundle
-3. Third-party library (maintained, popular, PHP 8.3/Symfony 7.x compatible, MIT/Apache/BSD license)
+1. Native Symfony/Doctrine/React component
+2. Official bundle or npm package
+3. Third-party library (maintained, popular, compatible, MIT/Apache/BSD license)
 4. Custom implementation (last resort)
 
-**Search**: Packagist, symfony.com/bundles, npm, https://ux.symfony.com
+**Search**: Packagist, symfony.com/bundles, npm
 
 ## Commands
 
-**Makefile**: `make help` for the full list. Main shortcuts:
+**Root Makefile** delegates to `backend/` and `frontend/`. Main shortcuts:
 
 ```bash
-make build          # ddev start + composer + npm + migrations + asset-map:compile
-make test           # PHP + JS tests
-make test-php       # PHPUnit only
-make test-js        # Vitest only
-make lint           # PHP-CS-Fixer (dry-run) + PHPStan
+make dev            # install + jwt + migrate
+make prod           # install --no-dev + dump-env + build + migrate + cache
+make ci             # lint + test
+make install        # install-back + install-front
+make test           # test-back + test-front
+make test-back      # PHPUnit
+make test-front     # Vitest
+make lint           # lint-back + lint-front
+make lint-back      # PHPStan + CS Fixer dry-run
+make lint-front     # tsc --noEmit
+make build          # Vite production build
+make serve-prod     # build + vite preview (port 4173)
+make verify-build   # build + check no devtools in bundle
 make cc             # cache:clear
-make migration      # doctrine:migrations:diff
-make migrate        # doctrine:migrations:migrate
+make sf CMD=...     # Run any Symfony console command
+make jwt            # Generate JWT keypair
+make dump-env       # Compile .env for Symfony
+make db-diff        # doctrine:migrations:diff
+make db-migrate     # doctrine:migrations:migrate
+make db-reset       # drop + create + migrate
+make db-seed        # Load fixtures
+make rector         # Apply Rector refactorings
+make rector-dry     # Preview Rector refactorings
 make deploy         # docker-compose prod
 ```
 
@@ -55,7 +70,7 @@ make deploy         # docker-compose prod
 
 ```bash
 ddev exec bin/phpunit tests/PathToTest.php          # Specific test
-ddev exec npm run test:watch                        # JS Tests (watch mode)
+ddev exec "cd frontend && npx vitest run"           # Frontend tests
 ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 ```
 
@@ -81,39 +96,51 @@ ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 2. **Implement**: minimum to make the test pass
 3. **Refactor**: green tests
 
-**Convention**: `src/X/Foo.php` → `tests/X/FooTest.php`
+**Backend convention**: `backend/src/X/Foo.php` → `backend/tests/X/FooTest.php`
+
+**Frontend convention**: `frontend/src/X/Foo.tsx` → `frontend/src/__tests__/X/Foo.test.tsx`
 
 **Test environment**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 
-**Test helpers**: `AuthenticatedWebTestCase` (base class for controller tests with login).
+**TDD exceptions**: YAML config, migrations, assets, CSS.
 
-**TDD exceptions**: Twig templates, YAML config, migrations, assets.
+## Frontend (React + TypeScript)
 
-## JavaScript Tests (Vitest)
+**Stack**: React 19, TypeScript, Vite, TanStack Query v5, React Router v7, Tailwind CSS 4, Headless UI, Lucide React, Sonner.
 
-**Framework**: Vitest + jsdom (native ESM, AssetMapper compatible).
+**Tests**: Vitest + jsdom + React Testing Library.
 
-**Convention**: `assets/X/foo.js` → `tests/js/X/foo.test.js`
+**Patterns**:
+- Hooks for all API interactions (`useComics`, `useComic`, `useCreateComic`, etc.)
+- `apiFetch<T>()` in `services/api.ts` handles JWT token, Content-Type, 401 redirects
+- Mutations invalidate relevant query keys on success
+- Pages are lazy-loaded via `React.lazy()` in `App.tsx`
 
-**Helpers**:
-- `tests/js/setup.js` — global mocks (fetch, localStorage, Cache API, crypto)
-- `tests/js/helpers/stimulus-helper.js` — `startStimulusController()` / `stopStimulusController()`
+**JWT Auth**: Token stored in `localStorage`, 30-day TTL for PWA offline use. `AuthGuard` component redirects to `/login` if not authenticated.
 
-**Fake timers**: always enable `vi.useFakeTimers()` **AFTER** `startStimulusController()` (otherwise Stimulus timeout).
+## API (API Platform 4)
+
+**Format**: JSON-LD (`application/ld+json`).
+
+**Resources**:
+- `ComicSeries` — CRUD + custom restore/permanent-delete operations
+- `Author` — GetCollection (search by name), Get, Post
+- `Tome` — Sub-resource of ComicSeries via `uriTemplate`
+
+**Processors**: `ComicSeriesDeleteProcessor` (soft delete), `ComicSeriesRestoreProcessor`, `ComicSeriesPermanentDeleteProcessor`.
+
+**Lookup**: `/api/lookup/isbn?isbn=...&type=...` and `/api/lookup/title?title=...&type=...` (JWT protected).
+
+**Login**: `POST /api/login` with `{email, password}` → `{token}`.
 
 ## Rector (occasional use)
 
 ```bash
 ddev exec vendor/bin/rector process --dry-run      # Always check first
-ddev exec vendor/bin/rector process src/File.php
+ddev exec vendor/bin/rector process backend/src/File.php
 ```
 
 Run PHP-CS-Fixer and tests afterwards.
-
-## Frontend
-
-Priority: Symfony UX → npm → custom Stimulus.
-UX Packages: `ux-autocomplete`, `ux-dropzone`, `ux-turbo`.
 
 ## Git
 
@@ -196,15 +223,21 @@ Format: `- **Name**: Description`
 ## Structure
 
 ```
-src/{Command,Controller,DataFixtures,Doctrine/Filter,Dto,Entity,Enum,Form,Repository,Service,Twig}/
-templates/                    assets/{controllers,utils}/
-tests/{Behat,Command,Controller,Doctrine/Filter,Dto,Entity,Enum,Form,js,Panther,playwright,Repository,Security,Service,Twig}/
-features/                     # Behat .feature files
+backend/
+  src/{Command,Controller,Doctrine/Filter,Dto,Entity,Enum,Repository,Service,State}/
+  tests/{Command,Entity,Enum,Repository,Service,State}/
+  config/  migrations/
+
+frontend/
+  src/
+    components/   # AuthGuard, BarcodeScanner, ComicCard, ConfirmModal, ErrorFallback, Filters, Layout
+    hooks/        # useAuth, useAuthors, useComic, useComics, useCreateComic, useDeleteComic,
+                  # useLookup, useTrash, useUpdateComic
+    pages/        # ComicDetail, ComicForm, Home, Login, NotFound, Search, Trash, Wishlist
+    services/     # api.ts (apiFetch, JWT token management)
+    types/        # api.ts (interfaces), enums.ts (ComicStatus, ComicType)
+    __tests__/    # test-utils.tsx
 ```
-
-## Architecture
-
-See `memory/patterns.md` for the complete file map, implementation patterns, and conventions.
 
 ## Deployment
 
