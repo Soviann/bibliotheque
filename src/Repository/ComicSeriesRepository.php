@@ -22,6 +22,47 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries soft-deleted, triées par date de suppression décroissante.
+     *
+     * @return ComicSeries[]
+     */
+    public function findSoftDeleted(): array
+    {
+        $em = $this->getEntityManager();
+        $em->getFilters()->disable('soft_delete');
+
+        /** @var ComicSeries[] $results */
+        $results = $this->createQueryBuilder('c')
+            ->where('c.deletedAt IS NOT NULL')
+            ->orderBy('c.deletedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $em->getFilters()->enable('soft_delete');
+
+        return $results;
+    }
+
+    /**
+     * Retourne une série soft-deleted par son ID, ou null si non trouvée.
+     */
+    public function findSoftDeletedById(int $id): ?ComicSeries
+    {
+        $em = $this->getEntityManager();
+        $em->getFilters()->disable('soft_delete');
+
+        $comic = $this->find($id);
+
+        $em->getFilters()->enable('soft_delete');
+
+        if (!$comic instanceof ComicSeries || !$comic->isDeleted()) {
+            return null;
+        }
+
+        return $comic;
+    }
+
+    /**
      * @param array{
      *     isWishlist?: bool,
      *     onNas?: bool|null,

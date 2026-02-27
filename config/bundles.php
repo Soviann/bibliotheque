@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
     Gemini\Symfony\GeminiBundle::class => ['all' => true],

@@ -107,7 +107,6 @@ class WishlistControllerTest extends AuthenticatedWebTestCase
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Wishlist Series Test', $crawler->text());
         self::assertStringNotContainsString('Library Series Test', $crawler->text());
-
     }
 
     /**
