@@ -5,3 +5,8 @@ services:
 
     App\Tests\Behat\Context\:
         resource: '../tests/Behat/Context/'
+
+    Gemini\Testing\ClientFake: ~
+
+    Gemini\Contracts\ClientContract:
+        alias: Gemini\Testing\ClientFake
