@@ -35,7 +35,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ApiResource(
     operations: [
         new GetCollection(
-            paginationItemsPerPage: 20,
+            paginationEnabled: false,
             order: ['title' => 'ASC'],
         ),
         new GetCollection(
