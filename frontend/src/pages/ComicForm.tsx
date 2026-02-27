@@ -194,6 +194,7 @@ export default function ComicForm() {
       coverUrl: result.thumbnail ?? prev.coverUrl,
       description: result.description ?? prev.description,
       isOneShot: result.isOneShot || prev.isOneShot,
+      latestPublishedIssue: result.latestPublishedIssue?.toString() ?? prev.latestPublishedIssue,
       publisher: result.publisher ?? prev.publisher,
       title: result.title || prev.title,
     }));
