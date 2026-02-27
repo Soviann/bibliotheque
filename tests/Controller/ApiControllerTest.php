@@ -105,7 +105,6 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         self::assertArrayHasKey('toLibraryToken', $testSeries);
         self::assertArrayHasKey('tomesCount', $testSeries);
         self::assertArrayHasKey('updatedAt', $testSeries);
-
     }
 
     /**
@@ -252,7 +251,6 @@ class ApiControllerTest extends AuthenticatedWebTestCase
         self::assertNotNull($asterixIndex);
         self::assertNotNull($zorroIndex);
         self::assertLessThan($zorroIndex, $asterixIndex);
-
     }
 
     /**

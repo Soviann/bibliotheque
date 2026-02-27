@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Refactoring SRP/DRY** : Extraction de la logique métier des contrôleurs vers `ComicSeriesService`, ajout de `findSoftDeleted()`/`findSoftDeletedById()` dans `ComicSeriesRepository`, factorisation des réponses lookup dans `ApiController`
 - **Lookup parallélisé** : Les appels API des providers sont désormais lancés en parallèle grâce au multiplexage natif de Symfony HttpClient (`curl_multi`)
   - Interface deux phases : `prepareLookup`/`resolveLookup` (et `prepareEnrich`/`resolveEnrich` pour les enrichables)
   - Timeout global configurable (15s par défaut) protège contre les providers lents

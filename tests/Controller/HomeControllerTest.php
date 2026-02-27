@@ -156,7 +156,6 @@ class HomeControllerTest extends AuthenticatedWebTestCase
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Test Library Series', $crawler->text());
         self::assertStringNotContainsString('Test Wishlist Series', $crawler->text());
-
     }
 
     /**
@@ -194,7 +193,6 @@ class HomeControllerTest extends AuthenticatedWebTestCase
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Series On NAS Test', $crawler->text());
         self::assertStringNotContainsString('Series Not On NAS Test', $crawler->text());
-
     }
 
     /**

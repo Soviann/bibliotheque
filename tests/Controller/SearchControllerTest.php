@@ -57,7 +57,6 @@ class SearchControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Unique Search Title XYZ', $crawler->text());
-
     }
 
     /**
@@ -85,7 +84,6 @@ class SearchControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Series With ISBN', $crawler->text());
-
     }
 
     /**
@@ -120,7 +118,6 @@ class SearchControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Naruto Shippuden', $crawler->text());
-
     }
 
     /**
@@ -142,6 +139,5 @@ class SearchControllerTest extends AuthenticatedWebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('One Piece', $crawler->text());
-
     }
 }

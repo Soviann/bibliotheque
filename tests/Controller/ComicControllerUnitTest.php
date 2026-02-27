@@ -8,9 +8,9 @@ use App\Controller\ComicController;
 use App\Dto\Input\ComicSeriesInput;
 use App\Entity\ComicSeries;
 use App\Service\ComicSeriesMapper;
+use App\Service\ComicSeriesService;
 use Doctrine\DBAL\Driver\Exception as DriverExceptionInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -33,16 +33,13 @@ use Twig\Environment;
 class ComicControllerUnitTest extends TestCase
 {
     /**
-     * Teste que new() affiche un message flash d'erreur si flush() lève une exception.
+     * Teste que new() affiche un message flash d'erreur si create() lève une exception.
      */
     public function testNewActionShowsFlashErrorOnUniqueConstraintViolation(): void
     {
-        $comic = new ComicSeries();
-        $comic->setTitle('Test Series');
-
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager
-            ->method('flush')
+        $comicSeriesService = $this->createMock(ComicSeriesService::class);
+        $comicSeriesService
+            ->method('create')
             ->willThrowException($this->createUniqueConstraintException());
 
         $flashBag = $this->createMock(FlashBagInterface::class);
@@ -75,9 +72,8 @@ class ComicControllerUnitTest extends TestCase
         $requestStack->push($request);
 
         $mapper = $this->createMock(ComicSeriesMapper::class);
-        $mapper->method('mapToEntity')->willReturn($comic);
 
-        $controller = new ComicController($mapper);
+        $controller = new ComicController($mapper, $comicSeriesService);
 
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')->willReturnCallback(static fn (string $id): bool => \in_array($id, ['form.factory', 'twig', 'router', 'request_stack'], true));
@@ -93,23 +89,23 @@ class ComicControllerUnitTest extends TestCase
 
         $controller->setContainer($container);
 
-        $response = $controller->new($request, $entityManager);
+        $response = $controller->new($request);
 
         self::assertNotInstanceOf(RedirectResponse::class, $response);
         self::assertSame(200, $response->getStatusCode());
     }
 
     /**
-     * Teste que edit() affiche un message flash d'erreur si flush() lève une exception.
+     * Teste que edit() affiche un message flash d'erreur si update() lève une exception.
      */
     public function testEditActionShowsFlashErrorOnUniqueConstraintViolation(): void
     {
         $comic = new ComicSeries();
         $comic->setTitle('Test Series');
 
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager
-            ->method('flush')
+        $comicSeriesService = $this->createMock(ComicSeriesService::class);
+        $comicSeriesService
+            ->method('update')
             ->willThrowException($this->createUniqueConstraintException());
 
         $flashBag = $this->createMock(FlashBagInterface::class);
@@ -141,12 +137,10 @@ class ComicControllerUnitTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        // Mock du mapper
         $mapper = $this->createMock(ComicSeriesMapper::class);
         $mapper->method('mapToInput')->willReturn(new ComicSeriesInput());
-        $mapper->method('mapToEntity')->willReturn($comic);
 
-        $controller = new ComicController($mapper);
+        $controller = new ComicController($mapper, $comicSeriesService);
 
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')->willReturnCallback(static fn (string $id): bool => \in_array($id, ['form.factory', 'twig', 'router', 'request_stack'], true));
@@ -162,7 +156,7 @@ class ComicControllerUnitTest extends TestCase
 
         $controller->setContainer($container);
 
-        $response = $controller->edit($request, $comic, $entityManager);
+        $response = $controller->edit($request, $comic);
 
         self::assertNotInstanceOf(RedirectResponse::class, $response);
         self::assertSame(200, $response->getStatusCode());
