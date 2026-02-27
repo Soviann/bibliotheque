@@ -18,6 +18,21 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Pages : Bibliothèque, Wishlist, Détail série, Formulaire création/édition (lookup ISBN/titre + scanner), Recherche, Corbeille
   - Composants : Layout responsive (nav mobile bottom + header desktop), ComicCard, Filters, ConfirmModal, BarcodeScanner
 
+### Added
+
+- **SoftDeletedComicSeriesProvider** : Provider API Platform pour accéder aux séries soft-deleted (restore et suppression définitive)
+- **TrashCollectionProvider** : Endpoint `/api/trash` pour lister les séries de la corbeille
+- **Tests API Platform** : 10 tests fonctionnels couvrant le CRUD, l'authentification JWT, le soft-delete, la restauration et la suppression définitive
+
+### Fixed
+
+- **Restore/permanent-delete** : Les opérations ne trouvaient pas les entités soft-deleted (filtre Doctrine actif) — corrigé via un provider custom
+- **Restore validation** : Le PUT avec body vide déclenchait une erreur de validation (`input: false`)
+- **PHPStan baseline** : Nettoyage des entrées référençant des fichiers supprimés lors de la migration
+- **Guard null getId()** : Ajout d'un guard dans `ComicSeriesPermanentDeleteProcessor` pour satisfaire PHPStan
+- **Cache corbeille** : Invalidation du cache TanStack Query `trash` lors du soft-delete d'une série
+- **Warning React controlled input** : Le formulaire d'édition affiche désormais le loader jusqu'à l'initialisation complète des données
+
 ### Removed
 
 - **Twig/Stimulus/AssetMapper** : Templates, contrôleurs Stimulus, formulaires Symfony Forms, Behat, Panther, Playwright

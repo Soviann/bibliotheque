@@ -121,7 +121,7 @@ export default function ComicForm() {
     }
   }, [comic, isEdit, initialized]);
 
-  if (isEdit && comicLoading) {
+  if (isEdit && !initialized) {
     return <div className="py-12 text-center text-slate-400">Chargement…</div>;
   }
 
