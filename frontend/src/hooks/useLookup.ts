@@ -23,3 +23,17 @@ export function useLookupTitle(title: string, type?: string) {
     queryKey: ["lookup", "title", title, type],
   });
 }
+
+/** Appel impératif — lookup par ISBN */
+export async function fetchLookupIsbn(isbn: string, type?: string): Promise<LookupResult> {
+  const params = new URLSearchParams({ isbn });
+  if (type) params.set("type", type);
+  return apiFetch<LookupResult>(`/lookup/isbn?${params}`);
+}
+
+/** Appel impératif — lookup par titre */
+export async function fetchLookupTitle(title: string, type?: string): Promise<LookupResult> {
+  const params = new URLSearchParams({ title });
+  if (type) params.set("type", type);
+  return apiFetch<LookupResult>(`/lookup/title?${params}`);
+}
