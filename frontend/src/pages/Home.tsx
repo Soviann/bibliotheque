@@ -43,15 +43,15 @@ export default function Home() {
       </div>
 
       {/* Filters + count */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
         <Filters
           onStatusChange={setStatus}
           onTypeChange={setType}
           status={status}
           type={type}
         />
-        <span className="text-sm text-text-muted">
-          {filtered.length}/{allComics.length} séries
+        <span className="shrink-0 text-sm text-text-muted">
+          {filtered.length}/{allComics.length}
         </span>
       </div>
 

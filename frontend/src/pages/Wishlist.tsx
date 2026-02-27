@@ -39,7 +39,7 @@ export default function Wishlist() {
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
         <Filters
           hideStatus
           onStatusChange={() => {}}
@@ -47,7 +47,7 @@ export default function Wishlist() {
           status=""
           type={type}
         />
-        <span className="text-sm text-text-muted">
+        <span className="shrink-0 text-sm text-text-muted">
           {filtered.length} souhait{filtered.length !== 1 ? "s" : ""}
         </span>
       </div>
