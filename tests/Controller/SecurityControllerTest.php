@@ -73,7 +73,6 @@ class SecurityControllerTest extends WebTestCase
 
         // Devrait rediriger vers la page d'accueil
         self::assertResponseRedirects('/');
-
     }
 
     /**
@@ -127,7 +126,6 @@ class SecurityControllerTest extends WebTestCase
 
         // Devrait rediriger vers la page d'accueil
         self::assertResponseRedirects('/');
-
     }
 
     /**
@@ -159,7 +157,6 @@ class SecurityControllerTest extends WebTestCase
 
         // Devrait rediriger (géré par le firewall Symfony)
         self::assertResponseRedirects();
-
     }
 
     /**
@@ -322,7 +319,6 @@ class SecurityControllerTest extends WebTestCase
 
         // Devrait afficher un message d'erreur de throttling
         self::assertSelectorTextContains('.alert-error', 'Too many');
-
     }
 
     /**
