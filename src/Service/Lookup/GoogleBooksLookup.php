@@ -177,9 +177,13 @@ class GoogleBooksLookup implements LookupProviderInterface
             }
 
             if (null === $thumbnail) {
-                $thumbnail = $volumeInfo['imageLinks']['thumbnail']
+                $rawThumbnail = $volumeInfo['imageLinks']['thumbnail']
                     ?? $volumeInfo['imageLinks']['smallThumbnail']
                     ?? null;
+
+                if (\is_string($rawThumbnail)) {
+                    $thumbnail = $this->optimizeThumbnailUrl($rawThumbnail);
+                }
             }
 
             if (null === $title && !empty($volumeInfo['title'])) {
@@ -210,6 +214,26 @@ class GoogleBooksLookup implements LookupProviderInterface
             thumbnail: $thumbnail,
             title: $title,
         );
+    }
+
+    /**
+     * Optimise l'URL d'une couverture Google Books pour obtenir une meilleure résolution.
+     *
+     * - Remplace zoom=1 par zoom=0 (plus grande image disponible)
+     * - Supprime edge=curl (effet de page cornée)
+     * - Force HTTPS
+     */
+    private function optimizeThumbnailUrl(string $url): string
+    {
+        if (!\str_contains($url, 'books.google.com/')) {
+            return $url;
+        }
+
+        $url = (string) \preg_replace('#^http://#', 'https://', $url);
+        $url = \str_replace('zoom=1', 'zoom=0', $url);
+        $url = (string) \preg_replace('/&?edge=curl&?/', '&', $url);
+
+        return \rtrim($url, '&');
     }
 
     private function recordApiMessage(ApiLookupStatus $status, string $message): void
