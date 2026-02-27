@@ -35,10 +35,12 @@ const typeOptions: Option[] = [
 
 const statusOptions: Option[] = [
   { label: "Tous les statuts", value: "" },
-  ...Object.entries(ComicStatus).map(([, value]) => ({
-    label: ComicStatusLabel[value],
-    value,
-  })),
+  ...Object.entries(ComicStatus)
+    .map(([, value]) => ({
+      label: ComicStatusLabel[value],
+      value,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label)),
 ];
 
 function SelectListbox({
@@ -56,7 +58,7 @@ function SelectListbox({
     <Listbox onChange={onChange} value={value}>
       <div className="relative">
         <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
-          <span>{selected.label}</span>
+          <span className="truncate">{selected.label}</span>
           <ChevronDown className="h-4 w-4 text-text-muted" />
         </ListboxButton>
         <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary py-1 shadow-lg transition focus:outline-none">
@@ -86,12 +88,12 @@ export default function Filters({
   type,
 }: FiltersProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="w-44">
+    <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className="min-w-0 flex-1">
         <SelectListbox onChange={onTypeChange} options={typeOptions} value={type} />
       </div>
       {!hideStatus && (
-        <div className="w-48">
+        <div className="min-w-0 flex-1">
           <SelectListbox onChange={onStatusChange} options={statusOptions} value={status} />
         </div>
       )}
