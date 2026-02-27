@@ -185,12 +185,25 @@ php_value[post_max_size] = 12M
 php_value[memory_limit] = 256M
 php_value[max_execution_time] = 30
 
-; Opcache
+; Opcache (pool-level)
 php_admin_value[opcache.enable] = 1
 php_admin_value[opcache.memory_consumption] = 128
 php_admin_value[opcache.max_accelerated_files] = 10000
-php_admin_value[opcache.validate_timestamps] = 0
 ```
+
+### Configurer OPcache (niveau système)
+
+Modifier `/etc/php/8.3/fpm/conf.d/10-opcache.ini` et s'assurer que ces valeurs sont présentes :
+
+```ini
+opcache.validate_timestamps=1
+opcache.revalidate_freq=2
+```
+
+- `validate_timestamps=1` : PHP vérifie la date de modification des fichiers
+- `revalidate_freq=2` : l'intervalle de vérification est de 2 secondes
+
+Après un déploiement, les fichiers modifiés sont rechargés automatiquement sous 2 secondes, sans avoir à vider le cache OPcache manuellement.
 
 ```bash
 sudo mkdir -p /var/log/php-fpm
