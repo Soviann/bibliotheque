@@ -7,6 +7,7 @@ namespace App\Service\Lookup;
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -27,6 +28,8 @@ class GoogleBooksLookup implements LookupProviderInterface
     private ?array $lastApiMessage = null;
 
     public function __construct(
+        #[Autowire('%env(GOOGLE_BOOKS_API_KEY)%')]
+        private readonly string $apiKey,
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
     ) {
@@ -53,11 +56,17 @@ class GoogleBooksLookup implements LookupProviderInterface
 
         $q = 'isbn' === $mode ? 'isbn:'.$query : $query;
 
+        $query = [
+            'maxResults' => 10,
+            'q' => $q,
+        ];
+
+        if ('' !== $this->apiKey) {
+            $query['key'] = $this->apiKey;
+        }
+
         return $this->httpClient->request('GET', self::API_URL, [
-            'query' => [
-                'maxResults' => 10,
-                'q' => $q,
-            ],
+            'query' => $query,
             'timeout' => 10,
         ]);
     }
