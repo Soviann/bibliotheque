@@ -1,0 +1,639 @@
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from "@headlessui/react";
+import { ArrowLeft, Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import BarcodeScanner from "../components/BarcodeScanner";
+import { useAuthors } from "../hooks/useAuthors";
+import { useComic } from "../hooks/useComic";
+import { useCreateComic } from "../hooks/useCreateComic";
+import { useLookupIsbn, useLookupTitle } from "../hooks/useLookup";
+import { useUpdateComic } from "../hooks/useUpdateComic";
+import type { Author, ComicSeries, Tome } from "../types/api";
+import {
+  ComicStatus,
+  ComicStatusLabel,
+  ComicType,
+  ComicTypeLabel,
+} from "../types/enums";
+
+interface TomeFormData {
+  bought: boolean;
+  downloaded: boolean;
+  id?: number;
+  isbn: string;
+  number: number;
+  onNas: boolean;
+  read: boolean;
+  title: string;
+}
+
+interface FormData {
+  authors: Author[];
+  coverUrl: string;
+  description: string;
+  isOneShot: boolean;
+  latestPublishedIssue: string;
+  publisher: string;
+  status: string;
+  title: string;
+  tomes: TomeFormData[];
+  type: string;
+}
+
+function emptyTome(number: number): TomeFormData {
+  return { bought: false, downloaded: false, isbn: "", number, onNas: false, read: false, title: "" };
+}
+
+function buildInitialForm(comic?: ComicSeries): FormData {
+  if (comic) {
+    return {
+      authors: comic.authors,
+      coverUrl: comic.coverUrl ?? "",
+      description: comic.description ?? "",
+      isOneShot: comic.isOneShot,
+      latestPublishedIssue: comic.latestPublishedIssue?.toString() ?? "",
+      publisher: comic.publisher ?? "",
+      status: comic.status,
+      title: comic.title,
+      tomes: comic.tomes.map((t) => ({
+        bought: t.bought,
+        downloaded: t.downloaded,
+        id: t.id,
+        isbn: t.isbn ?? "",
+        number: t.number,
+        onNas: t.onNas,
+        read: t.read,
+        title: t.title ?? "",
+      })),
+      type: comic.type,
+    };
+  }
+  return {
+    authors: [],
+    coverUrl: "",
+    description: "",
+    isOneShot: false,
+    latestPublishedIssue: "",
+    publisher: "",
+    status: ComicStatus.BUYING,
+    title: "",
+    tomes: [emptyTome(1)],
+    type: ComicType.MANGA,
+  };
+}
+
+export default function ComicForm() {
+  const { id } = useParams<{ id: string }>();
+  const isEdit = Boolean(id);
+  const navigate = useNavigate();
+  const { data: comic, isLoading: comicLoading } = useComic(id ? Number(id) : undefined);
+  const createComic = useCreateComic();
+  const updateComic = useUpdateComic();
+
+  const [form, setForm] = useState<FormData>(buildInitialForm());
+  const [initialized, setInitialized] = useState(!isEdit);
+
+  // Lookup state
+  const [lookupIsbn, setLookupIsbn] = useState("");
+  const [lookupTitle, setLookupTitle] = useState("");
+  const [lookupMode, setLookupMode] = useState<"isbn" | "title">("isbn");
+
+  const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
+  const titleLookup = useLookupTitle(lookupMode === "title" ? lookupTitle : "", form.type);
+  const lookupResult = lookupMode === "isbn" ? isbnLookup : titleLookup;
+
+  // Author autocomplete
+  const [authorSearch, setAuthorSearch] = useState("");
+  const { data: authorResults } = useAuthors(authorSearch);
+  const authorOptions = authorResults?.["hydra:member"] ?? [];
+
+  // Initialize form with comic data on edit
+  useEffect(() => {
+    if (isEdit && comic && !initialized) {
+      setForm(buildInitialForm(comic));
+      setInitialized(true);
+    }
+  }, [comic, isEdit, initialized]);
+
+  if (isEdit && comicLoading) {
+    return <div className="py-12 text-center text-slate-400">Chargement…</div>;
+  }
+
+  const update = <K extends keyof FormData>(key: K, value: FormData[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const applyLookup = () => {
+    const result = lookupResult.data;
+    if (!result) return;
+
+    setForm((prev) => ({
+      ...prev,
+      coverUrl: result.coverUrl ?? prev.coverUrl,
+      description: result.description ?? prev.description,
+      isOneShot: result.isOneShot || prev.isOneShot,
+      publisher: result.publisher ?? prev.publisher,
+      title: result.title || prev.title,
+      type: (result.type as FormData["type"]) || prev.type,
+    }));
+
+    if (result.authors.length > 0) {
+      update(
+        "authors",
+        result.authors.map((name, i) => ({ "@id": "", id: -(i + 1), name })),
+      );
+    }
+
+    if (result.totalVolumes && form.tomes.length <= 1) {
+      const tomes: TomeFormData[] = [];
+      for (let i = 1; i <= result.totalVolumes; i++) {
+        tomes.push(emptyTome(i));
+      }
+      update("tomes", tomes);
+    }
+
+    toast.success("Informations récupérées");
+  };
+
+  const addTome = () => {
+    const nextNum = form.tomes.length > 0 ? Math.max(...form.tomes.map((t) => t.number)) + 1 : 1;
+    update("tomes", [...form.tomes, emptyTome(nextNum)]);
+  };
+
+  const removeTome = (index: number) => {
+    update(
+      "tomes",
+      form.tomes.filter((_, i) => i !== index),
+    );
+  };
+
+  const updateTome = <K extends keyof TomeFormData>(index: number, key: K, value: TomeFormData[K]) => {
+    update(
+      "tomes",
+      form.tomes.map((t, i) => (i === index ? { ...t, [key]: value } : t)),
+    );
+  };
+
+  const addAuthor = (author: Author) => {
+    if (!form.authors.some((a) => a.name === author.name)) {
+      update("authors", [...form.authors, author]);
+    }
+    setAuthorSearch("");
+  };
+
+  const removeAuthor = (index: number) => {
+    update(
+      "authors",
+      form.authors.filter((_, i) => i !== index),
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload: Record<string, unknown> = {
+      authors: form.authors.map((a) => (a.id > 0 ? a["@id"] : { name: a.name })),
+      coverUrl: form.coverUrl || null,
+      description: form.description || null,
+      isOneShot: form.isOneShot,
+      latestPublishedIssue: form.latestPublishedIssue ? Number(form.latestPublishedIssue) : null,
+      publisher: form.publisher || null,
+      status: form.status,
+      title: form.title,
+      type: form.type,
+    };
+
+    if (!form.isOneShot) {
+      payload.tomes = form.tomes.map((t) => ({
+        ...(t.id ? { id: t.id } : {}),
+        bought: t.bought,
+        downloaded: t.downloaded,
+        isbn: t.isbn || null,
+        number: t.number,
+        onNas: t.onNas,
+        read: t.read,
+        title: t.title || null,
+      }));
+    }
+
+    if (isEdit && id) {
+      updateComic.mutate(
+        { id: Number(id), ...payload } as Partial<ComicSeries> & { id: number },
+        {
+          onSuccess: () => {
+            toast.success("Série mise à jour");
+            navigate(`/comic/${id}`);
+          },
+          onError: (err) => toast.error(err.message),
+        },
+      );
+    } else {
+      createComic.mutate(payload as Partial<ComicSeries>, {
+        onSuccess: (created) => {
+          toast.success("Série créée");
+          navigate(`/comic/${created.id}`);
+        },
+        onError: (err) => toast.error(err.message),
+      });
+    }
+  };
+
+  const isSaving = createComic.isPending || updateComic.isPending;
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button className="text-slate-400 hover:text-slate-600" onClick={() => navigate(-1)} type="button">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <h1 className="text-xl font-bold text-slate-900">
+          {isEdit ? "Modifier la série" : "Nouvelle série"}
+        </h1>
+      </div>
+
+      {/* Lookup section */}
+      {!isEdit && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-slate-700">Recherche automatique</h2>
+
+          <div className="flex gap-2">
+            <button
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "isbn" ? "bg-primary-100 text-primary-700" : "text-slate-500 hover:bg-slate-100"}`}
+              onClick={() => setLookupMode("isbn")}
+              type="button"
+            >
+              ISBN
+            </button>
+            <button
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${lookupMode === "title" ? "bg-primary-100 text-primary-700" : "text-slate-500 hover:bg-slate-100"}`}
+              onClick={() => setLookupMode("title")}
+              type="button"
+            >
+              Titre
+            </button>
+          </div>
+
+          {lookupMode === "isbn" ? (
+            <div className="flex gap-2">
+              <input
+                className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                onChange={(e) => setLookupIsbn(e.target.value)}
+                placeholder="ISBN (10 ou 13 chiffres)"
+                value={lookupIsbn}
+              />
+              <BarcodeScanner onScan={setLookupIsbn} />
+            </div>
+          ) : (
+            <input
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              onChange={(e) => setLookupTitle(e.target.value)}
+              placeholder="Titre de la série"
+              value={lookupTitle}
+            />
+          )}
+
+          {lookupResult.isFetching && (
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <Loader2 className="h-4 w-4 animate-spin" /> Recherche en cours…
+            </div>
+          )}
+
+          {lookupResult.data && !lookupResult.isFetching && (
+            <div className="flex items-center justify-between rounded-lg bg-white p-3 border border-slate-200">
+              <div className="text-sm">
+                <p className="font-medium text-slate-900">{lookupResult.data.title}</p>
+                <p className="text-slate-500">
+                  {lookupResult.data.authors.join(", ")}
+                  {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
+                </p>
+              </div>
+              <button
+                className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+                onClick={applyLookup}
+                type="button"
+              >
+                Appliquer
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Form */}
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        {/* Title */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="title">
+            Titre *
+          </label>
+          <input
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            id="title"
+            onChange={(e) => update("title", e.target.value)}
+            required
+            value={form.title}
+          />
+        </div>
+
+        {/* Type + Status */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="type">
+              Type *
+            </label>
+            <select
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              id="type"
+              onChange={(e) => update("type", e.target.value)}
+              value={form.type}
+            >
+              {Object.entries(ComicType).map(([key, value]) => (
+                <option key={key} value={value}>
+                  {ComicTypeLabel[value]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="status">
+              Statut *
+            </label>
+            <select
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              id="status"
+              onChange={(e) => update("status", e.target.value)}
+              value={form.status}
+            >
+              {Object.entries(ComicStatus).map(([key, value]) => (
+                <option key={key} value={value}>
+                  {ComicStatusLabel[value]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* One-shot toggle */}
+        <label className="flex items-center gap-2">
+          <input
+            checked={form.isOneShot}
+            className="h-4 w-4 rounded border-slate-300 text-primary-600"
+            onChange={(e) => update("isOneShot", e.target.checked)}
+            type="checkbox"
+          />
+          <span className="text-sm font-medium text-slate-700">One-shot (pas de tomes)</span>
+        </label>
+
+        {/* Publisher */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="publisher">
+            Éditeur
+          </label>
+          <input
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            id="publisher"
+            onChange={(e) => update("publisher", e.target.value)}
+            value={form.publisher}
+          />
+        </div>
+
+        {/* Cover URL */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="coverUrl">
+            URL de couverture
+          </label>
+          <input
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            id="coverUrl"
+            onChange={(e) => update("coverUrl", e.target.value)}
+            placeholder="https://..."
+            type="url"
+            value={form.coverUrl}
+          />
+          {form.coverUrl && (
+            <img alt="Aperçu" className="mt-2 h-32 rounded-lg shadow" src={form.coverUrl} />
+          )}
+        </div>
+
+        {/* Authors */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">Auteurs</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {form.authors.map((author, i) => (
+              <span
+                className="flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700"
+                key={author.id}
+              >
+                {author.name}
+                <button
+                  className="ml-1 rounded-full p-0.5 hover:bg-primary-200"
+                  onClick={() => removeAuthor(i)}
+                  type="button"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <Combobox
+            onChange={(author: Author | null) => {
+              if (author) addAuthor(author);
+            }}
+            value={null}
+          >
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <ComboboxInput
+                className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-3 text-sm"
+                displayValue={() => authorSearch}
+                onChange={(e) => setAuthorSearch(e.target.value)}
+                placeholder="Rechercher ou créer un auteur…"
+              />
+              <ComboboxOptions className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+                {authorOptions.map((author) => (
+                  <ComboboxOption
+                    className="cursor-pointer px-3 py-2 text-sm text-slate-700 data-[focus]:bg-primary-50"
+                    key={author.id}
+                    value={author}
+                  >
+                    {author.name}
+                  </ComboboxOption>
+                ))}
+                {authorSearch.length >= 2 && !authorOptions.some((a) => a.name.toLowerCase() === authorSearch.toLowerCase()) && (
+                  <ComboboxOption
+                    className="cursor-pointer px-3 py-2 text-sm text-primary-700 data-[focus]:bg-primary-50"
+                    value={{ "@id": "", id: -Date.now(), name: authorSearch } as Author}
+                  >
+                    <Plus className="mr-1 inline h-3 w-3" />
+                    Créer « {authorSearch} »
+                  </ComboboxOption>
+                )}
+              </ComboboxOptions>
+            </div>
+          </Combobox>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="description">
+            Description
+          </label>
+          <textarea
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            id="description"
+            onChange={(e) => update("description", e.target.value)}
+            rows={3}
+            value={form.description}
+          />
+        </div>
+
+        {/* Latest published issue */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="latestPublishedIssue">
+            Dernier tome paru
+          </label>
+          <input
+            className="w-32 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            id="latestPublishedIssue"
+            min="0"
+            onChange={(e) => update("latestPublishedIssue", e.target.value)}
+            type="number"
+            value={form.latestPublishedIssue}
+          />
+        </div>
+
+        {/* Tomes */}
+        {!form.isOneShot && (
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-700">
+                Tomes ({form.tomes.length})
+              </h2>
+              <button
+                className="flex items-center gap-1 rounded-lg bg-primary-100 px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-200"
+                onClick={addTome}
+                type="button"
+              >
+                <Plus className="h-4 w-4" /> Ajouter
+              </button>
+            </div>
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium text-slate-600">#</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-600">Titre</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-600">ISBN</th>
+                    <th className="px-3 py-2 text-center font-medium text-slate-600">Acheté</th>
+                    <th className="px-3 py-2 text-center font-medium text-slate-600">DL</th>
+                    <th className="px-3 py-2 text-center font-medium text-slate-600">Lu</th>
+                    <th className="px-3 py-2 text-center font-medium text-slate-600">NAS</th>
+                    <th className="px-3 py-2" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {form.tomes.map((tome, i) => (
+                    <tr key={i}>
+                      <td className="px-3 py-1.5">
+                        <input
+                          className="w-14 rounded border border-slate-300 px-2 py-1 text-center text-sm"
+                          min="0"
+                          onChange={(e) => updateTome(i, "number", Number(e.target.value))}
+                          type="number"
+                          value={tome.number}
+                        />
+                      </td>
+                      <td className="px-3 py-1.5">
+                        <input
+                          className="w-full min-w-[100px] rounded border border-slate-300 px-2 py-1 text-sm"
+                          onChange={(e) => updateTome(i, "title", e.target.value)}
+                          placeholder="Titre"
+                          value={tome.title}
+                        />
+                      </td>
+                      <td className="px-3 py-1.5">
+                        <input
+                          className="w-full min-w-[120px] rounded border border-slate-300 px-2 py-1 text-sm"
+                          onChange={(e) => updateTome(i, "isbn", e.target.value)}
+                          placeholder="ISBN"
+                          value={tome.isbn}
+                        />
+                      </td>
+                      <td className="px-3 py-1.5 text-center">
+                        <input
+                          checked={tome.bought}
+                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          onChange={(e) => updateTome(i, "bought", e.target.checked)}
+                          type="checkbox"
+                        />
+                      </td>
+                      <td className="px-3 py-1.5 text-center">
+                        <input
+                          checked={tome.downloaded}
+                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
+                          type="checkbox"
+                        />
+                      </td>
+                      <td className="px-3 py-1.5 text-center">
+                        <input
+                          checked={tome.read}
+                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          onChange={(e) => updateTome(i, "read", e.target.checked)}
+                          type="checkbox"
+                        />
+                      </td>
+                      <td className="px-3 py-1.5 text-center">
+                        <input
+                          checked={tome.onNas}
+                          className="h-4 w-4 rounded border-slate-300 text-primary-600"
+                          onChange={(e) => updateTome(i, "onNas", e.target.checked)}
+                          type="checkbox"
+                        />
+                      </td>
+                      <td className="px-3 py-1.5">
+                        <button
+                          className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => removeTome(i)}
+                          type="button"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Submit */}
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            onClick={() => navigate(-1)}
+            type="button"
+          >
+            Annuler
+          </button>
+          <button
+            className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+            disabled={isSaving || !form.title}
+            type="submit"
+          >
+            {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isEdit ? "Enregistrer" : "Créer"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
