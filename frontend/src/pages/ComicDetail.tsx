@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
-import { ComicStatusLabel, ComicTypeLabel } from "../types/enums";
+import { ComicStatus, ComicStatusLabel, ComicTypeLabel } from "../types/enums";
 
 export default function ComicDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,9 +28,9 @@ export default function ComicDetail() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
+        <Link className="text-text-muted hover:text-text-secondary" to={comic.status === ComicStatus.WISHLIST ? "/wishlist" : "/"}>
           <ArrowLeft className="h-5 w-5" />
-        </button>
+        </Link>
         <h1 className="flex-1 text-xl font-bold text-text-primary">{comic.title}</h1>
       </div>
 
