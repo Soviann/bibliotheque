@@ -14,6 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import BarcodeScanner from "../components/BarcodeScanner";
 import { useAuthors } from "../hooks/useAuthors";
+import { apiFetch } from "../services/api";
 import { useComic } from "../hooks/useComic";
 import { useCreateComic } from "../hooks/useCreateComic";
 import { useLookupIsbn, useLookupTitle } from "../hooks/useLookup";
@@ -243,11 +244,30 @@ export default function ComicForm() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Créer les nouveaux auteurs via l'API et récupérer leurs IRI
+    const authorIris: string[] = [];
+    for (const a of form.authors) {
+      if (a.id > 0) {
+        authorIris.push(a["@id"]);
+      } else {
+        try {
+          const created = await apiFetch<Author>("/authors", {
+            body: JSON.stringify({ name: a.name }),
+            method: "POST",
+          });
+          authorIris.push(created["@id"]);
+        } catch {
+          toast.error(`Erreur lors de la création de l'auteur « ${a.name} »`);
+          return;
+        }
+      }
+    }
+
     const payload: Record<string, unknown> = {
-      authors: form.authors.map((a) => (a.id > 0 ? a["@id"] : { name: a.name })),
+      authors: authorIris,
       coverUrl: form.coverUrl || null,
       description: form.description || null,
       isOneShot: form.isOneShot,
