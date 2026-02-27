@@ -125,6 +125,269 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     ...<string, DefinitionType|AliasType|PrototypeType|StackType|ArgumentsType|null>
  * }
  * @psalm-type ExtensionType = array<string, mixed>
+ * @psalm-type ApiPlatformConfig = array{
+ *     title?: scalar|Param|null, // The title of the API. // Default: ""
+ *     description?: scalar|Param|null, // The description of the API. // Default: ""
+ *     version?: scalar|Param|null, // The version of the API. // Default: "0.0.0"
+ *     show_webby?: bool|Param, // If true, show Webby on the documentation page // Default: true
+ *     use_symfony_listeners?: bool|Param, // Uses Symfony event listeners instead of the ApiPlatform\Symfony\Controller\MainController. // Default: false
+ *     name_converter?: scalar|Param|null, // Specify a name converter to use. // Default: null
+ *     asset_package?: scalar|Param|null, // Specify an asset package name to use. // Default: null
+ *     path_segment_name_generator?: scalar|Param|null, // Specify a path name generator to use. // Default: "api_platform.metadata.path_segment_name_generator.underscore"
+ *     inflector?: scalar|Param|null, // Specify an inflector to use. // Default: "api_platform.metadata.inflector"
+ *     validator?: array{
+ *         serialize_payload_fields?: mixed, // Set to null to serialize all payload fields when a validation error is thrown, or set the fields you want to include explicitly. // Default: []
+ *         query_parameter_validation?: bool|Param, // Deprecated: Will be removed in API Platform 5.0. // Default: true
+ *     },
+ *     eager_loading?: bool|array{
+ *         enabled?: bool|Param, // Default: true
+ *         fetch_partial?: bool|Param, // Fetch only partial data according to serialization groups. If enabled, Doctrine ORM entities will not work as expected if any of the other fields are used. // Default: false
+ *         max_joins?: int|Param, // Max number of joined relations before EagerLoading throws a RuntimeException // Default: 30
+ *         force_eager?: bool|Param, // Force join on every relation. If disabled, it will only join relations having the EAGER fetch mode. // Default: true
+ *     },
+ *     handle_symfony_errors?: bool|Param, // Allows to handle symfony exceptions. // Default: false
+ *     enable_swagger?: bool|Param, // Enable the Swagger documentation and export. // Default: true
+ *     enable_json_streamer?: bool|Param, // Enable json streamer. // Default: false
+ *     enable_swagger_ui?: bool|Param, // Enable Swagger UI // Default: false
+ *     enable_re_doc?: bool|Param, // Enable ReDoc // Default: false
+ *     enable_entrypoint?: bool|Param, // Enable the entrypoint // Default: true
+ *     enable_docs?: bool|Param, // Enable the docs // Default: true
+ *     enable_profiler?: bool|Param, // Enable the data collector and the WebProfilerBundle integration. // Default: true
+ *     enable_phpdoc_parser?: bool|Param, // Enable resource metadata collector using PHPStan PhpDocParser. // Default: true
+ *     enable_link_security?: bool|Param, // Enable security for Links (sub resources) // Default: false
+ *     collection?: array{
+ *         exists_parameter_name?: scalar|Param|null, // The name of the query parameter to filter on nullable field values. // Default: "exists"
+ *         order?: scalar|Param|null, // The default order of results. // Default: "ASC"
+ *         order_parameter_name?: scalar|Param|null, // The name of the query parameter to order results. // Default: "order"
+ *         order_nulls_comparison?: "nulls_smallest"|"nulls_largest"|"nulls_always_first"|"nulls_always_last"|Param|null, // The nulls comparison strategy. // Default: null
+ *         pagination?: bool|array{
+ *             enabled?: bool|Param, // Default: true
+ *             page_parameter_name?: scalar|Param|null, // The default name of the parameter handling the page number. // Default: "page"
+ *             enabled_parameter_name?: scalar|Param|null, // The name of the query parameter to enable or disable pagination. // Default: "pagination"
+ *             items_per_page_parameter_name?: scalar|Param|null, // The name of the query parameter to set the number of items per page. // Default: "itemsPerPage"
+ *             partial_parameter_name?: scalar|Param|null, // The name of the query parameter to enable or disable partial pagination. // Default: "partial"
+ *         },
+ *     },
+ *     mapping?: array{
+ *         imports?: list<scalar|Param|null>,
+ *         paths?: list<scalar|Param|null>,
+ *     },
+ *     resource_class_directories?: list<scalar|Param|null>,
+ *     serializer?: array{
+ *         hydra_prefix?: bool|Param, // Use the "hydra:" prefix. // Default: false
+ *     },
+ *     doctrine?: bool|array{
+ *         enabled?: bool|Param, // Default: true
+ *     },
+ *     doctrine_mongodb_odm?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *     },
+ *     oauth?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         clientId?: scalar|Param|null, // The oauth client id. // Default: ""
+ *         clientSecret?: scalar|Param|null, // The OAuth client secret. Never use this parameter in your production environment. It exposes crucial security information. This feature is intended for dev/test environments only. Enable "oauth.pkce" instead // Default: ""
+ *         pkce?: bool|Param, // Enable the oauth PKCE. // Default: false
+ *         type?: scalar|Param|null, // The oauth type. // Default: "oauth2"
+ *         flow?: scalar|Param|null, // The oauth flow grant type. // Default: "application"
+ *         tokenUrl?: scalar|Param|null, // The oauth token url. // Default: ""
+ *         authorizationUrl?: scalar|Param|null, // The oauth authentication url. // Default: ""
+ *         refreshUrl?: scalar|Param|null, // The oauth refresh url. // Default: ""
+ *         scopes?: list<scalar|Param|null>,
+ *     },
+ *     graphql?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         default_ide?: scalar|Param|null, // Default: "graphiql"
+ *         graphiql?: bool|array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *         introspection?: bool|array{
+ *             enabled?: bool|Param, // Default: true
+ *         },
+ *         max_query_depth?: int|Param, // Default: 20
+ *         graphql_playground?: bool|array{ // Deprecated: The "graphql_playground" configuration is deprecated and will be ignored.
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *         max_query_complexity?: int|Param, // Default: 500
+ *         nesting_separator?: scalar|Param|null, // The separator to use to filter nested fields. // Default: "_"
+ *         collection?: array{
+ *             pagination?: bool|array{
+ *                 enabled?: bool|Param, // Default: true
+ *             },
+ *         },
+ *     },
+ *     swagger?: array{
+ *         persist_authorization?: bool|Param, // Persist the SwaggerUI Authorization in the localStorage. // Default: false
+ *         versions?: list<scalar|Param|null>,
+ *         api_keys?: array<string, array{ // Default: []
+ *             name?: scalar|Param|null, // The name of the header or query parameter containing the api key.
+ *             type?: "query"|"header"|Param, // Whether the api key should be a query parameter or a header.
+ *         }>,
+ *         http_auth?: array<string, array{ // Default: []
+ *             scheme?: scalar|Param|null, // The OpenAPI HTTP auth scheme, for example "bearer"
+ *             bearerFormat?: scalar|Param|null, // The OpenAPI HTTP bearer format
+ *         }>,
+ *         swagger_ui_extra_configuration?: mixed, // To pass extra configuration to Swagger UI, like docExpansion or filter. // Default: []
+ *     },
+ *     http_cache?: array{
+ *         public?: bool|Param|null, // To make all responses public by default. // Default: null
+ *         invalidation?: bool|array{ // Enable the tags-based cache invalidation system.
+ *             enabled?: bool|Param, // Default: false
+ *             varnish_urls?: list<scalar|Param|null>,
+ *             urls?: list<scalar|Param|null>,
+ *             scoped_clients?: list<scalar|Param|null>,
+ *             max_header_length?: int|Param, // Max header length supported by the cache server. // Default: 7500
+ *             request_options?: mixed, // To pass options to the client charged with the request. // Default: []
+ *             purger?: scalar|Param|null, // Specify a purger to use (available values: "api_platform.http_cache.purger.varnish.ban", "api_platform.http_cache.purger.varnish.xkey", "api_platform.http_cache.purger.souin"). // Default: "api_platform.http_cache.purger.varnish"
+ *             xkey?: array{ // Deprecated: The "xkey" configuration is deprecated, use your own purger to customize surrogate keys or the appropriate paramters.
+ *                 glue?: scalar|Param|null, // xkey glue between keys // Default: " "
+ *             },
+ *         },
+ *     },
+ *     mercure?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         hub_url?: scalar|Param|null, // The URL sent in the Link HTTP header. If not set, will default to the URL for MercureBundle's default hub. // Default: null
+ *         include_type?: bool|Param, // Always include @type in updates (including delete ones). // Default: false
+ *     },
+ *     messenger?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *     },
+ *     elasticsearch?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         hosts?: list<scalar|Param|null>,
+ *     },
+ *     openapi?: array{
+ *         contact?: array{
+ *             name?: scalar|Param|null, // The identifying name of the contact person/organization. // Default: null
+ *             url?: scalar|Param|null, // The URL pointing to the contact information. MUST be in the format of a URL. // Default: null
+ *             email?: scalar|Param|null, // The email address of the contact person/organization. MUST be in the format of an email address. // Default: null
+ *         },
+ *         termsOfService?: scalar|Param|null, // A URL to the Terms of Service for the API. MUST be in the format of a URL. // Default: null
+ *         tags?: list<array{ // Default: []
+ *             name?: scalar|Param|null,
+ *             description?: scalar|Param|null, // Default: null
+ *         }>,
+ *         license?: array{
+ *             name?: scalar|Param|null, // The license name used for the API. // Default: null
+ *             url?: scalar|Param|null, // URL to the license used for the API. MUST be in the format of a URL. // Default: null
+ *             identifier?: scalar|Param|null, // An SPDX license expression for the API. The identifier field is mutually exclusive of the url field. // Default: null
+ *         },
+ *         swagger_ui_extra_configuration?: mixed, // To pass extra configuration to Swagger UI, like docExpansion or filter. // Default: []
+ *         overrideResponses?: bool|Param, // Whether API Platform adds automatic responses to the OpenAPI documentation. // Default: true
+ *         error_resource_class?: scalar|Param|null, // The class used to represent errors in the OpenAPI documentation. // Default: null
+ *         validation_error_resource_class?: scalar|Param|null, // The class used to represent validation errors in the OpenAPI documentation. // Default: null
+ *     },
+ *     maker?: bool|array{
+ *         enabled?: bool|Param, // Default: true
+ *     },
+ *     exception_to_status?: array<string, int|Param>,
+ *     formats?: array<string, array{ // Default: {"jsonld":{"mime_types":["application/ld+json"]}}
+ *         mime_types?: list<scalar|Param|null>,
+ *     }>,
+ *     patch_formats?: array<string, array{ // Default: {"json":{"mime_types":["application/merge-patch+json"]}}
+ *         mime_types?: list<scalar|Param|null>,
+ *     }>,
+ *     docs_formats?: array<string, array{ // Default: {"jsonld":{"mime_types":["application/ld+json"]},"jsonopenapi":{"mime_types":["application/vnd.openapi+json"]},"html":{"mime_types":["text/html"]},"yamlopenapi":{"mime_types":["application/vnd.openapi+yaml"]}}
+ *         mime_types?: list<scalar|Param|null>,
+ *     }>,
+ *     error_formats?: array<string, array{ // Default: {"jsonld":{"mime_types":["application/ld+json"]},"jsonproblem":{"mime_types":["application/problem+json"]},"json":{"mime_types":["application/problem+json","application/json"]}}
+ *         mime_types?: list<scalar|Param|null>,
+ *     }>,
+ *     jsonschema_formats?: list<scalar|Param|null>,
+ *     defaults?: array{
+ *         uri_template?: mixed,
+ *         short_name?: mixed,
+ *         description?: mixed,
+ *         types?: mixed,
+ *         operations?: mixed,
+ *         formats?: mixed,
+ *         input_formats?: mixed,
+ *         output_formats?: mixed,
+ *         uri_variables?: mixed,
+ *         route_prefix?: mixed,
+ *         defaults?: mixed,
+ *         requirements?: mixed,
+ *         options?: mixed,
+ *         stateless?: mixed,
+ *         sunset?: mixed,
+ *         accept_patch?: mixed,
+ *         status?: mixed,
+ *         host?: mixed,
+ *         schemes?: mixed,
+ *         condition?: mixed,
+ *         controller?: mixed,
+ *         class?: mixed,
+ *         url_generation_strategy?: mixed,
+ *         deprecation_reason?: mixed,
+ *         headers?: mixed,
+ *         cache_headers?: mixed,
+ *         normalization_context?: mixed,
+ *         denormalization_context?: mixed,
+ *         collect_denormalization_errors?: mixed,
+ *         hydra_context?: mixed,
+ *         openapi?: mixed,
+ *         validation_context?: mixed,
+ *         filters?: mixed,
+ *         mercure?: mixed,
+ *         messenger?: mixed,
+ *         input?: mixed,
+ *         output?: mixed,
+ *         order?: mixed,
+ *         fetch_partial?: mixed,
+ *         force_eager?: mixed,
+ *         pagination_client_enabled?: mixed,
+ *         pagination_client_items_per_page?: mixed,
+ *         pagination_client_partial?: mixed,
+ *         pagination_via_cursor?: mixed,
+ *         pagination_enabled?: mixed,
+ *         pagination_fetch_join_collection?: mixed,
+ *         pagination_use_output_walkers?: mixed,
+ *         pagination_items_per_page?: mixed,
+ *         pagination_maximum_items_per_page?: mixed,
+ *         pagination_partial?: mixed,
+ *         pagination_type?: mixed,
+ *         security?: mixed,
+ *         security_message?: mixed,
+ *         security_post_denormalize?: mixed,
+ *         security_post_denormalize_message?: mixed,
+ *         security_post_validation?: mixed,
+ *         security_post_validation_message?: mixed,
+ *         composite_identifier?: mixed,
+ *         exception_to_status?: mixed,
+ *         query_parameter_validation_enabled?: mixed,
+ *         links?: mixed,
+ *         graph_ql_operations?: mixed,
+ *         provider?: mixed,
+ *         processor?: mixed,
+ *         state_options?: mixed,
+ *         rules?: mixed,
+ *         policy?: mixed,
+ *         middleware?: mixed,
+ *         parameters?: mixed,
+ *         strict_query_parameter_validation?: mixed,
+ *         hide_hydra_operation?: mixed,
+ *         json_stream?: mixed,
+ *         extra_properties?: mixed,
+ *         map?: mixed,
+ *         route_name?: mixed,
+ *         errors?: mixed,
+ *         read?: mixed,
+ *         deserialize?: mixed,
+ *         validate?: mixed,
+ *         write?: mixed,
+ *         serialize?: mixed,
+ *         priority?: mixed,
+ *         name?: mixed,
+ *         allow_create?: mixed,
+ *         item_uri_template?: mixed,
+ *         ...<mixed>
+ *     },
+ * }
+ * @psalm-type DamaDoctrineTestConfig = array{
+ *     enable_static_connection?: mixed, // Default: true
+ *     enable_static_meta_data_cache?: bool|Param, // Default: true
+ *     enable_static_query_cache?: bool|Param, // Default: true
+ *     connection_keys?: list<mixed>,
+ * }
  * @psalm-type DoctrineConfig = array{
  *     dbal?: array{
  *         default_connection?: scalar|Param|null,
@@ -354,9 +617,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         resolve_target_entities?: array<string, scalar|Param|null>,
  *     },
  * }
- * @psalm-type GeminiConfig = array{
- *     api_key?: scalar|Param|null, // Default: "%env(GEMINI_API_KEY)%"
- * }
  * @psalm-type DoctrineMigrationsConfig = array{
  *     enable_service_migrations?: bool|Param, // Whether to enable fetching migrations from the service container. // Default: false
  *     migrations_paths?: array<string, scalar|Param|null>,
@@ -381,11 +641,407 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     enable_profiler?: bool|Param, // Whether or not to enable the profiler collector to calculate and visualize migration status. This adds some queries overhead. // Default: false
  *     transactional?: bool|Param, // Whether or not to wrap migrations in a single transaction. // Default: true
  * }
- * @psalm-type DamaDoctrineTestConfig = array{
- *     enable_static_connection?: mixed, // Default: true
- *     enable_static_meta_data_cache?: bool|Param, // Default: true
- *     enable_static_query_cache?: bool|Param, // Default: true
- *     connection_keys?: list<mixed>,
+ * @psalm-type GeminiConfig = array{
+ *     api_key?: scalar|Param|null, // Default: "%env(GEMINI_API_KEY)%"
+ * }
+ * @psalm-type LexikJwtAuthenticationConfig = array{
+ *     public_key?: scalar|Param|null, // The key used to sign tokens (useless for HMAC). If not set, the key will be automatically computed from the secret key. // Default: null
+ *     additional_public_keys?: list<scalar|Param|null>,
+ *     secret_key?: scalar|Param|null, // The key used to sign tokens. It can be a raw secret (for HMAC), a raw RSA/ECDSA key or the path to a file itself being plaintext or PEM. // Default: null
+ *     pass_phrase?: scalar|Param|null, // The key passphrase (useless for HMAC) // Default: ""
+ *     token_ttl?: scalar|Param|null, // Default: 3600
+ *     allow_no_expiration?: bool|Param, // Allow tokens without "exp" claim (i.e. indefinitely valid, no lifetime) to be considered valid. Caution: usage of this should be rare. // Default: false
+ *     clock_skew?: scalar|Param|null, // Default: 0
+ *     encoder?: array{
+ *         service?: scalar|Param|null, // Default: "lexik_jwt_authentication.encoder.lcobucci"
+ *         signature_algorithm?: scalar|Param|null, // Default: "RS256"
+ *     },
+ *     user_id_claim?: scalar|Param|null, // Default: "username"
+ *     token_extractors?: array{
+ *         authorization_header?: bool|array{
+ *             enabled?: bool|Param, // Default: true
+ *             prefix?: scalar|Param|null, // Default: "Bearer"
+ *             name?: scalar|Param|null, // Default: "Authorization"
+ *         },
+ *         cookie?: bool|array{
+ *             enabled?: bool|Param, // Default: false
+ *             name?: scalar|Param|null, // Default: "BEARER"
+ *         },
+ *         query_parameter?: bool|array{
+ *             enabled?: bool|Param, // Default: false
+ *             name?: scalar|Param|null, // Default: "bearer"
+ *         },
+ *         split_cookie?: bool|array{
+ *             enabled?: bool|Param, // Default: false
+ *             cookies?: list<scalar|Param|null>,
+ *         },
+ *     },
+ *     remove_token_from_body_when_cookies_used?: scalar|Param|null, // Default: true
+ *     set_cookies?: array<string, array{ // Default: []
+ *         lifetime?: scalar|Param|null, // The cookie lifetime. If null, the "token_ttl" option value will be used // Default: null
+ *         samesite?: "none"|"lax"|"strict"|Param, // Default: "lax"
+ *         path?: scalar|Param|null, // Default: "/"
+ *         domain?: scalar|Param|null, // Default: null
+ *         secure?: scalar|Param|null, // Default: true
+ *         httpOnly?: scalar|Param|null, // Default: true
+ *         partitioned?: scalar|Param|null, // Default: false
+ *         split?: list<scalar|Param|null>,
+ *     }>,
+ *     api_platform?: bool|array{ // API Platform compatibility: add check_path in OpenAPI documentation.
+ *         enabled?: bool|Param, // Default: false
+ *         check_path?: scalar|Param|null, // The login check path to add in OpenAPI. // Default: null
+ *         username_path?: scalar|Param|null, // The path to the username in the JSON body. // Default: null
+ *         password_path?: scalar|Param|null, // The path to the password in the JSON body. // Default: null
+ *     },
+ *     access_token_issuance?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         signature?: array{
+ *             algorithm?: scalar|Param|null, // The algorithm use to sign the access tokens.
+ *             key?: scalar|Param|null, // The signature key. It shall be JWK encoded.
+ *         },
+ *         encryption?: bool|array{
+ *             enabled?: bool|Param, // Default: false
+ *             key_encryption_algorithm?: scalar|Param|null, // The key encryption algorithm is used to encrypt the token.
+ *             content_encryption_algorithm?: scalar|Param|null, // The key encryption algorithm is used to encrypt the token.
+ *             key?: scalar|Param|null, // The encryption key. It shall be JWK encoded.
+ *         },
+ *     },
+ *     access_token_verification?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         signature?: array{
+ *             header_checkers?: list<scalar|Param|null>,
+ *             claim_checkers?: list<scalar|Param|null>,
+ *             mandatory_claims?: list<scalar|Param|null>,
+ *             allowed_algorithms?: list<scalar|Param|null>,
+ *             keyset?: scalar|Param|null, // The signature keyset. It shall be JWKSet encoded.
+ *         },
+ *         encryption?: bool|array{
+ *             enabled?: bool|Param, // Default: false
+ *             continue_on_decryption_failure?: bool|Param, // If enable, non-encrypted tokens or tokens that failed during decryption or verification processes are accepted. // Default: false
+ *             header_checkers?: list<scalar|Param|null>,
+ *             allowed_key_encryption_algorithms?: list<scalar|Param|null>,
+ *             allowed_content_encryption_algorithms?: list<scalar|Param|null>,
+ *             keyset?: scalar|Param|null, // The encryption keyset. It shall be JWKSet encoded.
+ *         },
+ *     },
+ *     blocklist_token?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         cache?: scalar|Param|null, // Storage to track blocked tokens // Default: "cache.app"
+ *     },
+ * }
+ * @psalm-type LiipImagineConfig = array{
+ *     resolvers?: array<string, array{ // Default: []
+ *         web_path?: array{
+ *             web_root?: scalar|Param|null, // Default: "%kernel.project_dir%/public"
+ *             cache_prefix?: scalar|Param|null, // Default: "media/cache"
+ *         },
+ *         aws_s3?: array{
+ *             bucket?: scalar|Param|null,
+ *             cache?: scalar|Param|null, // Default: false
+ *             use_psr_cache?: bool|Param, // Default: false
+ *             acl?: scalar|Param|null, // Default: "public-read"
+ *             cache_prefix?: scalar|Param|null, // Default: ""
+ *             client_id?: scalar|Param|null, // Default: null
+ *             client_config?: list<mixed>,
+ *             get_options?: array<string, scalar|Param|null>,
+ *             put_options?: array<string, scalar|Param|null>,
+ *             proxies?: array<string, scalar|Param|null>,
+ *         },
+ *         flysystem?: array{
+ *             filesystem_service?: scalar|Param|null,
+ *             cache_prefix?: scalar|Param|null, // Default: ""
+ *             root_url?: scalar|Param|null,
+ *             visibility?: "public"|"private"|"noPredefinedVisibility"|Param, // Default: "public"
+ *         },
+ *     }>,
+ *     loaders?: array<string, array{ // Default: []
+ *         stream?: array{
+ *             wrapper?: scalar|Param|null,
+ *             context?: scalar|Param|null, // Default: null
+ *         },
+ *         filesystem?: array{
+ *             locator?: "filesystem"|"filesystem_insecure"|Param, // Using the "filesystem_insecure" locator is not recommended due to a less secure resolver mechanism, but is provided for those using heavily symlinked projects. // Default: "filesystem"
+ *             data_root?: list<scalar|Param|null>,
+ *             allow_unresolvable_data_roots?: bool|Param, // Default: false
+ *             bundle_resources?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 access_control_type?: "blacklist"|"whitelist"|Param, // Sets the access control method applied to bundle names in "access_control_list" into a blacklist or whitelist. // Default: "blacklist"
+ *                 access_control_list?: list<scalar|Param|null>,
+ *             },
+ *         },
+ *         flysystem?: array{
+ *             filesystem_service?: scalar|Param|null,
+ *         },
+ *         asset_mapper?: array<mixed>,
+ *         chain?: array{
+ *             loaders?: list<scalar|Param|null>,
+ *         },
+ *     }>,
+ *     driver?: scalar|Param|null, // Default: "gd"
+ *     cache?: scalar|Param|null, // Default: "default"
+ *     cache_base_path?: scalar|Param|null, // Default: ""
+ *     data_loader?: scalar|Param|null, // Default: "default"
+ *     default_image?: scalar|Param|null, // Default: null
+ *     default_filter_set_settings?: array{
+ *         quality?: scalar|Param|null, // Default: 100
+ *         jpeg_quality?: scalar|Param|null, // Default: null
+ *         png_compression_level?: scalar|Param|null, // Default: null
+ *         png_compression_filter?: scalar|Param|null, // Default: null
+ *         format?: scalar|Param|null, // Default: null
+ *         animated?: bool|Param, // Default: false
+ *         cache?: scalar|Param|null, // Default: null
+ *         data_loader?: scalar|Param|null, // Default: null
+ *         default_image?: scalar|Param|null, // Default: null
+ *         filters?: array<string, array<string, mixed>>,
+ *         post_processors?: array<string, array<string, mixed>>,
+ *     },
+ *     controller?: array{
+ *         filter_action?: scalar|Param|null, // Default: "Liip\\ImagineBundle\\Controller\\ImagineController::filterAction"
+ *         filter_runtime_action?: scalar|Param|null, // Default: "Liip\\ImagineBundle\\Controller\\ImagineController::filterRuntimeAction"
+ *         redirect_response_code?: int|Param, // Default: 302
+ *     },
+ *     filter_sets?: array<string, array{ // Default: []
+ *         quality?: scalar|Param|null,
+ *         jpeg_quality?: scalar|Param|null,
+ *         png_compression_level?: scalar|Param|null,
+ *         png_compression_filter?: scalar|Param|null,
+ *         format?: scalar|Param|null,
+ *         animated?: bool|Param,
+ *         cache?: scalar|Param|null,
+ *         data_loader?: scalar|Param|null,
+ *         default_image?: scalar|Param|null,
+ *         filters?: array<string, array<string, mixed>>,
+ *         post_processors?: array<string, array<string, mixed>>,
+ *     }>,
+ *     twig?: array{
+ *         mode?: "none"|"lazy"|"legacy"|Param, // Twig mode: none/lazy/legacy (default) // Default: "legacy"
+ *         assets_version?: scalar|Param|null, // Default: null
+ *     },
+ *     enqueue?: bool|Param, // Enables integration with enqueue if set true. Allows resolve image caches in background by sending messages to MQ. // Default: false
+ *     messenger?: bool|array{ // Enables integration with symfony/messenger if set true. Warmup image caches in background by sending messages to MQ.
+ *         enabled?: bool|Param, // Default: false
+ *     },
+ *     templating?: bool|Param, // Enables integration with symfony/templating component // Default: true
+ *     webp?: array{
+ *         generate?: bool|Param, // Default: false
+ *         quality?: int|Param, // Default: 100
+ *         cache?: scalar|Param|null, // Default: null
+ *         data_loader?: scalar|Param|null, // Default: null
+ *         post_processors?: array<string, array<string, mixed>>,
+ *     },
+ * }
+ * @psalm-type NelmioCorsConfig = array{
+ *     defaults?: array{
+ *         allow_credentials?: bool|Param, // Default: false
+ *         allow_origin?: list<scalar|Param|null>,
+ *         allow_headers?: list<scalar|Param|null>,
+ *         allow_methods?: list<scalar|Param|null>,
+ *         allow_private_network?: bool|Param, // Default: false
+ *         expose_headers?: list<scalar|Param|null>,
+ *         max_age?: scalar|Param|null, // Default: 0
+ *         hosts?: list<scalar|Param|null>,
+ *         origin_regex?: bool|Param, // Default: false
+ *         forced_allow_origin_value?: scalar|Param|null, // Default: null
+ *         skip_same_as_origin?: bool|Param, // Default: true
+ *     },
+ *     paths?: array<string, array{ // Default: []
+ *         allow_credentials?: bool|Param,
+ *         allow_origin?: list<scalar|Param|null>,
+ *         allow_headers?: list<scalar|Param|null>,
+ *         allow_methods?: list<scalar|Param|null>,
+ *         allow_private_network?: bool|Param,
+ *         expose_headers?: list<scalar|Param|null>,
+ *         max_age?: scalar|Param|null, // Default: 0
+ *         hosts?: list<scalar|Param|null>,
+ *         origin_regex?: bool|Param,
+ *         forced_allow_origin_value?: scalar|Param|null, // Default: null
+ *         skip_same_as_origin?: bool|Param,
+ *     }>,
+ * }
+ * @psalm-type NelmioSecurityConfig = array{
+ *     signed_cookie?: array{
+ *         names?: list<scalar|Param|null>,
+ *         secret?: scalar|Param|null, // Default: "%kernel.secret%"
+ *         hash_algo?: scalar|Param|null,
+ *         legacy_hash_algo?: scalar|Param|null, // Fallback algorithm to allow for frictionless hash algorithm upgrades. Use with caution and as a temporary measure as it allows for downgrade attacks. // Default: null
+ *         separator?: scalar|Param|null, // Default: "."
+ *     },
+ *     clickjacking?: array{
+ *         hosts?: list<scalar|Param|null>,
+ *         paths?: array<string, array{ // Default: {"^/.*":{"header":"DENY"}}
+ *             header?: scalar|Param|null, // Default: "DENY"
+ *         }>,
+ *         content_types?: list<scalar|Param|null>,
+ *     },
+ *     external_redirects?: array{
+ *         abort?: bool|Param, // Default: false
+ *         override?: scalar|Param|null, // Default: null
+ *         forward_as?: scalar|Param|null, // Default: null
+ *         log?: bool|Param, // Default: false
+ *         allow_list?: list<scalar|Param|null>,
+ *     },
+ *     flexible_ssl?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         cookie_name?: scalar|Param|null, // Default: "auth"
+ *         unsecured_logout?: bool|Param, // Default: false
+ *     },
+ *     forced_ssl?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         hsts_max_age?: scalar|Param|null, // Default: null
+ *         hsts_subdomains?: bool|Param, // Default: false
+ *         hsts_preload?: bool|Param, // Default: false
+ *         allow_list?: list<scalar|Param|null>,
+ *         hosts?: list<scalar|Param|null>,
+ *         redirect_status_code?: scalar|Param|null, // Default: 302
+ *     },
+ *     content_type?: array{
+ *         nosniff?: bool|Param, // Default: false
+ *     },
+ *     xss_protection?: array{ // Deprecated: The "xss_protection" option is deprecated, use Content Security Policy without allowing "unsafe-inline" scripts instead.
+ *         enabled?: bool|Param, // Default: false
+ *         mode_block?: bool|Param, // Default: false
+ *         report_uri?: scalar|Param|null, // Default: null
+ *     },
+ *     csp?: bool|array{
+ *         enabled?: bool|Param, // Default: true
+ *         request_matcher?: scalar|Param|null, // Default: null
+ *         hosts?: list<scalar|Param|null>,
+ *         content_types?: list<scalar|Param|null>,
+ *         report_endpoint?: array{
+ *             log_channel?: scalar|Param|null, // Default: null
+ *             log_formatter?: scalar|Param|null, // Default: "nelmio_security.csp_report.log_formatter"
+ *             log_level?: "alert"|"critical"|"debug"|"emergency"|"error"|"info"|"notice"|"warning"|Param, // Default: "notice"
+ *             filters?: array{
+ *                 domains?: bool|Param, // Default: true
+ *                 schemes?: bool|Param, // Default: true
+ *                 browser_bugs?: bool|Param, // Default: true
+ *                 injected_scripts?: bool|Param, // Default: true
+ *             },
+ *             dismiss?: list<list<"default-src"|"base-uri"|"block-all-mixed-content"|"child-src"|"connect-src"|"font-src"|"form-action"|"frame-ancestors"|"frame-src"|"img-src"|"manifest-src"|"media-src"|"object-src"|"plugin-types"|"script-src"|"style-src"|"upgrade-insecure-requests"|"report-uri"|"worker-src"|"prefetch-src"|"report-to"|"*"|Param>>,
+ *         },
+ *         compat_headers?: bool|Param, // Default: true
+ *         report_logger_service?: scalar|Param|null, // Default: "logger"
+ *         hash?: array{
+ *             algorithm?: "sha256"|"sha384"|"sha512"|Param, // The algorithm to use for hashes // Default: "sha256"
+ *         },
+ *         report?: array{
+ *             level1_fallback?: bool|Param, // Provides CSP Level 1 fallback when using hash or nonce (CSP level 2) by adding 'unsafe-inline' source. See https://www.w3.org/TR/CSP2/#directive-script-src and https://www.w3.org/TR/CSP2/#directive-style-src // Default: true
+ *             browser_adaptive?: bool|array{ // Do not send directives that browser do not support
+ *                 enabled?: bool|Param, // Default: false
+ *                 parser?: scalar|Param|null, // Default: "nelmio_security.ua_parser.ua_php"
+ *             },
+ *             default-src?: list<scalar|Param|null>,
+ *             base-uri?: list<scalar|Param|null>,
+ *             block-all-mixed-content?: bool|Param, // Default: false
+ *             child-src?: list<scalar|Param|null>,
+ *             connect-src?: list<scalar|Param|null>,
+ *             font-src?: list<scalar|Param|null>,
+ *             form-action?: list<scalar|Param|null>,
+ *             frame-ancestors?: list<scalar|Param|null>,
+ *             frame-src?: list<scalar|Param|null>,
+ *             img-src?: list<scalar|Param|null>,
+ *             manifest-src?: list<scalar|Param|null>,
+ *             media-src?: list<scalar|Param|null>,
+ *             object-src?: list<scalar|Param|null>,
+ *             plugin-types?: list<scalar|Param|null>,
+ *             script-src?: list<scalar|Param|null>,
+ *             style-src?: list<scalar|Param|null>,
+ *             upgrade-insecure-requests?: bool|Param, // Default: false
+ *             report-uri?: list<scalar|Param|null>,
+ *             worker-src?: list<scalar|Param|null>,
+ *             prefetch-src?: list<scalar|Param|null>,
+ *             report-to?: scalar|Param|null,
+ *         },
+ *         enforce?: array{
+ *             level1_fallback?: bool|Param, // Provides CSP Level 1 fallback when using hash or nonce (CSP level 2) by adding 'unsafe-inline' source. See https://www.w3.org/TR/CSP2/#directive-script-src and https://www.w3.org/TR/CSP2/#directive-style-src // Default: true
+ *             browser_adaptive?: bool|array{ // Do not send directives that browser do not support
+ *                 enabled?: bool|Param, // Default: false
+ *                 parser?: scalar|Param|null, // Default: "nelmio_security.ua_parser.ua_php"
+ *             },
+ *             default-src?: list<scalar|Param|null>,
+ *             base-uri?: list<scalar|Param|null>,
+ *             block-all-mixed-content?: bool|Param, // Default: false
+ *             child-src?: list<scalar|Param|null>,
+ *             connect-src?: list<scalar|Param|null>,
+ *             font-src?: list<scalar|Param|null>,
+ *             form-action?: list<scalar|Param|null>,
+ *             frame-ancestors?: list<scalar|Param|null>,
+ *             frame-src?: list<scalar|Param|null>,
+ *             img-src?: list<scalar|Param|null>,
+ *             manifest-src?: list<scalar|Param|null>,
+ *             media-src?: list<scalar|Param|null>,
+ *             object-src?: list<scalar|Param|null>,
+ *             plugin-types?: list<scalar|Param|null>,
+ *             script-src?: list<scalar|Param|null>,
+ *             style-src?: list<scalar|Param|null>,
+ *             upgrade-insecure-requests?: bool|Param, // Default: false
+ *             report-uri?: list<scalar|Param|null>,
+ *             worker-src?: list<scalar|Param|null>,
+ *             prefetch-src?: list<scalar|Param|null>,
+ *             report-to?: scalar|Param|null,
+ *         },
+ *     },
+ *     referrer_policy?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         policies?: list<scalar|Param|null>,
+ *     },
+ *     permissions_policy?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         policies?: array{
+ *             accelerometer?: mixed, // Default: null
+ *             ambient_light_sensor?: mixed, // Default: null
+ *             attribution_reporting?: mixed, // Default: null
+ *             autoplay?: mixed, // Default: null
+ *             bluetooth?: mixed, // Default: null
+ *             browsing_topics?: mixed, // Default: null
+ *             camera?: mixed, // Default: null
+ *             captured_surface_control?: mixed, // Default: null
+ *             compute_pressure?: mixed, // Default: null
+ *             cross_origin_isolated?: mixed, // Default: null
+ *             deferred_fetch?: mixed, // Default: null
+ *             deferred_fetch_minimal?: mixed, // Default: null
+ *             display_capture?: mixed, // Default: null
+ *             encrypted_media?: mixed, // Default: null
+ *             fullscreen?: mixed, // Default: null
+ *             gamepad?: mixed, // Default: null
+ *             geolocation?: mixed, // Default: null
+ *             gyroscope?: mixed, // Default: null
+ *             hid?: mixed, // Default: null
+ *             identity_credentials_get?: mixed, // Default: null
+ *             idle_detection?: mixed, // Default: null
+ *             interest_cohort?: mixed, // Default: null
+ *             language_detector?: mixed, // Default: null
+ *             local_fonts?: mixed, // Default: null
+ *             magnetometer?: mixed, // Default: null
+ *             microphone?: mixed, // Default: null
+ *             midi?: mixed, // Default: null
+ *             otp_credentials?: mixed, // Default: null
+ *             payment?: mixed, // Default: null
+ *             picture_in_picture?: mixed, // Default: null
+ *             publickey_credentials_create?: mixed, // Default: null
+ *             publickey_credentials_get?: mixed, // Default: null
+ *             screen_wake_lock?: mixed, // Default: null
+ *             serial?: mixed, // Default: null
+ *             speaker_selection?: mixed, // Default: null
+ *             storage_access?: mixed, // Default: null
+ *             summarizer?: mixed, // Default: null
+ *             translator?: mixed, // Default: null
+ *             usb?: mixed, // Default: null
+ *             web_share?: mixed, // Default: null
+ *             window_management?: mixed, // Default: null
+ *             xr_spatial_tracking?: mixed, // Default: null
+ *         },
+ *     },
+ *     cross_origin_isolation?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         paths?: array<string, array{ // Default: []
+ *             coep?: "unsafe-none"|"require-corp"|"credentialless"|Param, // Cross-Origin-Embedder-Policy (COEP) header value
+ *             coop?: "unsafe-none"|"same-origin-allow-popups"|"same-origin"|"noopener-allow-popups"|Param, // Cross-Origin-Opener-Policy (COOP) header value
+ *             corp?: "same-site"|"same-origin"|"cross-origin"|Param, // Cross-Origin-Resource-Policy (CORP) header value
+ *             report_only?: bool|Param, // Use Report-Only headers instead of enforcing (applies to COEP and COOP only) // Default: false
+ *             report_to?: scalar|Param|null, // Reporting endpoint name for violations (requires Reporting API configuration, applies to COEP and COOP only) // Default: null
+ *         }>,
+ *     },
  * }
  * @psalm-type FrameworkConfig = array{
  *     secret?: scalar|Param|null,
@@ -410,7 +1066,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         cookie_name?: scalar|Param|null, // The name of the cookie to use when using stateless protection. // Default: "csrf-token"
  *     },
  *     form?: bool|array{ // Form configuration
- *         enabled?: bool|Param, // Default: true
+ *         enabled?: bool|Param, // Default: false
  *         csrf_protection?: bool|array{
  *             enabled?: scalar|Param|null, // Default: null
  *             token_id?: scalar|Param|null, // Default: null
@@ -545,7 +1201,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     asset_mapper?: bool|array{ // Asset Mapper configuration
- *         enabled?: bool|Param, // Default: true
+ *         enabled?: bool|Param, // Default: false
  *         paths?: array<string, scalar|Param|null>,
  *         excluded_patterns?: list<scalar|Param|null>,
  *         exclude_dotfiles?: bool|Param, // If true, any files starting with "." will be excluded from the asset mapper. // Default: true
@@ -907,7 +1563,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     uid?: bool|array{ // Uid configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         default_uuid_version?: 7|6|4|1|Param, // Default: 7
  *         name_based_uuid_version?: 5|3|Param, // Default: 5
  *         name_based_uuid_namespace?: scalar|Param|null,
@@ -993,6 +1649,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             property?: scalar|Param|null, // Default: null
  *             manager_name?: scalar|Param|null, // Default: null
  *         },
+ *         lexik_jwt?: array{
+ *             class?: scalar|Param|null, // Default: "Lexik\\Bundle\\JWTAuthenticationBundle\\Security\\User\\JWTUser"
+ *         },
  *         memory?: array{
  *             users?: array<string, array{ // Default: []
  *                 password?: scalar|Param|null, // Default: null
@@ -1058,6 +1717,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             lock_factory?: scalar|Param|null, // The service ID of the lock factory used by the login rate limiter (or null to disable locking). // Default: null
  *             cache_pool?: string|Param, // The cache pool to use for storing the limiter state // Default: "cache.rate_limiter"
  *             storage_service?: string|Param, // The service ID of a custom storage implementation, this precedes any configured "cache_pool" // Default: null
+ *         },
+ *         jwt?: array{
+ *             provider?: scalar|Param|null, // Default: null
+ *             authenticator?: scalar|Param|null, // Default: "lexik_jwt_authentication.security.jwt_authenticator"
  *         },
  *         x509?: array{
  *             provider?: scalar|Param|null,
@@ -1268,53 +1931,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  *     role_hierarchy?: array<string, string|list<scalar|Param|null>>,
  * }
- * @psalm-type TwigConfig = array{
- *     form_themes?: list<scalar|Param|null>,
- *     globals?: array<string, array{ // Default: []
- *         id?: scalar|Param|null,
- *         type?: scalar|Param|null,
- *         value?: mixed,
- *     }>,
- *     autoescape_service?: scalar|Param|null, // Default: null
- *     autoescape_service_method?: scalar|Param|null, // Default: null
- *     base_template_class?: scalar|Param|null, // Deprecated: The child node "base_template_class" at path "twig.base_template_class" is deprecated.
- *     cache?: scalar|Param|null, // Default: true
- *     charset?: scalar|Param|null, // Default: "%kernel.charset%"
- *     debug?: bool|Param, // Default: "%kernel.debug%"
- *     strict_variables?: bool|Param, // Default: "%kernel.debug%"
- *     auto_reload?: scalar|Param|null,
- *     optimizations?: int|Param,
- *     default_path?: scalar|Param|null, // The default path used to load templates. // Default: "%kernel.project_dir%/templates"
- *     file_name_pattern?: list<scalar|Param|null>,
- *     paths?: array<string, mixed>,
- *     date?: array{ // The default format options used by the date filter.
- *         format?: scalar|Param|null, // Default: "F j, Y H:i"
- *         interval_format?: scalar|Param|null, // Default: "%d days"
- *         timezone?: scalar|Param|null, // The timezone used when formatting dates, when set to null, the timezone returned by date_default_timezone_get() is used. // Default: null
- *     },
- *     number_format?: array{ // The default format options for the number_format filter.
- *         decimals?: int|Param, // Default: 0
- *         decimal_point?: scalar|Param|null, // Default: "."
- *         thousands_separator?: scalar|Param|null, // Default: ","
- *     },
- *     mailer?: array{
- *         html_to_text_converter?: scalar|Param|null, // A service implementing the "Symfony\Component\Mime\HtmlToTextConverter\HtmlToTextConverterInterface". // Default: null
- *     },
- * }
- * @psalm-type StimulusConfig = array{
- *     controller_paths?: list<scalar|Param|null>,
- *     controllers_json?: scalar|Param|null, // Default: "%kernel.project_dir%/assets/controllers.json"
- * }
- * @psalm-type TurboConfig = array{
- *     broadcast?: bool|array{
- *         enabled?: bool|Param, // Default: true
- *         entity_template_prefixes?: list<scalar|Param|null>,
- *         doctrine_orm?: bool|array{ // Enable the Doctrine ORM integration
- *             enabled?: bool|Param, // Default: true
- *         },
- *     },
- *     default_transport?: scalar|Param|null, // Default: "default"
- * }
  * @psalm-type VichUploaderConfig = array{
  *     default_filename_attribute_suffix?: scalar|Param|null, // Default: "_name"
  *     db_driver?: scalar|Param|null,
@@ -1353,764 +1969,70 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         db_driver?: scalar|Param|null, // Default: null
  *     }>,
  * }
- * @psalm-type PwaConfig = array{
- *     asset_compiler?: bool|Param, // When true, the assets will be compiled when the command "asset-map:compile" is run. // Default: true
- *     early_hints?: bool|array{ // Early Hints (HTTP 103) configuration. Requires a compatible server (FrankenPHP, Caddy).
- *         enabled?: bool|Param, // Default: false
- *         preload_manifest?: bool|Param, // Preload the PWA manifest file. // Default: true
- *         preload_serviceworker?: bool|Param, // Preload the service worker script. Disabled by default as SW registration is usually deferred. // Default: false
- *         preconnect_workbox_cdn?: bool|Param, // Preconnect to Workbox CDN when using CDN mode. // Default: true
- *     },
- *     favicons?: bool|array{
- *         enabled?: bool|Param, // Default: false
- *         default?: array{ // The favicon source and parameters. When used with "dark", this favicon will become the light version.
- *             src?: scalar|Param|null, // The path to the icon. Can be served by Asset Mapper, an absolute path or a Symfony UX Icon (if the bundle is installed).
- *             background_color?: scalar|Param|null, // The background color of the application. If this value is not defined and that of the Manifest section is, the value of the latter will be used. // Default: null
- *             border_radius?: int|Param, // The border radius of the icon. // Default: null
- *             image_scale?: int|Param, // The scale of the icon. // Default: null
- *             svg_attr?: array<string, mixed>,
- *         },
- *         dark?: array{ // The favicon source and parameters for the dark theme. Should only be used with "default".
- *             src?: scalar|Param|null, // The path to the icon. Can be served by Asset Mapper, an absolute path or a Symfony UX Icon (if the bundle is installed).
- *             background_color?: scalar|Param|null, // The background color of the application. If this value is not defined and that of the Manifest section is, the value of the latter will be used. // Default: null
- *             border_radius?: int|Param, // The border radius of the icon. // Default: null
- *             image_scale?: int|Param, // The scale of the icon. // Default: null
- *             svg_attr?: array<string, mixed>,
- *         },
- *         src?: scalar|Param|null, // Deprecated: The "src" configuration key is deprecated. Use the "default.src" configuration key instead. // The source of the favicon. Shall be a SVG or large PNG. // Default: null
- *         src_dark?: scalar|Param|null, // Deprecated: The "src_dark" configuration key is deprecated. Use the "dark.src" configuration key instead. // The source of the favicon in dark mode. Shall be a SVG or large PNG. // Default: null
- *         background_color?: scalar|Param|null, // Deprecated: The "background_color" configuration key is deprecated. Use the "default.background_color" configuration key instead. // The background color of the icon. // Default: null
- *         background_color_dark?: scalar|Param|null, // Deprecated: The "background_color_dark" configuration key is deprecated. Use the "dark.background_color" configuration key instead. // The background color of the icon in dark mode. // Default: null
- *         safari_pinned_tab_color?: scalar|Param|null, // The color of the Safari pinned tab. Requires "use_silhouette" to be set to "true". // Default: null
- *         tile_color?: scalar|Param|null, // The color of the tile for Windows 8+. // Default: null
- *         border_radius?: int|Param, // Deprecated: The "border_radius" configuration key is deprecated. Use the "default.border_radius" or "dark.border_radius" configuration key instead. // The border radius of the icon. // Default: null
- *         image_scale?: int|Param, // Deprecated: The "image_scale" configuration key is deprecated. Use the "default.image_scale" or "dark.image_scale" configuration key instead. // The scale of the icon. // Default: null
- *         low_resolution?: bool|Param, // Include low resolution icons. // Default: false
- *         use_silhouette?: bool|Param|null, // Use only the silhouette of the icon. Applicable for macOS Safari and Windows 8+. Requires potrace to be installed. // Default: null
- *         use_start_image?: bool|Param, // Use the icon as a start image for the iOS splash screen. // Default: true
- *         svg_color?: scalar|Param|null, // When the asset is a SVG file, replaces the currentColor attribute with this color. // Default: "#000"
- *         monochrome?: bool|Param, // Use a monochrome icon. // Default: false
- *         potrace?: scalar|Param|null, // The path to the potrace binary. // Default: "potrace"
- *     },
- *     image_processor?: scalar|Param|null, // The image processor to use to generate the icons of different sizes. // Default: null
- *     logger?: scalar|Param|null, // The logger service to use. If not set, the default logger will be used. // Default: null
- *     manifest?: bool|array{
- *         enabled?: bool|Param, // Default: false
- *         public_url?: scalar|Param|null, // The public URL of the manifest file. // Default: "/site.webmanifest"
- *         use_credentials?: bool|Param, // Indicates whether the manifest should be fetched with credentials. // Default: true
- *         background_color?: scalar|Param|null, // The background color of the application. It should match the background-color CSS property in the sites stylesheet for a smooth transition between launching the web application and loading the site's content.
- *         categories?: list<scalar|Param|null>,
- *         description?: scalar|Param|null, // The description of the application.
- *         display?: scalar|Param|null, // The display mode of the application.
- *         display_override?: list<scalar|Param|null>,
- *         id?: scalar|Param|null, // A string that represents the identity of the web application.
- *         orientation?: scalar|Param|null, // The orientation of the application.
- *         dir?: scalar|Param|null, // The direction of the application.
- *         lang?: scalar|Param|null, // The language of the application.
- *         name?: scalar|Param|null, // The name of the application.
- *         short_name?: scalar|Param|null, // The short name of the application.
- *         scope?: scalar|Param|null, // The scope of the application.
- *         start_url?: string|array{ // The start URL of the application.
- *             path?: scalar|Param|null, // The URL or route name.
- *             path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *             params?: list<mixed>,
- *         },
- *         theme_color?: scalar|Param|null, // The theme color of the application. If a dark theme color is specified, the theme color will be used for the light theme.
- *         dark_theme_color?: scalar|Param|null, // The dark theme color of the application.
- *         edge_side_panel?: array{ // Specifies whether or not your app supports the side panel view in Microsoft Edge.
- *             preferred_width?: int|Param, // Specifies the preferred width of the side panel view in Microsoft Edge.
- *         },
- *         iarc_rating_id?: scalar|Param|null, // Specifies the International Age Rating Coalition (IARC) rating ID for the app. See https://www.globalratings.com/how-iarc-works.aspx for more information.
- *         scope_extensions?: list<array{ // Default: []
- *             type?: scalar|Param|null, // Specifies the type of scope extension. This is currently always origin (default), but future extensions may add other types. // Default: "origin"
- *             origin?: scalar|Param|null, // Specifies the origin pattern to associate with.
- *         }>,
- *         handle_links?: scalar|Param|null, // Specifies the default link handling for the web app.
- *         note_taking?: array{ // The note-taking capabilities of the application.
- *             note_taking_url?: string|array{ // The URL to the note-taking service.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *         },
- *         icons?: list<string|array{ // Default: []
- *             src?: scalar|Param|null, // The path to the icon. Can be served by Asset Mapper, an absolute path or a Symfony UX Icon (if the bundle is installed).
- *             sizes?: list<int|Param>,
- *             background_color?: scalar|Param|null, // The background color of the application. If this value is not defined and that of the Manifest section is, the value of the latter will be used. // Default: null
- *             border_radius?: int|Param, // The border radius of the icon. // Default: null
- *             image_scale?: int|Param, // The scale of the icon. // Default: null
- *             type?: scalar|Param|null, // The icon mime type.
- *             format?: scalar|Param|null, // The icon format. When set, the "type" option is ignored and the image will be converted.
- *             purpose?: scalar|Param|null, // The purpose of the icon.
- *             svg_attr?: array<string, mixed>,
- *         }>,
- *         screenshots?: list<string|array{ // Default: []
- *             src?: scalar|Param|null, // The path to the screenshot. Can be served by Asset Mapper.
- *             height?: scalar|Param|null, // Default: null
- *             width?: scalar|Param|null, // Default: null
- *             form_factor?: scalar|Param|null, // The form factor of the screenshot. Will guess the form factor if not set.
- *             label?: scalar|Param|null, // The label of the screenshot.
- *             platform?: scalar|Param|null, // The platform of the screenshot.
- *             format?: scalar|Param|null, // The format of the screenshot. Will convert the file if set.
- *             reference?: scalar|Param|null, // The URL of the screenshot. Only for reference and not used by the bundle. // Default: null
- *         }>,
- *         file_handlers?: list<array{ // Default: []
- *             action?: string|array{ // The action to take.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             accept?: array<string, list<scalar|Param|null>>,
- *         }>,
- *         launch_handler?: array{ // The launch handler of the application.
- *             client_mode?: list<scalar|Param|null>,
- *         },
- *         protocol_handlers?: list<array{ // Default: []
- *             protocol?: scalar|Param|null, // The protocol of the handler.
- *             placeholder?: scalar|Param|null, // The placeholder of the handler. Will be replaced by "xxx=%s". // Default: null
- *             url?: string|array{ // The URL of the handler.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *         }>,
- *         prefer_related_applications?: bool|Param, // prefer related native applications (instead of this application) // Default: false
- *         related_applications?: list<array{ // Default: []
- *             platform?: scalar|Param|null, // The platform of the application.
- *             url?: string|array{ // The URL of the application.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             id?: scalar|Param|null, // The ID of the application.
- *         }>,
- *         shortcuts?: list<array{ // Default: []
- *             name?: scalar|Param|null, // The name of the shortcut.
- *             short_name?: scalar|Param|null, // The short name of the shortcut.
- *             description?: scalar|Param|null, // The description of the shortcut.
- *             url?: string|array{ // The URL of the shortcut.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             icons?: list<string|array{ // Default: []
- *                 src?: scalar|Param|null, // The path to the icon. Can be served by Asset Mapper, an absolute path or a Symfony UX Icon (if the bundle is installed).
- *                 sizes?: list<int|Param>,
- *                 background_color?: scalar|Param|null, // The background color of the application. If this value is not defined and that of the Manifest section is, the value of the latter will be used. // Default: null
- *                 border_radius?: int|Param, // The border radius of the icon. // Default: null
- *                 image_scale?: int|Param, // The scale of the icon. // Default: null
- *                 type?: scalar|Param|null, // The icon mime type.
- *                 format?: scalar|Param|null, // The icon format. When set, the "type" option is ignored and the image will be converted.
- *                 purpose?: scalar|Param|null, // The purpose of the icon.
- *                 svg_attr?: array<string, mixed>,
- *             }>,
- *         }>,
- *         share_target?: array{ // The share target of the application.
- *             action?: string|array{ // The action of the share target.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             method?: scalar|Param|null, // The method of the share target.
- *             enctype?: scalar|Param|null, // The enctype of the share target. Ignored if method is GET.
- *             params?: array{ // The parameters of the share target.
- *                 title?: scalar|Param|null, // The title of the share target.
- *                 text?: scalar|Param|null, // The text of the share target.
- *                 url?: scalar|Param|null, // The URL of the share target.
- *                 files?: list<array{ // Default: []
- *                     name?: scalar|Param|null, // The name of the file parameter.
- *                     accept?: list<scalar|Param|null>,
- *                 }>,
- *             },
- *         },
- *         widgets?: list<array{ // Default: []
- *             name?: scalar|Param|null, // The title of the widget, presented to users.
- *             short_name?: scalar|Param|null, // An alternative short version of the name.
- *             description?: scalar|Param|null, // The description of the widget.
- *             icons?: list<string|array{ // Default: []
- *                 src?: scalar|Param|null, // The path to the icon. Can be served by Asset Mapper, an absolute path or a Symfony UX Icon (if the bundle is installed).
- *                 sizes?: list<int|Param>,
- *                 background_color?: scalar|Param|null, // The background color of the application. If this value is not defined and that of the Manifest section is, the value of the latter will be used. // Default: null
- *                 border_radius?: int|Param, // The border radius of the icon. // Default: null
- *                 image_scale?: int|Param, // The scale of the icon. // Default: null
- *                 type?: scalar|Param|null, // The icon mime type.
- *                 format?: scalar|Param|null, // The icon format. When set, the "type" option is ignored and the image will be converted.
- *                 purpose?: scalar|Param|null, // The purpose of the icon.
- *                 svg_attr?: array<string, mixed>,
- *             }>,
- *             screenshots?: list<string|array{ // Default: []
- *                 src?: scalar|Param|null, // The path to the screenshot. Can be served by Asset Mapper.
- *                 height?: scalar|Param|null, // Default: null
- *                 width?: scalar|Param|null, // Default: null
- *                 form_factor?: scalar|Param|null, // The form factor of the screenshot. Will guess the form factor if not set.
- *                 label?: scalar|Param|null, // The label of the screenshot.
- *                 platform?: scalar|Param|null, // The platform of the screenshot.
- *                 format?: scalar|Param|null, // The format of the screenshot. Will convert the file if set.
- *                 reference?: scalar|Param|null, // The URL of the screenshot. Only for reference and not used by the bundle. // Default: null
- *             }>,
- *             tag?: scalar|Param|null, // A string used to reference the widget in the PWA service worker.
- *             template?: scalar|Param|null, // The template to use to display the widget in the operating system widgets dashboard. Note: this property is currently only informational and not used. See ms_ac_template below.
- *             ms_ac_template?: string|array{ // The URL of the custom Adaptive Cards template to use to display the widget in the operating system widgets dashboard.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             data?: string|array{ // The URL where the data to fill the template with can be found. If present, this URL is required to return valid JSON.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             type?: scalar|Param|null, // The MIME type for the widget data.
- *             auth?: bool|Param, // A boolean indicating if the widget requires authentication.
- *             update?: int|Param, // The frequency, in seconds, at which the widget will be updated. Code in your service worker must perform the updating; the widget is not updated automatically. See Access widget instances at runtime.
- *             multiple?: bool|Param, // A boolean indicating whether to allow multiple instances of the widget. Defaults to true. // Default: true
- *         }>,
- *     },
- *     path_type_reference?: int|Param, // Deprecated: The "path_type_reference" configuration key is deprecated. Use the "path_type_reference" of URL nodes instead. // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *     resource_hints?: bool|array{ // Resource Hints configuration for preconnect, dns-prefetch, and preload.
- *         enabled?: bool|Param, // Default: false
- *         auto_preconnect?: bool|Param, // Automatically add preconnect hints for detected external origins (Workbox CDN, Google Fonts). // Default: true
- *         preconnect?: list<scalar|Param|null>,
- *         dns_prefetch?: list<scalar|Param|null>,
- *         preload?: list<array{ // Default: []
- *             href?: scalar|Param|null, // The URL or path to preload.
- *             as?: "script"|"style"|"font"|"image"|"fetch"|"document"|"audio"|"video"|"track"|"worker"|Param, // The resource type.
- *             type?: scalar|Param|null, // The MIME type of the resource. // Default: null
- *             crossorigin?: "anonymous"|"use-credentials"|Param, // The crossorigin attribute value. Required for fonts. // Default: null
- *             fetchpriority?: "high"|"low"|"auto"|Param, // The fetch priority hint. // Default: null
- *             media?: scalar|Param|null, // Media query for responsive preloading. // Default: null
- *         }>,
- *     },
- *     serviceworker?: bool|string|array{
- *         enabled?: bool|Param, // Default: false
- *         src?: scalar|Param|null, // The path to the service worker source file. Can be served by Asset Mapper.
- *         dest?: scalar|Param|null, // The public URL to the service worker. // Default: "/sw.js"
- *         skip_waiting?: bool|Param, // Whether to skip waiting for the service worker to be activated. // Default: false
- *         scope?: scalar|Param|null, // The scope of the service worker. // Default: "/"
- *         use_cache?: bool|Param, // Whether the service worker should use the cache. // Default: true
- *         workbox?: bool|array{ // The configuration of the workbox.
- *             enabled?: bool|Param, // Default: true
- *             use_cdn?: bool|Param, // Deprecated: The "use_cdn" option is deprecated and will be removed in 2.0.0. use "config.use_cdn" instead. // Whether to use the local workbox or the CDN. // Default: false
- *             google_fonts?: bool|array{
- *                 enabled?: bool|Param, // Default: true
- *                 cache_prefix?: scalar|Param|null, // The cache prefix for the Google fonts. // Default: null
- *                 max_age?: scalar|Param|null, // The maximum age of the Google fonts cache (in seconds). // Default: null
- *                 max_entries?: int|Param, // The maximum number of entries in the Google fonts cache. // Default: null
- *             },
- *             cache_manifest?: bool|Param, // Whether to cache the manifest file. // Default: true
- *             version?: scalar|Param|null, // Deprecated: The "version" option is deprecated and will be removed in 2.0.0. use "config.version" instead. // The version of workbox. When using local files, the version shall be "7.0.0." // Default: "7.3.0"
- *             workbox_public_url?: scalar|Param|null, // Deprecated: The "workbox_public_url" option is deprecated and will be removed in 2.0.0. use "config.workbox_public_url" instead. // The public path to the local workbox. Only used if use_cdn is false. // Default: "/workbox"
- *             idb_public_url?: scalar|Param|null, // The public path to the local IndexDB. Only used if use_cdn is false. // Default: "/idb"
- *             workbox_import_placeholder?: scalar|Param|null, // Deprecated: The "workbox_import_placeholder" option is deprecated and will be removed in 2.0.0. No replacement. // The placeholder for the workbox import. Will be replaced by the workbox import. // Default: "//WORKBOX_IMPORT_PLACEHOLDER"
- *             standard_rules_placeholder?: scalar|Param|null, // Deprecated: The "standard_rules_placeholder" option is deprecated and will be removed in 2.0.0. No replacement. // The placeholder for the standard rules. Will be replaced by caching strategies. // Default: "//STANDARD_RULES_PLACEHOLDER"
- *             offline_fallback_placeholder?: scalar|Param|null, // Deprecated: The "offline_fallback_placeholder" option is deprecated and will be removed in 2.0.0. No replacement. // The placeholder for the offline fallback. Will be replaced by the URL. // Default: "//OFFLINE_FALLBACK_PLACEHOLDER"
- *             widgets_placeholder?: scalar|Param|null, // Deprecated: The "widgets_placeholder" option is deprecated and will be removed in 2.0.0. No replacement. // The placeholder for the widgets. Will be replaced by the widgets management events. // Default: "//WIDGETS_PLACEHOLDER"
- *             clear_cache?: bool|Param, // Whether to clear the cache during the service worker activation. // Default: true
- *             navigation_preload?: bool|Param, // Whether to enable navigation preload. This speeds up navigation requests by making the network request in parallel with service worker boot-up. Note: Do not enable if you are precaching HTML pages (e.g., with offline_fallback or warm_cache_urls), as it would be redundant. // Default: false
- *             config?: array{
- *                 debug?: bool|Param, // Controls workbox debug logging. Set to false to disable debug mode and logging. // Default: true
- *                 version?: scalar|Param|null, // The version of workbox. When using local files, the version shall be "7.0.0." // Default: "7.3.0"
- *                 use_cdn?: bool|Param, // Whether to use the local workbox or the CDN. // Default: false
- *                 workbox_public_url?: scalar|Param|null, // The public path to the local workbox. Only used if use_cdn is false. // Default: "/workbox"
- *             },
- *             offline_fallback?: array{
- *                 cache_name?: scalar|Param|null, // The name of the offline cache. // Default: "offline"
- *                 page?: string|array{ // The URL of the offline page fallback.
- *                     path?: scalar|Param|null, // The URL or route name.
- *                     path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                     params?: list<mixed>,
- *                 },
- *                 image?: string|array{ // The URL of the offline image fallback.
- *                     path?: scalar|Param|null, // The URL or route name.
- *                     path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                     params?: list<mixed>,
- *                 },
- *                 font?: string|array{ // The URL of the offline font fallback.
- *                     path?: scalar|Param|null, // The URL or route name.
- *                     path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                     params?: list<mixed>,
- *                 },
- *             },
- *             image_cache?: bool|array{
- *                 enabled?: bool|Param, // Default: true
- *                 cache_name?: scalar|Param|null, // The name of the image cache. // Default: "images"
- *                 regex?: scalar|Param|null, // The regex to match the images. // Default: "/\\.(ico|png|jpe?g|gif|svg|webp|bmp)$/"
- *                 max_entries?: int|Param, // The maximum number of entries in the image cache. // Default: 60
- *                 max_age?: scalar|Param|null, // The maximum number of seconds before the image cache is invalidated. // Default: 31536000
- *             },
- *             asset_cache?: bool|array{
- *                 enabled?: bool|Param, // Default: true
- *                 cache_name?: scalar|Param|null, // The name of the asset cache. // Default: "assets"
- *                 regex?: scalar|Param|null, // The regex to match the assets. // Default: "/\\.(css|js|json|xml|txt|map|ico|png|jpe?g|gif|svg|webp|bmp)$/"
- *                 max_age?: scalar|Param|null, // The maximum number of seconds before the asset cache is invalidated. // Default: 31536000
- *             },
- *             font_cache?: bool|array{
- *                 enabled?: bool|Param, // Default: true
- *                 cache_name?: scalar|Param|null, // The name of the font cache. // Default: "fonts"
- *                 regex?: scalar|Param|null, // The regex to match the fonts. // Default: "/\\.(ttf|eot|otf|woff2)$/"
- *                 max_entries?: int|Param, // The maximum number of entries in the image cache. // Default: 60
- *                 max_age?: int|Param, // The maximum number of seconds before the font cache is invalidated. // Default: 31536000
- *             },
- *             resource_caches?: list<array{ // Default: []
- *                 match_callback?: scalar|Param|null, // The regex or callback function to match the URLs.
- *                 cache_name?: scalar|Param|null, // The name of the page cache.
- *                 network_timeout?: int|Param, // The network timeout in seconds before cache is called (for "NetworkFirst" and "NetworkOnly" strategies). // Default: 3
- *                 strategy?: scalar|Param|null, // The caching strategy. Only "NetworkFirst", "CacheFirst" and "StaleWhileRevalidate" are supported. StaleWhileRevalidate provides instant page loads with background updates. // Default: "StaleWhileRevalidate"
- *                 max_entries?: scalar|Param|null, // The maximum number of entries in the cache (for "CacheFirst" and "NetworkFirst" strategy only). // Default: null
- *                 max_age?: scalar|Param|null, // The maximum number of seconds before the cache is invalidated (for "CacheFirst" and "NetWorkFirst" strategy only). // Default: null
- *                 broadcast?: bool|Param, // Whether to broadcast the cache update events (for "StaleWhileRevalidate" strategy only). Enables client notification when content is updated. // Default: true
- *                 range_requests?: bool|Param, // Whether to support range requests (for "CacheFirst" strategy only). // Default: false
- *                 cacheable_response_headers?: list<scalar|Param|null>,
- *                 cacheable_response_statuses?: list<int|Param>,
- *                 broadcast_headers?: list<scalar|Param|null>,
- *                 preload_urls?: list<string|array{ // Default: []
- *                     path?: scalar|Param|null, // The URL of the shortcut.
- *                     params?: list<mixed>,
- *                 }>,
- *             }>,
- *             background_sync?: list<array{ // Default: []
- *                 queue_name?: scalar|Param|null, // The name of the queue.
- *                 match_callback?: scalar|Param|null, // The regex or callback function to match the URLs.
- *                 error_on_4xx?: bool|Param, // Whether to retry the request on 4xx errors. // Default: true
- *                 error_on_5xx?: bool|Param, // Whether to retry the request on 5xx errors. // Default: true
- *                 expected_status_codes?: list<int|Param>,
- *                 expect_redirect?: bool|Param, // Whether to expect a redirect (JS response type should be "opaqueredirect" or the "redirected" property is "true"). // Default: false
- *                 method?: scalar|Param|null, // The HTTP method. // Default: "POST"
- *                 broadcast_channel?: scalar|Param|null, // The broadcast channel. Set null to disable. // Default: null
- *                 max_retention_time?: int|Param, // The maximum retention time in minutes. // Default: 1440
- *                 force_sync_fallback?: bool|Param, // If `true`, instead of attempting to use background sync events, always attempt to replay queued request at service worker startup. Most folks will not need this, unless you explicitly target a runtime like Electron that exposes the interfaces for background sync, but does not have a working implementation. // Default: false
- *             }>,
- *             background_fetch?: bool|array{
- *                 enabled?: bool|Param, // Default: false
- *                 db_name?: scalar|Param|null, // The IndexDB name where downloads are stored // Default: "bgfetch-completed"
- *                 progress_url?: string|array{ // The URL of the progress page.
- *                     path?: scalar|Param|null, // The URL or route name.
- *                     path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                     params?: list<mixed>,
- *                 },
- *                 success_url?: string|array{ // The URL of the success page.
- *                     path?: scalar|Param|null, // The URL or route name.
- *                     path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                     params?: list<mixed>,
- *                 },
- *                 success_message?: scalar|Param|null, // The message to display on success. This message is translated. // Default: null
- *                 failure_message?: scalar|Param|null, // The message to display on success. This message is translated. // Default: null
- *             },
- *             image_cache_name?: scalar|Param|null, // Deprecated: The "image_cache_name" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.image_cache.cache_name" instead. // The name of the image cache. // Default: "images"
- *             font_cache_name?: scalar|Param|null, // Deprecated: The "font_cache_name" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.font_cache.cache_name" instead. // The name of the font cache. // Default: "fonts"
- *             page_cache_name?: scalar|Param|null, // Deprecated: The "page_cache_name" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.resource_caches[].cache_name" instead. // The name of the page cache. // Default: "pages"
- *             asset_cache_name?: scalar|Param|null, // Deprecated: The "asset_cache_name" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.asset_cache.cache_name" instead. // The name of the asset cache. // Default: "assets"
- *             page_fallback?: string|array{ // The URL of the offline page fallback.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             image_fallback?: string|array{ // The URL of the offline image fallback.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             font_fallback?: string|array{ // The URL of the offline font fallback.
- *                 path?: scalar|Param|null, // The URL or route name.
- *                 path_type_reference?: int|Param, // The path type reference to generate paths/URLs. See https://symfony.com/doc/current/routing.html#generating-urls-in-controllers for more information. // Default: 1
- *                 params?: list<mixed>,
- *             },
- *             image_regex?: scalar|Param|null, // Deprecated: The "image_regex" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.image_cache.regex" instead. // The regex to match the images. // Default: "/\\.(ico|png|jpe?g|gif|svg|webp|bmp)$/"
- *             static_regex?: scalar|Param|null, // Deprecated: The "static_regex" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.asset_cache.regex" instead. // The regex to match the static files. // Default: "/\\.(css|js|json|xml|txt|map)$/"
- *             font_regex?: scalar|Param|null, // Deprecated: The "font_regex" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.font_cache.regex" instead. // The regex to match the static files. // Default: "/\\.(ttf|eot|otf|woff2)$/"
- *             max_image_cache_entries?: int|Param, // Deprecated: The "max_image_cache_entries" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.image_cache.max_entries" instead. // The maximum number of entries in the image cache. // Default: 60
- *             max_image_age?: int|Param, // Deprecated: The "max_image_age" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.image_cache.max_age" instead. // The maximum number of seconds before the image cache is invalidated. // Default: 31536000
- *             max_font_cache_entries?: int|Param, // Deprecated: The "max_font_cache_entries" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.font_cache.max_entries" instead. // The maximum number of entries in the font cache. // Default: 30
- *             max_font_age?: int|Param, // Deprecated: The "max_font_age" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.font_cache.max_age" instead. // The maximum number of seconds before the font cache is invalidated. // Default: 31536000
- *             network_timeout_seconds?: int|Param, // Deprecated: The "network_timeout_seconds" option is deprecated and will be removed in 2.0.0. Please use "pwa.serviceworker.workbox.resource_caches[].network_timeout" instead. // The network timeout in seconds before cache is called (for warm cache URLs only). // Default: 3
- *             warm_cache_urls?: list<string|array{ // Default: []
- *                 path?: scalar|Param|null, // The URL of the shortcut.
- *                 params?: list<mixed>,
- *             }>,
- *         },
- *     },
- *     speculation_rules?: bool|array{ // Speculation Rules API configuration for prefetching and prerendering pages.
- *         enabled?: bool|Param, // Default: false
- *         prefetch?: list<array{ // Default: []
- *             source?: "list"|"document"|Param, // The source type: "list" for explicit URLs, "document" for link matching. // Default: "document"
- *             urls?: list<string|array{ // Default: []
- *                 path?: scalar|Param|null, // The URL path or route name.
- *                 params?: list<mixed>,
- *             }>,
- *             selector_matches?: scalar|Param|null, // For "document" source: CSS selector to match links. // Default: null
- *             href_matches?: scalar|Param|null, // For "document" source: URL pattern to match href attributes. // Default: null
- *             eagerness?: "immediate"|"eager"|"moderate"|"conservative"|Param, // Eagerness level: "immediate" (viewport), "eager" (hover 200ms), "moderate" (hover 100ms), "conservative" (mousedown/touchstart). // Default: "moderate"
- *             referrer_policy?: scalar|Param|null, // Referrer policy for the speculative request. // Default: null
- *         }>,
- *         prerender?: list<array{ // Default: []
- *             source?: "list"|"document"|Param, // The source type: "list" for explicit URLs, "document" for link matching. // Default: "document"
- *             urls?: list<string|array{ // Default: []
- *                 path?: scalar|Param|null, // The URL path or route name.
- *                 params?: list<mixed>,
- *             }>,
- *             selector_matches?: scalar|Param|null, // For "document" source: CSS selector to match links. // Default: null
- *             href_matches?: scalar|Param|null, // For "document" source: URL pattern to match href attributes. // Default: null
- *             eagerness?: "immediate"|"eager"|"moderate"|"conservative"|Param, // Eagerness level. For prerender, "conservative" is recommended. // Default: "conservative"
- *             referrer_policy?: scalar|Param|null, // Referrer policy for the speculative request. // Default: null
- *         }>,
- *     },
- *     web_client?: scalar|Param|null, // The Panther Client for generating screenshots. If not set, the default client will be used. // Default: null
- *     user_agent?: scalar|Param|null, // The user agent to use when generating screenshots. When this user agent is detected, the Symfony profiler and debug toolbar will be automatically disabled to ensure screenshots look like production. // Default: "PWAScreenshotBot"
- * }
- * @psalm-type NelmioSecurityConfig = array{
- *     signed_cookie?: array{
- *         names?: list<scalar|Param|null>,
- *         secret?: scalar|Param|null, // Default: "%kernel.secret%"
- *         hash_algo?: scalar|Param|null,
- *         legacy_hash_algo?: scalar|Param|null, // Fallback algorithm to allow for frictionless hash algorithm upgrades. Use with caution and as a temporary measure as it allows for downgrade attacks. // Default: null
- *         separator?: scalar|Param|null, // Default: "."
- *     },
- *     clickjacking?: array{
- *         hosts?: list<scalar|Param|null>,
- *         paths?: array<string, array{ // Default: {"^/.*":{"header":"DENY"}}
- *             header?: scalar|Param|null, // Default: "DENY"
- *         }>,
- *         content_types?: list<scalar|Param|null>,
- *     },
- *     external_redirects?: array{
- *         abort?: bool|Param, // Default: false
- *         override?: scalar|Param|null, // Default: null
- *         forward_as?: scalar|Param|null, // Default: null
- *         log?: bool|Param, // Default: false
- *         allow_list?: list<scalar|Param|null>,
- *     },
- *     flexible_ssl?: bool|array{
- *         enabled?: bool|Param, // Default: false
- *         cookie_name?: scalar|Param|null, // Default: "auth"
- *         unsecured_logout?: bool|Param, // Default: false
- *     },
- *     forced_ssl?: bool|array{
- *         enabled?: bool|Param, // Default: false
- *         hsts_max_age?: scalar|Param|null, // Default: null
- *         hsts_subdomains?: bool|Param, // Default: false
- *         hsts_preload?: bool|Param, // Default: false
- *         allow_list?: list<scalar|Param|null>,
- *         hosts?: list<scalar|Param|null>,
- *         redirect_status_code?: scalar|Param|null, // Default: 302
- *     },
- *     content_type?: array{
- *         nosniff?: bool|Param, // Default: false
- *     },
- *     xss_protection?: array{ // Deprecated: The "xss_protection" option is deprecated, use Content Security Policy without allowing "unsafe-inline" scripts instead.
- *         enabled?: bool|Param, // Default: false
- *         mode_block?: bool|Param, // Default: false
- *         report_uri?: scalar|Param|null, // Default: null
- *     },
- *     csp?: bool|array{
- *         enabled?: bool|Param, // Default: true
- *         request_matcher?: scalar|Param|null, // Default: null
- *         hosts?: list<scalar|Param|null>,
- *         content_types?: list<scalar|Param|null>,
- *         report_endpoint?: array{
- *             log_channel?: scalar|Param|null, // Default: null
- *             log_formatter?: scalar|Param|null, // Default: "nelmio_security.csp_report.log_formatter"
- *             log_level?: "alert"|"critical"|"debug"|"emergency"|"error"|"info"|"notice"|"warning"|Param, // Default: "notice"
- *             filters?: array{
- *                 domains?: bool|Param, // Default: true
- *                 schemes?: bool|Param, // Default: true
- *                 browser_bugs?: bool|Param, // Default: true
- *                 injected_scripts?: bool|Param, // Default: true
- *             },
- *             dismiss?: list<list<"default-src"|"base-uri"|"block-all-mixed-content"|"child-src"|"connect-src"|"font-src"|"form-action"|"frame-ancestors"|"frame-src"|"img-src"|"manifest-src"|"media-src"|"object-src"|"plugin-types"|"script-src"|"style-src"|"upgrade-insecure-requests"|"report-uri"|"worker-src"|"prefetch-src"|"report-to"|"*"|Param>>,
- *         },
- *         compat_headers?: bool|Param, // Default: true
- *         report_logger_service?: scalar|Param|null, // Default: "logger"
- *         hash?: array{
- *             algorithm?: "sha256"|"sha384"|"sha512"|Param, // The algorithm to use for hashes // Default: "sha256"
- *         },
- *         report?: array{
- *             level1_fallback?: bool|Param, // Provides CSP Level 1 fallback when using hash or nonce (CSP level 2) by adding 'unsafe-inline' source. See https://www.w3.org/TR/CSP2/#directive-script-src and https://www.w3.org/TR/CSP2/#directive-style-src // Default: true
- *             browser_adaptive?: bool|array{ // Do not send directives that browser do not support
- *                 enabled?: bool|Param, // Default: false
- *                 parser?: scalar|Param|null, // Default: "nelmio_security.ua_parser.ua_php"
- *             },
- *             default-src?: list<scalar|Param|null>,
- *             base-uri?: list<scalar|Param|null>,
- *             block-all-mixed-content?: bool|Param, // Default: false
- *             child-src?: list<scalar|Param|null>,
- *             connect-src?: list<scalar|Param|null>,
- *             font-src?: list<scalar|Param|null>,
- *             form-action?: list<scalar|Param|null>,
- *             frame-ancestors?: list<scalar|Param|null>,
- *             frame-src?: list<scalar|Param|null>,
- *             img-src?: list<scalar|Param|null>,
- *             manifest-src?: list<scalar|Param|null>,
- *             media-src?: list<scalar|Param|null>,
- *             object-src?: list<scalar|Param|null>,
- *             plugin-types?: list<scalar|Param|null>,
- *             script-src?: list<scalar|Param|null>,
- *             style-src?: list<scalar|Param|null>,
- *             upgrade-insecure-requests?: bool|Param, // Default: false
- *             report-uri?: list<scalar|Param|null>,
- *             worker-src?: list<scalar|Param|null>,
- *             prefetch-src?: list<scalar|Param|null>,
- *             report-to?: scalar|Param|null,
- *         },
- *         enforce?: array{
- *             level1_fallback?: bool|Param, // Provides CSP Level 1 fallback when using hash or nonce (CSP level 2) by adding 'unsafe-inline' source. See https://www.w3.org/TR/CSP2/#directive-script-src and https://www.w3.org/TR/CSP2/#directive-style-src // Default: true
- *             browser_adaptive?: bool|array{ // Do not send directives that browser do not support
- *                 enabled?: bool|Param, // Default: false
- *                 parser?: scalar|Param|null, // Default: "nelmio_security.ua_parser.ua_php"
- *             },
- *             default-src?: list<scalar|Param|null>,
- *             base-uri?: list<scalar|Param|null>,
- *             block-all-mixed-content?: bool|Param, // Default: false
- *             child-src?: list<scalar|Param|null>,
- *             connect-src?: list<scalar|Param|null>,
- *             font-src?: list<scalar|Param|null>,
- *             form-action?: list<scalar|Param|null>,
- *             frame-ancestors?: list<scalar|Param|null>,
- *             frame-src?: list<scalar|Param|null>,
- *             img-src?: list<scalar|Param|null>,
- *             manifest-src?: list<scalar|Param|null>,
- *             media-src?: list<scalar|Param|null>,
- *             object-src?: list<scalar|Param|null>,
- *             plugin-types?: list<scalar|Param|null>,
- *             script-src?: list<scalar|Param|null>,
- *             style-src?: list<scalar|Param|null>,
- *             upgrade-insecure-requests?: bool|Param, // Default: false
- *             report-uri?: list<scalar|Param|null>,
- *             worker-src?: list<scalar|Param|null>,
- *             prefetch-src?: list<scalar|Param|null>,
- *             report-to?: scalar|Param|null,
- *         },
- *     },
- *     referrer_policy?: bool|array{
- *         enabled?: bool|Param, // Default: false
- *         policies?: list<scalar|Param|null>,
- *     },
- *     permissions_policy?: bool|array{
- *         enabled?: bool|Param, // Default: false
- *         policies?: array{
- *             accelerometer?: mixed, // Default: null
- *             ambient_light_sensor?: mixed, // Default: null
- *             attribution_reporting?: mixed, // Default: null
- *             autoplay?: mixed, // Default: null
- *             bluetooth?: mixed, // Default: null
- *             browsing_topics?: mixed, // Default: null
- *             camera?: mixed, // Default: null
- *             captured_surface_control?: mixed, // Default: null
- *             compute_pressure?: mixed, // Default: null
- *             cross_origin_isolated?: mixed, // Default: null
- *             deferred_fetch?: mixed, // Default: null
- *             deferred_fetch_minimal?: mixed, // Default: null
- *             display_capture?: mixed, // Default: null
- *             encrypted_media?: mixed, // Default: null
- *             fullscreen?: mixed, // Default: null
- *             gamepad?: mixed, // Default: null
- *             geolocation?: mixed, // Default: null
- *             gyroscope?: mixed, // Default: null
- *             hid?: mixed, // Default: null
- *             identity_credentials_get?: mixed, // Default: null
- *             idle_detection?: mixed, // Default: null
- *             interest_cohort?: mixed, // Default: null
- *             language_detector?: mixed, // Default: null
- *             local_fonts?: mixed, // Default: null
- *             magnetometer?: mixed, // Default: null
- *             microphone?: mixed, // Default: null
- *             midi?: mixed, // Default: null
- *             otp_credentials?: mixed, // Default: null
- *             payment?: mixed, // Default: null
- *             picture_in_picture?: mixed, // Default: null
- *             publickey_credentials_create?: mixed, // Default: null
- *             publickey_credentials_get?: mixed, // Default: null
- *             screen_wake_lock?: mixed, // Default: null
- *             serial?: mixed, // Default: null
- *             speaker_selection?: mixed, // Default: null
- *             storage_access?: mixed, // Default: null
- *             summarizer?: mixed, // Default: null
- *             translator?: mixed, // Default: null
- *             usb?: mixed, // Default: null
- *             web_share?: mixed, // Default: null
- *             window_management?: mixed, // Default: null
- *             xr_spatial_tracking?: mixed, // Default: null
- *         },
- *     },
- *     cross_origin_isolation?: bool|array{
- *         enabled?: bool|Param, // Default: false
- *         paths?: array<string, array{ // Default: []
- *             coep?: "unsafe-none"|"require-corp"|"credentialless"|Param, // Cross-Origin-Embedder-Policy (COEP) header value
- *             coop?: "unsafe-none"|"same-origin-allow-popups"|"same-origin"|"noopener-allow-popups"|Param, // Cross-Origin-Opener-Policy (COOP) header value
- *             corp?: "same-site"|"same-origin"|"cross-origin"|Param, // Cross-Origin-Resource-Policy (CORP) header value
- *             report_only?: bool|Param, // Use Report-Only headers instead of enforcing (applies to COEP and COOP only) // Default: false
- *             report_to?: scalar|Param|null, // Reporting endpoint name for violations (requires Reporting API configuration, applies to COEP and COOP only) // Default: null
- *         }>,
- *     },
- * }
- * @psalm-type LiipImagineConfig = array{
- *     resolvers?: array<string, array{ // Default: []
- *         web_path?: array{
- *             web_root?: scalar|Param|null, // Default: "%kernel.project_dir%/public"
- *             cache_prefix?: scalar|Param|null, // Default: "media/cache"
- *         },
- *         aws_s3?: array{
- *             bucket?: scalar|Param|null,
- *             cache?: scalar|Param|null, // Default: false
- *             use_psr_cache?: bool|Param, // Default: false
- *             acl?: scalar|Param|null, // Default: "public-read"
- *             cache_prefix?: scalar|Param|null, // Default: ""
- *             client_id?: scalar|Param|null, // Default: null
- *             client_config?: list<mixed>,
- *             get_options?: array<string, scalar|Param|null>,
- *             put_options?: array<string, scalar|Param|null>,
- *             proxies?: array<string, scalar|Param|null>,
- *         },
- *         flysystem?: array{
- *             filesystem_service?: scalar|Param|null,
- *             cache_prefix?: scalar|Param|null, // Default: ""
- *             root_url?: scalar|Param|null,
- *             visibility?: "public"|"private"|"noPredefinedVisibility"|Param, // Default: "public"
- *         },
- *     }>,
- *     loaders?: array<string, array{ // Default: []
- *         stream?: array{
- *             wrapper?: scalar|Param|null,
- *             context?: scalar|Param|null, // Default: null
- *         },
- *         filesystem?: array{
- *             locator?: "filesystem"|"filesystem_insecure"|Param, // Using the "filesystem_insecure" locator is not recommended due to a less secure resolver mechanism, but is provided for those using heavily symlinked projects. // Default: "filesystem"
- *             data_root?: list<scalar|Param|null>,
- *             allow_unresolvable_data_roots?: bool|Param, // Default: false
- *             bundle_resources?: array{
- *                 enabled?: bool|Param, // Default: false
- *                 access_control_type?: "blacklist"|"whitelist"|Param, // Sets the access control method applied to bundle names in "access_control_list" into a blacklist or whitelist. // Default: "blacklist"
- *                 access_control_list?: list<scalar|Param|null>,
- *             },
- *         },
- *         flysystem?: array{
- *             filesystem_service?: scalar|Param|null,
- *         },
- *         asset_mapper?: array<mixed>,
- *         chain?: array{
- *             loaders?: list<scalar|Param|null>,
- *         },
- *     }>,
- *     driver?: scalar|Param|null, // Default: "gd"
- *     cache?: scalar|Param|null, // Default: "default"
- *     cache_base_path?: scalar|Param|null, // Default: ""
- *     data_loader?: scalar|Param|null, // Default: "default"
- *     default_image?: scalar|Param|null, // Default: null
- *     default_filter_set_settings?: array{
- *         quality?: scalar|Param|null, // Default: 100
- *         jpeg_quality?: scalar|Param|null, // Default: null
- *         png_compression_level?: scalar|Param|null, // Default: null
- *         png_compression_filter?: scalar|Param|null, // Default: null
- *         format?: scalar|Param|null, // Default: null
- *         animated?: bool|Param, // Default: false
- *         cache?: scalar|Param|null, // Default: null
- *         data_loader?: scalar|Param|null, // Default: null
- *         default_image?: scalar|Param|null, // Default: null
- *         filters?: array<string, array<string, mixed>>,
- *         post_processors?: array<string, array<string, mixed>>,
- *     },
- *     controller?: array{
- *         filter_action?: scalar|Param|null, // Default: "Liip\\ImagineBundle\\Controller\\ImagineController::filterAction"
- *         filter_runtime_action?: scalar|Param|null, // Default: "Liip\\ImagineBundle\\Controller\\ImagineController::filterRuntimeAction"
- *         redirect_response_code?: int|Param, // Default: 302
- *     },
- *     filter_sets?: array<string, array{ // Default: []
- *         quality?: scalar|Param|null,
- *         jpeg_quality?: scalar|Param|null,
- *         png_compression_level?: scalar|Param|null,
- *         png_compression_filter?: scalar|Param|null,
- *         format?: scalar|Param|null,
- *         animated?: bool|Param,
- *         cache?: scalar|Param|null,
- *         data_loader?: scalar|Param|null,
- *         default_image?: scalar|Param|null,
- *         filters?: array<string, array<string, mixed>>,
- *         post_processors?: array<string, array<string, mixed>>,
- *     }>,
- *     twig?: array{
- *         mode?: "none"|"lazy"|"legacy"|Param, // Twig mode: none/lazy/legacy (default) // Default: "legacy"
- *         assets_version?: scalar|Param|null, // Default: null
- *     },
- *     enqueue?: bool|Param, // Enables integration with enqueue if set true. Allows resolve image caches in background by sending messages to MQ. // Default: false
- *     messenger?: bool|array{ // Enables integration with symfony/messenger if set true. Warmup image caches in background by sending messages to MQ.
- *         enabled?: bool|Param, // Default: false
- *     },
- *     templating?: bool|Param, // Enables integration with symfony/templating component // Default: true
- *     webp?: array{
- *         generate?: bool|Param, // Default: false
- *         quality?: int|Param, // Default: 100
- *         cache?: scalar|Param|null, // Default: null
- *         data_loader?: scalar|Param|null, // Default: null
- *         post_processors?: array<string, array<string, mixed>>,
- *     },
- * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
  *     services?: ServicesConfig,
+ *     api_platform?: ApiPlatformConfig,
  *     doctrine?: DoctrineConfig,
- *     gemini?: GeminiConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
+ *     gemini?: GeminiConfig,
+ *     lexik_jwt_authentication?: LexikJwtAuthenticationConfig,
+ *     liip_imagine?: LiipImagineConfig,
+ *     nelmio_cors?: NelmioCorsConfig,
+ *     nelmio_security?: NelmioSecurityConfig,
  *     framework?: FrameworkConfig,
  *     security?: SecurityConfig,
- *     twig?: TwigConfig,
- *     stimulus?: StimulusConfig,
- *     turbo?: TurboConfig,
  *     vich_uploader?: VichUploaderConfig,
- *     pwa?: PwaConfig,
- *     nelmio_security?: NelmioSecurityConfig,
- *     liip_imagine?: LiipImagineConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
+ *         api_platform?: ApiPlatformConfig,
  *         doctrine?: DoctrineConfig,
- *         gemini?: GeminiConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         gemini?: GeminiConfig,
+ *         lexik_jwt_authentication?: LexikJwtAuthenticationConfig,
+ *         liip_imagine?: LiipImagineConfig,
+ *         nelmio_cors?: NelmioCorsConfig,
+ *         nelmio_security?: NelmioSecurityConfig,
  *         framework?: FrameworkConfig,
  *         maker?: MakerConfig,
  *         security?: SecurityConfig,
- *         twig?: TwigConfig,
- *         stimulus?: StimulusConfig,
- *         turbo?: TurboConfig,
  *         vich_uploader?: VichUploaderConfig,
- *         pwa?: PwaConfig,
- *         nelmio_security?: NelmioSecurityConfig,
- *         liip_imagine?: LiipImagineConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
+ *         api_platform?: ApiPlatformConfig,
  *         doctrine?: DoctrineConfig,
- *         gemini?: GeminiConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         gemini?: GeminiConfig,
+ *         lexik_jwt_authentication?: LexikJwtAuthenticationConfig,
+ *         liip_imagine?: LiipImagineConfig,
+ *         nelmio_cors?: NelmioCorsConfig,
+ *         nelmio_security?: NelmioSecurityConfig,
  *         framework?: FrameworkConfig,
  *         security?: SecurityConfig,
- *         twig?: TwigConfig,
- *         stimulus?: StimulusConfig,
- *         turbo?: TurboConfig,
  *         vich_uploader?: VichUploaderConfig,
- *         pwa?: PwaConfig,
- *         nelmio_security?: NelmioSecurityConfig,
- *         liip_imagine?: LiipImagineConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
- *         doctrine?: DoctrineConfig,
- *         gemini?: GeminiConfig,
- *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         api_platform?: ApiPlatformConfig,
  *         dama_doctrine_test?: DamaDoctrineTestConfig,
+ *         doctrine?: DoctrineConfig,
+ *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         gemini?: GeminiConfig,
+ *         lexik_jwt_authentication?: LexikJwtAuthenticationConfig,
+ *         liip_imagine?: LiipImagineConfig,
+ *         nelmio_cors?: NelmioCorsConfig,
+ *         nelmio_security?: NelmioSecurityConfig,
  *         framework?: FrameworkConfig,
  *         security?: SecurityConfig,
- *         twig?: TwigConfig,
- *         stimulus?: StimulusConfig,
- *         turbo?: TurboConfig,
  *         vich_uploader?: VichUploaderConfig,
- *         pwa?: PwaConfig,
- *         nelmio_security?: NelmioSecurityConfig,
- *         liip_imagine?: LiipImagineConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

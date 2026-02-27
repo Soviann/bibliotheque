@@ -12,7 +12,7 @@ export default function Wishlist() {
     type: type || undefined,
   });
 
-  const comics = data?.["hydra:member"] ?? [];
+  const comics = data?.member ?? [];
 
   return (
     <div className="space-y-4">

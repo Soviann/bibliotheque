@@ -14,7 +14,7 @@ import { useComic } from "../hooks/useComic";
 import { useCreateComic } from "../hooks/useCreateComic";
 import { useLookupIsbn, useLookupTitle } from "../hooks/useLookup";
 import { useUpdateComic } from "../hooks/useUpdateComic";
-import type { Author, ComicSeries, Tome } from "../types/api";
+import type { Author, ComicSeries } from "../types/api";
 import {
   ComicStatus,
   ComicStatusLabel,
@@ -111,7 +111,7 @@ export default function ComicForm() {
   // Author autocomplete
   const [authorSearch, setAuthorSearch] = useState("");
   const { data: authorResults } = useAuthors(authorSearch);
-  const authorOptions = authorResults?.["hydra:member"] ?? [];
+  const authorOptions = authorResults?.member ?? [];
 
   // Initialize form with comic data on edit
   useEffect(() => {

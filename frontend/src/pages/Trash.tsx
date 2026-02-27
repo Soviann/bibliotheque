@@ -11,7 +11,7 @@ export default function Trash() {
   const permanentDelete = usePermanentDelete();
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
 
-  const comics = data?.["hydra:member"] ?? [];
+  const comics = data?.member ?? [];
 
   return (
     <div className="space-y-4">

@@ -3,16 +3,16 @@ import type { ComicStatus, ComicType } from "./enums";
 export interface HydraCollection<T> {
   "@context": string;
   "@id": string;
-  "@type": "hydra:Collection";
-  "hydra:member": T[];
-  "hydra:totalItems": number;
-  "hydra:view"?: {
+  "@type": "Collection";
+  member: T[];
+  totalItems: number;
+  view?: {
     "@id": string;
-    "@type": "hydra:PartialCollectionView";
-    "hydra:first"?: string;
-    "hydra:last"?: string;
-    "hydra:next"?: string;
-    "hydra:previous"?: string;
+    "@type": "PartialCollectionView";
+    first?: string;
+    last?: string;
+    next?: string;
+    previous?: string;
   };
 }
 

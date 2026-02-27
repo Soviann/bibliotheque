@@ -40,20 +40,29 @@
 **Root Makefile** delegates to `backend/` and `frontend/`. Main shortcuts:
 
 ```bash
-make dev            # ddev start + install + migrate
+make dev            # install + jwt + migrate
+make prod           # install --no-dev + dump-env + build + migrate + cache
+make ci             # lint + test
 make install        # install-back + install-front
 make test           # test-back + test-front
 make test-back      # PHPUnit
 make test-front     # Vitest
 make lint           # lint-back + lint-front
-make lint-back      # PHP-CS-Fixer (dry-run) + PHPStan
+make lint-back      # PHPStan + CS Fixer dry-run
 make lint-front     # tsc --noEmit
 make build          # Vite production build
+make serve-prod     # build + vite preview (port 4173)
+make verify-build   # build + check no devtools in bundle
 make cc             # cache:clear
+make sf CMD=...     # Run any Symfony console command
+make jwt            # Generate JWT keypair
+make dump-env       # Compile .env for Symfony
 make db-diff        # doctrine:migrations:diff
 make db-migrate     # doctrine:migrations:migrate
 make db-reset       # drop + create + migrate
-make sf CMD=...     # Run any Symfony console command
+make db-seed        # Load fixtures
+make rector         # Apply Rector refactorings
+make rector-dry     # Preview Rector refactorings
 make deploy         # docker-compose prod
 ```
 

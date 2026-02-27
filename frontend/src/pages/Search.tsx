@@ -16,7 +16,7 @@ export default function Search() {
     debouncedQuery.length >= 2 ? { search: debouncedQuery } : undefined,
   );
 
-  const comics = data?.["hydra:member"] ?? [];
+  const comics = data?.member ?? [];
 
   return (
     <div className="space-y-4">

@@ -12,14 +12,14 @@ export default function Home() {
     type: type || undefined,
   });
 
-  const comics = data?.["hydra:member"] ?? [];
+  const comics = data?.member ?? [];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Ma bibliothèque</h1>
         <span className="text-sm text-slate-500">
-          {data?.["hydra:totalItems"] ?? 0} séries
+          {data?.totalItems ?? 0} séries
         </span>
       </div>
 
