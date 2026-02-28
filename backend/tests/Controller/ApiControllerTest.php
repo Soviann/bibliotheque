@@ -45,6 +45,7 @@ class ApiControllerTest extends TestCase
         $response = $controller->isbnLookup($request, $this->lookupOrchestrator);
 
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
+        self::assertNotNull($response->headers->get('Retry-After'));
 
         /** @var array{error: string} $body */
         $body = \json_decode((string) $response->getContent(), true);
@@ -114,6 +115,30 @@ class ApiControllerTest extends TestCase
         $response = $controller->isbnLookup($request2, $this->lookupOrchestrator);
 
         self::assertNotSame(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
+    }
+
+    public function testRateLimitSharedAcrossEndpoints(): void
+    {
+        $controller = $this->createController(rateLimitMax: 1);
+
+        $this->lookupOrchestrator->method('lookup')->willReturn(null);
+        $this->lookupOrchestrator->method('lookupByTitle')->willReturn(null);
+
+        // ISBN consomme le quota
+        $isbnRequest = new Request(
+            query: ['isbn' => '978-2-1234-5678-0'],
+            server: ['REMOTE_ADDR' => '127.0.0.1'],
+        );
+        $controller->isbnLookup($isbnRequest, $this->lookupOrchestrator);
+
+        // Title est aussi bloqué (même bucket)
+        $titleRequest = new Request(
+            query: ['title' => 'One Piece'],
+            server: ['REMOTE_ADDR' => '127.0.0.1'],
+        );
+        $response = $controller->titleLookup($titleRequest, $this->lookupOrchestrator);
+
+        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
     }
 
     private function createController(int $rateLimitMax = 100): ApiController

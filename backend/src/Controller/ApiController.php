@@ -75,12 +75,18 @@ class ApiController
     private function checkRateLimit(Request $request): ?JsonResponse
     {
         $limiter = $this->apiLookupLimiter->create($request->getClientIp() ?? 'unknown');
+        $limit = $limiter->consume();
 
-        if (false === $limiter->consume()->isAccepted()) {
-            return new JsonResponse(
+        if (false === $limit->isAccepted()) {
+            $retryAfter = $limit->getRetryAfter()->getTimestamp() - \time();
+
+            $response = new JsonResponse(
                 ['error' => 'Trop de requêtes. Réessayez plus tard.'],
                 Response::HTTP_TOO_MANY_REQUESTS,
             );
+            $response->headers->set('Retry-After', (string) \max(1, $retryAfter));
+
+            return $response;
         }
 
         return null;
