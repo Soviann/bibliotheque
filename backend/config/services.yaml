@@ -26,6 +26,11 @@ services:
     App\Service\UploadHandlerInterface:
         alias: App\Service\VichUploadHandlerAdapter
 
+    Google\Client:
+        arguments:
+            $config:
+                client_id: '%env(OAUTH_GOOGLE_ID)%'
+
     Gemini\Contracts\ClientContract:
         alias: Gemini\Client
 
