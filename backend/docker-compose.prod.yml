@@ -5,8 +5,8 @@ services:
       - db
     environment:
       - APP_ENV=prod
-      - APP_SECRET=${APP_SECRET}
       - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
+      - SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}
     ports:
       - "8080:80"
     restart: unless-stopped

@@ -1,6 +1,15 @@
-# Guide de déploiement — Serveur Linux OVH
+# Guide de déploiement
 
-Ce guide décrit le déploiement de l'application sur un serveur Linux dédié ou VPS OVH, **sans DDEV**.
+Ce guide décrit le déploiement de l'application en production :
+- [Serveur Linux OVH](#serveur-linux-ovh) (dédié ou VPS, sans DDEV)
+- [NAS Synology DS920+](#nas-synology-ds920) (Docker Compose)
+- [Gestion des secrets Symfony](#gestion-des-secrets-symfony) (vault chiffré)
+
+---
+
+# Serveur Linux OVH
+
+Déploiement sur un serveur Linux dédié ou VPS OVH, **sans DDEV**.
 
 ## Prérequis serveur
 
@@ -105,12 +114,12 @@ Modifier `~/app/backend/.env.local` :
 
 ```env
 APP_ENV=prod
-APP_SECRET=GENERER_AVEC_php_-r_echo_bin2hex_random_bytes_16
 DATABASE_URL="mysql://bibliotheque:MOT_DE_PASSE_SECURISE@127.0.0.1:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4"
-JWT_PASSPHRASE=GENERER_UNE_PASSPHRASE_SECURISEE
 CORS_ALLOW_ORIGIN='^https://votre-domaine\.fr$'
 GEMINI_API_KEY=votre_cle_api_gemini_optionnelle
 ```
+
+> **Note** : `APP_SECRET` et `JWT_PASSPHRASE` sont gérés par le vault Symfony Secrets (voir [Gestion des secrets](#gestion-des-secrets-symfony)). Il n'est plus nécessaire de les définir dans `.env.local`.
 
 ```bash
 # Compiler les fichiers d'environnement pour la production
@@ -506,3 +515,182 @@ chmod +x ~/backup.sh
 | nginx HTTPS | 443 | Application |
 | MariaDB | 3306 | Local uniquement |
 | PHP-FPM | socket Unix | Local uniquement |
+
+---
+
+# NAS Synology DS920+
+
+Déploiement via Docker Compose sur un NAS Synology DS920+ avec Docker installé.
+
+## Prérequis
+
+- Synology DS920+ avec DSM 7.2+
+- Docker (Container Manager) installé depuis le Centre de paquets
+- Accès SSH activé
+- Un dossier partagé pour les données (ex: `/volume1/docker/bibliotheque/`)
+
+## 1. Préparer la structure de fichiers
+
+Depuis SSH sur le NAS :
+
+```bash
+mkdir -p /volume1/docker/bibliotheque
+cd /volume1/docker/bibliotheque
+
+# Cloner le dépôt
+git clone https://github.com/Soviann/bibliotheque.git app
+cd app
+```
+
+## 2. Configurer les variables d'environnement
+
+Créer `/volume1/docker/bibliotheque/app/.env` (à la racine du projet, pas dans `backend/`) :
+
+```env
+# Base de données
+MYSQL_PASSWORD=mot_de_passe_securise
+MYSQL_ROOT_PASSWORD=mot_de_passe_root_securise
+
+# Clé de déchiffrement du vault Symfony Secrets
+# Récupérer depuis le fichier backend/config/secrets/prod/prod.decrypt.private.php
+# ou via la commande : php -r 'echo include "backend/config/secrets/prod/prod.decrypt.private.php";'
+SYMFONY_DECRYPTION_SECRET=contenu_de_la_cle_de_dechiffrement
+
+# Clés API (optionnel)
+GEMINI_API_KEY=
+GOOGLE_BOOKS_API_KEY=
+```
+
+## 3. Déployer avec Docker Compose
+
+```bash
+cd /volume1/docker/bibliotheque/app/backend
+docker compose -f docker-compose.prod.yml up -d
+```
+
+## 4. Initialiser la base de données
+
+```bash
+# Exécuter les migrations
+docker compose -f docker-compose.prod.yml exec app php bin/console doctrine:migrations:migrate -n --env=prod
+
+# Créer le premier utilisateur
+docker compose -f docker-compose.prod.yml exec app php bin/console app:create-user admin@votre-domaine.fr motdepasse --env=prod
+
+# Générer les clés JWT
+docker compose -f docker-compose.prod.yml exec app php bin/console lexik:jwt:generate-keypair --env=prod
+```
+
+## 5. Configurer le reverse proxy Synology
+
+Dans DSM > **Panneau de configuration > Portail de connexion > Avancé > Proxy inversé** :
+
+| Paramètre | Valeur |
+|-----------|--------|
+| Source protocole | HTTPS |
+| Source nom d'hôte | bibliotheque.votre-domaine.fr |
+| Source port | 443 |
+| Destination protocole | HTTP |
+| Destination nom d'hôte | localhost |
+| Destination port | 8080 |
+
+Activer **WebSocket** dans les en-têtes personnalisés si nécessaire.
+
+## 6. Mise à jour
+
+```bash
+cd /volume1/docker/bibliotheque/app
+git pull origin main
+cd backend
+docker compose -f docker-compose.prod.yml up --build -d
+docker compose -f docker-compose.prod.yml exec app php bin/console doctrine:migrations:migrate -n --env=prod
+```
+
+## 7. Sauvegardes
+
+Utiliser **Hyper Backup** (paquet Synology) pour sauvegarder :
+- Le dossier `/volume1/docker/bibliotheque/`
+- Le volume Docker `db_data` (données MariaDB)
+
+Ou manuellement :
+
+```bash
+# Sauvegarde base de données
+docker compose -f docker-compose.prod.yml exec db mysqldump -u biblio -p bibliotheque | gzip > backup_$(date +%Y%m%d).sql.gz
+```
+
+## Résumé des ports (Docker)
+
+| Service | Port conteneur | Port NAS | Accès |
+|---------|---------------|----------|-------|
+| App (Apache) | 80 | 8080 | Via reverse proxy Synology |
+| MariaDB | 3306 | — | Interne Docker uniquement |
+
+---
+
+# Gestion des secrets Symfony
+
+L'application utilise le **vault Symfony Secrets** pour protéger les secrets cryptographiques (`APP_SECRET`, `JWT_PASSPHRASE`). Le vault est chiffré asymétriquement : la clé publique (chiffrement) est committée, seule la clé de déchiffrement est sensible.
+
+## Secrets concernés
+
+| Secret | Stockage | Raison |
+|--------|----------|--------|
+| `APP_SECRET` | Vault prod | Cryptographique — CSRF, cookies, signatures |
+| `JWT_PASSPHRASE` | Vault prod | Cryptographique — signature des tokens JWT |
+| `GEMINI_API_KEY` | Variable d'env | Clé API, rotation facile |
+| `GOOGLE_BOOKS_API_KEY` | Variable d'env | Clé API, rotation facile |
+| `DATABASE_URL` | Variable d'env | Infrastructure, varie par environnement |
+
+## Fichiers du vault
+
+```
+backend/config/secrets/prod/
+├── prod.encrypt.public.php          # Clé publique (committée) — chiffre les secrets
+├── prod.decrypt.private.php         # Clé privée (GITIGNORÉE) — déchiffre les secrets
+├── prod.list.php                    # Liste des secrets (committée)
+├── prod.APP_SECRET.*.php            # Secret chiffré (committé)
+└── prod.JWT_PASSPHRASE.*.php        # Secret chiffré (committé)
+```
+
+## Injection de la clé de déchiffrement en production
+
+Deux méthodes possibles :
+
+### Méthode 1 : Variable d'environnement (recommandée pour Docker)
+
+```bash
+# Extraire la clé depuis le fichier local
+php -r 'echo include "backend/config/secrets/prod/prod.decrypt.private.php";'
+
+# Définir dans docker-compose ou .env
+SYMFONY_DECRYPTION_SECRET=valeur_extraite
+```
+
+### Méthode 2 : Fichier monté (recommandée pour serveur classique)
+
+Copier `prod.decrypt.private.php` sur le serveur dans `config/secrets/prod/`. Symfony le détecte automatiquement.
+
+## Ajouter ou modifier un secret
+
+```bash
+# Ajouter/modifier un secret
+ddev exec "cd backend && bin/console secrets:set NOM_DU_SECRET --env=prod"
+
+# Lister les secrets
+ddev exec "cd backend && bin/console secrets:list --env=prod"
+
+# Révéler les valeurs
+ddev exec "cd backend && bin/console secrets:list --reveal --env=prod"
+```
+
+Committer les fichiers chiffrés après modification :
+
+```bash
+git add backend/config/secrets/prod/
+git commit -m "chore(secrets): mise à jour du vault prod"
+```
+
+## Protection anti-placeholder
+
+Un `PlaceholderSecretChecker` vérifie au démarrage de l'application en production que `APP_SECRET` et `JWT_PASSPHRASE` ne contiennent pas les valeurs placeholder du fichier `.env`. Si détecté, une exception bloque le démarrage avec un message explicite.

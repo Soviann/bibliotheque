@@ -9,6 +9,19 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Symfony Secrets vault** : Les secrets cryptographiques (`APP_SECRET`, `JWT_PASSPHRASE`) sont stockés dans un vault chiffré (`config/secrets/prod/`), éliminant les placeholders en production (CWE-798)
+  - Vault chiffré asymétriquement (clé publique committée, clé de déchiffrement gitignorée)
+  - Injection en prod via `SYMFONY_DECRYPTION_SECRET` (env var) ou fichier monté
+  - `PlaceholderSecretChecker` : bloque le démarrage en prod si des valeurs placeholder sont détectées
+- **Guide déploiement Synology DS920+** : Documentation Docker Compose pour NAS Synology avec reverse proxy intégré
+
+### Changed
+
+- **Dockerfile** : Ajout de `composer dump-env prod` pour compiler les `.env`, suppression de `asset-map:compile` (plus utilisé avec Vite)
+- **docker-compose.prod.yml** : `APP_SECRET` retiré des env vars (géré par le vault), `SYMFONY_DECRYPTION_SECRET` ajouté
+
+### Added
+
 - **Invalidation JWT par token versioning** : Chaque connexion invalide automatiquement les tokens précédents
   - Champ `tokenVersion` sur l'entité `User` (incrémenté à chaque login)
   - `JwtTokenVersionListener` : ajoute la version au payload JWT à la création, vérifie la correspondance au décodage

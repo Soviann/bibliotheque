@@ -40,14 +40,14 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
 COPY . .
 
-RUN composer dump-autoload --optimize
+RUN composer dump-autoload --optimize \
+    && composer dump-env prod
 
 RUN mkdir -p var/cache var/log \
     && chown -R www-data:www-data var
 
 RUN php bin/console cache:clear --env=prod --no-debug
 RUN php bin/console cache:warmup --env=prod --no-debug
-RUN php bin/console asset-map:compile --env=prod --no-debug
 
 EXPOSE 80
 

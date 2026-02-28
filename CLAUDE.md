@@ -231,3 +231,21 @@ frontend/src/{components,hooks,pages,services,types,__tests__}/
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
+
+### Symfony Secrets (vault prod)
+
+`APP_SECRET` and `JWT_PASSPHRASE` are stored in the encrypted vault (`config/secrets/prod/`). The decrypt key is **gitignored**.
+
+**Inject decrypt key in prod** (choose one):
+- Env var: `SYMFONY_DECRYPTION_SECRET=<key>` (used in `docker-compose.prod.yml`)
+- File: copy `prod.decrypt.private.php` to server
+
+**Manage secrets**:
+```bash
+ddev exec "cd backend && bin/console secrets:set SECRET_NAME --env=prod"
+ddev exec "cd backend && bin/console secrets:list --env=prod"
+```
+
+`PlaceholderSecretChecker` blocks app startup in prod if placeholder values are still used.
+
+Full deployment guide: `docs/guide-deploiement.md`
