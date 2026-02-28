@@ -4,3 +4,7 @@ framework:
             interval: '1 minute'
             limit: 10
             policy: sliding_window
+        google_login:
+            interval: '1 minute'
+            limit: 10
+            policy: sliding_window

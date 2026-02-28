@@ -1,8 +1,10 @@
 import { GoogleLogin } from "@react-oauth/google";
+import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
   const { login, loginError, loginPending } = useAuth();
+  const [googleError, setGoogleError] = useState(false);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface-primary px-4 dark:bg-surface-secondary">
@@ -13,15 +15,15 @@ export default function Login() {
         </div>
 
         <div className="space-y-4">
-          {loginError && (
+          {(loginError ?? googleError) && (
             <p className="rounded-lg bg-red-100 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-400">
-              {loginError.message}
+              {loginError?.message ?? "Erreur lors de la connexion Google. Veuillez réessayer."}
             </p>
           )}
 
           <div className="flex justify-center">
             <GoogleLogin
-              onError={() => login("" as string)}
+              onError={() => setGoogleError(true)}
               onSuccess={(response) => {
                 if (response.credential) {
                   login(response.credential);

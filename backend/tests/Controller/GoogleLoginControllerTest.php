@@ -12,8 +12,11 @@ use Google\Client as GoogleClient;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -39,14 +42,7 @@ class GoogleLoginControllerTest extends TestCase
         $this->userRepository = $this->createMock(UserRepository::class);
         $this->validator = $this->createMock(ValidatorInterface::class);
 
-        $this->controller = new GoogleLoginController(
-            self::ALLOWED_EMAIL,
-            $this->entityManager,
-            $this->googleClient,
-            $this->jwtManager,
-            $this->userRepository,
-            $this->validator,
-        );
+        $this->controller = $this->createController();
     }
 
     public function testLoginWithValidToken(): void
@@ -165,5 +161,62 @@ class GoogleLoginControllerTest extends TestCase
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertSame(self::GOOGLE_ID, $user->getGoogleId());
+    }
+
+    public function testLoginRateLimited(): void
+    {
+        $controller = $this->createController(rateLimitMax: 1);
+
+        $request = new Request(content: \json_encode(['credential' => 'valid-credential']), server: ['REMOTE_ADDR' => '127.0.0.1']);
+
+        // Première requête : consomme le quota
+        $this->googleClient->method('verifyIdToken')->willReturn(false);
+        ($controller)($request);
+
+        // Deuxième requête : rate limited
+        $response = ($controller)($request);
+
+        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
+        self::assertStringContainsString('Trop de tentatives', $response->getContent());
+    }
+
+    public function testLoginEmailCaseInsensitive(): void
+    {
+        $user = new User();
+        $user->setEmail(self::ALLOWED_EMAIL);
+        $user->setGoogleId(self::GOOGLE_ID);
+
+        $this->googleClient->method('verifyIdToken')
+            ->willReturn(['email' => 'Admin@Bibliotheque.FR', 'sub' => self::GOOGLE_ID]);
+
+        $this->userRepository->method('findOneBy')
+            ->willReturn($user);
+
+        $this->jwtManager->method('create')
+            ->willReturn(self::JWT_TOKEN);
+
+        $request = new Request(content: \json_encode(['credential' => 'valid-credential']));
+        $response = ($this->controller)($request);
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
+
+    private function createController(int $rateLimitMax = 100): GoogleLoginController
+    {
+        $rateLimiterFactory = new RateLimiterFactory(
+            ['id' => 'google_login', 'interval' => '1 minute', 'limit' => $rateLimitMax, 'policy' => 'sliding_window'],
+            new InMemoryStorage(),
+        );
+
+        return new GoogleLoginController(
+            self::ALLOWED_EMAIL,
+            $this->entityManager,
+            $this->googleClient,
+            $this->jwtManager,
+            new NullLogger(),
+            $rateLimiterFactory,
+            $this->userRepository,
+            $this->validator,
+        );
     }
 }
