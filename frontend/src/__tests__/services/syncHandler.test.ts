@@ -80,6 +80,50 @@ describe("processSyncQueue", () => {
     );
   });
 
+  it("removes the correct item by id, not the oldest", async () => {
+    // First item fails (4xx), second succeeds — both should be removed correctly
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response(JSON.stringify({ detail: "Bad" }), { status: 400 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 2 }), { status: 201 }));
+
+    await enqueue({ operation: "create", payload: { title: "Bad" }, resourceType: "comic_series" });
+    await enqueue({ operation: "create", payload: { title: "Good" }, resourceType: "comic_series" });
+
+    await processSyncQueue("token", mockPostMessage);
+
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+  });
+
+  it("creates pending authors before sending comic payload", async () => {
+    // Author creation response, then comic creation response
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response(JSON.stringify({ "@id": "/api/authors/99", id: 99, name: "New Author" }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 1 }), { status: 201 }));
+
+    await enqueue({
+      operation: "create",
+      payload: {
+        _pendingAuthors: ["New Author"],
+        authors: ["/api/authors/1"],
+        title: "Test Comic",
+      },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue("token", mockPostMessage);
+
+    // First call: create author
+    expect(fetch).toHaveBeenNthCalledWith(1, "/api/authors", expect.objectContaining({ method: "POST" }));
+    // Second call: create comic with merged author IRIs
+    const comicCall = vi.mocked(fetch).mock.calls[1];
+    const body = JSON.parse(comicCall[1]!.body as string);
+    expect(body.authors).toEqual(["/api/authors/1", "/api/authors/99"]);
+    expect(body._pendingAuthors).toBeUndefined();
+
+    expect(await getAll()).toHaveLength(0);
+  });
+
   it("does nothing when queue is empty", async () => {
     await processSyncQueue("token", mockPostMessage);
     expect(fetch).not.toHaveBeenCalled();

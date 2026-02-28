@@ -6,6 +6,7 @@ import {
   enqueue,
   getAll,
   getPendingCount,
+  removeById,
   updateStatus,
   _resetDb,
 } from "../../services/offlineQueue";
@@ -85,6 +86,22 @@ describe("offlineQueue", () => {
     const updated = await getAll();
     expect(updated[0].retryCount).toBe(1);
     expect(updated[0].status).toBe("failed");
+  });
+
+  it("removeById deletes a specific item by id", async () => {
+    await enqueue({ operation: "create", payload: { title: "First" }, resourceType: "comic_series" });
+    await enqueue({ operation: "create", payload: { title: "Second" }, resourceType: "comic_series" });
+    await enqueue({ operation: "create", payload: { title: "Third" }, resourceType: "comic_series" });
+
+    const items = await getAll();
+    const secondId = items[1].id!;
+
+    await removeById(secondId);
+
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(2);
+    expect(remaining[0].payload.title).toBe("First");
+    expect(remaining[1].payload.title).toBe("Third");
   });
 
   it("clearQueue removes all items", async () => {

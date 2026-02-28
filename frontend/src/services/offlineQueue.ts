@@ -90,6 +90,11 @@ export async function updateStatus(id: number, status: QueueItemStatus): Promise
   await db.put("offlineQueue", item);
 }
 
+export async function removeById(id: number): Promise<void> {
+  const db = await getDb();
+  await db.delete("offlineQueue", id);
+}
+
 export async function clearQueue(): Promise<void> {
   const db = await getDb();
   await db.clear("offlineQueue");

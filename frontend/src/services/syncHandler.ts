@@ -1,4 +1,4 @@
-import { dequeue, getAll, updateStatus } from "./offlineQueue";
+import { getAll, removeById, updateStatus } from "./offlineQueue";
 import type { OperationType, ResourceType } from "./offlineQueue";
 
 type PostMessageFn = (message: Record<string, unknown>) => void;
@@ -39,6 +39,32 @@ export async function processSyncQueue(
 
     await updateStatus(item.id, "syncing");
 
+    // Créer les auteurs en attente (ajoutés hors ligne) avant d'envoyer la série
+    if (Array.isArray(item.payload._pendingAuthors)) {
+      const pendingAuthors = item.payload._pendingAuthors as string[];
+      const existingIris = (item.payload.authors as string[]) ?? [];
+      const newIris: string[] = [];
+
+      for (const name of pendingAuthors) {
+        const res = await fetch("/api/authors", {
+          body: JSON.stringify({ name }),
+          headers: {
+            Accept: "application/ld+json",
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/ld+json",
+          },
+          method: "POST",
+        });
+        if (res.ok) {
+          const author = (await res.json()) as { "@id": string };
+          newIris.push(author["@id"]);
+        }
+      }
+
+      item.payload.authors = [...existingIris, ...newIris];
+      delete item.payload._pendingAuthors;
+    }
+
     const url = buildUrl(item.resourceType, item.operation, item.resourceId);
     const method = buildMethod(item.operation);
     const headers: Record<string, string> = {
@@ -57,12 +83,12 @@ export async function processSyncQueue(
     });
 
     if (response.ok) {
-      await dequeue();
+      await removeById(item.id);
       syncedCount++;
     } else if (response.status >= 400 && response.status < 500) {
       const errorBody = await response.json().catch(() => ({}));
       const detail = (errorBody as { detail?: string }).detail ?? `Erreur ${response.status}`;
-      await dequeue();
+      await removeById(item.id);
       postMessage({ error: detail, type: "sync-error" });
     } else {
       await updateStatus(item.id, "pending");

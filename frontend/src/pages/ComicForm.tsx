@@ -295,9 +295,13 @@ export default function ComicForm() {
 
     // Créer les nouveaux auteurs via l'API et récupérer leurs IRI
     const authorIris: string[] = [];
+    const pendingAuthors: string[] = [];
     for (const a of form.authors) {
       if (a.id > 0) {
         authorIris.push(a["@id"]);
+      } else if (!navigator.onLine) {
+        // Hors ligne : stocker les noms pour création au retour en ligne
+        pendingAuthors.push(a.name);
       } else {
         try {
           const created = await apiFetch<Author>("/authors", {
@@ -313,6 +317,7 @@ export default function ComicForm() {
     }
 
     const payload: Record<string, unknown> = {
+      ...(pendingAuthors.length > 0 ? { _pendingAuthors: pendingAuthors } : {}),
       authors: authorIris,
       coverUrl: form.coverUrl || null,
       description: form.description || null,
@@ -341,7 +346,8 @@ export default function ComicForm() {
       updateComic.mutate(
         { id: Number(id), ...payload } as Partial<ComicSeries> & { id: number },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            if (!data) return; // offline: déjà géré par useOfflineMutation
             toast.success("Série mise à jour");
             navigate(`/comic/${id}`);
           },
@@ -351,11 +357,16 @@ export default function ComicForm() {
     } else {
       createComic.mutate(payload as Partial<ComicSeries>, {
         onSuccess: (created) => {
+          if (!created) return; // offline: déjà géré par useOfflineMutation
           toast.success("Série créée");
           navigate(`/comic/${created.id}`);
         },
         onError: (err) => toast.error(err.message),
       });
+    }
+
+    if (!navigator.onLine) {
+      navigate("/");
     }
   };
 

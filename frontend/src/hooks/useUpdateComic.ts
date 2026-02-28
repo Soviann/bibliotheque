@@ -12,6 +12,6 @@ export function useUpdateComic() {
     offlineOperation: "update",
     offlineResourceId: (v) => String(v.id),
     offlineResourceType: "comic_series",
-    queryKeysToInvalidate: [["comics"]],
+    queryKeysToInvalidate: [["comics"], ["comic"]],
   });
 }
