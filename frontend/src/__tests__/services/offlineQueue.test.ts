@@ -104,6 +104,16 @@ describe("offlineQueue", () => {
     expect(remaining[1].payload.title).toBe("Third");
   });
 
+  it("removeById does nothing for non-existent id", async () => {
+    await enqueue({ operation: "create", payload: { title: "Only" }, resourceType: "comic_series" });
+
+    await removeById(99999);
+
+    const items = await getAll();
+    expect(items).toHaveLength(1);
+    expect(items[0].payload.title).toBe("Only");
+  });
+
   it("clearQueue removes all items", async () => {
     await enqueue({ operation: "create", payload: {}, resourceType: "comic_series" });
     await enqueue({ operation: "update", payload: {}, resourceId: "1", resourceType: "comic_series" });

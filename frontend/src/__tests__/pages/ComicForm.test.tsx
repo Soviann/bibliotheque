@@ -521,6 +521,9 @@ describe("ComicForm — offline", () => {
     mockUseLookupIsbn.mockReturnValue({ data: null, isFetching: false });
     mockUseLookupTitle.mockReturnValue({ data: null, isFetching: false });
     mockUseOnlineStatus.mockReturnValue(true);
+    mockCreateMutate.mockReset();
+    mockApiFetch.mockReset();
+    mockNavigate.mockReset();
   });
 
   it("shows offline message instead of lookup when offline", async () => {
@@ -544,5 +547,137 @@ describe("ComicForm — offline", () => {
     // Lookup inputs should not be present
     expect(screen.queryByPlaceholderText("ISBN (10 ou 13 chiffres)")).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText("Titre de la série")).not.toBeInTheDocument();
+  });
+
+  it("stores new authors as _pendingAuthors when offline", async () => {
+    mockUseOnlineStatus.mockReturnValue(false);
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+
+    // Apply lookup with authors to get new authors in form
+    mockUseLookupTitle.mockReturnValue({ data: fullLookup, isFetching: false });
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Even offline, the form should still work — just no lookup
+    // Type a title manually since lookup is hidden
+    const titleInput = screen.getByLabelText(/Titre \*/);
+    await userEvent.clear(titleInput);
+    await userEvent.type(titleInput, "Test Offline");
+
+    // Submit the form
+    await userEvent.click(screen.getByRole("button", { name: "Créer" }));
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled();
+    });
+
+    // Should NOT have called apiFetch for author creation
+    expect(mockApiFetch).not.toHaveBeenCalled();
+
+    // Restore
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+  });
+
+  it("includes _pendingAuthors in payload for new authors when offline", async () => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+    mockUseOnlineStatus.mockReturnValue(false);
+
+    // Use lookup data with authors — set it on title lookup mock (even though offline hides lookup UI)
+    // We need to add an author via the autocomplete or pre-populate
+    // Since lookup is hidden offline, we test by directly submitting with the form state
+    // The cleanest approach: mock useOnlineStatus as true initially to apply lookup, then switch to offline for submit
+    mockUseOnlineStatus.mockReturnValue(true);
+    mockUseLookupTitle.mockReturnValue({ data: fullLookup, isFetching: false });
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    const { rerender } = render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Apply lookup to get authors (while "online" for UI purposes)
+    await userEvent.click(screen.getByRole("button", { name: "Titre" }));
+    const applyButton = await screen.findByRole("button", { name: "Appliquer" });
+    await userEvent.click(applyButton);
+
+    // Now simulate going offline for the submit
+    mockUseOnlineStatus.mockReturnValue(false);
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+
+    // Force re-render with new online status (component re-reads navigator.onLine in handleSubmit)
+    rerender(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Submit the form
+    await userEvent.click(screen.getByRole("button", { name: "Créer" }));
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled();
+    });
+
+    const payload = mockCreateMutate.mock.calls[0][0];
+    // New authors (negative id) should be in _pendingAuthors, not created via API
+    expect(payload._pendingAuthors).toEqual(["Thierry Cailleteau"]);
+    expect(payload.authors).toEqual([]);
+    expect(mockApiFetch).not.toHaveBeenCalled();
+
+    // Restore
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+  });
+
+  it("navigates to home after offline submit", async () => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+    mockUseOnlineStatus.mockReturnValue(false);
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const titleInput = screen.getByLabelText(/Titre \*/);
+    await userEvent.type(titleInput, "Offline Comic");
+
+    await userEvent.click(screen.getByRole("button", { name: "Créer" }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/");
+    });
+
+    // Restore
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
   });
 });
