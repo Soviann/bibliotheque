@@ -14,6 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import BarcodeScanner from "../components/BarcodeScanner";
 import { useAuthors } from "../hooks/useAuthors";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { apiFetch } from "../services/api";
 import { useComic } from "../hooks/useComic";
 import { useCreateComic } from "../hooks/useCreateComic";
@@ -149,6 +150,7 @@ export default function ComicForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
+  const isOnline = useOnlineStatus();
   const { data: comic } = useComic(id ? Number(id) : undefined);
   const createComic = useCreateComic();
   const updateComic = useUpdateComic();
@@ -372,73 +374,79 @@ export default function ComicForm() {
       </div>
 
       {/* Lookup section — visible on create AND edit */}
-      <div className="rounded-lg border border-surface-border bg-surface-tertiary p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-text-secondary">Recherche automatique</h2>
-          <div className="flex rounded-lg bg-surface-primary p-0.5 border border-surface-border">
-            <button
-              className={`rounded-md px-3 py-1 text-sm font-medium transition ${lookupMode === "isbn" ? "bg-primary-600 text-white shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
-              onClick={() => setLookupMode("isbn")}
-              type="button"
-            >
-              ISBN
-            </button>
-            <button
-              className={`rounded-md px-3 py-1 text-sm font-medium transition ${lookupMode === "title" ? "bg-primary-600 text-white shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
-              onClick={() => setLookupMode("title")}
-              type="button"
-            >
-              Titre
-            </button>
-          </div>
-        </div>
-
-        {lookupMode === "isbn" ? (
-          <div className="flex gap-2">
-            <input
-              className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
-              onChange={(e) => setLookupIsbn(e.target.value)}
-              placeholder="ISBN (10 ou 13 chiffres)"
-              value={lookupIsbn}
-            />
-            <BarcodeScanner onScan={setLookupIsbn} />
-          </div>
-        ) : (
-          <input
-            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
-            onChange={(e) => setLookupTitle(e.target.value)}
-            placeholder="Titre de la série"
-            value={lookupTitle}
-          />
-        )}
-
-        {lookupResult.isFetching && (
-          <div className="flex items-center gap-2 text-sm text-text-muted">
-            <Loader2 className="h-4 w-4 animate-spin" /> Recherche en cours…
-          </div>
-        )}
-
-        {lookupResult.data && !lookupResult.isFetching && (
-          <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-primary p-3 border border-surface-border">
-            <div className="min-w-0 text-sm">
-              <p className="truncate font-medium text-text-primary">{lookupResult.data.title}</p>
-              <p className="truncate text-text-muted">
-                {lookupResult.data.authors ?? ""}
-                {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
-              </p>
+      {isOnline ? (
+        <div className="rounded-lg border border-surface-border bg-surface-tertiary p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-text-secondary">Recherche automatique</h2>
+            <div className="flex rounded-lg bg-surface-primary p-0.5 border border-surface-border">
+              <button
+                className={`rounded-md px-3 py-1 text-sm font-medium transition ${lookupMode === "isbn" ? "bg-primary-600 text-white shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
+                onClick={() => setLookupMode("isbn")}
+                type="button"
+              >
+                ISBN
+              </button>
+              <button
+                className={`rounded-md px-3 py-1 text-sm font-medium transition ${lookupMode === "title" ? "bg-primary-600 text-white shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
+                onClick={() => setLookupMode("title")}
+                type="button"
+              >
+                Titre
+              </button>
             </div>
-            <button
-              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-              disabled={isApplying}
-              onClick={applyLookup}
-              type="button"
-            >
-              {isApplying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Appliquer
-            </button>
           </div>
-        )}
-      </div>
+
+          {lookupMode === "isbn" ? (
+            <div className="flex gap-2">
+              <input
+                className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+                onChange={(e) => setLookupIsbn(e.target.value)}
+                placeholder="ISBN (10 ou 13 chiffres)"
+                value={lookupIsbn}
+              />
+              <BarcodeScanner onScan={setLookupIsbn} />
+            </div>
+          ) : (
+            <input
+              className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+              onChange={(e) => setLookupTitle(e.target.value)}
+              placeholder="Titre de la série"
+              value={lookupTitle}
+            />
+          )}
+
+          {lookupResult.isFetching && (
+            <div className="flex items-center gap-2 text-sm text-text-muted">
+              <Loader2 className="h-4 w-4 animate-spin" /> Recherche en cours…
+            </div>
+          )}
+
+          {lookupResult.data && !lookupResult.isFetching && (
+            <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-primary p-3 border border-surface-border">
+              <div className="min-w-0 text-sm">
+                <p className="truncate font-medium text-text-primary">{lookupResult.data.title}</p>
+                <p className="truncate text-text-muted">
+                  {lookupResult.data.authors ?? ""}
+                  {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
+                </p>
+              </div>
+              <button
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                disabled={isApplying}
+                onClick={applyLookup}
+                type="button"
+              >
+                {isApplying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Appliquer
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-surface-border bg-surface-tertiary p-4">
+          <p className="text-sm text-text-muted">Recherche indisponible hors ligne</p>
+        </div>
+      )}
 
       {/* Form */}
       <form className="space-y-5" onSubmit={handleSubmit}>
