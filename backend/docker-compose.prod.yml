@@ -6,6 +6,8 @@ env_file:
 services:
   nginx:
     build:
+      args:
+        - VITE_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_ID}
       context: ..
       dockerfile: backend/docker/nginx/Dockerfile
     depends_on:
@@ -27,6 +29,8 @@ services:
       - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
+      - OAUTH_ALLOWED_EMAIL=${OAUTH_ALLOWED_EMAIL}
+      - OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
       - SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}
     restart: unless-stopped
     volumes:

@@ -15,8 +15,8 @@ Avant de lancer ce runbook, l'utilisateur doit fournir :
 | `NAS_PORT` | Port SSH (défaut 22) | `22` |
 | `MYSQL_PASSWORD` | Mot de passe MariaDB pour l'app | (généré) |
 | `MYSQL_ROOT_PASSWORD` | Mot de passe root MariaDB | (généré) |
-| `ADMIN_EMAIL` | Email du premier utilisateur | `admin@bibliotheque.fr` |
-| `ADMIN_PASSWORD` | Mot de passe du premier utilisateur | (choisi par l'utilisateur) |
+| `OAUTH_GOOGLE_ID` | ID client OAuth Google | `xxx.apps.googleusercontent.com` |
+| `OAUTH_ALLOWED_EMAIL` | Email Gmail autorisé | `user@gmail.com` |
 | `GEMINI_API_KEY` | Clé API Gemini (optionnel) | |
 | `GOOGLE_BOOKS_API_KEY` | Clé API Google Books (optionnel) | |
 
@@ -63,6 +63,8 @@ MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 SYMFONY_DECRYPTION_SECRET=${DECRYPTION_SECRET}
 GEMINI_API_KEY=${GEMINI_API_KEY}
 GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
+OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
+OAUTH_ALLOWED_EMAIL=${OAUTH_ALLOWED_EMAIL}
 EOF
 ```
 
@@ -108,17 +110,9 @@ cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.
 
 ---
 
-## Étape 7 : Créer le premier utilisateur
+## Étape 7 : Vérifier le fonctionnement
 
-```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml exec php php bin/console app:create-user "${ADMIN_EMAIL}" "${ADMIN_PASSWORD}" --env=prod
-```
-
-**Vérification** : la sortie confirme la création de l'utilisateur.
-
----
-
-## Étape 8 : Vérifier le fonctionnement
+> **Note** : pas de création d'utilisateur manuelle. Le premier login Google crée le compte automatiquement.
 
 ### Test 1 : Page d'accueil
 
@@ -128,22 +122,13 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
 
 **Attendu** : `200`
 
-### Test 2 : Login API
+### Test 2 : Endpoint Google login
 
 ```bash
-curl -s -X POST http://localhost:8080/api/login -H "Content-Type: application/json" -d "{\"email\":\"${ADMIN_EMAIL}\",\"password\":\"${ADMIN_PASSWORD}\"}" | head -c 50
+curl -s -X POST http://localhost:8080/api/login/google -H "Content-Type: application/json" -d '{}' | head -c 100
 ```
 
-**Attendu** : commence par `{"token":"eyJ`
-
-### Test 3 : API protégée
-
-```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/login -H "Content-Type: application/json" -d "{\"email\":\"${ADMIN_EMAIL}\",\"password\":\"${ADMIN_PASSWORD}\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/comic_series -H "Authorization: Bearer $TOKEN"
-```
-
-**Attendu** : `200`
+**Attendu** : `{"error":"Paramètre \"credential\" manquant."}` (confirme que l'endpoint répond)
 
 ---
 

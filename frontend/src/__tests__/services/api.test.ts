@@ -3,7 +3,7 @@ import {
   apiFetch,
   getToken,
   isAuthenticated,
-  login,
+  loginWithGoogle,
   removeToken,
   setToken,
 } from "../../services/api";
@@ -180,7 +180,7 @@ describe("apiFetch", () => {
   });
 });
 
-describe("login", () => {
+describe("loginWithGoogle", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.stubGlobal("fetch", vi.fn());
@@ -190,33 +190,34 @@ describe("login", () => {
     vi.restoreAllMocks();
   });
 
-  it("sends credentials and stores token on success", async () => {
+  it("sends credential and stores token on success", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(JSON.stringify({ token: "new-jwt" }), { status: 200 }),
     );
 
-    const token = await login("user@test.com", "pass123");
+    const token = await loginWithGoogle("google-id-token-123");
 
     expect(token).toBe("new-jwt");
     expect(getToken()).toBe("new-jwt");
     expect(fetch).toHaveBeenCalledWith(
-      "/api/login",
+      "/api/login/google",
       expect.objectContaining({
-        body: JSON.stringify({ email: "user@test.com", password: "pass123" }),
+        body: JSON.stringify({ credential: "google-id-token-123" }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       }),
     );
   });
 
-  it("throws on invalid credentials", async () => {
+  it("throws on unauthorized email", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({}), { status: 401 }),
+      new Response(
+        JSON.stringify({ error: "Adresse email non autorisée." }),
+        { status: 403 },
+      ),
     );
 
-    await expect(login("bad@test.com", "wrong")).rejects.toThrow(
-      "Identifiants invalides",
-    );
+    await expect(loginWithGoogle("bad-token")).rejects.toThrow();
     expect(getToken()).toBeNull();
   });
 });

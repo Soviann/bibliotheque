@@ -75,18 +75,18 @@ export async function apiFetch<T>(
   return response.json() as Promise<T>;
 }
 
-export async function login(
-  email: string,
-  password: string,
-): Promise<string> {
-  const response = await fetch(`${API_BASE}/login`, {
-    method: "POST",
+export async function loginWithGoogle(credential: string): Promise<string> {
+  const response = await fetch(`${API_BASE}/login/google`, {
+    body: JSON.stringify({ credential }),
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    method: "POST",
   });
 
   if (!response.ok) {
-    throw new Error("Identifiants invalides");
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+    };
+    throw new Error(data.error ?? "Échec de la connexion Google");
   }
 
   const data = (await response.json()) as { token: string };

@@ -43,8 +43,22 @@ MYSQL_ROOT_PASSWORD=mot_de_passe_root_securise
 SYMFONY_DECRYPTION_SECRET=valeur_de_la_cle
 GEMINI_API_KEY=votre_cle_gemini
 GOOGLE_BOOKS_API_KEY=votre_cle_google_books
+OAUTH_GOOGLE_ID=votre_google_client_id.apps.googleusercontent.com
+OAUTH_ALLOWED_EMAIL=votre_email@gmail.com
 EOF
 ```
+
+### Obtenir OAUTH_GOOGLE_ID
+
+Dans la [Google Cloud Console](https://console.cloud.google.com/) :
+1. Créer un projet + configurer l'**écran de consentement OAuth** (type Externe, nom de l'app, email de support)
+2. Ajouter l'email autorisé dans **Utilisateurs de test** (obligatoire tant que l'app est en mode "Test")
+3. Créer des identifiants **ID client OAuth 2.0** (type **Application Web**)
+4. Ajouter dans **Origines JavaScript autorisées** : l'URL de prod (ex. `https://bibliotheque.votre-domaine.fr`) et l'URL de dev si besoin (`https://bibliotheque.ddev.site:5173`)
+5. Copier l'**ID client** dans `OAUTH_GOOGLE_ID`
+6. Mettre l'email Gmail autorisé dans `OAUTH_ALLOWED_EMAIL`
+
+> **Note** : un seul ID client suffit pour dev et prod, il faut juste que les origines JS contiennent les deux URLs. Pour supprimer l'écran d'avertissement "App non validée", publier l'app (pas de vérification Google requise pour les scopes `email`/`profile`).
 
 ### Obtenir SYMFONY_DECRYPTION_SECRET
 
@@ -85,8 +99,7 @@ docker compose -f docker-compose.prod.yml exec php php bin/console lexik:jwt:gen
 # Exécuter les migrations
 docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
 
-# Créer le premier utilisateur
-docker compose -f docker-compose.prod.yml exec php php bin/console app:create-user admin@bibliotheque.fr motdepasse --env=prod
+# Pas de création d'utilisateur manuelle : le premier login Google crée le compte automatiquement
 ```
 
 ---
@@ -98,12 +111,12 @@ docker compose -f docker-compose.prod.yml exec php php bin/console app:create-us
 curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
 # Attendu : 200
 
-# Test API : le login fonctionne
-curl -s -X POST http://localhost:8080/api/login \
+# Test API : l'endpoint Google login répond (sans token valide, retourne 400)
+curl -s -X POST http://localhost:8080/api/login/google \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@bibliotheque.fr","password":"motdepasse"}' \
+  -d '{}' \
   | head -c 100
-# Attendu : {"token":"eyJ..."}
+# Attendu : {"error":"Param\u00e8tre \"credential\" manquant."}
 ```
 
 L'application est accessible sur `http://nas-ip:8080`.

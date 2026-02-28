@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   isAuthenticated,
-  login as apiLogin,
+  loginWithGoogle as apiLoginWithGoogle,
   removeToken,
 } from "../services/api";
 
@@ -11,8 +11,7 @@ export function useAuth() {
   const navigate = useNavigate();
 
   const loginMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      apiLogin(email, password),
+    mutationFn: (credential: string) => apiLoginWithGoogle(credential),
     onSuccess: () => {
       navigate("/");
     },
