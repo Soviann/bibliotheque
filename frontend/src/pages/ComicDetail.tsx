@@ -137,7 +137,7 @@ export default function ComicDetail() {
         description="Cette série sera déplacée vers la corbeille."
         onClose={() => setShowDelete(false)}
         onConfirm={() => {
-          deleteComic.mutate(comic.id, {
+          deleteComic.mutate({ id: comic.id }, {
             onSuccess: () => {
               toast.success("Série supprimée");
               navigate("/");

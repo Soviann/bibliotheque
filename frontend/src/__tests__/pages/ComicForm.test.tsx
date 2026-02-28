@@ -1,5 +1,7 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { LookupResult } from "../../types/api";
 
@@ -55,6 +57,11 @@ vi.mock("../../hooks/useAuthors", () => ({
 
 vi.mock("../../components/BarcodeScanner", () => ({
   default: () => <button type="button">Scanner</button>,
+}));
+
+const mockUseOnlineStatus = vi.fn().mockReturnValue(true);
+vi.mock("../../hooks/useOnlineStatus", () => ({
+  useOnlineStatus: () => mockUseOnlineStatus(),
 }));
 
 const fullLookup: LookupResult = {
@@ -506,5 +513,36 @@ describe("ComicForm — tome ISBN lookup", () => {
 
     const searchButton = screen.getByTitle("Rechercher par ISBN");
     expect(searchButton).toBeDisabled();
+  });
+});
+
+describe("ComicForm — offline", () => {
+  beforeEach(() => {
+    mockUseLookupIsbn.mockReturnValue({ data: null, isFetching: false });
+    mockUseLookupTitle.mockReturnValue({ data: null, isFetching: false });
+    mockUseOnlineStatus.mockReturnValue(true);
+  });
+
+  it("shows offline message instead of lookup when offline", async () => {
+    mockUseOnlineStatus.mockReturnValue(false);
+
+    const { default: ComicForm } = await import("../../pages/ComicForm");
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ComicForm />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByText("Recherche indisponible hors ligne")).toBeInTheDocument();
+    // Lookup inputs should not be present
+    expect(screen.queryByPlaceholderText("ISBN (10 ou 13 chiffres)")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Titre de la série")).not.toBeInTheDocument();
   });
 });

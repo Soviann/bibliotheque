@@ -1,8 +1,12 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, Moon, Sun } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
+import { toast } from "sonner";
 import { useAuth } from "../hooks/useAuth";
 import { useDarkMode } from "../hooks/useDarkMode";
 import { useServiceWorker } from "../hooks/useServiceWorker";
+import { useSyncStatus } from "../hooks/useSyncStatus";
 import BottomNav from "./BottomNav";
 import OfflineBanner from "./OfflineBanner";
 
@@ -10,6 +14,23 @@ export default function Layout() {
   const { logout } = useAuth();
   const { isDark, toggle } = useDarkMode();
   useServiceWorker();
+
+  // Sync feedback toasts
+  const { error, status, syncedCount } = useSyncStatus();
+  const queryClient = useQueryClient();
+  const prevStatus = useRef(status);
+
+  useEffect(() => {
+    if (status === prevStatus.current) return;
+    prevStatus.current = status;
+
+    if (status === "success" && syncedCount > 0) {
+      toast.success(`${syncedCount} opération${syncedCount > 1 ? "s" : ""} synchronisée${syncedCount > 1 ? "s" : ""}`);
+      void queryClient.invalidateQueries();
+    } else if (status === "error" && error) {
+      toast.error(`Erreur de synchronisation : ${error}`);
+    }
+  }, [error, queryClient, status, syncedCount]);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-secondary">
