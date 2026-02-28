@@ -9,6 +9,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Mode hors-ligne avec synchronisation différée** : CRUD complet (séries + tomes) en mode offline avec synchronisation automatique au retour en ligne (#3)
+  - File d'attente IndexedDB (via `idb`) pour les opérations offline
+  - Background Sync API pour la synchronisation automatique (Service Worker custom)
+  - Hook `useOfflineMutation` wrappant les mutations TanStack Query existantes
+  - Bannière offline enrichie avec compteur d'opérations en attente
+  - Lookup et scanner désactivés hors-ligne
+  - Toasts Sonner pour le feedback de synchronisation
+  - Stratégie last-write-wins pour la résolution de conflits
 - **Rate limiting API lookup** : Limitation à 30 requêtes/min par IP sur les endpoints `/api/lookup/isbn` et `/api/lookup/title` (#29)
 
 ### Changed

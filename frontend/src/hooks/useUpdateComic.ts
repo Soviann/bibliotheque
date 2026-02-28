@@ -1,19 +1,17 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "../services/api";
 import type { ComicSeries } from "../types/api";
+import { useOfflineMutation } from "./useOfflineMutation";
 
 export function useUpdateComic() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, ...data }: Partial<ComicSeries> & { id: number }) =>
+  return useOfflineMutation<ComicSeries, Partial<ComicSeries> & { id: number } & Record<string, unknown>>({
+    mutationFn: ({ id, ...data }) =>
       apiFetch<ComicSeries>(`/comic_series/${id}`, {
         body: JSON.stringify(data),
         method: "PUT",
       }),
-    onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: ["comic", variables.id] });
-      void queryClient.invalidateQueries({ queryKey: ["comics"] });
-    },
+    offlineOperation: "update",
+    offlineResourceId: (v) => String(v.id),
+    offlineResourceType: "comic_series",
+    queryKeysToInvalidate: [["comics"], ["comic"]],
   });
 }

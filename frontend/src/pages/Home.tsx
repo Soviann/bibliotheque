@@ -73,7 +73,7 @@ export default function Home() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (deleteTarget) {
-            deleteComic.mutate(deleteTarget.id, {
+            deleteComic.mutate({ id: deleteTarget.id }, {
               onSuccess: () => toast.success(`${deleteTarget.title} supprimée`),
             });
           }
