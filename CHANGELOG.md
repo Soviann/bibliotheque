@@ -7,6 +7,16 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Authentification Google OAuth** : Remplacement de l'authentification email/password par Google OAuth, restreinte à un seul compte Gmail autorisé (#79)
+  - Backend : `GoogleLoginController` vérifie le token Google, whitelist email, crée le user automatiquement au premier login
+  - Frontend : bouton Google Login via `@react-oauth/google` + `GoogleOAuthProvider`
+  - Suppression de `CreateUserCommand`, password hashers, `json_login` firewall
+  - Rate limiting (10 req/min), comparaison email case-insensitive
+  - Migration : drop `password`, add `google_id` (unique) sur `User`
+  - Documentation prod mise à jour (guides NAS, OVH, Dockerfile, docker-compose)
+
 ### Fixed
 
 - **Placement des boutons d'action** : Bouton destructif (Supprimer) à gauche, bouton principal (Modifier) à droite sur la fiche série, conformément à la convention UX homogène
