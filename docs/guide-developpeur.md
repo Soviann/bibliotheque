@@ -177,6 +177,8 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | GET | `/api/lookup/isbn?isbn=...&type=...` | Recherche par ISBN |
 | GET | `/api/lookup/title?title=...&type=...` | Recherche par titre |
 
+Les endpoints lookup sont protégés par rate limiting (30 requêtes/min par IP). En cas de dépassement, l'API renvoie un code `429 Too Many Requests`.
+
 Tous les endpoints (sauf `/api/login` et `/api/docs`) nécessitent un header `Authorization: Bearer <token>`.
 
 ### Processeurs d'état (State Processors)
