@@ -9,6 +9,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw-custom.ts",
       manifest: {
         name: "Bibliothèque",
         short_name: "Biblio",
@@ -31,37 +34,8 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
-        runtimeCaching: [
-          {
-            urlPattern: /^\/api\//,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 },
-              networkTimeoutSeconds: 3,
-            },
-          },
-          {
-            urlPattern: /\/uploads\/covers\//,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "cover-cache",
-              expiration: { maxEntries: 500, maxAgeSeconds: 30 * 24 * 60 * 60 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/books\.google\.com\//,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "external-cover-cache",
-              expiration: { maxEntries: 500, maxAgeSeconds: 30 * 24 * 60 * 60 },
-            },
-          },
-        ],
       },
     }),
   ],
