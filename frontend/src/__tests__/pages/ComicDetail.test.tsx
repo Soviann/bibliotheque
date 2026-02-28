@@ -1,4 +1,6 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
 // Mock react-router hooks
@@ -35,30 +37,33 @@ vi.mock("../../hooks/useDeleteComic", () => ({
   useDeleteComic: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 
+function renderComicDetail() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <ComicDetail />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+let ComicDetail: React.ComponentType;
+
 describe("ComicDetail", () => {
   it("places destructive button (Supprimer) before primary button (Modifier) in action bar", async () => {
-    const { default: ComicDetail } = await import("../../pages/ComicDetail");
-    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
-    const { MemoryRouter } = await import("react-router-dom");
-
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <ComicDetail />
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
+    ({ default: ComicDetail } = await import("../../pages/ComicDetail"));
+    renderComicDetail();
 
     const deleteButton = screen.getByRole("button", { name: /Supprimer/ });
     const editLink = screen.getByRole("link", { name: /Modifier/ });
 
     // Supprimer should appear before Modifier in DOM order (left position)
-    expect(deleteButton.compareDocumentPosition(editLink)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
+    const bar = deleteButton.closest("div")!;
+    const children = Array.from(bar.querySelectorAll("button, a"));
+    expect(children.indexOf(deleteButton)).toBeLessThan(children.indexOf(editLink));
   });
 });
