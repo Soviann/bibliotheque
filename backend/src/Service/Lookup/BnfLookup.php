@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Provider de recherche via l'API SRU du catalogue général de la BnF.
@@ -18,15 +19,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * Réponses au format Dublin Core (XML).
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 90])]
-class BnfLookup implements LookupProviderInterface
+class BnfLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://catalogue.bnf.fr/api/SRU';
 
     /** @var list<string> Champs non disponibles depuis la BnF */
     private const array UNSUPPORTED_FIELDS = ['description', 'isOneShot', 'thumbnail'];
-
-    /** @var array{status: string, message: string}|null */
-    private ?array $lastApiMessage = null;
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -43,11 +41,6 @@ class BnfLookup implements LookupProviderInterface
         return 90;
     }
 
-    public function getLastApiMessage(): ?array
-    {
-        return $this->lastApiMessage;
-    }
-
     public function getName(): string
     {
         return 'bnf';
@@ -55,7 +48,7 @@ class BnfLookup implements LookupProviderInterface
 
     public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
         $sruQuery = 'isbn' === $mode
             ? \sprintf('bib.isbn adj "%s"', $query)
@@ -75,7 +68,7 @@ class BnfLookup implements LookupProviderInterface
 
     public function resolveLookup(mixed $state): ?LookupResult
     {
-        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        \assert($state instanceof ResponseInterface);
         try {
             $content = $state->getContent();
         } catch (TransportExceptionInterface $e) {
@@ -208,11 +201,11 @@ class BnfLookup implements LookupProviderInterface
 
         // Éditeur
         $publishers = $doc->xpath('//srw:recordData/oai_dc:dc/dc:publisher');
-        $publisher = !empty($publishers) ? $this->cleanPublisher((string) $publishers[0]) : null;
+        $publisher = empty($publishers) ? null : $this->cleanPublisher((string) $publishers[0]);
 
         // Date
         $dates = $doc->xpath('//srw:recordData/oai_dc:dc/dc:date');
-        $publishedDate = !empty($dates) ? (string) $dates[0] : null;
+        $publishedDate = empty($dates) ? null : (string) $dates[0];
 
         // Identifiants (ISBN)
         $identifierNodes = $doc->xpath('//srw:recordData/oai_dc:dc/dc:identifier');
@@ -234,10 +227,5 @@ class BnfLookup implements LookupProviderInterface
             source: 'bnf',
             title: $title,
         );
-    }
-
-    private function recordApiMessage(ApiLookupStatus $status, string $message): void
-    {
-        $this->lastApiMessage = ['message' => $message, 'status' => $status->value];
     }
 }

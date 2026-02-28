@@ -32,6 +32,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    #[ORM\Column(options: ['default' => 1])]
+    private int $tokenVersion = 1;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -83,6 +86,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getTokenVersion(): int
+    {
+        return $this->tokenVersion;
+    }
+
+    public function incrementTokenVersion(): static
+    {
+        ++$this->tokenVersion;
 
         return $this;
     }

@@ -44,7 +44,7 @@ class GoogleBooksLookupTest extends TestCase
 
     public function testLookupByIsbnReturnsData(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -74,7 +74,7 @@ class GoogleBooksLookupTest extends TestCase
 
     public function testLookupByIsbnMergesMultipleResults(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -107,7 +107,7 @@ class GoogleBooksLookupTest extends TestCase
 
     public function testLookupByIsbnSelectsBestThumbnail(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -124,12 +124,13 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertSame('https://example.com/large.jpg', $result->thumbnail);
     }
 
     public function testLookupByIsbnFallsBackToSmallThumbnail(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -145,12 +146,13 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertSame('https://example.com/small.jpg', $result->thumbnail);
     }
 
     public function testThumbnailUrlIsOptimizedForLargerResolution(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -166,6 +168,7 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertSame(
             'https://books.google.com/books/content?id=ABC123&printsec=frontcover&img=1&zoom=0&source=gbs_api',
             $result->thumbnail,
@@ -174,7 +177,7 @@ class GoogleBooksLookupTest extends TestCase
 
     public function testThumbnailUrlReplacesHttpWithHttps(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -190,12 +193,14 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
+        self::assertNotNull($result->thumbnail);
         self::assertStringStartsWith('https://', $result->thumbnail);
     }
 
     public function testThumbnailUrlRemovesEdgeCurl(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -211,12 +216,14 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
+        self::assertNotNull($result->thumbnail);
         self::assertStringNotContainsString('edge=curl', $result->thumbnail);
     }
 
     public function testThumbnailUrlLeavesNonGoogleUrlsUntouched(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -232,12 +239,13 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertSame('https://example.com/cover.jpg', $result->thumbnail);
     }
 
     public function testLookupByIsbnExtractsIsbn13(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -254,12 +262,13 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertSame('9781234567890', $result->isbn);
     }
 
     public function testLookupByIsbnReturnsNullOneShotWhenNoSeriesInfo(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -272,12 +281,13 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertNull($result->isOneShot);
     }
 
     public function testLookupByIsbnDetectsSeriesAsNotOneShot(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -291,12 +301,13 @@ class GoogleBooksLookupTest extends TestCase
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertFalse($result->isOneShot);
     }
 
     public function testLookupByTitleReturnsData(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'items' => [
                 [
                     'volumeInfo' => [
@@ -318,7 +329,7 @@ class GoogleBooksLookupTest extends TestCase
     public function testLookupByIsbnUsesIsbnPrefix(): void
     {
         $requestedUrls = [];
-        $response = new MockResponse(\json_encode(['items' => []]));
+        $response = new MockResponse((string) \json_encode(['items' => []]));
 
         $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$requestedUrls, $response): MockResponse {
             $requestedUrls[] = $url;
@@ -336,7 +347,7 @@ class GoogleBooksLookupTest extends TestCase
     public function testLookupByTitleDoesNotUseIsbnPrefix(): void
     {
         $requestedUrls = [];
-        $response = new MockResponse(\json_encode(['items' => []]));
+        $response = new MockResponse((string) \json_encode(['items' => []]));
 
         $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$requestedUrls, $response): MockResponse {
             $requestedUrls[] = $url;
@@ -355,7 +366,7 @@ class GoogleBooksLookupTest extends TestCase
     public function testLookupIncludesApiKeyInQueryWhenConfigured(): void
     {
         $requestedUrls = [];
-        $response = new MockResponse(\json_encode(['items' => []]));
+        $response = new MockResponse((string) \json_encode(['items' => []]));
 
         $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$requestedUrls, $response): MockResponse {
             $requestedUrls[] = $url;
@@ -373,7 +384,7 @@ class GoogleBooksLookupTest extends TestCase
     public function testLookupOmitsApiKeyWhenEmpty(): void
     {
         $requestedUrls = [];
-        $response = new MockResponse(\json_encode(['items' => []]));
+        $response = new MockResponse((string) \json_encode(['items' => []]));
 
         $mockClient = new MockHttpClient(static function (string $method, string $url) use (&$requestedUrls, $response): MockResponse {
             $requestedUrls[] = $url;
@@ -390,7 +401,7 @@ class GoogleBooksLookupTest extends TestCase
 
     public function testLookupReturnsNullWhenNoResults(): void
     {
-        $response = new MockResponse(\json_encode(['items' => []]));
+        $response = new MockResponse((string) \json_encode(['items' => []]));
 
         $provider = new GoogleBooksLookup('', new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '0000000000', null, 'isbn');
@@ -408,6 +419,7 @@ class GoogleBooksLookupTest extends TestCase
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('error', $provider->getLastApiMessage()['status']);
     }
 
@@ -419,6 +431,7 @@ class GoogleBooksLookupTest extends TestCase
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('rate_limited', $provider->getLastApiMessage()['status']);
     }
 
@@ -430,6 +443,7 @@ class GoogleBooksLookupTest extends TestCase
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('error', $provider->getLastApiMessage()['status']);
     }
 
@@ -441,6 +455,7 @@ class GoogleBooksLookupTest extends TestCase
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('error', $provider->getLastApiMessage()['status']);
     }
 

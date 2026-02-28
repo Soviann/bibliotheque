@@ -14,27 +14,20 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Provider de recherche via l'API Open Library (ISBN uniquement).
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 80])]
-class OpenLibraryLookup implements LookupProviderInterface
+class OpenLibraryLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://openlibrary.org/isbn/';
-
-    /** @var array{status: string, message: string}|null */
-    private ?array $lastApiMessage = null;
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
     ) {
-    }
-
-    public function getLastApiMessage(): ?array
-    {
-        return $this->lastApiMessage;
     }
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int
@@ -49,7 +42,7 @@ class OpenLibraryLookup implements LookupProviderInterface
 
     public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
         return $this->httpClient->request('GET', self::API_URL.$query.'.json', [
             'timeout' => 10,
@@ -58,7 +51,7 @@ class OpenLibraryLookup implements LookupProviderInterface
 
     public function resolveLookup(mixed $state): ?LookupResult
     {
-        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        \assert($state instanceof ResponseInterface);
         try {
             $statusCode = $state->getStatusCode();
 
@@ -87,7 +80,7 @@ class OpenLibraryLookup implements LookupProviderInterface
                 $authors = $this->fetchAuthorsParallel($data['authors']);
             }
 
-            $publisher = !empty($data['publishers']) ? $data['publishers'][0] : null;
+            $publisher = empty($data['publishers']) ? null : $data['publishers'][0];
             $publishedDate = $data['publish_date'] ?? null;
 
             $thumbnail = null;
@@ -172,10 +165,5 @@ class OpenLibraryLookup implements LookupProviderInterface
         }
 
         return \count($authorNames) > 0 ? \implode(', ', $authorNames) : null;
-    }
-
-    private function recordApiMessage(ApiLookupStatus $status, string $message): void
-    {
-        $this->lastApiMessage = ['message' => $message, 'status' => $status->value];
     }
 }

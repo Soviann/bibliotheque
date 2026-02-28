@@ -1,0 +1,11 @@
+# Root .dockerignore (used by nginx multi-stage build context)
+.ddev/
+.git/
+.idea/
+.vscode/
+backend/var/
+backend/vendor/
+backend/tests/
+backend/node_modules/
+docs/
+frontend/node_modules/

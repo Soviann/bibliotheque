@@ -30,16 +30,16 @@ class LookupResult implements \JsonSerializable
      */
     public function __unserialize(array $data): void
     {
-        $this->authors = $data['authors'] ?? null;
-        $this->description = $data['description'] ?? null;
-        $this->isbn = $data['isbn'] ?? null;
-        $this->isOneShot = $data['isOneShot'] ?? null;
-        $this->latestPublishedIssue = $data['latestPublishedIssue'] ?? null;
-        $this->publishedDate = $data['publishedDate'] ?? null;
-        $this->publisher = $data['publisher'] ?? null;
-        $this->source = $data['source'] ?? '';
-        $this->thumbnail = $data['thumbnail'] ?? null;
-        $this->title = $data['title'] ?? null;
+        $this->authors = \is_string($data['authors'] ?? null) ? $data['authors'] : null;
+        $this->description = \is_string($data['description'] ?? null) ? $data['description'] : null;
+        $this->isbn = \is_string($data['isbn'] ?? null) ? $data['isbn'] : null;
+        $this->isOneShot = \is_bool($data['isOneShot'] ?? null) ? $data['isOneShot'] : null;
+        $this->latestPublishedIssue = \is_int($data['latestPublishedIssue'] ?? null) ? $data['latestPublishedIssue'] : null;
+        $this->publishedDate = \is_string($data['publishedDate'] ?? null) ? $data['publishedDate'] : null;
+        $this->publisher = \is_string($data['publisher'] ?? null) ? $data['publisher'] : null;
+        $this->source = \is_string($data['source'] ?? null) ? $data['source'] : '';
+        $this->thumbnail = \is_string($data['thumbnail'] ?? null) ? $data['thumbnail'] : null;
+        $this->title = \is_string($data['title'] ?? null) ? $data['title'] : null;
     }
 
     /**
@@ -47,44 +47,7 @@ class LookupResult implements \JsonSerializable
      */
     public function isComplete(): bool
     {
-        return null !== $this->authors
-            && null !== $this->description
-            && null !== $this->publishedDate
-            && null !== $this->publisher
-            && null !== $this->thumbnail
-            && null !== $this->title;
-    }
-
-    /**
-     * Fusionne avec un autre résultat : complète les champs manquants.
-     *
-     * @param list<string> $overrideFields Champs à écraser même s'ils existent déjà
-     */
-    public function mergeWith(self $other, array $overrideFields = []): self
-    {
-        $fields = ['authors', 'description', 'isbn', 'isOneShot', 'latestPublishedIssue', 'publishedDate', 'publisher', 'thumbnail', 'title'];
-        $values = [];
-
-        foreach ($fields as $field) {
-            if (\in_array($field, $overrideFields, true) && null !== $other->$field) {
-                $values[$field] = $other->$field;
-            } else {
-                $values[$field] = $this->$field ?? $other->$field;
-            }
-        }
-
-        return new self(
-            authors: $values['authors'],
-            description: $values['description'],
-            isbn: $values['isbn'],
-            isOneShot: $values['isOneShot'],
-            latestPublishedIssue: $values['latestPublishedIssue'],
-            publishedDate: $values['publishedDate'],
-            publisher: $values['publisher'],
-            source: $this->source,
-            thumbnail: $values['thumbnail'],
-            title: $values['title'],
-        );
+        return !\in_array(null, [$this->authors, $this->description, $this->publishedDate, $this->publisher, $this->thumbnail, $this->title], true);
     }
 
     /**

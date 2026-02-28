@@ -373,7 +373,9 @@ describe("ComicForm — ISBN→title chaining", () => {
       </QueryClientProvider>,
     );
 
-    // Stay in ISBN mode (default) — click Appliquer
+    // Switch to ISBN mode (default is "title")
+    await userEvent.click(screen.getByRole("button", { name: "ISBN" }));
+
     const applyButton = await screen.findByRole("button", { name: "Appliquer" });
     await userEvent.click(applyButton);
 
@@ -417,6 +419,9 @@ describe("ComicForm — ISBN→title chaining", () => {
         </MemoryRouter>
       </QueryClientProvider>,
     );
+
+    // Switch to ISBN mode (default is "title")
+    await userEvent.click(screen.getByRole("button", { name: "ISBN" }));
 
     const applyButton = await screen.findByRole("button", { name: "Appliquer" });
     await userEvent.click(applyButton);

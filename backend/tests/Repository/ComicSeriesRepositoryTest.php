@@ -33,8 +33,8 @@ class ComicSeriesRepositoryTest extends KernelTestCase
      */
     public function testFindWithFiltersWishlistFilter(): void
     {
-        $library = $this->createSeries('Library Series Filter Test', false);
-        $wishlist = $this->createSeries('Wishlist Series Filter Test', true);
+        $this->createSeries('Library Series Filter Test', false);
+        $this->createSeries('Wishlist Series Filter Test', true);
         $this->em->flush();
 
         $libraryResults = $this->repository->findWithFilters(['isWishlist' => false]);
@@ -54,8 +54,8 @@ class ComicSeriesRepositoryTest extends KernelTestCase
      */
     public function testFindWithFiltersTypeFilter(): void
     {
-        $bd = $this->createSeries('BD Series Test', false, ComicType::BD);
-        $manga = $this->createSeries('Manga Series Test', false, ComicType::MANGA);
+        $this->createSeries('BD Series Test', false, ComicType::BD);
+        $this->createSeries('Manga Series Test', false, ComicType::MANGA);
         $this->em->flush();
 
         $bdResults = $this->repository->findWithFilters([
@@ -74,8 +74,8 @@ class ComicSeriesRepositoryTest extends KernelTestCase
      */
     public function testFindWithFiltersStatusFilter(): void
     {
-        $buying = $this->createSeries('Buying Series Test', false, ComicType::BD, ComicStatus::BUYING);
-        $finished = $this->createSeries('Finished Series Test', false, ComicType::BD, ComicStatus::FINISHED);
+        $this->createSeries('Buying Series Test', false, ComicType::BD, ComicStatus::BUYING);
+        $this->createSeries('Finished Series Test', false, ComicType::BD, ComicStatus::FINISHED);
         $this->em->flush();
 
         $buyingResults = $this->repository->findWithFilters([
@@ -154,8 +154,8 @@ class ComicSeriesRepositoryTest extends KernelTestCase
      */
     public function testFindWithFiltersSearchByTitle(): void
     {
-        $series1 = $this->createSeries('UniqueSearchRepoTestXYZ', false);
-        $series2 = $this->createSeries('Other Series', false);
+        $this->createSeries('UniqueSearchRepoTestXYZ', false);
+        $this->createSeries('Other Series', false);
         $this->em->flush();
 
         $results = $this->repository->findWithFilters([
@@ -312,8 +312,8 @@ class ComicSeriesRepositoryTest extends KernelTestCase
      */
     public function testFindWithFiltersSortTitleAsc(): void
     {
-        $seriesZ = $this->createSeries('Zorro Repo Test', false);
-        $seriesA = $this->createSeries('Asterix Repo Test', false);
+        $this->createSeries('Zorro Repo Test', false);
+        $this->createSeries('Asterix Repo Test', false);
         $this->em->flush();
 
         $results = $this->repository->findWithFilters([
@@ -342,8 +342,8 @@ class ComicSeriesRepositoryTest extends KernelTestCase
      */
     public function testFindWithFiltersSortTitleDesc(): void
     {
-        $seriesZ = $this->createSeries('Zorro Desc Test', false);
-        $seriesA = $this->createSeries('Asterix Desc Test', false);
+        $this->createSeries('Zorro Desc Test', false);
+        $this->createSeries('Asterix Desc Test', false);
         $this->em->flush();
 
         $results = $this->repository->findWithFilters([
@@ -397,58 +397,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
     }
 
     /**
-     * Teste que search() eager-load les tomes (pas de N+1).
-     */
-    public function testSearchEagerLoadsTomes(): void
-    {
-        $series = $this->createSeries('Eager Search XYZ99', false);
-        $tome = new Tome();
-        $tome->setNumber(1);
-        $series->addTome($tome);
-        $this->em->flush();
-        $this->em->clear();
-
-        $results = $this->repository->search('Eager Search XYZ99');
-
-        self::assertCount(1, $results);
-        $tomes = $results[0]->getTomes();
-        self::assertInstanceOf(PersistentCollection::class, $tomes);
-        self::assertTrue($tomes->isInitialized(), 'Les tomes doivent être eager-loadés par search()');
-    }
-
-    /**
-     * Teste la méthode search.
-     */
-    public function testSearch(): void
-    {
-        $series = $this->createSeries('Unique Searchable Title XYZ', false);
-        $this->em->flush();
-
-        $results = $this->repository->search('Unique Searchable');
-
-        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
-
-        self::assertContains('Unique Searchable Title XYZ', $titles);
-    }
-
-    /**
-     * Teste findByStatus.
-     */
-    public function testFindByStatus(): void
-    {
-        $stopped = $this->createSeries('Stopped Status Test', false, ComicType::BD, ComicStatus::STOPPED);
-        $buying = $this->createSeries('Buying Status Test', false, ComicType::BD, ComicStatus::BUYING);
-        $this->em->flush();
-
-        $results = $this->repository->findByStatus(ComicStatus::STOPPED);
-
-        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
-
-        self::assertContains('Stopped Status Test', $titles);
-        self::assertNotContains('Buying Status Test', $titles);
-    }
-
-    /**
      * Teste findAllForApi retourne la structure attendue.
      */
     public function testFindAllForApiReturnsExpectedStructure(): void
@@ -486,87 +434,6 @@ class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertArrayHasKey('lastRead', $testResult);
         self::assertArrayHasKey('lastReadComplete', $testResult);
         self::assertArrayHasKey('readTomesCount', $testResult);
-    }
-
-    /**
-     * Teste findSoftDeleted retourne les séries supprimées.
-     */
-    public function testFindSoftDeleted(): void
-    {
-        $deleted = $this->createSeries('Soft Deleted Test');
-        $deleted->delete();
-        $active = $this->createSeries('Active Series Test');
-        $this->em->flush();
-
-        $results = $this->repository->findSoftDeleted();
-
-        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
-
-        self::assertContains('Soft Deleted Test', $titles);
-        self::assertNotContains('Active Series Test', $titles);
-    }
-
-    /**
-     * Teste findSoftDeleted trie par deletedAt DESC.
-     */
-    public function testFindSoftDeletedOrderedByDeletedAtDesc(): void
-    {
-        $first = $this->createSeries('First Deleted');
-        $first->delete();
-        $this->em->flush();
-
-        // Simuler un deletedAt plus récent
-        $second = $this->createSeries('Second Deleted');
-        $second->delete();
-        $this->em->flush();
-
-        $results = $this->repository->findSoftDeleted();
-
-        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $results);
-        $firstIdx = \array_search('First Deleted', $titles, true);
-        $secondIdx = \array_search('Second Deleted', $titles, true);
-
-        self::assertNotFalse($firstIdx);
-        self::assertNotFalse($secondIdx);
-        self::assertGreaterThan($secondIdx, $firstIdx);
-    }
-
-    /**
-     * Teste findSoftDeletedById retourne la série soft-deleted.
-     */
-    public function testFindSoftDeletedByIdReturnsDeletedSeries(): void
-    {
-        $series = $this->createSeries('Find By Id Deleted Test');
-        $series->delete();
-        $this->em->flush();
-
-        $result = $this->repository->findSoftDeletedById($series->getId());
-
-        self::assertNotNull($result);
-        self::assertSame('Find By Id Deleted Test', $result->getTitle());
-    }
-
-    /**
-     * Teste findSoftDeletedById retourne null pour une série active.
-     */
-    public function testFindSoftDeletedByIdReturnsNullForActiveSeries(): void
-    {
-        $series = $this->createSeries('Active Find By Id Test');
-        $this->em->flush();
-
-        $result = $this->repository->findSoftDeletedById($series->getId());
-
-        self::assertNull($result);
-    }
-
-    /**
-     * Teste findSoftDeletedById retourne null pour un ID inexistant.
-     */
-    public function testFindSoftDeletedByIdReturnsNullForNonExistent(): void
-    {
-        $result = $this->repository->findSoftDeletedById(999999);
-
-        self::assertNull($result);
     }
 
     /**

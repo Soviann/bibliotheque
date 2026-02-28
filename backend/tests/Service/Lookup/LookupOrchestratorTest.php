@@ -104,6 +104,7 @@ class LookupOrchestratorTest extends TestCase
         $orchestrator = $this->createOrchestrator([$google]);
         $result = $orchestrator->lookup('9781234567890');
 
+        self::assertNotNull($result);
         self::assertSame('9781234567890', $result->isbn);
     }
 
@@ -142,6 +143,7 @@ class LookupOrchestratorTest extends TestCase
         $orchestrator = $this->createOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
 
+        self::assertNotNull($result);
         self::assertSame('https://anilist.jpg', $result->thumbnail);
     }
 
@@ -160,6 +162,7 @@ class LookupOrchestratorTest extends TestCase
         $orchestrator = $this->createOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
 
+        self::assertNotNull($result);
         self::assertFalse($result->isOneShot);
     }
 
@@ -180,6 +183,7 @@ class LookupOrchestratorTest extends TestCase
         $orchestrator = $this->createOrchestrator([$google, $anilist]);
         $result = $orchestrator->lookupByTitle('Manga', ComicType::MANGA);
 
+        self::assertNotNull($result);
         self::assertSame('Google Author', $result->authors);
         self::assertSame('Google Desc', $result->description);
     }
@@ -199,6 +203,7 @@ class LookupOrchestratorTest extends TestCase
         $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
         $result = $orchestrator->lookupByTitle('Test');
 
+        self::assertNotNull($result);
         self::assertNull($result->publisher);
     }
 
@@ -306,7 +311,7 @@ class LookupOrchestratorTest extends TestCase
         ));
 
         $orchestrator = $this->createOrchestrator([$google, $openLibrary]);
-        $result = $orchestrator->lookup('1234567890');
+        $orchestrator->lookup('1234567890');
 
         $sources = $orchestrator->getLastSources();
         self::assertContains('google_books', $sources);
@@ -622,6 +627,11 @@ class LookupOrchestratorTest extends TestCase
      * @param array{status: string, message: string}|null $apiMessage
      * @param array<string, int>                          $fieldPriorities
      */
+    /**
+     * @param list<string>                                $supportedModes
+     * @param array{status: string, message: string}|null $apiMessage
+     * @param array<string, int>                          $fieldPriorities
+     */
     private function createProvider(
         string $name,
         array $supportedModes,
@@ -631,15 +641,20 @@ class LookupOrchestratorTest extends TestCase
         int $defaultPriority = 0,
         array $fieldPriorities = [],
     ): LookupProviderInterface {
-        return new class($name, $supportedModes, $result, $requiredType, $apiMessage, $defaultPriority, $fieldPriorities) implements LookupProviderInterface {
+        return new readonly class($name, $supportedModes, $result, $requiredType, $apiMessage, $defaultPriority, $fieldPriorities) implements LookupProviderInterface {
+            /**
+             * @param list<string>                                $supportedModes
+             * @param array{status: string, message: string}|null $apiMessage
+             * @param array<string, int>                          $fieldPriorities
+             */
             public function __construct(
-                private readonly string $name,
-                private readonly array $supportedModes,
-                private readonly ?LookupResult $result,
-                private readonly ?ComicType $requiredType,
-                private readonly ?array $apiMessage,
-                private readonly int $defaultPriority,
-                private readonly array $fieldPriorities,
+                private string $name,
+                private array $supportedModes,
+                private ?LookupResult $result,
+                private ?ComicType $requiredType,
+                private ?array $apiMessage,
+                private int $defaultPriority,
+                private array $fieldPriorities,
             ) {
             }
 
@@ -665,12 +680,15 @@ class LookupOrchestratorTest extends TestCase
 
             public function resolveLookup(mixed $state): ?LookupResult
             {
-                return $state['result'] ?? null;
+                \assert(\is_array($state));
+                $result = $state['result'] ?? null;
+
+                return $result instanceof LookupResult ? $result : null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool
             {
-                if (null !== $this->requiredType && $type !== $this->requiredType) {
+                if ($this->requiredType instanceof ComicType && $type !== $this->requiredType) {
                     return false;
                 }
 
@@ -690,11 +708,15 @@ class LookupOrchestratorTest extends TestCase
         array &$callOrder,
     ): LookupProviderInterface {
         return new class($name, $supportedModes, $result, $callOrder) implements LookupProviderInterface {
+            /**
+             * @param list<string> $supportedModes
+             * @param list<string> $callOrder
+             */
             public function __construct(
                 private readonly string $name,
                 private readonly array $supportedModes,
                 private readonly ?LookupResult $result,
-                private array &$callOrder,
+                private array &$callOrder, // @phpstan-ignore property.onlyWritten (read via by-reference)
             ) {
             }
 
@@ -722,7 +744,10 @@ class LookupOrchestratorTest extends TestCase
 
             public function resolveLookup(mixed $state): ?LookupResult
             {
-                return $state['result'] ?? null;
+                \assert(\is_array($state));
+                $result = $state['result'] ?? null;
+
+                return $result instanceof LookupResult ? $result : null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -742,11 +767,14 @@ class LookupOrchestratorTest extends TestCase
         ?string &$capturedQuery,
     ): LookupProviderInterface {
         return new class($name, $supportedModes, $result, $capturedQuery) implements LookupProviderInterface {
+            /**
+             * @param list<string> $supportedModes
+             */
             public function __construct(
                 private readonly string $name,
                 private readonly array $supportedModes,
                 private readonly ?LookupResult $result,
-                private ?string &$capturedQuery,
+                private ?string &$capturedQuery, // @phpstan-ignore property.onlyWritten (read via by-reference)
             ) {
             }
 
@@ -774,7 +802,10 @@ class LookupOrchestratorTest extends TestCase
 
             public function resolveLookup(mixed $state): ?LookupResult
             {
-                return $state['result'] ?? null;
+                \assert(\is_array($state));
+                $result = $state['result'] ?? null;
+
+                return $result instanceof LookupResult ? $result : null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -798,12 +829,16 @@ class LookupOrchestratorTest extends TestCase
         array $fieldPriorities = [],
     ): EnrichableLookupProviderInterface {
         return new class($name, $supportedModes, $lookupResult, $enrichResult, $enrichCalled, $defaultPriority, $fieldPriorities) implements EnrichableLookupProviderInterface {
+            /**
+             * @param list<string>       $supportedModes
+             * @param array<string, int> $fieldPriorities
+             */
             public function __construct(
                 private readonly string $name,
                 private readonly array $supportedModes,
                 private readonly ?LookupResult $lookupResult,
                 private readonly ?LookupResult $enrichResult,
-                private bool &$enrichCalled,
+                private bool &$enrichCalled, // @phpstan-ignore property.onlyWritten (read via by-reference)
                 private readonly int $defaultPriority,
                 private readonly array $fieldPriorities,
             ) {
@@ -838,12 +873,18 @@ class LookupOrchestratorTest extends TestCase
 
             public function resolveEnrich(mixed $state): ?LookupResult
             {
-                return $state['result'] ?? null;
+                \assert(\is_array($state));
+                $result = $state['result'] ?? null;
+
+                return $result instanceof LookupResult ? $result : null;
             }
 
             public function resolveLookup(mixed $state): ?LookupResult
             {
-                return $state['result'] ?? null;
+                \assert(\is_array($state));
+                $result = $state['result'] ?? null;
+
+                return $result instanceof LookupResult ? $result : null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -864,12 +905,15 @@ class LookupOrchestratorTest extends TestCase
         bool $throwOnPrepare = false,
         bool $throwOnResolve = false,
     ): LookupProviderInterface {
-        return new class($name, $supportedModes, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
+        return new readonly class($name, $supportedModes, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
+            /**
+             * @param list<string> $supportedModes
+             */
             public function __construct(
-                private readonly string $name,
-                private readonly array $supportedModes,
-                private readonly bool $throwOnPrepare,
-                private readonly bool $throwOnResolve,
+                private string $name,
+                private array $supportedModes,
+                private bool $throwOnPrepare,
+                private bool $throwOnResolve,
             ) {
             }
 
@@ -924,12 +968,15 @@ class LookupOrchestratorTest extends TestCase
         ?LookupResult $result,
         float $resolveDelay,
     ): LookupProviderInterface {
-        return new class($name, $supportedModes, $result, $resolveDelay) implements LookupProviderInterface {
+        return new readonly class($name, $supportedModes, $result, $resolveDelay) implements LookupProviderInterface {
+            /**
+             * @param list<string> $supportedModes
+             */
             public function __construct(
-                private readonly string $name,
-                private readonly array $supportedModes,
-                private readonly ?LookupResult $result,
-                private readonly float $resolveDelay,
+                private string $name,
+                private array $supportedModes,
+                private ?LookupResult $result,
+                private float $resolveDelay,
             ) {
             }
 
@@ -957,7 +1004,10 @@ class LookupOrchestratorTest extends TestCase
             {
                 \usleep((int) ($this->resolveDelay * 1_000_000));
 
-                return $state['result'] ?? null;
+                \assert(\is_array($state));
+                $result = $state['result'] ?? null;
+
+                return $result instanceof LookupResult ? $result : null;
             }
 
             public function supports(string $mode, ?ComicType $type): bool

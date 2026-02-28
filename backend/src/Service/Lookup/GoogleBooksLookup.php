@@ -7,25 +7,23 @@ namespace App\Service\Lookup;
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Provider de recherche via l'API Google Books.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 100])]
-class GoogleBooksLookup implements LookupProviderInterface
+class GoogleBooksLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://www.googleapis.com/books/v1/volumes';
-
-    /** @var array{status: string, message: string}|null */
-    private ?array $lastApiMessage = null;
 
     public function __construct(
         #[Autowire('%env(GOOGLE_BOOKS_API_KEY)%')]
@@ -33,11 +31,6 @@ class GoogleBooksLookup implements LookupProviderInterface
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
     ) {
-    }
-
-    public function getLastApiMessage(): ?array
-    {
-        return $this->lastApiMessage;
     }
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int
@@ -52,7 +45,7 @@ class GoogleBooksLookup implements LookupProviderInterface
 
     public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
         $q = 'isbn' === $mode ? 'isbn:'.$query : $query;
 
@@ -73,7 +66,7 @@ class GoogleBooksLookup implements LookupProviderInterface
 
     public function resolveLookup(mixed $state): ?LookupResult
     {
-        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        \assert($state instanceof ResponseInterface);
         try {
             $data = $state->toArray();
 
@@ -168,46 +161,51 @@ class GoogleBooksLookup implements LookupProviderInterface
 
         foreach ($items as $item) {
             $volumeInfo = $item['volumeInfo'] ?? [];
+            if (!\is_array($volumeInfo)) {
+                continue;
+            }
 
-            if (null === $authors && !empty($volumeInfo['authors'])) {
+            /** @var array<string, mixed> $volumeInfo */
+            if (null === $authors && !empty($volumeInfo['authors']) && \is_array($volumeInfo['authors'])) {
                 $authors = \implode(', ', $volumeInfo['authors']);
             }
 
-            if (null === $description && !empty($volumeInfo['description'])) {
+            if (null === $description && !empty($volumeInfo['description']) && \is_string($volumeInfo['description'])) {
                 $description = $volumeInfo['description'];
             }
 
-            if (null === $publishedDate && !empty($volumeInfo['publishedDate'])) {
+            if (null === $publishedDate && !empty($volumeInfo['publishedDate']) && \is_string($volumeInfo['publishedDate'])) {
                 $publishedDate = $volumeInfo['publishedDate'];
             }
 
-            if (null === $publisher && !empty($volumeInfo['publisher'])) {
+            if (null === $publisher && !empty($volumeInfo['publisher']) && \is_string($volumeInfo['publisher'])) {
                 $publisher = $volumeInfo['publisher'];
             }
 
             if (null === $thumbnail) {
-                $rawThumbnail = $volumeInfo['imageLinks']['thumbnail']
-                    ?? $volumeInfo['imageLinks']['smallThumbnail']
-                    ?? null;
+                $imageLinks = $volumeInfo['imageLinks'] ?? null;
+                $rawThumbnail = \is_array($imageLinks)
+                    ? ($imageLinks['thumbnail'] ?? $imageLinks['smallThumbnail'] ?? null)
+                    : null;
 
                 if (\is_string($rawThumbnail)) {
                     $thumbnail = $this->optimizeThumbnailUrl($rawThumbnail);
                 }
             }
 
-            if (null === $title && !empty($volumeInfo['title'])) {
+            if (null === $title && !empty($volumeInfo['title']) && \is_string($volumeInfo['title'])) {
                 $title = $volumeInfo['title'];
             }
 
-            if (null === $isbn && \is_array($volumeInfo) && !empty($volumeInfo['industryIdentifiers']) && \is_array($volumeInfo['industryIdentifiers'])) {
+            if (null === $isbn && !empty($volumeInfo['industryIdentifiers']) && \is_array($volumeInfo['industryIdentifiers'])) {
                 $isbn = $this->extractIsbnFromIdentifiers($volumeInfo['industryIdentifiers']);
             }
 
-            if (null === $isOneShot && \is_array($volumeInfo) && \array_key_exists('seriesInfo', $volumeInfo) && null !== $volumeInfo['seriesInfo']) {
+            if (null === $isOneShot && \array_key_exists('seriesInfo', $volumeInfo) && null !== $volumeInfo['seriesInfo']) {
                 $isOneShot = false;
             }
 
-            if (null !== $authors && null !== $description && null !== $publishedDate && null !== $publisher && null !== $thumbnail && null !== $title) {
+            if (!\in_array(null, [$authors, $description, $publishedDate, $publisher, $thumbnail, $title], true)) {
                 break;
             }
         }
@@ -243,10 +241,5 @@ class GoogleBooksLookup implements LookupProviderInterface
         $url = (string) \preg_replace('/&?edge=curl&?/', '&', $url);
 
         return \rtrim($url, '&');
-    }
-
-    private function recordApiMessage(ApiLookupStatus $status, string $message): void
-    {
-        $this->lastApiMessage = ['message' => $message, 'status' => $status->value];
     }
 }

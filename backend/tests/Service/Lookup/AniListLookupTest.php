@@ -54,7 +54,7 @@ class AniListLookupTest extends TestCase
 
     public function testLookupByTitleReturnsData(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => [
@@ -90,7 +90,7 @@ class AniListLookupTest extends TestCase
 
     public function testLookupExtractsMultipleAuthors(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://anilist.co/cover.jpg'],
@@ -114,12 +114,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test Manga', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('Writer Name, Artist Name', $result->authors);
     }
 
     public function testLookupFiltersNonAuthorRoles(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://anilist.co/cover.jpg'],
@@ -147,12 +148,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('Author', $result->authors);
     }
 
     public function testLookupFormatsFullDate(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -165,12 +167,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('2018-03-05', $result->publishedDate);
     }
 
     public function testLookupFormatsPartialDate(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -183,12 +186,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('2020-07', $result->publishedDate);
     }
 
     public function testLookupFormatsYearOnlyDate(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -201,12 +205,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('2015', $result->publishedDate);
     }
 
     public function testLookupDetectsOneShotByFormat(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -219,12 +224,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertTrue($result->isOneShot);
     }
 
     public function testLookupDetectsOneShotByVolumesAndStatus(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -239,12 +245,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertTrue($result->isOneShot);
     }
 
     public function testLookupDetectsMultiVolumeAsNotOneShot(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -259,12 +266,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertFalse($result->isOneShot);
     }
 
     public function testLookupReturnsLatestPublishedIssue(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -279,12 +287,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'One Piece', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame(109, $result->latestPublishedIssue);
     }
 
     public function testLookupReturnsNullLatestPublishedIssueWhenNotAvailable(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -296,13 +305,14 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertNull($result->latestPublishedIssue);
     }
 
     public function testLookupCleansTitleSuffixes(): void
     {
         $requestedBodies = [];
-        $response = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+        $response = new MockResponse((string) \json_encode(['data' => ['Media' => null]]));
 
         $mockClient = new MockHttpClient(static function (string $method, string $url, array $options) use (&$requestedBodies, $response): MockResponse {
             $requestedBodies[] = $options['body'] ?? '';
@@ -314,18 +324,20 @@ class AniListLookupTest extends TestCase
         $this->doLookup($provider, 'Solo Leveling Tome 2', ComicType::MANGA, 'title');
 
         self::assertCount(1, $requestedBodies);
+        /** @var array{variables: array{search: string}} $body */
         $body = \json_decode($requestedBodies[0], true);
         self::assertSame('Solo Leveling', $body['variables']['search']);
     }
 
     public function testLookupReturnsNullWhenNoResults(): void
     {
-        $response = new MockResponse(\json_encode(['data' => ['Media' => null]]));
+        $response = new MockResponse((string) \json_encode(['data' => ['Media' => null]]));
 
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Nonexistent Manga', ComicType::MANGA, 'title');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
     }
 
@@ -337,6 +349,7 @@ class AniListLookupTest extends TestCase
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('error', $provider->getLastApiMessage()['status']);
     }
 
@@ -348,12 +361,13 @@ class AniListLookupTest extends TestCase
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('rate_limited', $provider->getLastApiMessage()['status']);
     }
 
     public function testLookupPrefersEnglishTitle(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -369,12 +383,13 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('English Title', $result->title);
     }
 
     public function testLookupFallsBackToRomajiTitle(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'data' => [
                 'Media' => [
                     'coverImage' => ['large' => 'https://cover.jpg'],
@@ -390,6 +405,7 @@ class AniListLookupTest extends TestCase
         $provider = new AniListLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'Test', ComicType::MANGA, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('Romaji Title', $result->title);
     }
 

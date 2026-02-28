@@ -20,6 +20,9 @@ security:
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 username_path: email
+            login_throttling:
+                max_attempts: 5
+                interval: '1 minute'
         api:
             pattern: ^/api/
             stateless: true

@@ -42,7 +42,7 @@ class OpenLibraryLookupTest extends TestCase
 
     public function testLookupByIsbnReturnsData(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'covers' => [12345],
             'publish_date' => 'January 2021',
             'publishers' => ['Open Publisher'],
@@ -63,7 +63,7 @@ class OpenLibraryLookupTest extends TestCase
 
     public function testLookupByIsbnFetchesAuthorsInParallel(): void
     {
-        $bookResponse = new MockResponse(\json_encode([
+        $bookResponse = new MockResponse((string) \json_encode([
             'authors' => [
                 ['key' => '/authors/OL1A'],
                 ['key' => '/authors/OL2A'],
@@ -71,8 +71,8 @@ class OpenLibraryLookupTest extends TestCase
             'title' => 'Multi Author Book',
         ]));
 
-        $authorResponse1 = new MockResponse(\json_encode(['name' => 'Author One']));
-        $authorResponse2 = new MockResponse(\json_encode(['name' => 'Author Two']));
+        $authorResponse1 = new MockResponse((string) \json_encode(['name' => 'Author One']));
+        $authorResponse2 = new MockResponse((string) \json_encode(['name' => 'Author Two']));
 
         $provider = new OpenLibraryLookup(
             new MockHttpClient([$bookResponse, $authorResponse1, $authorResponse2]),
@@ -92,12 +92,13 @@ class OpenLibraryLookupTest extends TestCase
         $result = $this->doLookup($provider, '0000000000', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
     }
 
     public function testLookupReturnsNullWhenTitleMissing(): void
     {
-        $response = new MockResponse(\json_encode([
+        $response = new MockResponse((string) \json_encode([
             'publishers' => ['Some Publisher'],
         ]));
 
@@ -105,6 +106,7 @@ class OpenLibraryLookupTest extends TestCase
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
     }
 
@@ -116,6 +118,7 @@ class OpenLibraryLookupTest extends TestCase
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('error', $provider->getLastApiMessage()['status']);
     }
 
@@ -127,6 +130,7 @@ class OpenLibraryLookupTest extends TestCase
         $result = $this->doLookup($provider, '1234567890', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('rate_limited', $provider->getLastApiMessage()['status']);
     }
 

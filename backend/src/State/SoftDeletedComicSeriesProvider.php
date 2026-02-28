@@ -40,6 +40,10 @@ final readonly class SoftDeletedComicSeriesProvider implements ProviderInterface
             throw new NotFoundHttpException('Série non trouvée.');
         }
 
+        if (!$comic->isDeleted()) {
+            throw new NotFoundHttpException();
+        }
+
         return $comic;
     }
 }

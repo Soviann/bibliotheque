@@ -13,12 +13,12 @@ use Vich\UploaderBundle\Templating\Helper\UploaderHelperInterface;
  *
  * Invalide le cache LiipImagine lors de la suppression.
  */
-final class VichCoverRemover implements CoverRemoverInterface
+final readonly class VichCoverRemover implements CoverRemoverInterface
 {
     public function __construct(
-        private readonly CacheManager $cacheManager,
-        private readonly UploadHandlerInterface $uploadHandler,
-        private readonly UploaderHelperInterface $uploaderHelper,
+        private CacheManager $cacheManager,
+        private UploadHandlerInterface $uploadHandler,
+        private UploaderHelperInterface $uploaderHelper,
     ) {
     }
 
