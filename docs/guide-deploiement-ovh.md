@@ -1,6 +1,8 @@
-# Guide de déploiement — Serveur Linux OVH
+# Déploiement serveur Linux (OVH / VPS)
 
-Ce guide décrit le déploiement de l'application sur un serveur Linux dédié ou VPS OVH, **sans DDEV**.
+Guide pas-à-pas pour déployer l'application sur un serveur Linux dédié ou VPS OVH, **sans Docker**.
+
+---
 
 ## Prérequis serveur
 
@@ -105,14 +107,37 @@ Modifier `~/app/backend/.env.local` :
 
 ```env
 APP_ENV=prod
-APP_SECRET=GENERER_AVEC_php_-r_echo_bin2hex_random_bytes_16
 DATABASE_URL="mysql://bibliotheque:MOT_DE_PASSE_SECURISE@127.0.0.1:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4"
-JWT_PASSPHRASE=GENERER_UNE_PASSPHRASE_SECURISEE
 CORS_ALLOW_ORIGIN='^https://votre-domaine\.fr$'
 GEMINI_API_KEY=votre_cle_api_gemini_optionnelle
 ```
 
+> **Note** : `APP_SECRET` et `JWT_PASSPHRASE` sont gérés par le vault Symfony Secrets. Il n'est pas nécessaire de les définir dans `.env.local`.
+
+### Déployer la clé de déchiffrement du vault
+
+**Méthode fichier** (recommandée pour serveur classique) :
+
 ```bash
+# Depuis la machine de dev, copier la clé privée
+scp backend/config/secrets/prod/prod.decrypt.private.php bibliotheque@serveur:~/app/backend/config/secrets/prod/
+```
+
+**Méthode variable d'environnement** (alternative) :
+
+```bash
+# Sur la machine de dev, extraire la valeur base64 :
+ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/prod/prod.decrypt.private.php\");'"
+
+# Ajouter dans ~/app/backend/.env.local :
+SYMFONY_DECRYPTION_SECRET=valeur_extraite
+```
+
+### Initialiser le backend
+
+```bash
+cd ~/app/backend
+
 # Compiler les fichiers d'environnement pour la production
 composer dump-env prod
 
@@ -128,7 +153,7 @@ php bin/console cache:clear --env=prod
 # Créer le premier utilisateur
 php bin/console app:create-user admin@votre-domaine.fr motdepasse
 
-# Créer le répertoire d'uploads
+# Créer les répertoires d'uploads
 mkdir -p public/uploads/covers
 chown -R bibliotheque:www-data public/uploads
 chmod -R 775 public/uploads
@@ -154,7 +179,7 @@ Le build produit les fichiers statiques dans `~/app/frontend/dist/`.
 
 ## 5. Configurer PHP-FPM
 
-Créer/modifier `/etc/php/8.3/fpm/pool.d/bibliotheque.conf` :
+Créer `/etc/php/8.3/fpm/pool.d/bibliotheque.conf` :
 
 ```ini
 [bibliotheque]
@@ -199,11 +224,6 @@ Modifier `/etc/php/8.3/fpm/conf.d/10-opcache.ini` et s'assurer que ces valeurs s
 opcache.validate_timestamps=1
 opcache.revalidate_freq=2
 ```
-
-- `validate_timestamps=1` : PHP vérifie la date de modification des fichiers
-- `revalidate_freq=2` : l'intervalle de vérification est de 2 secondes
-
-Après un déploiement, les fichiers modifiés sont rechargés automatiquement sous 2 secondes, sans avoir à vider le cache OPcache manuellement.
 
 ```bash
 sudo mkdir -p /var/log/php-fpm
@@ -257,9 +277,7 @@ server {
         try_files $uri =404;
     }
 
-    # ──────────────────────────────────────────────
     # API : /api/* → PHP-FPM (Symfony)
-    # ──────────────────────────────────────────────
     location ~ ^/api(/|$) {
         fastcgi_pass unix:/run/php/php8.3-fpm-bibliotheque.sock;
         include fastcgi_params;
@@ -339,14 +357,11 @@ Ajouter :
 ```cron
 # Purger les séries supprimées depuis plus de 30 jours (tous les jours à 3h)
 0 3 * * * cd /home/bibliotheque/app/backend && php bin/console app:purge-deleted --env=prod
-
-# Renouvellement SSL (certbot installe déjà un timer systemd, mais par sécurité)
-0 0 1 * * /usr/bin/certbot renew --quiet
 ```
 
 ---
 
-## 9. Procédure de mise à jour
+## 9. Mise à jour
 
 Créer un script `~/app/deploy.sh` :
 
@@ -403,8 +418,6 @@ sudo -u bibliotheque ~/app/deploy.sh
 
 ## 10. Monitoring et logs
 
-### Logs applicatifs
-
 ```bash
 # Logs Symfony
 tail -f /home/bibliotheque/app/backend/var/log/prod.log
@@ -415,12 +428,8 @@ tail -f /var/log/nginx/bibliotheque-error.log
 
 # Logs PHP-FPM
 tail -f /var/log/php-fpm/bibliotheque-error.log
-tail -f /var/log/php-fpm/bibliotheque-slow.log
-```
 
-### Vérifier les services
-
-```bash
+# Vérifier les services
 sudo systemctl status php8.3-fpm
 sudo systemctl status nginx
 sudo systemctl status mariadb
@@ -440,7 +449,7 @@ sudo ufw allow 'Nginx Full'
 sudo ufw enable
 ```
 
-### Fail2ban (protection contre le bruteforce)
+### Fail2ban
 
 ```bash
 sudo apt install -y fail2ban
@@ -449,7 +458,7 @@ sudo systemctl enable fail2ban
 
 ### Sauvegardes
 
-Script de sauvegarde `~/backup.sh` :
+Script `~/backup.sh` :
 
 ```bash
 #!/bin/bash
@@ -495,8 +504,6 @@ chmod +x ~/backup.sh
 | Logs nginx | `/var/log/nginx/bibliotheque-*.log` |
 | Logs PHP-FPM | `/var/log/php-fpm/bibliotheque-*.log` |
 | Sauvegardes | `/home/bibliotheque/backups/` |
-
----
 
 ## Résumé des ports
 

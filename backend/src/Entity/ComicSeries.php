@@ -50,13 +50,13 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
         new Put(
             uriTemplate: '/comic_series/{id}/restore',
             input: false,
-            processor: ComicSeriesRestoreProcessor::class,
             provider: SoftDeletedComicSeriesProvider::class,
+            processor: ComicSeriesRestoreProcessor::class,
         ),
         new Delete(
             uriTemplate: '/trash/{id}/permanent',
-            processor: ComicSeriesPermanentDeleteProcessor::class,
             provider: SoftDeletedComicSeriesProvider::class,
+            processor: ComicSeriesPermanentDeleteProcessor::class,
         ),
     ],
     normalizationContext: ['groups' => ['comic:read']],
@@ -70,10 +70,10 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 ])]
 #[ORM\Entity(repositoryClass: ComicSeriesRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ORM\Index(columns: ['deleted_at'], name: 'idx_comic_series_deleted_at')]
-#[ORM\Index(columns: ['status'], name: 'idx_comic_series_status')]
-#[ORM\Index(columns: ['title'], name: 'idx_comic_series_title')]
-#[ORM\Index(columns: ['type'], name: 'idx_comic_series_type')]
+#[ORM\Index(name: 'idx_comic_series_deleted_at', columns: ['deleted_at'])]
+#[ORM\Index(name: 'idx_comic_series_status', columns: ['status'])]
+#[ORM\Index(name: 'idx_comic_series_title', columns: ['title'])]
+#[ORM\Index(name: 'idx_comic_series_type', columns: ['type'])]
 #[Vich\Uploadable]
 class ComicSeries implements SoftDeletableInterface
 {

@@ -16,6 +16,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Provider de recherche via Wikidata + Wikipedia FR.
@@ -24,7 +25,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * Extraction des métadonnées depuis les claims Wikidata, synopsis depuis Wikipedia FR.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 120])]
-class WikipediaLookup implements EnrichableLookupProviderInterface
+class WikipediaLookup extends AbstractLookupProvider implements EnrichableLookupProviderInterface
 {
     private const int CACHE_TTL = 604800; // 7 jours
 
@@ -66,20 +67,12 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
 
     private const string WIKIPEDIA_FR_API = 'https://fr.wikipedia.org/api/rest_v1/page/summary';
 
-    /** @var array{status: string, message: string}|null */
-    private ?array $lastApiMessage = null;
-
     public function __construct(
         #[Autowire(service: 'wikipedia.cache')]
         private readonly AdapterInterface $cache,
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
     ) {
-    }
-
-    public function getLastApiMessage(): ?array
-    {
-        return $this->lastApiMessage;
     }
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int
@@ -98,7 +91,7 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
 
     public function prepareEnrich(LookupResult $partial, ?ComicType $type): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
         if (null === $partial->title || '' === $partial->title) {
             return null;
@@ -109,9 +102,9 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
 
     public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
-        $cacheKey = 'wikipedia_lookup_'.\md5($query.$mode.(null !== $type ? $type->value : ''));
+        $cacheKey = 'wikipedia_lookup_'.\md5($query.$mode.($type instanceof ComicType ? $type->value : ''));
 
         $item = $this->cache->getItem($cacheKey);
 
@@ -174,11 +167,19 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
             return $state;
         }
 
-        /* @var array{cacheKey: string, mode: string, response: \Symfony\Contracts\HttpClient\ResponseInterface} $state */
+        \assert(\is_array($state) && isset($state['mode'], $state['response'], $state['cacheKey']));
+
+        /** @var string $mode */
+        $mode = $state['mode'];
+        /** @var ResponseInterface $response */
+        $response = $state['response'];
+        /** @var string $cacheKey */
+        $cacheKey = $state['cacheKey'];
+
         try {
-            $result = 'isbn' === $state['mode']
-                ? $this->resolveIsbnLookup($state['response'])
-                : $this->resolveTitleLookup($state['response']);
+            $result = 'isbn' === $mode
+                ? $this->resolveIsbnLookup($response)
+                : $this->resolveTitleLookup($response);
         } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
             $code = $e->getResponse()->getStatusCode();
             if (429 === $code) {
@@ -201,11 +202,11 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
             return null;
         }
 
-        if (null === $result) {
+        if (!$result instanceof LookupResult) {
             return null;
         }
 
-        $item = $this->cache->getItem($state['cacheKey']);
+        $item = $this->cache->getItem($cacheKey);
         $item->set($result);
         $item->expiresAfter(self::CACHE_TTL);
         $this->cache->save($item);
@@ -263,7 +264,7 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
         // Vérifier P31 pour pertinence (exiger au moins un P31 reconnu)
         $p31Ids = $this->getP31Ids($claims);
 
-        if (empty($p31Ids) || 0 === \count(\array_intersect($p31Ids, self::RELEVANT_P31))) {
+        if ([] === $p31Ids || 0 === \count(\array_intersect($p31Ids, self::RELEVANT_P31))) {
             return null;
         }
 
@@ -455,15 +456,12 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
     /**
      * Traite la réponse SPARQL pour résoudre l'entité Wikidata.
      */
-    /**
-     * @param \Symfony\Contracts\HttpClient\ResponseInterface $response
-     */
-    private function resolveIsbnLookup(mixed $response): ?LookupResult
+    private function resolveIsbnLookup(ResponseInterface $response): ?LookupResult
     {
         $data = $response->toArray();
         $bindings = $data['results']['bindings'] ?? [];
 
-        if (!\is_array($bindings) || empty($bindings)) {
+        if (!\is_array($bindings) || [] === $bindings) {
             $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
 
             return null;
@@ -486,15 +484,12 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
     /**
      * Traite la réponse wbsearchentities pour résoudre l'entité Wikidata.
      */
-    /**
-     * @param \Symfony\Contracts\HttpClient\ResponseInterface $response
-     */
-    private function resolveTitleLookup(mixed $response): ?LookupResult
+    private function resolveTitleLookup(ResponseInterface $response): ?LookupResult
     {
         $data = $response->toArray();
         $searchResults = $data['search'] ?? [];
 
-        if (!\is_array($searchResults) || empty($searchResults)) {
+        if (!\is_array($searchResults) || [] === $searchResults) {
             $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
 
             return null;
@@ -511,7 +506,7 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
             }
 
             $result = $this->resolveEntity($entityId);
-            if (null !== $result) {
+            if ($result instanceof LookupResult) {
                 return $result;
             }
         }
@@ -519,11 +514,6 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
         $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat pertinent');
 
         return null;
-    }
-
-    private function recordApiMessage(ApiLookupStatus $status, string $message): void
-    {
-        $this->lastApiMessage = ['message' => $message, 'status' => $status->value];
     }
 
     /**
@@ -577,9 +567,9 @@ class WikipediaLookup implements EnrichableLookupProviderInterface
 
         // Récupérer les entités liées en un seul appel
         $allEntities = $entities;
-        if (!empty($relatedIds)) {
+        if ([] !== $relatedIds) {
             $missingIds = \array_diff($relatedIds, \array_keys($allEntities));
-            if (!empty($missingIds)) {
+            if ([] !== $missingIds) {
                 $relatedEntities = $this->fetchWikidataEntities(\array_values($missingIds));
                 $allEntities = \array_merge($allEntities, $relatedEntities);
             }

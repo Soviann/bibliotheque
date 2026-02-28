@@ -20,7 +20,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
  * Provider de recherche via l'API Google Gemini avec Google Search grounding.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 40])]
-class GeminiLookup implements EnrichableLookupProviderInterface
+class GeminiLookup extends AbstractLookupProvider implements EnrichableLookupProviderInterface
 {
     private const string JSON_INSTRUCTIONS = <<<'TEXT'
         Réponds UNIQUEMENT avec un objet JSON (sans bloc markdown) contenant ces champs :
@@ -36,9 +36,6 @@ class GeminiLookup implements EnrichableLookupProviderInterface
 
     private const string MODEL = 'gemini-2.5-flash';
 
-    /** @var array{status: string, message: string}|null */
-    private ?array $lastApiMessage = null;
-
     public function __construct(
         #[Autowire(service: 'gemini.cache')]
         private readonly AdapterInterface $cache,
@@ -47,11 +44,6 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         private readonly RateLimiterFactory $limiterFactory,
         private readonly LoggerInterface $logger,
     ) {
-    }
-
-    public function getLastApiMessage(): ?array
-    {
-        return $this->lastApiMessage;
     }
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int
@@ -66,24 +58,24 @@ class GeminiLookup implements EnrichableLookupProviderInterface
 
     public function prepareEnrich(LookupResult $partial, ?ComicType $type): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
         if (null === $partial->title || '' === $partial->title) {
             return null;
         }
 
-        $cacheKey = 'gemini_enrich_'.\md5(\json_encode($partial->jsonSerialize()).(null !== $type ? $type->value : ''));
+        $cacheKey = 'gemini_enrich_'.\md5(\json_encode($partial->jsonSerialize()).($type instanceof ComicType ? $type->value : ''));
 
-        return $this->prepareWithCache($cacheKey, fn () => $this->buildEnrichPrompt($partial, $type));
+        return $this->prepareWithCache($cacheKey, fn (): string => $this->buildEnrichPrompt($partial, $type));
     }
 
     public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
-        $cacheKey = 'gemini_'.\md5($query.$mode.(null !== $type ? $type->value : ''));
+        $cacheKey = 'gemini_'.\md5($query.$mode.($type instanceof ComicType ? $type->value : ''));
 
-        return $this->prepareWithCache($cacheKey, fn () => $this->buildLookupPrompt($query, $type, $mode));
+        return $this->prepareWithCache($cacheKey, fn (): string => $this->buildLookupPrompt($query, $type, $mode));
     }
 
     public function resolveEnrich(mixed $state): ?LookupResult
@@ -104,7 +96,7 @@ class GeminiLookup implements EnrichableLookupProviderInterface
         /** @var array{cacheKey: string, prompt: string} $state */
         $result = $this->callGemini($state['prompt']);
 
-        if (null !== $result) {
+        if ($result instanceof LookupResult) {
             $item = $this->cache->getItem($state['cacheKey']);
             $item->set($result);
             $item->expiresAfter(2592000); // 30 jours
@@ -121,8 +113,8 @@ class GeminiLookup implements EnrichableLookupProviderInterface
 
     private function buildEnrichPrompt(LookupResult $partial, ?ComicType $type): string
     {
-        $typeLabel = null !== $type ? $type->value : 'bande dessinée/comics/manga';
-        $existingData = \json_encode(\array_filter($partial->jsonSerialize(), static fn ($v) => null !== $v));
+        $typeLabel = $type instanceof ComicType ? $type->value : 'bande dessinée/comics/manga';
+        $existingData = \json_encode(\array_filter($partial->jsonSerialize(), static fn (bool|int|string|null $v): bool => null !== $v));
 
         return <<<PROMPT
             Tu es un assistant spécialisé en bandes dessinées, comics et mangas.
@@ -138,7 +130,7 @@ class GeminiLookup implements EnrichableLookupProviderInterface
 
     private function buildLookupPrompt(string $query, ?ComicType $type, string $mode): string
     {
-        $typeLabel = null !== $type ? $type->value : 'bande dessinée/comics/manga';
+        $typeLabel = $type instanceof ComicType ? $type->value : 'bande dessinée/comics/manga';
         $searchBy = 'isbn' === $mode ? "l'ISBN {$query}" : "le titre \"{$query}\"";
 
         return <<<PROMPT
@@ -265,11 +257,10 @@ class GeminiLookup implements EnrichableLookupProviderInterface
 
         $data = \json_decode($cleaned ?? $text, true);
 
-        return \is_array($data) ? $data : null;
-    }
+        if (!\is_array($data)) {
+            return null;
+        }
 
-    private function recordApiMessage(ApiLookupStatus $status, string $message): void
-    {
-        $this->lastApiMessage = ['message' => $message, 'status' => $status->value];
+        return $data; // @phpstan-ignore return.type (json_decode with associative=true always produces string keys)
     }
 }

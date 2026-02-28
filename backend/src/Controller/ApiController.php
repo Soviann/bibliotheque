@@ -60,7 +60,7 @@ class ApiController extends AbstractController
     {
         $apiMessages = $lookupOrchestrator->getLastApiMessages();
 
-        if (null === $result) {
+        if (!$result instanceof LookupResult) {
             return $this->json(['apiMessages' => $apiMessages, 'error' => $errorMessage], 404);
         }
 

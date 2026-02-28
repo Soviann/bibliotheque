@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\ComicSeries;
-use App\Service\CoverRemoverInterface;
-use Doctrine\DBAL\Connection;
+use App\Service\ComicSeriesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,8 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class PurgeDeletedCommand extends Command
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly CoverRemoverInterface $coverRemover,
+        private readonly ComicSeriesService $comicSeriesService,
         private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -80,11 +78,9 @@ class PurgeDeletedCommand extends Command
             $io->writeln(\sprintf('  - %s (supprimée le %s)', $series->getTitle(), $deletedAt instanceof \DateTimeInterface ? $deletedAt->format('d/m/Y') : '?'));
 
             if (!$dryRun) {
-                $this->coverRemover->remove($series);
-                $id = $series->getId();
-                $this->connection->delete('comic_series_author', ['comic_series_id' => $id]);
-                $this->connection->delete('tome', ['comic_series_id' => $id]);
-                $this->connection->delete('comic_series', ['id' => $id]);
+                /** @var int $seriesId already persisted entity, getId() cannot be null */
+                $seriesId = $series->getId();
+                $this->comicSeriesService->permanentDelete($seriesId, $series);
             }
         }
 

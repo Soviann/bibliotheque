@@ -176,4 +176,38 @@ class UserTest extends TestCase
 
         self::assertSame($user, $result);
     }
+
+    /**
+     * Teste que tokenVersion est initialisé à 1.
+     */
+    public function testTokenVersionDefaultsToOne(): void
+    {
+        $user = new User();
+
+        self::assertSame(1, $user->getTokenVersion());
+    }
+
+    /**
+     * Teste l'incrémentation du tokenVersion.
+     */
+    public function testIncrementTokenVersion(): void
+    {
+        $user = new User();
+
+        $user->incrementTokenVersion();
+
+        self::assertSame(2, $user->getTokenVersion());
+    }
+
+    /**
+     * Teste que incrementTokenVersion retourne l'instance pour le chaînage.
+     */
+    public function testIncrementTokenVersionReturnsInstance(): void
+    {
+        $user = new User();
+
+        $result = $user->incrementTokenVersion();
+
+        self::assertSame($user, $result);
+    }
 }

@@ -65,7 +65,7 @@ describe("Filters", () => {
     );
 
     await user.click(screen.getByText("Tous les statuts"));
-    await user.click(screen.getByText("Complet"));
-    expect(onStatusChange).toHaveBeenCalledWith("complete");
+    await user.click(screen.getByText("Terminé"));
+    expect(onStatusChange).toHaveBeenCalledWith("finished");
   });
 });

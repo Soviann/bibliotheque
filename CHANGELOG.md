@@ -7,6 +7,46 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Symfony Secrets vault** : Les secrets cryptographiques (`APP_SECRET`, `JWT_PASSPHRASE`) sont stockés dans un vault chiffré (`config/secrets/prod/`), éliminant les placeholders en production (CWE-798)
+  - Vault chiffré asymétriquement (clé publique committée, clé de déchiffrement gitignorée)
+  - Injection en prod via `SYMFONY_DECRYPTION_SECRET` (env var) ou fichier monté
+  - `PlaceholderSecretChecker` : bloque le démarrage en prod si des valeurs placeholder sont détectées
+- **Guide déploiement NAS Synology** : Guide complet Docker Compose pour NAS Synology avec reverse proxy intégré (`docs/guide-deploiement-nas.md`)
+- **Runbook déploiement NAS (Claude)** : Runbook pas-à-pas pour déploiement automatisé via SSH par Claude Code (`docs/guide-deploiement-nas-claude.md`)
+- **Guide déploiement OVH** : Guide complet pour serveur Linux bare metal avec nginx + php-fpm + MariaDB (`docs/guide-deploiement-ovh.md`)
+
+### Changed
+
+- **Architecture Docker** : Migration Apache → nginx + php-fpm avec build frontend multi-stage
+  - `backend/Dockerfile` : passage de `php:8.3-apache` à `php:8.3-fpm`
+  - `backend/docker/nginx/Dockerfile` : multi-stage Node.js (build React) → nginx:alpine
+  - `backend/docker/nginx/default.conf` : config nginx (SPA fallback, proxy API, cache assets, gzip, sécurité)
+  - `docker-compose.prod.yml` : 3 services (nginx, php, db) avec volumes partagés (uploads, media, jwt_keys)
+  - Le frontend React est désormais buildé et servi en production (était absent avant)
+
+### Added
+
+- **Invalidation JWT par token versioning** : Chaque connexion invalide automatiquement les tokens précédents
+  - Champ `tokenVersion` sur l'entité `User` (incrémenté à chaque login)
+  - `JwtTokenVersionListener` : ajoute la version au payload JWT à la création, vérifie la correspondance au décodage
+  - Commande `app:invalidate-tokens [--email=...]` pour invalider tous les tokens (ou par utilisateur)
+- **AbstractLookupProvider** : Classe abstraite factorant la gestion des messages API (`recordApiMessage`, `getLastApiMessage`, `resetApiMessage`) pour les 6 providers de lookup
+- **Login throttling** : Protection contre le brute-force via `login_throttling` Symfony (5 tentatives / minute)
+
+### Fixed
+
+- **Enum frontend/backend** : Synchronisation des valeurs (COMPLETE→FINISHED, DROPPED→STOPPED, NOVEL→LIVRE, suppression PAUSED/WEBTOON)
+- **SoftDeletedComicSeriesProvider** : Ajout de la vérification `isDeleted()` pour la sécurité
+- **PHPStan** : Correction de 64+ erreurs (types mixed, annotations `@var`, guards de type)
+- **Tests frontend** : Correction de 2 tests ComicForm (clic bouton ISBN avant lookup)
+- **Vulnérabilité npm** : Résolution de 4 vulnérabilités high (serialize-javascript RCE) via override
+
+### Removed
+
+- **Code mort** : Suppression de `ComicFilters.php`, `AppFixtures.php`, méthodes inutilisées dans `ComicSeriesRepository` et `LookupResult::mergeWith()`
+
 ### Changed
 
 - **Migration React + API Platform** : Refonte complète de l'architecture

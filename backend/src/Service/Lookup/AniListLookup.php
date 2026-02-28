@@ -14,12 +14,13 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Provider de recherche via l'API AniList (manga uniquement, par titre).
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 60])]
-class AniListLookup implements LookupProviderInterface
+class AniListLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://graphql.anilist.co';
 
@@ -61,18 +62,10 @@ class AniListLookup implements LookupProviderInterface
     /** @var list<string> */
     private const array AUTHOR_ROLES = ['Art', 'Original Creator', 'Original Story', 'Story', 'Story & Art'];
 
-    /** @var array{status: string, message: string}|null */
-    private ?array $lastApiMessage = null;
-
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
     ) {
-    }
-
-    public function getLastApiMessage(): ?array
-    {
-        return $this->lastApiMessage;
     }
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int
@@ -91,7 +84,7 @@ class AniListLookup implements LookupProviderInterface
 
     public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
-        $this->lastApiMessage = null;
+        $this->resetApiMessage();
 
         $searchTitle = $this->cleanTitle($query);
 
@@ -110,7 +103,7 @@ class AniListLookup implements LookupProviderInterface
 
     public function resolveLookup(mixed $state): ?LookupResult
     {
-        /* @var \Symfony\Contracts\HttpClient\ResponseInterface $state */
+        \assert($state instanceof ResponseInterface);
         try {
             $data = $state->toArray();
             $media = $data['data']['Media'] ?? null;
@@ -261,10 +254,5 @@ class AniListLookup implements LookupProviderInterface
         }
 
         return (string) $year;
-    }
-
-    private function recordApiMessage(ApiLookupStatus $status, string $message): void
-    {
-        $this->lastApiMessage = ['message' => $message, 'status' => $status->value];
     }
 }
