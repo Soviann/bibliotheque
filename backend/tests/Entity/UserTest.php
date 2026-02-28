@@ -108,14 +108,24 @@ class UserTest extends TestCase
     }
 
     /**
-     * Teste le getter et setter du mot de passe.
+     * Teste le getter et setter de googleId.
      */
-    public function testPasswordGetterAndSetter(): void
+    public function testGoogleId(): void
     {
         $user = new User();
-        $user->setPassword('hashed_password');
+        $user->setGoogleId('google-sub-123');
 
-        self::assertSame('hashed_password', $user->getPassword());
+        self::assertSame('google-sub-123', $user->getGoogleId());
+    }
+
+    /**
+     * Teste que User n'implémente pas PasswordAuthenticatedUserInterface.
+     */
+    public function testUserDoesNotImplementPasswordInterface(): void
+    {
+        $user = new User();
+
+        self::assertNotInstanceOf(\Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface::class, $user);
     }
 
     /**
@@ -161,18 +171,6 @@ class UserTest extends TestCase
         $user = new User();
 
         $result = $user->setEmail('test@example.com');
-
-        self::assertSame($user, $result);
-    }
-
-    /**
-     * Teste que setPassword retourne l'instance pour le chaînage.
-     */
-    public function testSetPasswordReturnsInstance(): void
-    {
-        $user = new User();
-
-        $result = $user->setPassword('password');
 
         self::assertSame($user, $result);
     }
