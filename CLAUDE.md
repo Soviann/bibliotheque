@@ -112,19 +112,19 @@ ddev exec bin/console app:invalidate-tokens --email=X # Invalidate tokens for on
 
 ## Frontend (React + TypeScript)
 
-**Stack**: React 19, TypeScript, Vite, TanStack Query v5, React Router v7, Tailwind CSS 4, Headless UI, Lucide React, Sonner. **Tests**: Vitest + jsdom + React Testing Library.
+**Stack**: React 19, TypeScript, Vite, TanStack Query v5, React Router v7, Tailwind CSS 4, Headless UI, Lucide React, Sonner, `@react-oauth/google`. **Tests**: Vitest + jsdom + React Testing Library.
 
 **Patterns**:
 - Hooks for all API interactions — `apiFetch<T>()` handles JWT, Content-Type, 401 redirects
 - Mutations invalidate relevant query keys on success
 - Pages lazy-loaded via `React.lazy()` in `App.tsx`
-- JWT in `localStorage`, 365-day TTL (PWA offline), token versioning invalidates on new login. `AuthGuard` redirects to `/login`
+- JWT in `localStorage`, 365-day TTL (PWA offline), token versioning invalidates on new login. `AuthGuard` redirects to `/login`. Google OAuth via `GoogleOAuthProvider` + `GoogleLogin` component
 - Dark mode via `useDarkMode` hook (`.dark` class on `<html>`, localStorage)
 - Offline: `useOnlineStatus` + `OfflineBanner`, SW updates via `useServiceWorker` + Sonner toast
 
 ## API (API Platform 4)
 
-**Format**: JSON-LD (`application/ld+json`). **Login**: `POST /api/login` with `{email, password}` → `{token}`.
+**Format**: JSON-LD (`application/ld+json`). **Login**: `POST /api/login/google` with `{credential}` (Google ID token) → `{token}`. Single authorized email via `OAUTH_ALLOWED_EMAIL` env var.
 
 Resources, processors, providers, lookup endpoints → see `memory/patterns.md`.
 

@@ -110,6 +110,8 @@ APP_ENV=prod
 DATABASE_URL="mysql://bibliotheque:MOT_DE_PASSE_SECURISE@127.0.0.1:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4"
 CORS_ALLOW_ORIGIN='^https://votre-domaine\.fr$'
 GEMINI_API_KEY=votre_cle_api_gemini_optionnelle
+OAUTH_GOOGLE_ID=votre_google_client_id.apps.googleusercontent.com
+OAUTH_ALLOWED_EMAIL=votre_email@gmail.com
 ```
 
 > **Note** : `APP_SECRET` et `JWT_PASSPHRASE` sont gérés par le vault Symfony Secrets. Il n'est pas nécessaire de les définir dans `.env.local`.
@@ -150,8 +152,7 @@ php bin/console doctrine:migrations:migrate -n
 # Vider le cache
 php bin/console cache:clear --env=prod
 
-# Créer le premier utilisateur
-php bin/console app:create-user admin@votre-domaine.fr motdepasse
+# Pas de création d'utilisateur manuelle : le premier login Google crée le compte automatiquement
 
 # Créer les répertoires d'uploads
 mkdir -p public/uploads/covers
@@ -167,6 +168,9 @@ chmod -R 775 var/
 
 ```bash
 cd ~/app/frontend
+
+# Créer le fichier d'environnement frontend
+echo "VITE_GOOGLE_CLIENT_ID=votre_google_client_id.apps.googleusercontent.com" > .env.local
 
 # Installer les dépendances et construire
 npm ci

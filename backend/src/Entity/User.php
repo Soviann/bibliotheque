@@ -7,24 +7,23 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[UniqueEntity('email', message: 'Cet email est déjà utilisé.')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface
 {
+    #[ORM\Column(length: 180, unique: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 255, nullable: true, unique: true)]
+    private ?string $googleId = null;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
-
-    #[ORM\Column]
-    private ?string $password = null;
 
     /**
      * @var list<string>
@@ -52,14 +51,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getPassword(): ?string
+    public function getGoogleId(): ?string
     {
-        return $this->password;
+        return $this->googleId;
     }
 
-    public function setPassword(string $password): static
+    public function setGoogleId(?string $googleId): static
     {
-        $this->password = $password;
+        $this->googleId = $googleId;
 
         return $this;
     }
