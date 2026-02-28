@@ -1,5 +1,9 @@
 framework:
     rate_limiter:
+        api_lookup:
+            interval: '1 minute'
+            limit: 30
+            policy: sliding_window
         gemini_api:
             interval: '1 minute'
             limit: 10

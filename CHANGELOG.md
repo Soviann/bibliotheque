@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Rate limiting API lookup** : Limitation à 30 requêtes/min par IP sur les endpoints `/api/lookup/isbn` et `/api/lookup/title` (#29)
+
 ### Changed
 
 - **Authentification Google OAuth** : Remplacement de l'authentification email/password par Google OAuth, restreinte à un seul compte Gmail autorisé (#79)
