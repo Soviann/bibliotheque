@@ -574,20 +574,27 @@ ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/pro
 
 ```bash
 cd /volume1/docker/bibliotheque/app/backend
-docker compose -f docker-compose.prod.yml up -d
+
+# Construire et démarrer les conteneurs
+docker compose -f docker-compose.prod.yml up --build -d
+
+# Vérifier que les conteneurs tournent
+docker compose -f docker-compose.prod.yml ps
 ```
 
-## 4. Initialiser la base de données
+## 4. Initialiser la base de données et l'application
+
+Attendre quelques secondes que MariaDB soit prêt, puis :
 
 ```bash
+# Générer les clés JWT
+docker compose -f docker-compose.prod.yml exec app php bin/console lexik:jwt:generate-keypair --env=prod
+
 # Exécuter les migrations
 docker compose -f docker-compose.prod.yml exec app php bin/console doctrine:migrations:migrate -n --env=prod
 
 # Créer le premier utilisateur
 docker compose -f docker-compose.prod.yml exec app php bin/console app:create-user admin@votre-domaine.fr motdepasse --env=prod
-
-# Générer les clés JWT
-docker compose -f docker-compose.prod.yml exec app php bin/console lexik:jwt:generate-keypair --env=prod
 ```
 
 ## 5. Configurer le reverse proxy Synology
