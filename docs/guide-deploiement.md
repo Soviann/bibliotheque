@@ -122,6 +122,12 @@ GEMINI_API_KEY=votre_cle_api_gemini_optionnelle
 > **Note** : `APP_SECRET` et `JWT_PASSPHRASE` sont gérés par le vault Symfony Secrets (voir [Gestion des secrets](#gestion-des-secrets-symfony)). Il n'est plus nécessaire de les définir dans `.env.local`.
 
 ```bash
+# Copier la clé de déchiffrement du vault Symfony Secrets depuis la machine de dev
+# Méthode fichier (recommandée) :
+scp config/secrets/prod/prod.decrypt.private.php bibliotheque@serveur:~/app/backend/config/secrets/prod/
+# OU méthode env var dans .env.local :
+# SYMFONY_DECRYPTION_SECRET=valeur (voir section "Gestion des secrets Symfony")
+
 # Compiler les fichiers d'environnement pour la production
 composer dump-env prod
 
@@ -544,22 +550,25 @@ cd app
 
 ## 2. Configurer les variables d'environnement
 
-Créer `/volume1/docker/bibliotheque/app/.env` (à la racine du projet, pas dans `backend/`) :
+### Créer le fichier `.env.local`
+
+Créer `backend/.env.local` (gitignored) avec les vraies valeurs :
 
 ```env
-# Base de données
 MYSQL_PASSWORD=mot_de_passe_securise
 MYSQL_ROOT_PASSWORD=mot_de_passe_root_securise
-
-# Clé de déchiffrement du vault Symfony Secrets
-# Récupérer depuis le fichier backend/config/secrets/prod/prod.decrypt.private.php
-# ou via la commande : php -r 'echo include "backend/config/secrets/prod/prod.decrypt.private.php";'
-SYMFONY_DECRYPTION_SECRET=contenu_de_la_cle_de_dechiffrement
-
-# Clés API (optionnel)
-GEMINI_API_KEY=
-GOOGLE_BOOKS_API_KEY=
+SYMFONY_DECRYPTION_SECRET=valeur_de_la_cle_de_dechiffrement
+GEMINI_API_KEY=votre_cle_gemini
+GOOGLE_BOOKS_API_KEY=votre_cle_google_books
 ```
+
+Pour obtenir la valeur de `SYMFONY_DECRYPTION_SECRET`, exécuter sur la machine de dev :
+
+```bash
+ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/prod/prod.decrypt.private.php\");'"
+```
+
+> `docker-compose.prod.yml` lit `.env.prod` (placeholders committés) puis `.env.local` (override, gitignored). Les variables de `.env.local` remplacent celles de `.env.prod`.
 
 ## 3. Déployer avec Docker Compose
 
@@ -630,7 +639,7 @@ docker compose -f docker-compose.prod.yml exec db mysqldump -u biblio -p bibliot
 
 # Gestion des secrets Symfony
 
-L'application utilise le **vault Symfony Secrets** pour protéger les secrets cryptographiques (`APP_SECRET`, `JWT_PASSPHRASE`). Le vault est chiffré asymétriquement : la clé publique (chiffrement) est committée, seule la clé de déchiffrement est sensible.
+L'application utilise le **vault Symfony Secrets** pour protéger les secrets cryptographiques (`APP_SECRET`, `JWT_PASSPHRASE`). Le vault est chiffré asymétriquement : les fichiers chiffrés et la clé publique sont committés, seule la clé de déchiffrement est sensible.
 
 ## Secrets concernés
 
@@ -653,28 +662,30 @@ backend/config/secrets/prod/
 └── prod.JWT_PASSPHRASE.*.php        # Secret chiffré (committé)
 ```
 
-## Injection de la clé de déchiffrement en production
-
-Deux méthodes possibles :
+## Déployer la clé de déchiffrement en production
 
 ### Méthode 1 : Variable d'environnement (recommandée pour Docker)
 
 ```bash
-# Extraire la clé depuis le fichier local
-php -r 'echo include "backend/config/secrets/prod/prod.decrypt.private.php";'
+# Sur la machine de dev, extraire la valeur base64 :
+ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/prod/prod.decrypt.private.php\");'"
 
-# Définir dans docker-compose ou .env
+# Définir dans .env.local sur le serveur :
 SYMFONY_DECRYPTION_SECRET=valeur_extraite
 ```
 
-### Méthode 2 : Fichier monté (recommandée pour serveur classique)
-
-Copier `prod.decrypt.private.php` sur le serveur dans `config/secrets/prod/`. Symfony le détecte automatiquement.
-
-## Ajouter ou modifier un secret
+### Méthode 2 : Fichier (recommandée pour serveur classique)
 
 ```bash
-# Ajouter/modifier un secret
+scp backend/config/secrets/prod/prod.decrypt.private.php user@serveur:~/app/backend/config/secrets/prod/
+```
+
+Symfony détecte automatiquement le fichier au runtime.
+
+## Gérer les secrets (dev)
+
+```bash
+# Ajouter ou modifier un secret
 ddev exec "cd backend && bin/console secrets:set NOM_DU_SECRET --env=prod"
 
 # Lister les secrets
