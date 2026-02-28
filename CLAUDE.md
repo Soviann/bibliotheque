@@ -228,9 +228,18 @@ frontend/src/{components,hooks,pages,services,types,__tests__}/
 
 ## Deployment
 
+### Docker (Synology NAS)
+
+3 containers: **nginx** (frontend static + reverse proxy) + **php** (php-fpm 8.3 + Symfony) + **db** (MariaDB 10.11). Frontend built in multi-stage nginx Dockerfile.
+
 ```bash
-docker compose -f docker-compose.prod.yml up --build -d
+cd backend && docker compose -f docker-compose.prod.yml up --build -d
 ```
+
+Guides:
+- `docs/guide-deploiement-nas.md` — Synology Docker Compose (human)
+- `docs/guide-deploiement-nas-claude.md` — Synology runbook (Claude Code via SSH)
+- `docs/guide-deploiement-ovh.md` — OVH bare metal (nginx + php-fpm + MariaDB natifs)
 
 ### Symfony Secrets (vault prod)
 
@@ -245,5 +254,3 @@ ddev exec "cd backend && bin/console secrets:list --env=prod"
 **Deploy decrypt key** (prod): `SYMFONY_DECRYPTION_SECRET` env var or copy `prod.decrypt.private.php` to server.
 
 `PlaceholderSecretChecker` blocks app startup in prod if placeholder values are still used.
-
-Full deployment guide: `docs/guide-deploiement.md`

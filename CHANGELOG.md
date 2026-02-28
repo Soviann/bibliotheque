@@ -13,12 +13,18 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Vault chiffré asymétriquement (clé publique committée, clé de déchiffrement gitignorée)
   - Injection en prod via `SYMFONY_DECRYPTION_SECRET` (env var) ou fichier monté
   - `PlaceholderSecretChecker` : bloque le démarrage en prod si des valeurs placeholder sont détectées
-- **Guide déploiement Synology DS920+** : Documentation Docker Compose pour NAS Synology avec reverse proxy intégré
+- **Guide déploiement NAS Synology** : Guide complet Docker Compose pour NAS Synology avec reverse proxy intégré (`docs/guide-deploiement-nas.md`)
+- **Runbook déploiement NAS (Claude)** : Runbook pas-à-pas pour déploiement automatisé via SSH par Claude Code (`docs/guide-deploiement-nas-claude.md`)
+- **Guide déploiement OVH** : Guide complet pour serveur Linux bare metal avec nginx + php-fpm + MariaDB (`docs/guide-deploiement-ovh.md`)
 
 ### Changed
 
-- **Dockerfile** : Ajout de `composer dump-env prod` pour compiler les `.env`, suppression de `asset-map:compile` (plus utilisé avec Vite)
-- **docker-compose.prod.yml** : `APP_SECRET` retiré des env vars (géré par le vault), `SYMFONY_DECRYPTION_SECRET` ajouté
+- **Architecture Docker** : Migration Apache → nginx + php-fpm avec build frontend multi-stage
+  - `backend/Dockerfile` : passage de `php:8.3-apache` à `php:8.3-fpm`
+  - `backend/docker/nginx/Dockerfile` : multi-stage Node.js (build React) → nginx:alpine
+  - `backend/docker/nginx/default.conf` : config nginx (SPA fallback, proxy API, cache assets, gzip, sécurité)
+  - `docker-compose.prod.yml` : 3 services (nginx, php, db) avec volumes partagés (uploads, media, jwt_keys)
+  - Le frontend React est désormais buildé et servi en production (était absent avant)
 
 ### Added
 
