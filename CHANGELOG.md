@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Placement des boutons d'action** : Bouton destructif (Supprimer) à gauche, bouton principal (Modifier) à droite sur la fiche série, conformément à la convention UX homogène
+
 ### Added
 
 - **Symfony Secrets vault** : Les secrets cryptographiques (`APP_SECRET`, `JWT_PASSPHRASE`) sont stockés dans un vault chiffré (`config/secrets/prod/`), éliminant les placeholders en production (CWE-798)
