@@ -21,7 +21,6 @@ export default function Login() {
 
           <div className="flex justify-center">
             <GoogleLogin
-              locale="fr"
               onError={() => login("" as string)}
               onSuccess={(response) => {
                 if (response.credential) {

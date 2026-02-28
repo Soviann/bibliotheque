@@ -32,6 +32,7 @@ class GoogleLoginController
     #[Route('/api/login/google', name: 'api_login_google', methods: ['POST'])]
     public function __invoke(Request $request): JsonResponse
     {
+        /** @var array{credential?: string} $data */
         $data = \json_decode($request->getContent(), true);
         $credential = $data['credential'] ?? null;
 
