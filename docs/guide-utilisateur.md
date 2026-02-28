@@ -180,4 +180,6 @@ Une fois installée, l'application fonctionne en mode hors-ligne :
 - Les pages déjà visitées sont accessibles sans connexion
 - Les couvertures sont mises en cache
 - Les données de l'API sont disponibles pendant 7 jours en cache
-- Les modifications nécessitent une connexion internet
+- Les modifications (ajout, édition, suppression de séries et tomes) sont enregistrées localement et synchronisées automatiquement au retour en ligne
+- Une bannière indique le nombre d'opérations en attente de synchronisation
+- La recherche automatique (ISBN/titre) et le scanner sont indisponibles hors-ligne
