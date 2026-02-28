@@ -1,3 +1,4 @@
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { WifiOff } from "lucide-react";
@@ -70,33 +71,35 @@ function ScrollToTop() {
 export default function App() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <ScrollToTop />
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              <Route element={<Login />} path="/login" />
-              <Route
-                element={
-                  <AuthGuard>
-                    <Layout />
-                  </AuthGuard>
-                }
-              >
-                <Route element={<Home />} index />
-                <Route element={<Wishlist />} path="wishlist" />
-                <Route element={<ComicForm />} path="comic/new" />
-                <Route element={<ComicDetail />} path="comic/:id" />
-                <Route element={<ComicForm />} path="comic/:id/edit" />
-                <Route element={<Trash />} path="trash" />
-                <Route element={<NotFound />} path="*" />
-              </Route>
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-        <Toaster position="top-center" richColors />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <ScrollToTop />
+            <Suspense fallback={<Loading />}>
+              <Routes>
+                <Route element={<Login />} path="/login" />
+                <Route
+                  element={
+                    <AuthGuard>
+                      <Layout />
+                    </AuthGuard>
+                  }
+                >
+                  <Route element={<Home />} index />
+                  <Route element={<Wishlist />} path="wishlist" />
+                  <Route element={<ComicForm />} path="comic/new" />
+                  <Route element={<ComicDetail />} path="comic/:id" />
+                  <Route element={<ComicForm />} path="comic/:id/edit" />
+                  <Route element={<Trash />} path="trash" />
+                  <Route element={<NotFound />} path="*" />
+                </Route>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+          <Toaster position="top-center" richColors />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </GoogleOAuthProvider>
     </ErrorBoundary>
   );
 }
