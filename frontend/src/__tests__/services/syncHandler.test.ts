@@ -124,6 +124,53 @@ describe("processSyncQueue", () => {
     expect(await getAll()).toHaveLength(0);
   });
 
+  it("skips _pendingAuthors when array is empty", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ id: 1 }), { status: 201 }));
+
+    await enqueue({
+      operation: "create",
+      payload: {
+        _pendingAuthors: [],
+        authors: ["/api/authors/1"],
+        title: "Test",
+      },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue("token", mockPostMessage);
+
+    // Only one fetch call (comic creation), no author creation
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string);
+    expect(body.authors).toEqual(["/api/authors/1"]);
+    expect(body._pendingAuthors).toBeUndefined();
+  });
+
+  it("continues comic creation even if author creation fails", async () => {
+    vi.mocked(fetch)
+      // Author creation fails
+      .mockResolvedValueOnce(new Response(null, { status: 500 }))
+      // Comic creation succeeds
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 1 }), { status: 201 }));
+
+    await enqueue({
+      operation: "create",
+      payload: {
+        _pendingAuthors: ["Failed Author"],
+        authors: ["/api/authors/1"],
+        title: "Test",
+      },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue("token", mockPostMessage);
+
+    // Comic should still be created with only existing authors
+    const comicCall = vi.mocked(fetch).mock.calls[1];
+    const body = JSON.parse(comicCall[1]!.body as string);
+    expect(body.authors).toEqual(["/api/authors/1"]);
+  });
+
   it("does nothing when queue is empty", async () => {
     await processSyncQueue("token", mockPostMessage);
     expect(fetch).not.toHaveBeenCalled();

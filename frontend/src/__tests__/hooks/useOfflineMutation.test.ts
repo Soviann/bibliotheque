@@ -98,6 +98,112 @@ describe("useOfflineMutation", () => {
     });
   });
 
+  it("calls onOfflineSuccess callback when offline", async () => {
+    const onOfflineSuccess = vi.fn();
+    const syncRegister = vi.fn();
+
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      onLine: false,
+      serviceWorker: {
+        ready: Promise.resolve({ sync: { register: syncRegister } }),
+      },
+    });
+
+    const { result } = renderHook(
+      () =>
+        useOfflineMutation({
+          mutationFn: vi.fn(),
+          offlineOperation: "create",
+          offlineResourceType: "comic_series",
+          onOfflineSuccess,
+          queryKeysToInvalidate: [["comics"]],
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await act(async () => {
+      result.current.mutate({ title: "Test" });
+    });
+
+    await waitFor(() => {
+      expect(onOfflineSuccess).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("stores offlineResourceId when provided", async () => {
+    const syncRegister = vi.fn();
+
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      onLine: false,
+      serviceWorker: {
+        ready: Promise.resolve({ sync: { register: syncRegister } }),
+      },
+    });
+
+    const { result } = renderHook(
+      () =>
+        useOfflineMutation<unknown, { id: number; title: string }>({
+          mutationFn: vi.fn(),
+          offlineOperation: "update",
+          offlineResourceId: (v) => String(v.id),
+          offlineResourceType: "comic_series",
+          queryKeysToInvalidate: [["comics"]],
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await act(async () => {
+      result.current.mutate({ id: 42, title: "Updated" });
+    });
+
+    await waitFor(async () => {
+      const items = await getAll();
+      expect(items).toHaveLength(1);
+      expect(items[0].resourceId).toBe("42");
+      expect(items[0].operation).toBe("update");
+    });
+  });
+
+  it("does not call hook-level onSuccess when offline", async () => {
+    const onSuccess = vi.fn();
+    const syncRegister = vi.fn();
+
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      onLine: false,
+      serviceWorker: {
+        ready: Promise.resolve({ sync: { register: syncRegister } }),
+      },
+    });
+
+    const { result } = renderHook(
+      () =>
+        useOfflineMutation({
+          mutationFn: vi.fn(),
+          offlineOperation: "create",
+          offlineResourceType: "comic_series",
+          onSuccess,
+          queryKeysToInvalidate: [["comics"]],
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await act(async () => {
+      result.current.mutate({ title: "Test" });
+    });
+
+    // Wait for mutation to complete
+    await waitFor(async () => {
+      const items = await getAll();
+      expect(items).toHaveLength(1);
+    });
+
+    // onSuccess should NOT have been called (offline path)
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
   it("registers Background Sync when offline", async () => {
     const syncRegister = vi.fn();
 
