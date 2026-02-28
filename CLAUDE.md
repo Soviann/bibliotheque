@@ -37,7 +37,7 @@
 
 ## DDEV — Mandatory
 
-**All commands run inside DDEV** (`ddev exec ...`) or via `make` targets. NEVER run `npm`, `npx`, `composer`, `php`, `bin/console`, `bin/phpunit` directly on the host. Only exceptions: `git`, `gh`, `make`, and host-only tools (`docker`, `ssh`, `curl`).
+**All commands run inside DDEV** (`ddev exec ...`). NEVER run `npm`, `npx`, `composer`, `php`, `bin/console`, `bin/phpunit`, `make` directly on the host. Only exceptions: `git`, `gh`, and host-only tools (`docker`, `ssh`, `curl`).
 
 ## Commands
 
@@ -76,6 +76,8 @@ make deploy         # docker-compose prod
 ddev exec bin/phpunit tests/PathToTest.php          # Specific test
 ddev exec "cd frontend && npx vitest run"           # Frontend tests
 ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
+ddev exec bin/console app:invalidate-tokens          # Invalidate all JWT tokens
+ddev exec bin/console app:invalidate-tokens --email=X # Invalidate tokens for one user
 ```
 
 **PHP-CS-Fixer and PHPStan**: run before committing, only on modified files.
@@ -116,7 +118,7 @@ ddev exec bin/console doctrine:migrations:diff -n   # Generate migration
 - Hooks for all API interactions — `apiFetch<T>()` handles JWT, Content-Type, 401 redirects
 - Mutations invalidate relevant query keys on success
 - Pages lazy-loaded via `React.lazy()` in `App.tsx`
-- JWT in `localStorage`, 30-day TTL (PWA offline). `AuthGuard` redirects to `/login`
+- JWT in `localStorage`, 365-day TTL (PWA offline), token versioning invalidates on new login. `AuthGuard` redirects to `/login`
 - Dark mode via `useDarkMode` hook (`.dark` class on `<html>`, localStorage)
 - Offline: `useOnlineStatus` + `OfflineBanner`, SW updates via `useServiceWorker` + Sonner toast
 
@@ -218,8 +220,8 @@ Format: `- **Name**: Description`
 Full file map with all entities, hooks, components, services → `memory/patterns.md`
 
 ```
-backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,Dto,Entity,Enum,Repository,Service,State}/
-backend/tests/{Command,Doctrine/Filter,Dto,Entity,Enum,Repository,Service,State}/
+backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,Entity,Enum,EventListener,Repository,Service,State}/
+backend/tests/{Command,Doctrine/Filter,Entity,Enum,EventListener,Repository,Service,State}/
 
 frontend/src/{components,hooks,pages,services,types,__tests__}/
 ```

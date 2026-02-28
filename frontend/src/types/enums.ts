@@ -1,8 +1,7 @@
 export const ComicStatus = {
   BUYING: "buying",
-  COMPLETE: "complete",
-  DROPPED: "dropped",
-  PAUSED: "paused",
+  FINISHED: "finished",
+  STOPPED: "stopped",
   WISHLIST: "wishlist",
 } as const;
 
@@ -10,18 +9,16 @@ export type ComicStatus = (typeof ComicStatus)[keyof typeof ComicStatus];
 
 export const ComicStatusLabel: Record<ComicStatus, string> = {
   [ComicStatus.BUYING]: "En cours d'achat",
-  [ComicStatus.COMPLETE]: "Complet",
-  [ComicStatus.DROPPED]: "Abandonné",
-  [ComicStatus.PAUSED]: "En pause",
+  [ComicStatus.FINISHED]: "Terminé",
+  [ComicStatus.STOPPED]: "Arrêté",
   [ComicStatus.WISHLIST]: "Liste de souhaits",
 };
 
 export const ComicType = {
   BD: "bd",
   COMICS: "comics",
+  LIVRE: "livre",
   MANGA: "manga",
-  NOVEL: "novel",
-  WEBTOON: "webtoon",
 } as const;
 
 export type ComicType = (typeof ComicType)[keyof typeof ComicType];
@@ -29,7 +26,6 @@ export type ComicType = (typeof ComicType)[keyof typeof ComicType];
 export const ComicTypeLabel: Record<ComicType, string> = {
   [ComicType.BD]: "BD",
   [ComicType.COMICS]: "Comics",
+  [ComicType.LIVRE]: "Livre",
   [ComicType.MANGA]: "Manga",
-  [ComicType.NOVEL]: "Roman",
-  [ComicType.WEBTOON]: "Webtoon",
 };

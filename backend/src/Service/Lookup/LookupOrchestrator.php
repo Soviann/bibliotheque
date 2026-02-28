@@ -64,7 +64,7 @@ class LookupOrchestrator
 
         $result = $this->doLookup($isbn, $type, 'isbn');
 
-        if (null !== $result) {
+        if ($result instanceof LookupResult) {
             $result = $result->withIsbn($isbn);
         }
 

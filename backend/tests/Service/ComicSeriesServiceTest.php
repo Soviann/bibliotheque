@@ -96,6 +96,7 @@ class ComicSeriesServiceTest extends TestCase
                     1 => self::assertSame(['comic_series_id' => $id, 'table' => $table], ['comic_series_id' => $criteria['comic_series_id'], 'table' => 'comic_series_author']),
                     2 => self::assertSame(['comic_series_id' => $id, 'table' => $table], ['comic_series_id' => $criteria['comic_series_id'], 'table' => 'tome']),
                     3 => self::assertSame(['id' => $id, 'table' => $table], ['id' => $criteria['id'], 'table' => 'comic_series']),
+                    default => self::fail("Appel inattendu n°{$call} à delete()"),
                 };
 
                 return 1;

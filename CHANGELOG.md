@@ -7,6 +7,27 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Invalidation JWT par token versioning** : Chaque connexion invalide automatiquement les tokens précédents
+  - Champ `tokenVersion` sur l'entité `User` (incrémenté à chaque login)
+  - `JwtTokenVersionListener` : ajoute la version au payload JWT à la création, vérifie la correspondance au décodage
+  - Commande `app:invalidate-tokens [--email=...]` pour invalider tous les tokens (ou par utilisateur)
+- **AbstractLookupProvider** : Classe abstraite factorant la gestion des messages API (`recordApiMessage`, `getLastApiMessage`, `resetApiMessage`) pour les 6 providers de lookup
+- **Login throttling** : Protection contre le brute-force via `login_throttling` Symfony (5 tentatives / minute)
+
+### Fixed
+
+- **Enum frontend/backend** : Synchronisation des valeurs (COMPLETE→FINISHED, DROPPED→STOPPED, NOVEL→LIVRE, suppression PAUSED/WEBTOON)
+- **SoftDeletedComicSeriesProvider** : Ajout de la vérification `isDeleted()` pour la sécurité
+- **PHPStan** : Correction de 64+ erreurs (types mixed, annotations `@var`, guards de type)
+- **Tests frontend** : Correction de 2 tests ComicForm (clic bouton ISBN avant lookup)
+- **Vulnérabilité npm** : Résolution de 4 vulnérabilités high (serialize-javascript RCE) via override
+
+### Removed
+
+- **Code mort** : Suppression de `ComicFilters.php`, `AppFixtures.php`, méthodes inutilisées dans `ComicSeriesRepository` et `LookupResult::mergeWith()`
+
 ### Changed
 
 - **Migration React + API Platform** : Refonte complète de l'architecture

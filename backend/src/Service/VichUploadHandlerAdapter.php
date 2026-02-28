@@ -9,10 +9,10 @@ use Vich\UploaderBundle\Handler\UploadHandler;
 /**
  * Adaptateur pour le UploadHandler final de VichUploader.
  */
-final class VichUploadHandlerAdapter implements UploadHandlerInterface
+final readonly class VichUploadHandlerAdapter implements UploadHandlerInterface
 {
     public function __construct(
-        private readonly UploadHandler $uploadHandler,
+        private UploadHandler $uploadHandler,
     ) {
     }
 

@@ -37,19 +37,7 @@ parameters:
 			path: src/Entity/User.php
 
 		-
-			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findByStatus\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Repository/ComicSeriesRepository.php
-
-		-
 			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findWithFilters\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Repository/ComicSeriesRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:search\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: src/Repository/ComicSeriesRepository.php
@@ -71,6 +59,18 @@ parameters:
 			identifier: argument.type
 			count: 15
 			path: tests/Command/ImportExcelCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: tests/Command/InvalidateTokensCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/Command/PurgeDeletedCommandTest.php
 
 		-
 			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'

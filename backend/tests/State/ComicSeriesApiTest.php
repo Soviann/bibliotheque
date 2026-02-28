@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\State;
 
 use App\Entity\ComicSeries;
+use App\Entity\User;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
@@ -12,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
@@ -24,20 +26,20 @@ final class ComicSeriesApiTest extends WebTestCase
 
     protected function setUp(): void
     {
-        $this->client = static::createClient();
+        $this->client = self::createClient();
 
-        /** @var UserProviderInterface<\App\Entity\User> $userProvider */
-        $userProvider = static::getContainer()->get('security.user.provider.concrete.app_user_provider');
+        /** @var UserProviderInterface<User> $userProvider */
+        $userProvider = self::getContainer()->get('security.user.provider.concrete.app_user_provider');
         $user = $userProvider->loadUserByIdentifier('test@example.com');
 
         /** @var JWTTokenManagerInterface $jwtManager */
-        $jwtManager = static::getContainer()->get(JWTTokenManagerInterface::class);
+        $jwtManager = self::getContainer()->get(JWTTokenManagerInterface::class);
         $this->jwtToken = $jwtManager->create($user);
     }
 
     public function testGetCollectionRequiresAuth(): void
     {
-        $this->client->request('GET', '/api/comic_series');
+        $this->client->request(Request::METHOD_GET, '/api/comic_series');
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -176,19 +178,19 @@ final class ComicSeriesApiTest extends WebTestCase
 
         // Vérifier que la série n'existe plus du tout en base
         /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $em->clear();
         $em->getFilters()->disable('soft_delete');
 
         /** @var ComicSeriesRepository $repo */
-        $repo = static::getContainer()->get(ComicSeriesRepository::class);
+        $repo = self::getContainer()->get(ComicSeriesRepository::class);
         $result = $repo->find($id);
         self::assertNull($result);
     }
 
     public function testCreateComicSeriesRequiresAuth(): void
     {
-        $this->client->request('POST', '/api/comic_series', [], [], [
+        $this->client->request(Request::METHOD_POST, '/api/comic_series', [], [], [
             'CONTENT_TYPE' => 'application/ld+json',
         ], \json_encode(['title' => 'No Auth'], \JSON_THROW_ON_ERROR));
 
@@ -201,7 +203,7 @@ final class ComicSeriesApiTest extends WebTestCase
     private function createComicSeries(string $title): ComicSeries
     {
         /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
 
         $comic = new ComicSeries();
         $comic->setTitle($title);

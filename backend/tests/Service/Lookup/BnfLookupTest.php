@@ -107,6 +107,7 @@ class BnfLookupTest extends TestCase
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '9782723428071', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertSame('La colère du papillon', $result->title);
     }
 
@@ -123,6 +124,7 @@ class BnfLookupTest extends TestCase
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, '9782203001190', null, 'isbn');
 
+        self::assertNotNull($result);
         self::assertSame('Hergé, Yves Rodier', $result->authors);
         self::assertSame('Casterman', $result->publisher);
     }
@@ -139,6 +141,7 @@ class BnfLookupTest extends TestCase
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'test', null, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('Hergé', $result->authors);
     }
 
@@ -158,6 +161,7 @@ XML;
         $result = $this->doLookup($provider, '0000000000000', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
     }
 
@@ -169,6 +173,7 @@ XML;
         $result = $this->doLookup($provider, '9782012101333', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('error', $provider->getLastApiMessage()['status']);
     }
 
@@ -180,6 +185,7 @@ XML;
         $result = $this->doLookup($provider, '9782012101333', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('error', $provider->getLastApiMessage()['status']);
     }
 
@@ -194,6 +200,7 @@ XML;
         $provider = new BnfLookup(new MockHttpClient([$response]), new NullLogger());
         $result = $this->doLookup($provider, 'test', null, 'title');
 
+        self::assertNotNull($result);
         self::assertSame('978-2-01-210133-3', $result->isbn);
     }
 
@@ -209,6 +216,7 @@ XML;
         $result = $this->doLookup($provider, 'test', null, 'isbn');
 
         self::assertNull($result);
+        self::assertNotNull($provider->getLastApiMessage());
         self::assertSame('not_found', $provider->getLastApiMessage()['status']);
     }
 
@@ -222,14 +230,14 @@ XML;
     /**
      * Construit une réponse SRU Dublin Core XML.
      *
-     * @param array<string, string|list<string>> $fields
+     * @param array{title?: string, creator?: string, creators?: list<string>, publisher?: string, date?: string, identifier?: string, identifiers?: list<string>} $fields
      */
     private function buildSruResponse(array $fields, int $numberOfRecords = 1): string
     {
         $dcFields = '';
 
         if (isset($fields['title'])) {
-            $dcFields .= \sprintf('          <dc:title>%s</dc:title>', \htmlspecialchars((string) $fields['title']))."\n";
+            $dcFields .= \sprintf('          <dc:title>%s</dc:title>', \htmlspecialchars($fields['title']))."\n";
         }
 
         if (isset($fields['creators'])) {
@@ -237,15 +245,15 @@ XML;
                 $dcFields .= \sprintf('          <dc:creator>%s</dc:creator>', \htmlspecialchars($creator))."\n";
             }
         } elseif (isset($fields['creator'])) {
-            $dcFields .= \sprintf('          <dc:creator>%s</dc:creator>', \htmlspecialchars((string) $fields['creator']))."\n";
+            $dcFields .= \sprintf('          <dc:creator>%s</dc:creator>', \htmlspecialchars($fields['creator']))."\n";
         }
 
         if (isset($fields['publisher'])) {
-            $dcFields .= \sprintf('          <dc:publisher>%s</dc:publisher>', \htmlspecialchars((string) $fields['publisher']))."\n";
+            $dcFields .= \sprintf('          <dc:publisher>%s</dc:publisher>', \htmlspecialchars($fields['publisher']))."\n";
         }
 
         if (isset($fields['date'])) {
-            $dcFields .= \sprintf('          <dc:date>%s</dc:date>', \htmlspecialchars((string) $fields['date']))."\n";
+            $dcFields .= \sprintf('          <dc:date>%s</dc:date>', \htmlspecialchars($fields['date']))."\n";
         }
 
         if (isset($fields['identifiers'])) {
@@ -253,7 +261,7 @@ XML;
                 $dcFields .= \sprintf('          <dc:identifier>%s</dc:identifier>', \htmlspecialchars($identifier))."\n";
             }
         } elseif (isset($fields['identifier'])) {
-            $dcFields .= \sprintf('          <dc:identifier>%s</dc:identifier>', \htmlspecialchars((string) $fields['identifier']))."\n";
+            $dcFields .= \sprintf('          <dc:identifier>%s</dc:identifier>', \htmlspecialchars($fields['identifier']))."\n";
         }
 
         return <<<XML
