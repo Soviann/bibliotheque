@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Positionnement de la barre d'actions sticky** : Remplacement de `fixed bottom-14` par `sticky` avec variable CSS `--bottom-nav-h`, la barre est désormais ancrée au contenu et alignée avec le conteneur sur desktop (#91)
+
 ### Changed
 
 - **Layout carte des tomes sur mobile** : Remplacement du tableau à 8 colonnes par des cartes empilées dans le formulaire de série sur mobile (< `sm`) — numéro + titre, ISBN avec lookup, checkboxes en grille 2×2, bouton supprimer. Tableau conservé sur desktop (#87)

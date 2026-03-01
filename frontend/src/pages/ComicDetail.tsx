@@ -210,7 +210,7 @@ export default function ComicDetail() {
       )}
 
       {/* Sticky action bar */}
-      <div className="fixed bottom-14 left-0 right-0 z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
+      <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
         <button
           className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-base font-medium text-white hover:bg-red-700"
           onClick={() => setShowDelete(true)}

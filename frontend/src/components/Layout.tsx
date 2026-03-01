@@ -63,7 +63,7 @@ export default function Layout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 px-4 py-4 pb-14">
+      <main className="flex-1 px-4 py-4 pb-[var(--bottom-nav-h)]">
         <Outlet />
       </main>
 

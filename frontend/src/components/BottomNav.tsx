@@ -10,7 +10,7 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto h-14 border-t border-surface-border bg-surface-primary pb-safe lg:max-w-4xl lg:left-1/2 lg:-translate-x-1/2 lg:rounded-t-xl lg:border-x">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto h-[var(--bottom-nav-h)] border-t border-surface-border bg-surface-primary pb-safe lg:max-w-4xl lg:left-1/2 lg:-translate-x-1/2 lg:rounded-t-xl lg:border-x">
       <div className="flex h-full items-center justify-around">
         {tabs.map(({ activeColor, icon: Icon, label, to }) => (
           <NavLink

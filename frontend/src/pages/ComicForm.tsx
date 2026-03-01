@@ -434,7 +434,7 @@ export default function ComicForm() {
   const isSaving = createComic.isPending || updateComic.isPending;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 pb-28">
+    <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
@@ -926,7 +926,7 @@ export default function ComicForm() {
       </form>
 
       {/* Sticky save/cancel bar */}
-      <div className="fixed bottom-14 left-0 right-0 z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
+      <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
         <button
           className="rounded-lg px-5 py-2.5 text-base font-medium text-text-secondary hover:bg-surface-tertiary"
           onClick={() => navigate(-1)}
