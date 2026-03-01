@@ -111,6 +111,25 @@ describe("apiFetch", () => {
     expect(capturedHeaders?.get("Content-Type")).toBe("application/ld+json");
   });
 
+  it("preserves custom Content-Type when provided", async () => {
+    let capturedHeaders: Headers | undefined;
+
+    server.use(
+      http.patch("/api/test", ({ request }) => {
+        capturedHeaders = request.headers;
+        return HttpResponse.json({ id: 1 });
+      }),
+    );
+
+    await apiFetch("/test", {
+      body: JSON.stringify({ bought: true }),
+      headers: { "Content-Type": "application/merge-patch+json" },
+      method: "PATCH",
+    });
+
+    expect(capturedHeaders?.get("Content-Type")).toBe("application/merge-patch+json");
+  });
+
   it("sends JSON body correctly for POST", async () => {
     let capturedBody: unknown;
 

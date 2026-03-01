@@ -244,6 +244,61 @@ final class TomeApiTest extends ApiTestCase
     }
 
     // ---------------------------------------------------------------
+    // PATCH /api/tomes/{id} (partial update)
+    // ---------------------------------------------------------------
+
+    public function testPatchTomeUpdatesOnlySentFields(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Serie Patch Tome');
+
+        $tome = EntityFactory::createTome(1);
+        $tome->setTitle('Titre Original');
+        $series->addTome($tome);
+
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $tomeId = $tome->getId();
+
+        $client->request('PATCH', '/api/tomes/'.$tomeId, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'bought' => true,
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertTrue($data['bought']);
+        self::assertSame('Titre Original', $data['title']);
+        self::assertFalse($data['downloaded']);
+        self::assertFalse($data['read']);
+        self::assertFalse($data['onNas']);
+    }
+
+    public function testPatchTomeUnauthenticatedReturns401(): void
+    {
+        $client = $this->createUnauthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Serie Auth Patch');
+        $tome = EntityFactory::createTome(1);
+        $series->addTome($tome);
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $client->request('PATCH', '/api/tomes/'.$tome->getId(), [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => ['bought' => true],
+        ]);
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    // ---------------------------------------------------------------
     // DELETE /api/tomes/{id}
     // ---------------------------------------------------------------
 

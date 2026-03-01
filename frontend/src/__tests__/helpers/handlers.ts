@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw";
 import {
+  createMockAuthor,
   createMockComicSeries,
   createMockHydraCollection,
-  createMockAuthor,
+  createMockTome,
 } from "./factories";
 
 const API_BASE = "/api";
@@ -60,6 +61,13 @@ export const handlers = [
   // Tomes sub-resource
   http.get(`${API_BASE}/comic_series/:id/tomes`, () =>
     HttpResponse.json(createMockHydraCollection([], "/api/tomes")),
+  ),
+
+  // Update tome (partial)
+  http.patch(`${API_BASE}/tomes/:id`, ({ params }) =>
+    HttpResponse.json(
+      createMockTome({ id: Number(params.id) }),
+    ),
   ),
 
   // Authors

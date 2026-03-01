@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\TomeRepository;
@@ -22,6 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new Get(),
+        new Patch(denormalizationContext: ['groups' => ['tome:write']]),
         new Put(denormalizationContext: ['groups' => ['tome:write']]),
         new Delete(),
     ],
