@@ -98,6 +98,86 @@ describe("useOfflineMutation", () => {
     expect(result.current.data).toBeUndefined();
   });
 
+  it("silently skips registration when no serviceWorker in navigator", async () => {
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
+
+    // Delete the serviceWorker property so "serviceWorker" in navigator is false
+    const originalSW = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
+    // @ts-expect-error -- deliberate deletion for testing
+    delete (navigator as Record<string, unknown>).serviceWorker;
+
+    const { result } = renderHook(() => useCreateComic(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ title: "No SW Comic" });
+    });
+
+    // Should succeed without throwing
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Restore serviceWorker property
+    if (originalSW) {
+      Object.defineProperty(navigator, "serviceWorker", originalSW);
+    }
+  });
+
+  it("silently skips when Background Sync not supported", async () => {
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
+
+    // serviceWorker.ready resolves to registration WITHOUT sync
+    Object.defineProperty(navigator, "serviceWorker", {
+      configurable: true,
+      value: {
+        ready: Promise.resolve({}),
+      },
+      writable: true,
+    });
+
+    const { result } = renderHook(() => useCreateComic(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ title: "No Sync Comic" });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+
+  it("returns error state when online mutation fails", async () => {
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: true,
+      writable: true,
+    });
+
+    server.use(
+      http.post("/api/comic_series", () =>
+        HttpResponse.json({ detail: "Validation failed" }, { status: 422 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useCreateComic(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ title: "Bad Comic" });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
   it("does not invalidate queries when offline", async () => {
     Object.defineProperty(navigator, "onLine", {
       configurable: true,

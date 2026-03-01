@@ -56,6 +56,20 @@ final class ComicSeriesServiceTest extends TestCase
     }
 
     /**
+     * Teste que softDelete ne supprime PAS les fichiers de couverture (preservation physique).
+     */
+    public function testSoftDeleteDoesNotCallCoverRemover(): void
+    {
+        $comic = new ComicSeries();
+
+        $this->coverRemover
+            ->expects(self::never())
+            ->method('remove');
+
+        $this->service->softDelete($comic);
+    }
+
+    /**
      * Teste que moveToLibrary passe le statut \u00e0 BUYING et flush.
      */
     public function testMoveToLibrarySetsStatusToBuyingAndFlushes(): void

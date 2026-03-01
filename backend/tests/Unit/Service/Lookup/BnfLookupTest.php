@@ -303,6 +303,91 @@ final class BnfLookupTest extends TestCase
     }
 
     /**
+     * Teste avec plusieurs elements dc:creator.
+     */
+    public function testResolveLookupMultipleCreators(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <srw:searchRetrieveResponse xmlns:srw="http://www.loc.gov/zing/srw/">
+                <srw:numberOfRecords>1</srw:numberOfRecords>
+                <srw:records>
+                    <srw:record>
+                        <srw:recordData>
+                            <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+                                       xmlns:dc="http://purl.org/dc/elements/1.1/">
+                                <dc:title>Asterix</dc:title>
+                                <dc:creator>Goscinny, René (1926-1977)</dc:creator>
+                                <dc:creator>Uderzo, Albert (1927-2020)</dc:creator>
+                            </oai_dc:dc>
+                        </srw:recordData>
+                    </srw:record>
+                </srw:records>
+            </srw:searchRetrieveResponse>
+            XML;
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getContent')->willReturn($xml);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('René Goscinny, Albert Uderzo', $result->authors);
+    }
+
+    /**
+     * Teste extractIsbn quand aucun identifiant ne commence par "ISBN ".
+     */
+    public function testResolveLookupNoIsbnPrefixReturnsNullIsbn(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <srw:searchRetrieveResponse xmlns:srw="http://www.loc.gov/zing/srw/">
+                <srw:numberOfRecords>1</srw:numberOfRecords>
+                <srw:records>
+                    <srw:record>
+                        <srw:recordData>
+                            <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+                                       xmlns:dc="http://purl.org/dc/elements/1.1/">
+                                <dc:title>Test</dc:title>
+                                <dc:identifier>FRBNF12345678</dc:identifier>
+                                <dc:identifier>http://catalogue.bnf.fr/ark:/12345</dc:identifier>
+                            </oai_dc:dc>
+                        </srw:recordData>
+                    </srw:record>
+                </srw:records>
+            </srw:searchRetrieveResponse>
+            XML;
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getContent')->willReturn($xml);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->isbn);
+    }
+
+    /**
+     * Teste cleanAuthorName avec un auteur sans virgule (nom seul).
+     */
+    public function testResolveLookupSingleNameAuthor(): void
+    {
+        $xml = $this->buildXml(
+            creator: 'Moebius',
+            title: 'Arzach',
+        );
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getContent')->willReturn($xml);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('Moebius', $result->authors);
+    }
+
+    /**
      * Construit un XML SRU Dublin Core minimal pour les tests.
      */
     private function buildXml(

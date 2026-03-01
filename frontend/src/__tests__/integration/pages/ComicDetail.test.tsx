@@ -16,6 +16,8 @@ function renderComicDetail(id: number = 1) {
   return renderWithProviders(
     <Routes>
       <Route element={<ComicDetail />} path="/comic/:id" />
+      <Route element={<div>Home Page</div>} path="/" />
+      <Route element={<div>Wishlist Page</div>} path="/wishlist" />
     </Routes>,
     { initialEntries: [`/comic/${id}`] },
   );
@@ -266,6 +268,130 @@ describe("ComicDetail", () => {
       const img = screen.getByAltText("With Cover");
       expect(img).toHaveAttribute("src", "https://example.com/cover.jpg");
     });
+  });
+
+  it("fires DELETE request and navigates to / when confirming delete", async () => {
+    const user = userEvent.setup();
+    let deleteCalled = false;
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(createMockComicSeries({ id: 1, title: "To Delete" })),
+      ),
+      http.delete("/api/comic_series/1", () => {
+        deleteCalled = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("To Delete")).toBeInTheDocument();
+    });
+
+    // Click Supprimer to open modal
+    await user.click(screen.getByText("Supprimer"));
+
+    // Confirm button in modal has confirmLabel "Supprimer"
+    const confirmButton = screen.getByText("Supprimer cette série ?").closest("[role='dialog']")?.querySelector("button.bg-red-600");
+    expect(confirmButton).toBeInTheDocument();
+    await user.click(confirmButton!);
+
+    await waitFor(() => {
+      expect(deleteCalled).toBe(true);
+    });
+
+    // After success, navigates to /
+    await waitFor(() => {
+      expect(screen.getByText("Home Page")).toBeInTheDocument();
+    });
+  });
+
+  it("links back to wishlist for wishlist comics", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, status: ComicStatus.WISHLIST, title: "Wish Comic" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Wish Comic")).toBeInTheDocument();
+    });
+
+    // The back link (ArrowLeft) should point to /wishlist
+    const backLink = document.querySelector('a[href="/wishlist"]');
+    expect(backLink).toBeInTheDocument();
+  });
+
+  it("links back to / for non-wishlist comics", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Normal Comic" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Normal Comic")).toBeInTheDocument();
+    });
+
+    const backLink = document.querySelector('a[href="/"]');
+    expect(backLink).toBeInTheDocument();
+  });
+
+  it("renders coverImage fallback when coverUrl is null", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            coverImage: "my-cover.jpg",
+            coverUrl: null,
+            id: 1,
+            title: "Cover Test",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      const img = screen.getByAltText("Cover Test");
+      expect(img).toHaveAttribute("src", "/uploads/covers/my-cover.jpg");
+    });
+  });
+
+  it("shows dash placeholder for tomes with null title", async () => {
+    const tomes = [
+      createMockTome({ id: 1, number: 1, title: null }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "No Title Tome", tomes }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Title Tome")).toBeInTheDocument();
+    });
+
+    // The cell for tome title should show the dash
+    const cells = screen.getAllByText("\u2014");
+    // At least one dash should appear (the tome title cell)
+    expect(cells.length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows not found message when comic does not exist", async () => {

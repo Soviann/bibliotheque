@@ -59,6 +59,26 @@ describe("useDarkMode", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
+  it("defaults to dark mode when system preference is dark", () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      addEventListener: vi.fn(),
+      addListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      matches: query === "(prefers-color-scheme: dark)",
+      media: query,
+      onchange: null,
+      removeEventListener: vi.fn(),
+      removeListener: vi.fn(),
+    }));
+
+    const { result } = renderHook(() => useDarkMode());
+
+    expect(result.current.isDark).toBe(true);
+
+    window.matchMedia = originalMatchMedia;
+  });
+
   it("persists preference in localStorage", () => {
     localStorage.setItem("theme", "light");
 

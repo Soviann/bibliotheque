@@ -78,6 +78,41 @@ describe("useLookupIsbn", () => {
 
     expect(result.current.error?.message).toBe("ISBN not found");
   });
+
+  it("includes type query parameter in request URL", async () => {
+    let capturedUrl = "";
+
+    server.use(
+      http.get("/api/lookup/isbn", ({ request }) => {
+        capturedUrl = new URL(request.url).search;
+        return HttpResponse.json(createMockLookupResult({ title: "Test" }));
+      }),
+    );
+
+    const { result } = renderHook(() => useLookupIsbn("9781234567890", "manga"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(capturedUrl).toContain("type=manga");
+  });
+
+  it("accepts ISBN with exactly 10 characters", async () => {
+    server.use(
+      http.get("/api/lookup/isbn", () =>
+        HttpResponse.json(createMockLookupResult({ title: "Short ISBN" })),
+      ),
+    );
+
+    const { result } = renderHook(() => useLookupIsbn("1234567890"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.title).toBe("Short ISBN");
+  });
 });
 
 describe("useLookupTitle", () => {

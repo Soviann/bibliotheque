@@ -381,6 +381,105 @@ final class GoogleBooksLookupTest extends TestCase
     }
 
     /**
+     * Teste que optimizeThumbnailUrl retourne l'URL inchangee pour un domaine non-Google Books.
+     */
+    public function testOptimizeThumbnailUrlNonGoogleBooksUrlReturnedUnchanged(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => [
+                            'thumbnail' => 'https://example.com/image.jpg?zoom=1&edge=curl',
+                        ],
+                        'title' => 'Test',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('https://example.com/image.jpg?zoom=1&edge=curl', $result->thumbnail);
+    }
+
+    /**
+     * Teste le fallback quand seul smallThumbnail est present.
+     */
+    public function testResolveLookupSmallThumbnailFallback(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => [
+                            'smallThumbnail' => 'http://books.google.com/small?zoom=1',
+                        ],
+                        'title' => 'Test',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNotNull($result->thumbnail);
+        self::assertStringContainsString('zoom=0', $result->thumbnail);
+    }
+
+    /**
+     * Teste l'extraction de l'ISBN quand seul ISBN_10 est present.
+     */
+    public function testResolveLookupExtractsIsbn10Only(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'industryIdentifiers' => [
+                            ['identifier' => '2723489000', 'type' => 'ISBN_10'],
+                        ],
+                        'title' => 'Test',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('2723489000', $result->isbn);
+    }
+
+    /**
+     * Teste isOneShot=false quand seriesInfo est present.
+     */
+    public function testResolveLookupIsOneShotViaSeriesInfo(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'seriesInfo' => ['volumeSeries' => []],
+                        'title' => 'Test Series',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertFalse($result->isOneShot);
+    }
+
+    /**
      * Teste l'extraction de l'ISBN depuis les identifiants.
      */
     public function testResolveLookupExtractsIsbn(): void

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   apiFetch,
   getToken,
+  isAuthenticated,
   loginWithGoogle,
   removeToken,
   setToken,
@@ -229,6 +230,71 @@ describe("apiFetch", () => {
   });
 });
 
+describe("isAuthenticated", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("returns true when token exists", () => {
+    setToken("some-token");
+    expect(isAuthenticated()).toBe(true);
+  });
+
+  it("returns false when no token", () => {
+    expect(isAuthenticated()).toBe(false);
+  });
+});
+
+describe("apiFetch — offline scenarios", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+  });
+
+  it("does NOT remove token and does NOT redirect on 401 while offline", async () => {
+    setToken("my-token");
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+
+    server.use(
+      http.get("/api/test", () =>
+        new HttpResponse(null, { status: 401 }),
+      ),
+    );
+
+    await expect(apiFetch("/test")).rejects.toThrow("Non authentifié");
+    // Token should NOT be removed when offline
+    expect(getToken()).toBe("my-token");
+  });
+
+  it("throws 'Vous êtes hors ligne' on network error while offline", async () => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+
+    server.use(
+      http.get("/api/test", () => {
+        return HttpResponse.error();
+      }),
+    );
+
+    await expect(apiFetch("/test")).rejects.toThrow("Vous êtes hors ligne");
+  });
+
+  it("re-throws the original error on network error while online", async () => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+
+    server.use(
+      http.get("/api/test", () => {
+        return HttpResponse.error();
+      }),
+    );
+
+    await expect(apiFetch("/test")).rejects.toThrow();
+  });
+});
+
 describe("loginWithGoogle", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -264,6 +330,18 @@ describe("loginWithGoogle", () => {
     server.use(
       http.post("/api/login/google", () =>
         HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+
+    await expect(loginWithGoogle("bad-token")).rejects.toThrow(
+      "Échec de la connexion Google",
+    );
+  });
+
+  it("falls back to empty object when error response body is not valid JSON", async () => {
+    server.use(
+      http.post("/api/login/google", () =>
+        new HttpResponse("not json", { headers: { "Content-Type": "text/plain" }, status: 500 }),
       ),
     );
 

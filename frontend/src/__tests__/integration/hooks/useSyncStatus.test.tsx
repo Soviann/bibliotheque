@@ -103,6 +103,33 @@ describe("useSyncStatus", () => {
     expect(result.current.status).toBe("idle");
   });
 
+  it("handles sync-complete with count 0", () => {
+    const { result } = renderHook(() => useSyncStatus());
+
+    act(() => {
+      messageHandler?.({ data: { type: "sync-start" } } as MessageEvent);
+    });
+
+    act(() => {
+      messageHandler?.({ data: { count: 0, type: "sync-complete" } } as MessageEvent);
+    });
+
+    expect(result.current.status).toBe("success");
+    expect(result.current.syncedCount).toBe(0);
+  });
+
+  it("does not register listener when serviceWorker is absent", () => {
+    Object.defineProperty(navigator, "serviceWorker", {
+      configurable: true,
+      value: undefined,
+      writable: true,
+    });
+
+    renderHook(() => useSyncStatus());
+
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
+  });
+
   it("cleans up event listener on unmount", () => {
     const { unmount } = renderHook(() => useSyncStatus());
 

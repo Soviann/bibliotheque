@@ -122,11 +122,24 @@ describe("ComicCard", () => {
     expect(onDelete).toHaveBeenCalledWith(comic);
   });
 
-  it("has an edit button that navigates to edit page", () => {
+  it("has an edit button that navigates to edit page", async () => {
+    const user = userEvent.setup();
     const comic = createMockComicSeries({ id: 5, title: "Test" });
 
-    renderWithProviders(<ComicCard comic={comic} />);
+    const { Route, Routes } = await import("react-router-dom");
 
-    expect(screen.getByTitle("Modifier")).toBeInTheDocument();
+    renderWithProviders(
+      <Routes>
+        <Route element={<ComicCard comic={comic} />} path="/" />
+        <Route element={<div>Edit Page</div>} path="/comic/5/edit" />
+      </Routes>,
+    );
+
+    const editButton = screen.getByTitle("Modifier");
+    expect(editButton).toBeInTheDocument();
+
+    await user.click(editButton);
+
+    expect(screen.getByText("Edit Page")).toBeInTheDocument();
   });
 });

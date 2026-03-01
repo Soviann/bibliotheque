@@ -490,6 +490,181 @@ final class AniListLookupTest extends TestCase
     }
 
     /**
+     * Teste cleanTitle avec suffixe "#N".
+     */
+    public function testPrepareLookupCleansHashSuffix(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $this->httpClient->expects(self::once())
+            ->method('request')
+            ->with(
+                'POST',
+                self::anything(),
+                self::callback(static function (array $options): bool {
+                    return 'My Hero Academia' === $options['json']['variables']['search'];
+                }),
+            )
+            ->willReturn($response);
+
+        $this->provider->prepareLookup('My Hero Academia #25', ComicType::MANGA, 'title');
+    }
+
+    /**
+     * Teste cleanTitle avec suffixe "(N)".
+     */
+    public function testPrepareLookupCleansParenthesisNumber(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $this->httpClient->expects(self::once())
+            ->method('request')
+            ->with(
+                'POST',
+                self::anything(),
+                self::callback(static function (array $options): bool {
+                    return 'Bleach' === $options['json']['variables']['search'];
+                }),
+            )
+            ->willReturn($response);
+
+        $this->provider->prepareLookup('Bleach (3)', ComicType::MANGA, 'title');
+    }
+
+    /**
+     * Teste cleanTitle avec prefixe "Vol.N".
+     */
+    public function testPrepareLookupCleansVolPrefix(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $this->httpClient->expects(self::once())
+            ->method('request')
+            ->with(
+                'POST',
+                self::anything(),
+                self::callback(static function (array $options): bool {
+                    return 'Dragon Ball' === $options['json']['variables']['search'];
+                }),
+            )
+            ->willReturn($response);
+
+        $this->provider->prepareLookup('Dragon Ball Vol.5', ComicType::MANGA, 'title');
+    }
+
+    /**
+     * Teste cleanTitle avec un numero nu en fin de chaine.
+     */
+    public function testPrepareLookupCleansTrailingBareNumber(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $this->httpClient->expects(self::once())
+            ->method('request')
+            ->with(
+                'POST',
+                self::anything(),
+                self::callback(static function (array $options): bool {
+                    return 'Naruto' === $options['json']['variables']['search'];
+                }),
+            )
+            ->willReturn($response);
+
+        $this->provider->prepareLookup('Naruto 42', ComicType::MANGA, 'title');
+    }
+
+    /**
+     * Teste le fallback thumbnail : extraLarge null → utilise large.
+     */
+    public function testResolveLookupThumbnailFallbackToLarge(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [
+                        'extraLarge' => null,
+                        'large' => 'https://anilist.co/img/cover-l.jpg',
+                    ],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => ['english' => 'Test', 'native' => null, 'romaji' => null],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('https://anilist.co/img/cover-l.jpg', $result->thumbnail);
+    }
+
+    /**
+     * Teste le fallback titre : english=null, romaji=null → utilise native.
+     */
+    public function testResolveLookupTitleFallbackToNative(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => [
+                        'english' => null,
+                        'native' => 'ワンピース',
+                        'romaji' => null,
+                    ],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('ワンピース', $result->title);
+    }
+
+    /**
+     * Teste que la description avec entites HTML est correctement decodee.
+     */
+    public function testResolveLookupDescriptionDecodesHtmlEntities(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [],
+                    'description' => '<p>A story about &quot;pirates&quot; &amp; treasure&hellip;</p>',
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => ['english' => 'Test', 'native' => null, 'romaji' => null],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertStringNotContainsString('<p>', $result->description);
+        self::assertStringNotContainsString('&quot;', $result->description);
+        self::assertStringContainsString('"pirates"', $result->description);
+        self::assertStringContainsString('&', $result->description);
+    }
+
+    /**
      * Teste que latestPublishedIssue est extrait du nombre de volumes.
      */
     public function testResolveLookupExtractsLatestPublishedIssue(): void

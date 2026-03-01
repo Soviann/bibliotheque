@@ -120,6 +120,42 @@ describe("Trash", () => {
     expect(screen.getByText("Cette action est irréversible. La série sera définitivement supprimée.")).toBeInTheDocument();
   });
 
+  it("fires DELETE API call when confirming permanent delete", async () => {
+    const user = userEvent.setup();
+    let deleteCalled = false;
+
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Perm Delete" }),
+    ];
+
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
+      ),
+      http.delete("/api/trash/1/permanent", () => {
+        deleteCalled = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    renderWithProviders(<Trash />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Perm Delete")).toBeInTheDocument();
+    });
+
+    // Click permanent delete button
+    await user.click(screen.getByTitle("Supprimer définitivement"));
+
+    // Confirm in modal
+    const confirmButton = screen.getByRole("button", { name: "Supprimer définitivement" });
+    await user.click(confirmButton);
+
+    await waitFor(() => {
+      expect(deleteCalled).toBe(true);
+    });
+  });
+
   it("triggers restore when restore button is clicked", async () => {
     const user = userEvent.setup();
     const comics = [

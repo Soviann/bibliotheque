@@ -70,4 +70,16 @@ describe("Filters", () => {
 
     expect(screen.getByText("En cours d'achat")).toBeInTheDocument();
   });
+
+  it("calls onTypeChange with empty string when selecting 'Tous les types'", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Filters {...defaultProps} type="manga" />);
+
+    // Open type filter (currently showing "Manga")
+    await user.click(screen.getByText("Manga"));
+    // Select "Tous les types"
+    await user.click(screen.getByText("Tous les types"));
+
+    expect(defaultProps.onTypeChange).toHaveBeenCalledWith("");
+  });
 });

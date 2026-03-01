@@ -75,6 +75,20 @@ describe("useComics", () => {
     expect(result.current.data?.totalItems).toBe(0);
   });
 
+  it("returns error state on 500 response", async () => {
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json({ detail: "Internal Server Error" }, { status: 500 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useComics(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
   it("seeds individual comic cache entries", async () => {
     const series = createMockComicSeries({ id: 42, title: "Dragon Ball" });
 

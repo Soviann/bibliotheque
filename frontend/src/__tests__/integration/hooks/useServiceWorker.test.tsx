@@ -69,6 +69,24 @@ describe("useServiceWorker", () => {
     );
   });
 
+  it("does not register listener when serviceWorker is absent", async () => {
+    Object.defineProperty(navigator, "serviceWorker", {
+      configurable: true,
+      value: undefined,
+      writable: true,
+    });
+
+    renderHook(() => useServiceWorker(), {
+      wrapper: createWrapper(),
+    });
+
+    // Wait a tick for async operations
+    await new Promise((r) => setTimeout(r, 50));
+
+    // addEventListenerSpy should not be called since navigator.serviceWorker is undefined
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
+  });
+
   it("responds to get-token messages from service worker", async () => {
     localStorage.setItem("jwt_token", "my-token");
 
@@ -92,5 +110,51 @@ describe("useServiceWorker", () => {
     } as unknown as MessageEvent);
 
     expect(mockPort.postMessage).toHaveBeenCalledWith({ token: "my-token" });
+  });
+
+  it("silently skips get-token when event.ports[0] is undefined", async () => {
+    renderHook(() => useServiceWorker(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(addEventListenerSpy).toHaveBeenCalled();
+    });
+
+    const messageHandler = addEventListenerSpy.mock.calls.find(
+      (call: [string, unknown]) => call[0] === "message",
+    )?.[1] as (event: MessageEvent) => void;
+
+    // Should not throw when ports is empty
+    expect(() => {
+      messageHandler({
+        data: { type: "get-token" },
+        ports: [],
+      } as unknown as MessageEvent);
+    }).not.toThrow();
+  });
+
+  it("responds with null token when no token is stored", async () => {
+    // localStorage is cleared in beforeEach, so no token exists
+
+    renderHook(() => useServiceWorker(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(addEventListenerSpy).toHaveBeenCalled();
+    });
+
+    const messageHandler = addEventListenerSpy.mock.calls.find(
+      (call: [string, unknown]) => call[0] === "message",
+    )?.[1] as (event: MessageEvent) => void;
+
+    const mockPort = { postMessage: vi.fn() };
+    messageHandler({
+      data: { type: "get-token" },
+      ports: [mockPort],
+    } as unknown as MessageEvent);
+
+    expect(mockPort.postMessage).toHaveBeenCalledWith({ token: null });
   });
 });

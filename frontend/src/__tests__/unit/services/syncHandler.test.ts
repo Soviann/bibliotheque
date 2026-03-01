@@ -221,6 +221,104 @@ describe("syncHandler — processSyncQueue", () => {
     expect(remaining).toHaveLength(0);
   });
 
+  it("silently skips author creation when POST returns non-200", async () => {
+    server.use(
+      http.post("/api/authors", () =>
+        HttpResponse.json({ detail: "Conflict" }, { status: 409 }),
+      ),
+      http.post("/api/comic_series", () =>
+        HttpResponse.json(
+          { "@id": "/api/comic_series/1", id: 1 },
+          { status: 201 },
+        ),
+      ),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: {
+        _pendingAuthors: ["FailedAuthor"],
+        authors: ["/api/authors/1"],
+        title: "Test",
+      },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      count: 1,
+      type: "sync-complete",
+    });
+  });
+
+  it("keeps remaining items when mid-batch 5xx occurs", async () => {
+    let callCount = 0;
+
+    server.use(
+      http.post("/api/comic_series", () => {
+        callCount++;
+        if (callCount === 2) {
+          return new HttpResponse(null, { status: 500 });
+        }
+        return HttpResponse.json(
+          { "@id": `/api/comic_series/${callCount}`, id: callCount },
+          { status: 201 },
+        );
+      }),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: { title: "Item 1" },
+      resourceType: "comic_series",
+    });
+    await enqueue({
+      operation: "create",
+      payload: { title: "Item 2" },
+      resourceType: "comic_series",
+    });
+    await enqueue({
+      operation: "create",
+      payload: { title: "Item 3" },
+      resourceType: "comic_series",
+    });
+
+    await expect(
+      processSyncQueue(fakeToken, mockPostMessage),
+    ).rejects.toThrow("Server error 500");
+
+    // Item 1 was processed successfully and removed
+    // Item 2 failed with 5xx and was reverted to pending
+    // Item 3 was never reached
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(2);
+  });
+
+  it("uses fallback message when 4xx has no detail field", async () => {
+    server.use(
+      http.post("/api/comic_series", () =>
+        HttpResponse.json({}, { status: 422 }),
+      ),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: { title: "Bad" },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      error: "Erreur 422",
+      type: "sync-error",
+    });
+  });
+
   it("creates pending authors before syncing the series", async () => {
     const createdAuthors: string[] = [];
 

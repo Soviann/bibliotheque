@@ -49,6 +49,17 @@ describe("usePendingQueueCount", () => {
     await waitFor(() => expect(result.current).toBe(3));
   });
 
+  it("returns 0 when getPendingCount rejects (IndexedDB failure)", async () => {
+    vi.mocked(getPendingCount).mockRejectedValue(new Error("IndexedDB unavailable"));
+
+    const { result } = renderHook(() => usePendingQueueCount(), {
+      wrapper: createWrapper(),
+    });
+
+    // Should fall back to 0 (the default)
+    await waitFor(() => expect(result.current).toBe(0));
+  });
+
   it("returns 0 as default before data loads", () => {
     vi.mocked(getPendingCount).mockReturnValue(new Promise(() => {})); // never resolves
 

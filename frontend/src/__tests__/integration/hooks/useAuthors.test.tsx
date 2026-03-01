@@ -65,6 +65,20 @@ describe("useAuthors", () => {
     expect(result.current.data?.member[0].name).toBe("Eiichiro Oda");
   });
 
+  it("returns error state on failed request", async () => {
+    server.use(
+      http.get("/api/authors", () =>
+        HttpResponse.json({ detail: "Server error" }, { status: 500 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useAuthors("test"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
   it("is enabled when search has at least 1 character", async () => {
     server.use(
       http.get("/api/authors", () =>

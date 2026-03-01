@@ -441,6 +441,33 @@ final class GeminiLookupTest extends TestCase
     }
 
     /**
+     * Teste que prepareEnrich retourne un LookupResult depuis le cache sans appeler l'API.
+     */
+    public function testPrepareEnrichReturnsCachedResult(): void
+    {
+        $cachedResult = new LookupResult(
+            description: 'Cached description',
+            source: 'gemini',
+            title: 'One Piece',
+        );
+
+        $cacheItem = $this->createCacheItem('test_key', $cachedResult, true);
+        $this->cache->method('getItem')->willReturn($cacheItem);
+
+        $partial = new LookupResult(title: 'One Piece', source: 'other');
+        $provider = $this->createProvider();
+        $state = $provider->prepareEnrich($partial, ComicType::MANGA);
+
+        self::assertInstanceOf(LookupResult::class, $state);
+        self::assertSame('One Piece', $state->title);
+        self::assertSame('Cached description', $state->description);
+
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertSame('success', $apiMessage['status']);
+        self::assertStringContainsString('cache', $apiMessage['message']);
+    }
+
+    /**
      * Teste que prepareEnrich construit un prompt d'enrichissement.
      */
     public function testPrepareEnrichBuildsPreparedState(): void

@@ -52,6 +52,56 @@ describe("useAuth", () => {
     expect(result.current.isAuthenticated).toBe(true);
   });
 
+  it("loginPending is true during in-flight request", async () => {
+    let resolveLogin: (() => void) | null = null;
+
+    server.use(
+      http.post("/api/login/google", async () => {
+        await new Promise<void>((resolve) => { resolveLogin = resolve; });
+        return HttpResponse.json({ token: "jwt" });
+      }),
+    );
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.login("credential");
+    });
+
+    // Wait for the mutation to start and loginPending to become true
+    await waitFor(() => expect(result.current.loginPending).toBe(true));
+
+    // Now resolve the request
+    resolveLogin?.();
+
+    await waitFor(() => expect(result.current.loginPending).toBe(false));
+  });
+
+  it("isAuthenticated becomes true after successful login", async () => {
+    server.use(
+      http.post("/api/login/google", () =>
+        HttpResponse.json({ token: "jwt-token" }),
+      ),
+    );
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.isAuthenticated).toBe(false);
+
+    await act(async () => {
+      result.current.login("google-credential");
+    });
+
+    await waitFor(() => expect(result.current.loginPending).toBe(false));
+
+    // Re-read the hook — isAuthenticated reads from localStorage
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
   it("login stores token and navigates to /", async () => {
     server.use(
       http.post("/api/login/google", () =>

@@ -112,4 +112,70 @@ describe("Home", () => {
     expect(screen.getByText("Tous les types")).toBeInTheDocument();
     expect(screen.getByText("Tous les statuts")).toBeInTheDocument();
   });
+
+  it("filters comics by type selection", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Naruto", type: ComicType.MANGA }),
+      createMockComicSeries({ id: 2, title: "Tintin", type: ComicType.BD }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    // Open type filter and select Manga
+    await user.click(screen.getByText("Tous les types"));
+    await user.click(screen.getByText("Manga"));
+
+    expect(screen.getByText("Naruto")).toBeInTheDocument();
+    expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
+  });
+
+  it("shows delete confirmation and fires API call", async () => {
+    const user = userEvent.setup();
+    let deleteCalled = false;
+
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Delete Me" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+      http.delete("/api/comic_series/1", () => {
+        deleteCalled = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Delete Me")).toBeInTheDocument();
+    });
+
+    // Click delete button on the card
+    await user.click(screen.getByTitle("Supprimer"));
+
+    // Confirm modal should appear
+    expect(screen.getByText(/Supprimer Delete Me/)).toBeInTheDocument();
+
+    // Click the confirm button in the modal
+    const confirmButton = screen.getByRole("button", { name: "Supprimer" });
+    await user.click(confirmButton);
+
+    await waitFor(() => {
+      expect(deleteCalled).toBe(true);
+    });
+  });
 });

@@ -6,6 +6,7 @@ import ComicForm from "../../../pages/ComicForm";
 import {
   createMockAuthor,
   createMockComicSeries,
+  createMockLookupResult,
   createMockTome,
 } from "../../helpers/factories";
 import { server } from "../../helpers/server";
@@ -25,6 +26,7 @@ function renderCreateForm() {
     <Routes>
       <Route element={<ComicForm />} path="/comic/new" />
       <Route element={<div>Comic Detail</div>} path="/comic/:id" />
+      <Route element={<div>Home Page</div>} path="/" />
     </Routes>,
     { initialEntries: ["/comic/new"] },
   );
@@ -272,6 +274,218 @@ describe("ComicForm", () => {
       const titreElements = screen.getAllByText("Titre");
       const titreButton = titreElements.find((el) => el.tagName === "BUTTON");
       expect(titreButton).toBeDefined();
+    });
+
+    it("shows offline message when offline", () => {
+      Object.defineProperty(navigator, "onLine", {
+        configurable: true,
+        value: false,
+        writable: true,
+      });
+
+      renderCreateForm();
+
+      expect(screen.getByText("Recherche indisponible hors ligne")).toBeInTheDocument();
+
+      Object.defineProperty(navigator, "onLine", {
+        configurable: true,
+        value: true,
+        writable: true,
+      });
+    });
+
+    it("fills form fields when clicking Appliquer on title lookup result", async () => {
+      const user = userEvent.setup();
+
+      const lookupResult = createMockLookupResult({
+        authors: "Test Author",
+        description: "A great description",
+        publisher: "TestPub",
+        thumbnail: "https://example.com/cover.jpg",
+        title: "Lookup Title",
+      });
+
+      server.use(
+        http.get("/api/lookup/title", () => HttpResponse.json(lookupResult)),
+      );
+
+      renderCreateForm();
+
+      // Type a title in the lookup field (title mode is default)
+      const lookupInput = screen.getByPlaceholderText("Titre de la série");
+      await user.type(lookupInput, "Lookup Title");
+
+      // Wait for lookup result to appear
+      await waitFor(() => {
+        expect(screen.getByText("Appliquer")).toBeInTheDocument();
+      });
+
+      // Click Appliquer
+      await user.click(screen.getByText("Appliquer"));
+
+      // Form fields should be filled
+      await waitFor(() => {
+        expect(screen.getByLabelText("Titre *")).toHaveValue("Lookup Title");
+      });
+      expect(screen.getByLabelText("Éditeur")).toHaveValue("TestPub");
+      expect(screen.getByLabelText("Description")).toHaveValue("A great description");
+      expect(screen.getByLabelText("URL de couverture")).toHaveValue("https://example.com/cover.jpg");
+    });
+  });
+
+  describe("Cover URL preview", () => {
+    it("shows preview image when cover URL is set", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("URL de couverture"), "https://example.com/cover.jpg");
+
+      const preview = screen.getByAltText("Aperçu");
+      expect(preview).toHaveAttribute("src", "https://example.com/cover.jpg");
+    });
+  });
+
+  describe("Latest published issue field", () => {
+    it("renders and accepts numeric input", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      const field = screen.getByLabelText("Dernier tome paru");
+      expect(field).toBeInTheDocument();
+
+      await user.type(field, "42");
+      expect(field).toHaveValue(42);
+    });
+  });
+
+  describe("Tome operations", () => {
+    it("adds a new tome row when clicking Ajouter", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      // Initially 1 tome
+      expect(screen.getByText("Tomes (1)")).toBeInTheDocument();
+
+      await user.click(screen.getByText("Ajouter"));
+
+      expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
+    });
+
+    it("removes a tome row when clicking the trash icon", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      // Add a second tome first
+      await user.click(screen.getByText("Ajouter"));
+      expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
+
+      // Each tome row has a red delete button as the last cell
+      // Select only delete buttons in the tbody (not ISBN search buttons)
+      const deleteButtons = document.querySelectorAll("tbody tr td:last-child button");
+      expect(deleteButtons.length).toBe(2);
+      await user.click(deleteButtons[0]);
+
+      expect(screen.getByText("Tomes (1)")).toBeInTheDocument();
+    });
+  });
+
+  describe("Submit behavior", () => {
+    it("navigates to /comic/:id after successful create", async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.post("/api/comic_series", () =>
+          HttpResponse.json(
+            createMockComicSeries({ id: 42, title: "Created Comic" }),
+            { status: 201 },
+          ),
+        ),
+      );
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "Created Comic");
+      await user.click(screen.getByText("Créer"));
+
+      await waitFor(() => {
+        expect(screen.getByText("Comic Detail")).toBeInTheDocument();
+      });
+    });
+
+    it("navigates to /comic/:id after successful edit", async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(createMockComicSeries({ id: 1, title: "Edit Me" })),
+        ),
+        http.put("/api/comic_series/1", () =>
+          HttpResponse.json(createMockComicSeries({ id: 1, title: "Edited" })),
+        ),
+      );
+
+      renderEditForm();
+
+      await waitFor(() => {
+        expect(screen.getByLabelText("Titre *")).toHaveValue("Edit Me");
+      });
+
+      await user.click(screen.getByText("Enregistrer"));
+
+      await waitFor(() => {
+        expect(screen.getByText("Comic Detail")).toBeInTheDocument();
+      });
+    });
+
+    it("navigates to / when submitting offline", async () => {
+      const user = userEvent.setup();
+
+      Object.defineProperty(navigator, "onLine", {
+        configurable: true,
+        value: false,
+        writable: true,
+      });
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "Offline Comic");
+      await user.click(screen.getByText("Créer"));
+
+      await waitFor(() => {
+        expect(screen.getByText("Home Page")).toBeInTheDocument();
+      });
+
+      Object.defineProperty(navigator, "onLine", {
+        configurable: true,
+        value: true,
+        writable: true,
+      });
+    });
+
+    it("disables submit button while saving (isSaving)", async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.post("/api/comic_series", async () => {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          return HttpResponse.json(
+            createMockComicSeries({ id: 1, title: "Slow" }),
+            { status: 201 },
+          );
+        }),
+      );
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "Slow Comic");
+
+      const createButton = screen.getByText("Créer");
+      await user.click(createButton);
+
+      // Button should be disabled while mutation is pending
+      await waitFor(() => {
+        expect(createButton).toBeDisabled();
+      });
     });
   });
 });

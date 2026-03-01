@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service\Lookup;
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use App\Service\Lookup\AbstractLookupProvider;
+use App\Service\Lookup\EnrichableLookupProviderInterface;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupProviderInterface;
 use App\Service\Lookup\LookupResult;
@@ -426,6 +427,220 @@ final class LookupOrchestratorTest extends TestCase
     }
 
     /**
+     * Teste l'enrichissement quand le resultat initial est incomplet.
+     */
+    public function testEnrichmentHappyPath(): void
+    {
+        // Provider de lookup retournant un resultat incomplet (sans description ni thumbnail)
+        $lookupResult = new LookupResult(
+            authors: 'Oda',
+            source: 'lookup_provider',
+            title: 'One Piece',
+        );
+
+        $lookupProvider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'lookup_provider',
+            result: $lookupResult,
+            supports: true,
+        );
+
+        // Provider enrichable qui ajoute les champs manquants
+        $enrichResult = new LookupResult(
+            description: 'Un manga de pirates',
+            source: 'enrich_provider',
+            thumbnail: 'https://example.com/cover.jpg',
+        );
+
+        $enrichProvider = $this->createStubEnrichableProvider(
+            enrichResult: $enrichResult,
+            fieldPriority: 50,
+            name: 'enrich_provider',
+            result: null,
+            supports: false,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$lookupProvider, $enrichProvider]);
+
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        // Champs du lookup initial (priorite superieure)
+        self::assertSame('One Piece', $result->title);
+        self::assertSame('Oda', $result->authors);
+        // Champs de l'enrichissement
+        self::assertSame('Un manga de pirates', $result->description);
+        self::assertSame('https://example.com/cover.jpg', $result->thumbnail);
+        self::assertContains('enrich_provider', $orchestrator->getLastSources());
+    }
+
+    /**
+     * Teste qu'une exception dans prepareEnrich est geree et enregistree.
+     */
+    public function testPrepareEnrichExceptionIsLoggedAndContinues(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        // Provider de lookup retournant un resultat incomplet
+        $lookupResult = new LookupResult(
+            authors: 'Oda',
+            source: 'lookup_provider',
+            title: 'One Piece',
+        );
+
+        $lookupProvider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'lookup_provider',
+            result: $lookupResult,
+            supports: true,
+        );
+
+        // Provider enrichable qui leve une exception dans prepareEnrich
+        $enrichProvider = $this->createStubEnrichableProvider(
+            enrichResult: null,
+            fieldPriority: 50,
+            name: 'failing_enrich',
+            result: null,
+            supports: false,
+            throwOnPrepareEnrich: new \RuntimeException('Enrich prepare failed'),
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, $logger, [$lookupProvider, $enrichProvider]);
+
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('One Piece', $result->title);
+
+        $messages = $orchestrator->getLastApiMessages();
+        self::assertArrayHasKey('failing_enrich.enrich', $messages);
+        self::assertSame('error', $messages['failing_enrich.enrich']['status']);
+    }
+
+    /**
+     * Teste qu'une exception dans resolveEnrich est geree et enregistree.
+     */
+    public function testResolveEnrichExceptionIsLoggedAndContinues(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        // Provider de lookup retournant un resultat incomplet
+        $lookupResult = new LookupResult(
+            authors: 'Oda',
+            source: 'lookup_provider',
+            title: 'One Piece',
+        );
+
+        $lookupProvider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'lookup_provider',
+            result: $lookupResult,
+            supports: true,
+        );
+
+        // Provider enrichable qui leve une exception dans resolveEnrich
+        $enrichProvider = $this->createStubEnrichableProvider(
+            enrichResult: null,
+            fieldPriority: 50,
+            name: 'failing_enrich',
+            result: null,
+            supports: false,
+            throwOnResolveEnrich: new \RuntimeException('Enrich resolve failed'),
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, $logger, [$lookupProvider, $enrichProvider]);
+
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('One Piece', $result->title);
+
+        $messages = $orchestrator->getLastApiMessages();
+        self::assertArrayHasKey('failing_enrich.enrich', $messages);
+        self::assertSame('error', $messages['failing_enrich.enrich']['status']);
+    }
+
+    /**
+     * Teste que lookupByTitle propage le ComicType aux appels supports() et prepareLookup().
+     */
+    public function testLookupByTitlePropagatesComicType(): void
+    {
+        $calledWithType = null;
+        $calledSupportsType = null;
+
+        $provider = new class ($calledWithType, $calledSupportsType) implements LookupProviderInterface {
+            public function __construct(
+                private mixed &$calledWithType,
+                private mixed &$calledSupportsType,
+            ) {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return 100;
+            }
+
+            public function getLastApiMessage(): ?array
+            {
+                return null;
+            }
+
+            public function getName(): string
+            {
+                return 'type_tracker';
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            {
+                $this->calledWithType = $type;
+
+                return 'state';
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                return new LookupResult(title: 'Test', source: 'type_tracker');
+            }
+
+            public function supports(string $mode, ?ComicType $type): bool
+            {
+                $this->calledSupportsType = $type;
+
+                return true;
+            }
+        };
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);
+
+        $orchestrator->lookupByTitle('One Piece', ComicType::MANGA);
+
+        self::assertSame(ComicType::MANGA, $calledWithType);
+        self::assertSame(ComicType::MANGA, $calledSupportsType);
+    }
+
+    /**
+     * Teste que lookupByIsbn retourne null quand tous les providers retournent null.
+     */
+    public function testLookupByIsbnAllProvidersReturnNullReturnsNull(): void
+    {
+        $provider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'empty_provider',
+            result: null,
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);
+
+        $result = $orchestrator->lookup('9782723489003');
+
+        self::assertNull($result);
+        self::assertSame([], $orchestrator->getLastSources());
+    }
+
+    /**
      * Teste que le merge par priorite fonctionne champ par champ.
      */
     public function testMergeByFieldPriorityPerField(): void
@@ -479,6 +694,80 @@ final class LookupOrchestratorTest extends TestCase
         self::assertSame('B Publisher', $result->publisher);
         // Provider C gagne pour thumbnail (seul a le fournir, priorite 50)
         self::assertSame('C Thumbnail', $result->thumbnail);
+    }
+
+    /**
+     * Cree un stub enrichable pour les tests d'enrichissement.
+     */
+    private function createStubEnrichableProvider(
+        ?LookupResult $enrichResult,
+        int $fieldPriority,
+        string $name,
+        ?LookupResult $result,
+        bool $supports,
+        ?\Throwable $throwOnPrepareEnrich = null,
+        ?\Throwable $throwOnResolveEnrich = null,
+    ): EnrichableLookupProviderInterface {
+        return new class ($enrichResult, $fieldPriority, $name, $result, $supports, $throwOnPrepareEnrich, $throwOnResolveEnrich) implements EnrichableLookupProviderInterface {
+            public function __construct(
+                private readonly ?LookupResult $enrichResult,
+                private readonly int $fieldPriority,
+                private readonly string $name,
+                private readonly ?LookupResult $result,
+                private readonly bool $supports,
+                private readonly ?\Throwable $throwOnPrepareEnrich,
+                private readonly ?\Throwable $throwOnResolveEnrich,
+            ) {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return $this->fieldPriority;
+            }
+
+            public function getLastApiMessage(): ?array
+            {
+                return null;
+            }
+
+            public function getName(): string
+            {
+                return $this->name;
+            }
+
+            public function prepareEnrich(LookupResult $partial, ?ComicType $type): mixed
+            {
+                if (null !== $this->throwOnPrepareEnrich) {
+                    throw $this->throwOnPrepareEnrich;
+                }
+
+                return 'enrich_state';
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            {
+                return 'prepared';
+            }
+
+            public function resolveEnrich(mixed $state): ?LookupResult
+            {
+                if (null !== $this->throwOnResolveEnrich) {
+                    throw $this->throwOnResolveEnrich;
+                }
+
+                return $this->enrichResult;
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                return $this->result;
+            }
+
+            public function supports(string $mode, ?ComicType $type): bool
+            {
+                return $this->supports;
+            }
+        };
     }
 
     /**

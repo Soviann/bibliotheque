@@ -56,6 +56,20 @@ describe("useTrash", () => {
     expect(result.current.data?.member[0].title).toBe("Deleted Series");
   });
 
+  it("returns error on failed API request", async () => {
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json({ detail: "Server error" }, { status: 500 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useTrash(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
   it("returns empty trash", async () => {
     server.use(
       http.get("/api/trash", () =>
@@ -103,6 +117,24 @@ describe("useRestoreComic", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data?.title).toBe("Restored");
+  });
+
+  it("returns error on failed PUT", async () => {
+    server.use(
+      http.put("/api/comic_series/7/restore", () =>
+        HttpResponse.json({ detail: "Cannot restore" }, { status: 400 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useRestoreComic(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ id: 7 });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
   });
 
   it("invalidates trash and comics queries on success", async () => {
@@ -182,5 +214,23 @@ describe("usePermanentDelete", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(queryClient.getQueryState(["trash"])?.isInvalidated).toBe(true);
+  });
+
+  it("returns error on failed DELETE", async () => {
+    server.use(
+      http.delete("/api/trash/9/permanent", () =>
+        HttpResponse.json({ detail: "Cannot delete" }, { status: 500 }),
+      ),
+    );
+
+    const { result } = renderHook(() => usePermanentDelete(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ id: 9 });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
   });
 });

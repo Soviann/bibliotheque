@@ -316,6 +316,28 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame(ComicStatus::STOPPED, $result[2]->getStatus());
     }
 
+    public function testFindWithFiltersSortByUpdatedAsc(): void
+    {
+        $old = EntityFactory::createComicSeries('Old');
+        $old->setUpdatedAt(new \DateTimeImmutable('2024-01-01'));
+        $recent = EntityFactory::createComicSeries('Recent');
+        $recent->setUpdatedAt(new \DateTimeImmutable('2025-06-01'));
+        $mid = EntityFactory::createComicSeries('Mid');
+        $mid->setUpdatedAt(new \DateTimeImmutable('2024-06-01'));
+
+        $this->em->persist($mid);
+        $this->em->persist($old);
+        $this->em->persist($recent);
+        $this->em->flush();
+
+        $result = $this->repository->findWithFilters(['sort' => 'updated_asc']);
+
+        self::assertCount(3, $result);
+        self::assertSame('Old', $result[0]->getTitle());
+        self::assertSame('Mid', $result[1]->getTitle());
+        self::assertSame('Recent', $result[2]->getTitle());
+    }
+
     public function testFindWithFiltersCombinedFilters(): void
     {
         $match = EntityFactory::createComicSeries('Naruto', ComicStatus::BUYING, ComicType::MANGA);
@@ -457,5 +479,28 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertContains(5, $item['missingTomesNumbers']);
         self::assertContains(1, $item['ownedTomesNumbers']);
         self::assertContains(2, $item['ownedTomesNumbers']);
+    }
+
+    public function testFindAllForApiWithEmptyDatabaseReturnsEmptyArray(): void
+    {
+        $result = $this->repository->findAllForApi();
+
+        self::assertSame([], $result);
+    }
+
+    public function testFindAllForApiWithSeriesWithoutTomes(): void
+    {
+        $series = EntityFactory::createComicSeries('Empty Series');
+
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $result = $this->repository->findAllForApi();
+
+        self::assertCount(1, $result);
+        self::assertSame('Empty Series', $result[0]['title']);
+        self::assertSame(0, $result[0]['tomesCount']);
+        self::assertSame(0, $result[0]['readTomesCount']);
+        self::assertFalse($result[0]['hasNasTome']);
     }
 }

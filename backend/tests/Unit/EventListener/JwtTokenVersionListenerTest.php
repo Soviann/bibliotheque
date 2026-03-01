@@ -59,6 +59,31 @@ final class JwtTokenVersionListenerTest extends TestCase
     }
 
     /**
+     * Teste que onJWTCreated preserve les champs pre-existants du payload (username, roles).
+     */
+    public function testOnJwtCreatedPreservesExistingPayloadFields(): void
+    {
+        $user = new User();
+        $user->setEmail('test@example.com');
+        $user->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
+
+        $event = new JWTCreatedEvent([
+            'roles' => ['ROLE_USER', 'ROLE_ADMIN'],
+            'username' => 'test@example.com',
+        ], $user);
+
+        $this->listener->onJWTCreated($event);
+
+        $data = $event->getData();
+
+        // Les champs originaux doivent etre preserves
+        self::assertSame('test@example.com', $data['username']);
+        self::assertSame(['ROLE_USER', 'ROLE_ADMIN'], $data['roles']);
+        // Le champ tokenVersion doit aussi etre present
+        self::assertArrayHasKey('tokenVersion', $data);
+    }
+
+    /**
      * Teste que onJWTCreated ne fait rien si l'utilisateur n'est pas une instance de User.
      */
     public function testOnJwtCreatedWithNonUserDoesNothing(): void

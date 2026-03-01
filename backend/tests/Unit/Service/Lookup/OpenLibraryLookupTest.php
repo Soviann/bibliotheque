@@ -9,6 +9,8 @@ use App\Service\Lookup\OpenLibraryLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -226,6 +228,97 @@ final class OpenLibraryLookupTest extends TestCase
         $apiMessage = $this->provider->getLastApiMessage();
         self::assertSame('error', $apiMessage['status']);
         self::assertSame('Erreur de connexion', $apiMessage['message']);
+    }
+
+    /**
+     * Teste resolveLookup en cas de ClientExceptionInterface.
+     */
+    public function testResolveLookupClientException(): void
+    {
+        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse->method('getStatusCode')->willReturn(403);
+
+        $exception = new class ('Forbidden', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+            public function __construct(
+                string $message,
+                private readonly ResponseInterface $response,
+            ) {
+                parent::__construct($message);
+            }
+
+            public function getResponse(): ResponseInterface
+            {
+                return $this->response;
+            }
+        };
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willThrowException($exception);
+
+        $this->logger->expects(self::once())->method('warning');
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNull($result);
+
+        $apiMessage = $this->provider->getLastApiMessage();
+        self::assertSame('error', $apiMessage['status']);
+        self::assertStringContainsString('403', $apiMessage['message']);
+    }
+
+    /**
+     * Teste resolveLookup en cas de DecodingExceptionInterface.
+     */
+    public function testResolveLookupDecodingException(): void
+    {
+        $exception = new class ('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willThrowException($exception);
+
+        $this->logger->expects(self::once())->method('error');
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNull($result);
+
+        $apiMessage = $this->provider->getLastApiMessage();
+        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('Réponse invalide', $apiMessage['message']);
+    }
+
+    /**
+     * Teste que l'echec d'une sous-requete auteur est silencieusement ignore.
+     */
+    public function testResolveLookupAuthorSubRequestFailureSkipsSilently(): void
+    {
+        $mainResponse = $this->createMock(ResponseInterface::class);
+        $mainResponse->method('getStatusCode')->willReturn(200);
+        $mainResponse->method('toArray')->willReturn([
+            'authors' => [
+                ['key' => '/authors/OL_FAIL'],
+            ],
+            'title' => 'Test Book',
+        ]);
+
+        $exception = new class ('Author network error') extends \RuntimeException implements TransportExceptionInterface {};
+
+        $authorResponse = $this->createMock(ResponseInterface::class);
+        $authorResponse->method('toArray')->willThrowException($exception);
+
+        $this->httpClient->expects(self::once())
+            ->method('request')
+            ->willReturn($authorResponse);
+
+        $this->logger->expects(self::once())->method('debug');
+
+        $result = $this->provider->resolveLookup($mainResponse);
+
+        self::assertNotNull($result);
+        self::assertSame('Test Book', $result->title);
+        self::assertNull($result->authors);
     }
 
     /**
