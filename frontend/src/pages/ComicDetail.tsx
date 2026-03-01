@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
+import SkeletonBox from "../components/SkeletonBox";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { ComicStatus, ComicStatusLabel, ComicTypeLabel } from "../types/enums";
@@ -15,7 +16,37 @@ export default function ComicDetail() {
   const [showDelete, setShowDelete] = useState(false);
 
   if (isLoading) {
-    return <div className="py-12 text-center text-text-muted">Chargement…</div>;
+    return (
+      <div className="mx-auto max-w-4xl space-y-6" data-testid="comic-detail-skeleton">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <SkeletonBox className="h-5 w-5" />
+          <SkeletonBox className="h-6 w-48" />
+        </div>
+        {/* Content */}
+        <div className="flex flex-col gap-6 md:flex-row">
+          <SkeletonBox className="aspect-[3/4] w-full md:w-48" />
+          <div className="flex-1 space-y-3">
+            <div className="flex gap-2">
+              <SkeletonBox className="h-7 w-20 !rounded-full" />
+              <SkeletonBox className="h-7 w-24 !rounded-full" />
+            </div>
+            <SkeletonBox className="h-4 w-3/4" />
+            <SkeletonBox className="h-4 w-1/2" />
+            <SkeletonBox className="h-16 w-full" />
+          </div>
+        </div>
+        {/* Tomes table */}
+        <div>
+          <SkeletonBox className="mb-3 h-6 w-32" />
+          <div className="space-y-2">
+            {Array.from({ length: 5 }, (_, i) => (
+              <SkeletonBox className="h-10 w-full" key={i} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!comic) {
