@@ -1,0 +1,262 @@
+import "fake-indexeddb/auto";
+import { http, HttpResponse } from "msw";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  _resetDb,
+  enqueue,
+  getAll,
+} from "../../../services/offlineQueue";
+import { processSyncQueue } from "../../../services/syncHandler";
+import { server } from "../../helpers/server";
+
+describe("syncHandler — processSyncQueue", () => {
+  const mockPostMessage = vi.fn();
+  const fakeToken = "test-jwt-token";
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    await _resetDb();
+    await new Promise<void>((resolve, reject) => {
+      const req = indexedDB.deleteDatabase("bibliotheque-offline");
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  });
+
+  it("sends sync-complete with count 0 when queue is empty", async () => {
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      count: 0,
+      type: "sync-complete",
+    });
+    expect(mockPostMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it("replays a create mutation via POST and removes it from queue", async () => {
+    let capturedMethod: string | undefined;
+    let capturedUrl: string | undefined;
+    let capturedBody: unknown;
+    let capturedAuthHeader: string | null = null;
+
+    server.use(
+      http.post("/api/comic_series", async ({ request }) => {
+        capturedMethod = request.method;
+        capturedUrl = new URL(request.url).pathname;
+        capturedBody = await request.json();
+        capturedAuthHeader = request.headers.get("Authorization");
+        return HttpResponse.json(
+          { "@id": "/api/comic_series/1", id: 1, title: "New Comic" },
+          { status: 201 },
+        );
+      }),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: { title: "New Comic" },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(capturedMethod).toBe("POST");
+    expect(capturedUrl).toBe("/api/comic_series");
+    expect(capturedBody).toEqual({ title: "New Comic" });
+    expect(capturedAuthHeader).toBe(`Bearer ${fakeToken}`);
+
+    // Item should be removed from the queue
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+
+    // sync-start then sync-complete
+    expect(mockPostMessage).toHaveBeenCalledWith({ type: "sync-start" });
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      count: 1,
+      type: "sync-complete",
+    });
+  });
+
+  it("replays an update mutation via PUT", async () => {
+    let capturedMethod: string | undefined;
+    let capturedUrl: string | undefined;
+
+    server.use(
+      http.put("/api/comic_series/42", ({ request }) => {
+        capturedMethod = request.method;
+        capturedUrl = new URL(request.url).pathname;
+        return HttpResponse.json({ id: 42, title: "Updated" });
+      }),
+    );
+
+    await enqueue({
+      operation: "update",
+      payload: { title: "Updated" },
+      resourceId: "42",
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(capturedMethod).toBe("PUT");
+    expect(capturedUrl).toBe("/api/comic_series/42");
+
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+  });
+
+  it("replays a delete mutation via DELETE", async () => {
+    let capturedMethod: string | undefined;
+    let capturedUrl: string | undefined;
+
+    server.use(
+      http.delete("/api/tomes/99", ({ request }) => {
+        capturedMethod = request.method;
+        capturedUrl = new URL(request.url).pathname;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    await enqueue({
+      operation: "delete",
+      payload: {},
+      resourceId: "99",
+      resourceType: "tome",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(capturedMethod).toBe("DELETE");
+    expect(capturedUrl).toBe("/api/tomes/99");
+
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+  });
+
+  it("removes item and posts error on 4xx client error", async () => {
+    server.use(
+      http.post("/api/comic_series", () =>
+        HttpResponse.json(
+          { detail: "Validation failed" },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: { title: "" },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    // Item is removed from queue (4xx = don't retry)
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      error: "Validation failed",
+      type: "sync-error",
+    });
+  });
+
+  it("keeps item in queue and throws on 5xx server error", async () => {
+    server.use(
+      http.post("/api/comic_series", () =>
+        new HttpResponse(null, { status: 503 }),
+      ),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: { title: "Test" },
+      resourceType: "comic_series",
+    });
+
+    await expect(
+      processSyncQueue(fakeToken, mockPostMessage),
+    ).rejects.toThrow("Server error 503");
+
+    // Item should still be in the queue (reverted to pending)
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].status).toBe("pending");
+  });
+
+  it("processes multiple items in order", async () => {
+    const processedOrder: string[] = [];
+
+    server.use(
+      http.post("/api/comic_series", async ({ request }) => {
+        const body = (await request.json()) as { title: string };
+        processedOrder.push(body.title);
+        return HttpResponse.json(
+          { "@id": "/api/comic_series/1", id: 1, title: body.title },
+          { status: 201 },
+        );
+      }),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: { title: "First" },
+      resourceType: "comic_series",
+    });
+    await enqueue({
+      operation: "create",
+      payload: { title: "Second" },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(processedOrder).toEqual(["First", "Second"]);
+    expect(mockPostMessage).toHaveBeenCalledWith({
+      count: 2,
+      type: "sync-complete",
+    });
+
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+  });
+
+  it("creates pending authors before syncing the series", async () => {
+    const createdAuthors: string[] = [];
+
+    server.use(
+      http.post("/api/authors", async ({ request }) => {
+        const body = (await request.json()) as { name: string };
+        createdAuthors.push(body.name);
+        return HttpResponse.json({
+          "@id": `/api/authors/${body.name.toLowerCase().replace(" ", "-")}`,
+          name: body.name,
+        });
+      }),
+      http.post("/api/comic_series", async ({ request }) => {
+        const body = (await request.json()) as { authors: string[] };
+        return HttpResponse.json({
+          "@id": "/api/comic_series/1",
+          authors: body.authors,
+          id: 1,
+        }, { status: 201 });
+      }),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: {
+        _pendingAuthors: ["New Author"],
+        authors: ["/api/authors/1"],
+        title: "Test Series",
+      },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(createdAuthors).toEqual(["New Author"]);
+    const remaining = await getAll();
+    expect(remaining).toHaveLength(0);
+  });
+});
