@@ -1,5 +1,6 @@
 import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
@@ -12,12 +13,57 @@ import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
 import type { SortOption } from "../utils/sortComics";
 
+const VALID_SORTS: Set<string> = new Set([
+  "createdAt-asc",
+  "createdAt-desc",
+  "title-asc",
+  "title-desc",
+  "tomes-asc",
+  "tomes-desc",
+]);
+
 export default function Home() {
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<SortOption>("title-asc");
-  const [status, setStatus] = useState("");
-  const [type, setType] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const status = searchParams.get("status") ?? "";
+  const type = searchParams.get("type") ?? "";
+  const sortParam = searchParams.get("sort") ?? "";
+  const sort: SortOption = VALID_SORTS.has(sortParam) ? (sortParam as SortOption) : "title-asc";
+  const searchParam = searchParams.get("search") ?? "";
+
+  const [search, setSearch] = useState(searchParam);
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
+
+  const updateParam = useCallback(
+    (key: string, value: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) {
+            next.set(key, value);
+          } else {
+            next.delete(key);
+          }
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const handleStatusChange = useCallback((v: string) => updateParam("status", v), [updateParam]);
+  const handleTypeChange = useCallback((v: string) => updateParam("type", v), [updateParam]);
+  const handleSortChange = useCallback(
+    (v: SortOption) => updateParam("sort", v === "title-asc" ? "" : v),
+    [updateParam],
+  );
+  const handleSearchChange = useCallback(
+    (v: string) => {
+      setSearch(v);
+      updateParam("search", v.trim());
+    },
+    [updateParam],
+  );
 
   const { data, isLoading } = useComics();
   const deleteComic = useDeleteComic();
@@ -39,7 +85,7 @@ export default function Home() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
         <input
           className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Rechercher par titre, auteur, éditeur…"
           type="search"
           value={search}
@@ -49,9 +95,9 @@ export default function Home() {
       {/* Filters + count */}
       <div className="flex items-center gap-3">
         <Filters
-          onSortChange={setSort}
-          onStatusChange={setStatus}
-          onTypeChange={setType}
+          onSortChange={handleSortChange}
+          onStatusChange={handleStatusChange}
+          onTypeChange={handleTypeChange}
           sort={sort}
           status={status}
           type={type}

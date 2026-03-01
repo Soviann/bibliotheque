@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Unification Wishlist dans Home** : Suppression de la page Wishlist séparée, les filtres (statut, type, tri, recherche) sont désormais synchronisés avec les paramètres URL sur la page d'accueil. Le lien Wishlist dans la navigation mène vers `/?status=wishlist` (#92)
+
 ### Fixed
 
 - **Positionnement de la barre d'actions sticky** : Remplacement de `fixed bottom-14` par `sticky` avec variable CSS `--bottom-nav-h`, la barre est désormais ancrée au contenu et alignée avec le conteneur sur desktop (#91)
