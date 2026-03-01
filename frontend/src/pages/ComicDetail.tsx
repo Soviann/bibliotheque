@@ -175,13 +175,15 @@ export default function ComicDetail() {
                     <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
                     {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
                       <td className="px-4 py-2 text-center" key={field}>
-                        <input
-                          aria-label={`Tome ${tome.number} ${field === "bought" ? "acheté" : field === "downloaded" ? "téléchargé" : field === "read" ? "lu" : "NAS"}`}
-                          checked={tome[field]}
-                          className="h-5 w-5 cursor-pointer accent-primary-600"
-                          onChange={() => handleToggleTome(tome, field)}
-                          type="checkbox"
-                        />
+                        <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
+                          <input
+                            aria-label={`Tome ${tome.number} ${field === "bought" ? "acheté" : field === "downloaded" ? "téléchargé" : field === "read" ? "lu" : "NAS"}`}
+                            checked={tome[field]}
+                            className="h-5 w-5 cursor-pointer accent-primary-600"
+                            onChange={() => handleToggleTome(tome, field)}
+                            type="checkbox"
+                          />
+                        </label>
                       </td>
                     ))}
                   </tr>
