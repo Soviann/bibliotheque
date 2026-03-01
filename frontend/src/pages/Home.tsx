@@ -8,6 +8,7 @@ import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import type { ComicSeries } from "../types/api";
+import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
 import type { SortOption } from "../utils/sortComics";
 
@@ -23,14 +24,12 @@ export default function Home() {
   const allComics = data?.member ?? [];
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    const result = allComics.filter((c) => {
+    const preFiltered = allComics.filter((c) => {
       if (type && c.type !== type) return false;
       if (status && c.status !== status) return false;
-      if (q && !c.title.toLowerCase().includes(q)) return false;
       return true;
     });
-    return sortComics(result, sort);
+    return sortComics(searchComics(preFiltered, search), sort);
   }, [allComics, search, sort, status, type]);
 
   return (
@@ -41,7 +40,7 @@ export default function Home() {
         <input
           className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher une série…"
+          placeholder="Rechercher par titre, auteur, éditeur…"
           type="search"
           value={search}
         />
