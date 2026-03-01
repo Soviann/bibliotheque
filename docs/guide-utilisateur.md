@@ -146,7 +146,8 @@ Le champ auteur utilise l'auto-complétion :
 ### Gestion des tomes
 
 Pour les séries non one-shot, une section permet d'ajouter des tomes :
-- Cliquer sur **Ajouter un tome** pour créer une nouvelle ligne
+- Cliquer sur **Ajouter** pour créer une nouvelle ligne
+- **Ajout en lot** : Renseigner les champs « Du tome X » et « au tome Y » puis cliquer sur **Générer** pour créer plusieurs tomes d'un coup. Les numéros déjà existants sont ignorés
 - Chaque tome a un numéro, un titre optionnel, un ISBN optionnel, et des cases à cocher (acheté, téléchargé, sur le NAS, lu)
 - Les tomes peuvent être supprimés individuellement
 
