@@ -58,11 +58,19 @@ Deux menus déroulants permettent de filtrer la bibliothèque :
 - **Type** : BD, Manga, Comics, Roman, Webtoon
 - **Statut** : En cours d'achat, Complet, En pause, Abandonné, Liste de souhaits
 
+### Tri
+
+Un sélecteur de tri permet d'ordonner les séries affichées :
+
+- **Titre A→Z / Z→A** : Tri alphabétique (par défaut A→Z)
+- **Plus récent / Plus ancien** : Par date d'ajout
+- **Plus de tomes / Moins de tomes** : Par nombre de tomes
+
 ---
 
 ## Wishlist
 
-Affiche uniquement les séries avec le statut **Liste de souhaits**. L'interface est identique à la bibliothèque avec les mêmes filtres.
+Affiche uniquement les séries avec le statut **Liste de souhaits**. L'interface est identique à la bibliothèque avec les mêmes filtres et options de tri.
 
 ---
 

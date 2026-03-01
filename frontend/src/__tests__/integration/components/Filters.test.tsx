@@ -5,13 +5,16 @@ import { renderWithProviders } from "../../helpers/test-utils";
 
 describe("Filters", () => {
   const defaultProps = {
+    onSortChange: vi.fn(),
     onStatusChange: vi.fn(),
     onTypeChange: vi.fn(),
+    sort: "title-asc",
     status: "",
     type: "",
   };
 
   beforeEach(() => {
+    defaultProps.onSortChange = vi.fn();
     defaultProps.onStatusChange = vi.fn();
     defaultProps.onTypeChange = vi.fn();
   });
@@ -81,5 +84,27 @@ describe("Filters", () => {
     await user.click(screen.getByText("Tous les types"));
 
     expect(defaultProps.onTypeChange).toHaveBeenCalledWith("");
+  });
+
+  it("renders sort selector with default label", () => {
+    renderWithProviders(<Filters {...defaultProps} />);
+
+    expect(screen.getByText("Titre A→Z")).toBeInTheDocument();
+  });
+
+  it("calls onSortChange when sort option is changed", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Filters {...defaultProps} />);
+
+    await user.click(screen.getByText("Titre A→Z"));
+    await user.click(screen.getByText("Plus récent"));
+
+    expect(defaultProps.onSortChange).toHaveBeenCalledWith("createdAt-desc");
+  });
+
+  it("shows selected sort label", () => {
+    renderWithProviders(<Filters {...defaultProps} sort="tomes-desc" />);
+
+    expect(screen.getByText("Plus de tomes")).toBeInTheDocument();
   });
 });

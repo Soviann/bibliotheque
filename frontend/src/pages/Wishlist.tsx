@@ -4,9 +4,11 @@ import ComicCard from "../components/ComicCard";
 import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { ComicStatus } from "../types/enums";
+import { sortComics } from "../utils/sortComics";
 
 export default function Wishlist() {
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("title-asc");
   const [type, setType] = useState("");
 
   const { data, isLoading } = useComics();
@@ -17,12 +19,13 @@ export default function Wishlist() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return allWishlist.filter((c) => {
+    const result = allWishlist.filter((c) => {
       if (type && c.type !== type) return false;
       if (q && !c.title.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [allWishlist, search, type]);
+    return sortComics(result, sort);
+  }, [allWishlist, search, sort, type]);
 
   return (
     <div className="space-y-4">
@@ -42,8 +45,10 @@ export default function Wishlist() {
       <div className="flex items-center gap-3">
         <Filters
           hideStatus
+          onSortChange={setSort}
           onStatusChange={() => {}}
           onTypeChange={setType}
+          sort={sort}
           status=""
           type={type}
         />
