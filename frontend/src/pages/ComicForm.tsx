@@ -283,8 +283,11 @@ export default function ComicForm() {
     update("tomes", [...form.tomes, emptyTome(nextNum)]);
   };
 
+  const maxBatchSize = 100;
+  const batchSize = batchTo - batchFrom + 1;
+
   const addBatchTomes = () => {
-    if (batchFrom < 1 || batchFrom > batchTo) return;
+    if (batchFrom < 1 || batchFrom > batchTo || batchSize > maxBatchSize) return;
     const existingNumbers = new Set(form.tomes.map((t) => t.number));
     const newTomes: TomeFormData[] = [];
     for (let n = batchFrom; n <= batchTo; n++) {
@@ -718,12 +721,15 @@ export default function ComicForm() {
               </div>
               <button
                 className="flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-                disabled={batchFrom < 1 || batchFrom > batchTo}
+                disabled={batchFrom < 1 || batchFrom > batchTo || batchSize > maxBatchSize}
                 onClick={addBatchTomes}
                 type="button"
               >
                 <Layers className="h-4 w-4" /> Générer
               </button>
+              {batchSize > maxBatchSize && (
+                <span className="text-xs text-red-500">Max {maxBatchSize} tomes</span>
+              )}
             </div>
             {/* Mobile: card layout */}
             <div className="space-y-3 sm:hidden" data-testid="tomes-cards">

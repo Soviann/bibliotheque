@@ -1145,6 +1145,22 @@ describe("ComicForm", () => {
 
         expect(screen.getByRole("button", { name: /Générer/ })).toBeDisabled();
       });
+
+      it("disables generate button and shows message when range exceeds 100", async () => {
+        const user = userEvent.setup();
+        renderCreateForm();
+
+        const fromInput = screen.getByLabelText("Du tome");
+        const toInput = screen.getByLabelText("au tome");
+
+        await user.clear(fromInput);
+        await user.type(fromInput, "1");
+        await user.clear(toInput);
+        await user.type(toInput, "150");
+
+        expect(screen.getByRole("button", { name: /Générer/ })).toBeDisabled();
+        expect(screen.getByText("Max 100 tomes")).toBeInTheDocument();
+      });
     });
   });
 
