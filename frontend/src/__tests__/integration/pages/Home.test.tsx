@@ -6,6 +6,7 @@ import Home from "../../../pages/Home";
 import {
   createMockComicSeries,
   createMockHydraCollection,
+  createMockTome,
 } from "../../helpers/factories";
 import { server } from "../../helpers/server";
 import { renderWithProviders } from "../../helpers/test-utils";
@@ -246,6 +247,128 @@ describe("Home", () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Toast Delete supprimée");
     });
+  });
+
+  it("renders sort selector with default title A→Z", async () => {
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection([])),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    expect(screen.getByText("Titre A→Z")).toBeInTheDocument();
+  });
+
+  it("sorts comics by title A→Z by default", async () => {
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Zelda" }),
+      createMockComicSeries({ id: 2, title: "Astérix" }),
+      createMockComicSeries({ id: 3, title: "Naruto" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings[0]).toHaveTextContent("Astérix");
+    expect(headings[1]).toHaveTextContent("Naruto");
+    expect(headings[2]).toHaveTextContent("Zelda");
+  });
+
+  it("sorts comics by title Z→A when selected", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Astérix" }),
+      createMockComicSeries({ id: 2, title: "Zelda" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Astérix")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("Titre A→Z"));
+    await user.click(screen.getByText("Titre Z→A"));
+
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings[0]).toHaveTextContent("Zelda");
+    expect(headings[1]).toHaveTextContent("Astérix");
+  });
+
+  it("sorts comics by most recent first", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Old", createdAt: "2024-01-01T00:00:00+00:00" }),
+      createMockComicSeries({ id: 2, title: "New", createdAt: "2025-06-01T00:00:00+00:00" }),
+      createMockComicSeries({ id: 3, title: "Mid", createdAt: "2025-03-01T00:00:00+00:00" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Old")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("Titre A→Z"));
+    await user.click(screen.getByText("Plus récent"));
+
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings[0]).toHaveTextContent("New");
+    expect(headings[1]).toHaveTextContent("Mid");
+    expect(headings[2]).toHaveTextContent("Old");
+  });
+
+  it("sorts comics by most tomes first", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Few", tomes: [createMockTome()] }),
+      createMockComicSeries({ id: 2, title: "Many", tomes: [createMockTome(), createMockTome(), createMockTome()] }),
+      createMockComicSeries({ id: 3, title: "None", tomes: [] }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Few")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("Titre A→Z"));
+    await user.click(screen.getByText("Plus de tomes"));
+
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings[0]).toHaveTextContent("Many");
+    expect(headings[1]).toHaveTextContent("Few");
+    expect(headings[2]).toHaveTextContent("None");
   });
 
   it("handles case-insensitive search with surrounding whitespace", async () => {

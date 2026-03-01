@@ -195,6 +195,39 @@ describe("Wishlist", () => {
     expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
   });
 
+  it("renders sort selector", () => {
+    renderWithProviders(<Wishlist />);
+
+    expect(screen.getByText("Titre A→Z")).toBeInTheDocument();
+  });
+
+  it("sorts wishlist comics by most recent when selected", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, createdAt: "2024-01-01T00:00:00+00:00", status: ComicStatus.WISHLIST, title: "Old Wish" }),
+      createMockComicSeries({ id: 2, createdAt: "2025-06-01T00:00:00+00:00", status: ComicStatus.WISHLIST, title: "New Wish" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Wishlist />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Old Wish")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("Titre A→Z"));
+    await user.click(screen.getByText("Plus récent"));
+
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings[0]).toHaveTextContent("New Wish");
+    expect(headings[1]).toHaveTextContent("Old Wish");
+  });
+
   it("shows plural 'souhaits' for 0 items", async () => {
     server.use(
       http.get("/api/comic_series", () =>
