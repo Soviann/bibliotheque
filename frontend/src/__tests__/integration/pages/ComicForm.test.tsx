@@ -1057,6 +1057,111 @@ describe("ComicForm", () => {
       const tomeNumberInputs = document.querySelectorAll("tbody input[type='number']");
       expect(tomeNumberInputs[0]).toHaveValue(1);
     });
+
+    describe("Batch add tomes", () => {
+      it("renders batch add inputs with from/to fields and button", () => {
+        renderCreateForm();
+
+        expect(screen.getByLabelText("Du tome")).toBeInTheDocument();
+        expect(screen.getByLabelText("au tome")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Générer/ })).toBeInTheDocument();
+      });
+
+      it("adds tomes from 1 to 5 in batch", async () => {
+        const user = userEvent.setup();
+        renderCreateForm();
+
+        // Remove initial tome to start clean
+        const deleteButtons = document.querySelectorAll("tbody tr td:last-child button");
+        await user.click(deleteButtons[0]);
+        expect(screen.getByText("Tomes (0)")).toBeInTheDocument();
+
+        const fromInput = screen.getByLabelText("Du tome");
+        const toInput = screen.getByLabelText("au tome");
+
+        await user.clear(fromInput);
+        await user.type(fromInput, "1");
+        await user.clear(toInput);
+        await user.type(toInput, "5");
+
+        await user.click(screen.getByRole("button", { name: /Générer/ }));
+
+        expect(screen.getByText("Tomes (5)")).toBeInTheDocument();
+
+        // Verify tome numbers are 1 through 5
+        const tomeNumberInputs = document.querySelectorAll("tbody input[type='number']");
+        expect(tomeNumberInputs).toHaveLength(5);
+        expect(tomeNumberInputs[0]).toHaveValue(1);
+        expect(tomeNumberInputs[1]).toHaveValue(2);
+        expect(tomeNumberInputs[2]).toHaveValue(3);
+        expect(tomeNumberInputs[3]).toHaveValue(4);
+        expect(tomeNumberInputs[4]).toHaveValue(5);
+      });
+
+      it("skips existing tome numbers when batch adding", async () => {
+        const user = userEvent.setup();
+        renderCreateForm();
+
+        // Default form starts with tome 1
+        expect(screen.getByText("Tomes (1)")).toBeInTheDocument();
+
+        const fromInput = screen.getByLabelText("Du tome");
+        const toInput = screen.getByLabelText("au tome");
+
+        await user.clear(fromInput);
+        await user.type(fromInput, "1");
+        await user.clear(toInput);
+        await user.type(toInput, "3");
+
+        await user.click(screen.getByRole("button", { name: /Générer/ }));
+
+        // Should have 3 tomes total (1 existed + 2 new)
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      it("disables generate button when from > to", async () => {
+        const user = userEvent.setup();
+        renderCreateForm();
+
+        const fromInput = screen.getByLabelText("Du tome");
+        const toInput = screen.getByLabelText("au tome");
+
+        await user.clear(fromInput);
+        await user.type(fromInput, "5");
+        await user.clear(toInput);
+        await user.type(toInput, "3");
+
+        expect(screen.getByRole("button", { name: /Générer/ })).toBeDisabled();
+      });
+
+      it("disables generate button when from is 0", async () => {
+        const user = userEvent.setup();
+        renderCreateForm();
+
+        const fromInput = screen.getByLabelText("Du tome");
+
+        await user.clear(fromInput);
+        await user.type(fromInput, "0");
+
+        expect(screen.getByRole("button", { name: /Générer/ })).toBeDisabled();
+      });
+
+      it("disables generate button and shows message when range exceeds 100", async () => {
+        const user = userEvent.setup();
+        renderCreateForm();
+
+        const fromInput = screen.getByLabelText("Du tome");
+        const toInput = screen.getByLabelText("au tome");
+
+        await user.clear(fromInput);
+        await user.type(fromInput, "1");
+        await user.clear(toInput);
+        await user.type(toInput, "150");
+
+        expect(screen.getByRole("button", { name: /Générer/ })).toBeDisabled();
+        expect(screen.getByText("Max 100 tomes")).toBeInTheDocument();
+      });
+    });
   });
 
   describe("Mobile tome card layout", () => {
