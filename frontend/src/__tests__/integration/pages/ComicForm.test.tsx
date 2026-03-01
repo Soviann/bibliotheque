@@ -166,7 +166,7 @@ describe("ComicForm", () => {
   });
 
   describe("Edit mode", () => {
-    it("shows loading state while fetching comic", () => {
+    it("shows skeleton loader while fetching comic", () => {
       server.use(
         http.get("/api/comic_series/1", async () => {
           await new Promise((resolve) => setTimeout(resolve, 100));
@@ -176,7 +176,8 @@ describe("ComicForm", () => {
 
       renderEditForm();
 
-      expect(screen.getByText("Chargement…")).toBeInTheDocument();
+      expect(screen.getByTestId("comic-form-skeleton")).toBeInTheDocument();
+      expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(5);
     });
 
     it("renders page title for edit", async () => {

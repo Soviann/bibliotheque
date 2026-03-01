@@ -29,10 +29,11 @@ describe("Home", () => {
     localStorage.setItem("jwt_token", "fake-jwt-token");
   });
 
-  it("shows loading state initially", () => {
+  it("shows skeleton loaders initially", () => {
     renderWithProviders(<Home />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    const skeletons = screen.getAllByTestId("comic-card-skeleton");
+    expect(skeletons).toHaveLength(8);
   });
 
   it("renders comic series list", async () => {

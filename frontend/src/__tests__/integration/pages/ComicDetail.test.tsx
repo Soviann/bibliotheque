@@ -41,7 +41,7 @@ describe("ComicDetail", () => {
     localStorage.setItem("jwt_token", "fake-jwt-token");
   });
 
-  it("shows loading state initially", () => {
+  it("shows skeleton loader initially", () => {
     // Use a handler that delays response
     server.use(
       http.get("/api/comic_series/:id", async () => {
@@ -52,7 +52,8 @@ describe("ComicDetail", () => {
 
     renderComicDetail();
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByTestId("comic-detail-skeleton")).toBeInTheDocument();
+    expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(5);
   });
 
   it("renders comic title", async () => {
