@@ -1,11 +1,13 @@
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
 import SkeletonBox from "../components/SkeletonBox";
+import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
+import { useUpdateTome } from "../hooks/useUpdateTome";
 import { ComicStatus, ComicStatusLabel, ComicTypeLabel } from "../types/enums";
 
 export default function ComicDetail() {
@@ -13,7 +15,46 @@ export default function ComicDetail() {
   const navigate = useNavigate();
   const { data: comic, isLoading } = useComic(id ? Number(id) : undefined);
   const deleteComic = useDeleteComic();
+  const updateTome = useUpdateTome();
   const [showDelete, setShowDelete] = useState(false);
+  const [optimisticTomes, setOptimisticTomes] = useState<Tome[]>([]);
+
+  useEffect(() => {
+    if (comic?.tomes) {
+      setOptimisticTomes(comic.tomes);
+    }
+  }, [comic?.tomes]);
+
+  const handleToggleTome = useCallback(
+    (tome: Tome, field: "bought" | "downloaded" | "onNas" | "read") => {
+      const newValue = !tome[field];
+      const fieldLabel = field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS";
+
+      // Optimistic update
+      setOptimisticTomes((prev) =>
+        prev.map((t) => (t.id === tome.id ? { ...t, [field]: newValue } : t)),
+      );
+
+      updateTome.mutate(
+        { id: tome.id, [field]: newValue },
+        {
+          onError: () => {
+            // Revert optimistic update
+            setOptimisticTomes((prev) =>
+              prev.map((t) => (t.id === tome.id ? { ...t, [field]: tome[field] } : t)),
+            );
+            toast.error("Erreur lors de la mise à jour du tome");
+          },
+          onSuccess: () => {
+            if (navigator.onLine) {
+              toast.success(`Tome ${tome.number} — ${fieldLabel} ${newValue ? "activé" : "désactivé"}`, { duration: 1500 });
+            }
+          },
+        },
+      );
+    },
+    [updateTome],
+  );
 
   if (isLoading) {
     return (
@@ -110,10 +151,10 @@ export default function ComicDetail() {
       </div>
 
       {/* Tomes */}
-      {!comic.isOneShot && comic.tomes.length > 0 && (
+      {!comic.isOneShot && optimisticTomes.length > 0 && (
         <div>
           <h2 className="mb-3 text-lg font-semibold text-text-primary">
-            Tomes ({comic.tomes.length})
+            Tomes ({optimisticTomes.length})
           </h2>
           <div className="overflow-x-auto rounded-lg border border-surface-border">
             <table className="w-full text-sm">
@@ -128,14 +169,23 @@ export default function ComicDetail() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
-                {comic.tomes.map((tome) => (
+                {optimisticTomes.map((tome) => (
                   <tr className="hover:bg-surface-tertiary/50" key={tome.id}>
                     <td className="px-4 py-2 font-medium text-text-primary">{tome.number}</td>
-                    <td className="px-4 py-2 text-text-secondary">{tome.title ?? "—"}</td>
-                    <td className="px-4 py-2 text-center">{tome.bought ? "✓" : "—"}</td>
-                    <td className="px-4 py-2 text-center">{tome.downloaded ? "✓" : "—"}</td>
-                    <td className="px-4 py-2 text-center">{tome.read ? "✓" : "—"}</td>
-                    <td className="px-4 py-2 text-center">{tome.onNas ? "✓" : "—"}</td>
+                    <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
+                    {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
+                      <td className="px-4 py-2 text-center" key={field}>
+                        <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
+                          <input
+                            aria-label={`Tome ${tome.number} ${field === "bought" ? "acheté" : field === "downloaded" ? "téléchargé" : field === "read" ? "lu" : "NAS"}`}
+                            checked={tome[field]}
+                            className="h-5 w-5 cursor-pointer accent-primary-600"
+                            onChange={() => handleToggleTome(tome, field)}
+                            type="checkbox"
+                          />
+                        </label>
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>

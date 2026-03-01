@@ -31,8 +31,8 @@ export async function apiFetch<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  // Only set Content-Type for requests with body (not FormData)
-  if (options.body && !(options.body instanceof FormData)) {
+  // Only set Content-Type for requests with body (not FormData), unless already set
+  if (options.body && !(options.body instanceof FormData) && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/ld+json";
   }
 
