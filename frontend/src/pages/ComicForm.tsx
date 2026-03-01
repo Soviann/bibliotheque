@@ -675,7 +675,95 @@ export default function ComicForm() {
                 <Plus className="h-4 w-4" /> Ajouter
               </button>
             </div>
-            <div className="overflow-x-auto rounded-lg border border-surface-border">
+            {/* Mobile: card layout */}
+            <div className="space-y-3 sm:hidden" data-testid="tomes-cards">
+              {form.tomes.map((tome, i) => (
+                <div className="rounded-lg border border-surface-border bg-surface-primary p-3 space-y-2" key={i}>
+                  <div className="flex items-center gap-2">
+                    <input
+                      className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm font-medium text-text-primary"
+                      min="0"
+                      onChange={(e) => updateTome(i, "number", Number(e.target.value))}
+                      type="number"
+                      value={tome.number}
+                    />
+                    <input
+                      className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
+                      onChange={(e) => updateTome(i, "title", e.target.value)}
+                      placeholder="Titre"
+                      value={tome.title}
+                    />
+                    <button
+                      className="shrink-0 rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+                      onClick={() => removeTome(i)}
+                      type="button"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <input
+                      className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
+                      onChange={(e) => updateTome(i, "isbn", e.target.value)}
+                      placeholder="ISBN"
+                      value={tome.isbn}
+                    />
+                    <button
+                      className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
+                      disabled={tome.isbn.length < 10 || tomeLookupLoading === i}
+                      onClick={() => lookupTomeIsbn(i)}
+                      title="Rechercher par ISBN"
+                      type="button"
+                    >
+                      {tomeLookupLoading === i
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <Search className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.bought}
+                        className="h-4 w-4 rounded border-surface-border text-primary-600"
+                        onChange={(e) => updateTome(i, "bought", e.target.checked)}
+                        type="checkbox"
+                      />
+                      Acheté
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.downloaded}
+                        className="h-4 w-4 rounded border-surface-border text-primary-600"
+                        onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
+                        type="checkbox"
+                      />
+                      DL
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.read}
+                        className="h-4 w-4 rounded border-surface-border text-primary-600"
+                        onChange={(e) => updateTome(i, "read", e.target.checked)}
+                        type="checkbox"
+                      />
+                      Lu
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.onNas}
+                        className="h-4 w-4 rounded border-surface-border text-primary-600"
+                        onChange={(e) => updateTome(i, "onNas", e.target.checked)}
+                        type="checkbox"
+                      />
+                      NAS
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table layout */}
+            <div className="hidden overflow-x-auto rounded-lg border border-surface-border sm:block" data-testid="tomes-table">
               <table className="w-full text-sm">
                 <thead className="bg-surface-tertiary">
                   <tr>

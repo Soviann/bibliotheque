@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { Route, Routes } from "react-router-dom";
@@ -907,7 +907,8 @@ describe("ComicForm", () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      const titleInput = screen.getByPlaceholderText("Titre") as HTMLInputElement;
+      const tableView = screen.getByTestId("tomes-table");
+      const titleInput = within(tableView).getByPlaceholderText("Titre") as HTMLInputElement;
       await user.type(titleInput, "Tome Title");
 
       expect(titleInput).toHaveValue("Tome Title");
@@ -917,7 +918,8 @@ describe("ComicForm", () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      const isbnInput = screen.getByPlaceholderText("ISBN") as HTMLInputElement;
+      const tableView = screen.getByTestId("tomes-table");
+      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
       await user.type(isbnInput, "1234567890");
 
       expect(isbnInput).toHaveValue("1234567890");
@@ -961,17 +963,18 @@ describe("ComicForm", () => {
 
       renderCreateForm();
 
-      const isbnInput = screen.getByPlaceholderText("ISBN") as HTMLInputElement;
+      const tableView = screen.getByTestId("tomes-table");
+      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
       await user.type(isbnInput, "9781234567890");
 
       // ISBN search button should now be enabled
-      const isbnSearchButtons = document.querySelectorAll("tbody td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeEnabled();
 
       await user.click(isbnSearchButtons[0]);
 
       // Wait for tome title to be updated
-      const tomeTitle = screen.getByPlaceholderText("Titre") as HTMLInputElement;
+      const tomeTitle = within(tableView).getByPlaceholderText("Titre") as HTMLInputElement;
       await waitFor(() => {
         expect(tomeTitle).toHaveValue("Looked Up Tome Title");
       });
@@ -993,14 +996,15 @@ describe("ComicForm", () => {
 
       renderCreateForm();
 
-      const isbnInput = screen.getByPlaceholderText("ISBN") as HTMLInputElement;
+      const tableView = screen.getByTestId("tomes-table");
+      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
       await user.type(isbnInput, "9781234567890");
 
       // Set a title on the tome so we can verify it's preserved
-      const tomeTitleInput = screen.getByPlaceholderText("Titre") as HTMLInputElement;
+      const tomeTitleInput = within(tableView).getByPlaceholderText("Titre") as HTMLInputElement;
       await user.type(tomeTitleInput, "Original Tome Title");
 
-      const isbnSearchButtons = document.querySelectorAll("tbody td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeEnabled();
       await user.click(isbnSearchButtons[0]);
 
@@ -1023,10 +1027,11 @@ describe("ComicForm", () => {
 
       renderCreateForm();
 
-      const isbnInput = screen.getByPlaceholderText("ISBN") as HTMLInputElement;
+      const tableView = screen.getByTestId("tomes-table");
+      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
       await user.type(isbnInput, "9781234567890");
 
-      const isbnSearchButtons = document.querySelectorAll("tbody td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
       await user.click(isbnSearchButtons[0]);
 
       await waitFor(() => {
@@ -1051,6 +1056,59 @@ describe("ComicForm", () => {
       // The new tome number should be 1
       const tomeNumberInputs = document.querySelectorAll("tbody input[type='number']");
       expect(tomeNumberInputs[0]).toHaveValue(1);
+    });
+  });
+
+  describe("Mobile tome card layout", () => {
+    it("renders card view with data-testid tomes-cards", () => {
+      renderCreateForm();
+
+      expect(screen.getByTestId("tomes-cards")).toBeInTheDocument();
+    });
+
+    it("renders table view with data-testid tomes-table", () => {
+      renderCreateForm();
+
+      expect(screen.getByTestId("tomes-table")).toBeInTheDocument();
+    });
+
+    it("displays labeled checkboxes in card view", () => {
+      renderCreateForm();
+
+      const cardsView = screen.getByTestId("tomes-cards");
+      expect(within(cardsView).getByText("Acheté")).toBeInTheDocument();
+      expect(within(cardsView).getByText("DL")).toBeInTheDocument();
+      expect(within(cardsView).getByText("Lu")).toBeInTheDocument();
+      expect(within(cardsView).getByText("NAS")).toBeInTheDocument();
+    });
+
+    it("has ISBN field with lookup button in card view", () => {
+      renderCreateForm();
+
+      const cardsView = screen.getByTestId("tomes-cards");
+      expect(within(cardsView).getByPlaceholderText("ISBN")).toBeInTheDocument();
+    });
+
+    it("has delete button in card view", () => {
+      renderCreateForm();
+
+      const cardsView = screen.getByTestId("tomes-cards");
+      const deleteButtons = cardsView.querySelectorAll("button");
+      const trashButtons = Array.from(deleteButtons).filter((btn) =>
+        btn.querySelector("svg") && btn.closest("[data-testid='tomes-cards']"),
+      );
+      expect(trashButtons.length).toBeGreaterThan(0);
+    });
+
+    it("updates tome fields from card view", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      const cardsView = screen.getByTestId("tomes-cards");
+      const titleInput = within(cardsView).getByPlaceholderText("Titre") as HTMLInputElement;
+      await user.type(titleInput, "Card Title");
+
+      expect(titleInput).toHaveValue("Card Title");
     });
   });
 
