@@ -48,4 +48,20 @@ describe("ProgressBar", () => {
     const fill = bar.firstChild as HTMLElement;
     expect(fill.className).toContain("bg-primary-600");
   });
+
+  it("renders compact variant without label text", () => {
+    render(<ProgressBar compact current={3} label="Progression d'achat" total={10} />);
+
+    expect(screen.getByText("3 / 10")).toBeInTheDocument();
+    expect(screen.queryByText("Progression d'achat")).not.toBeInTheDocument();
+    const bar = screen.getByRole("progressbar");
+    expect(bar).toHaveAttribute("aria-label", "Progression d'achat");
+  });
+
+  it("uses smaller height in compact mode", () => {
+    render(<ProgressBar compact current={5} label="Test" total={10} />);
+
+    const bar = screen.getByRole("progressbar");
+    expect(bar.className).toContain("h-1.5");
+  });
 });

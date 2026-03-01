@@ -2,6 +2,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel } from "../types/enums";
+import ProgressBar from "./ProgressBar";
 
 interface ComicCardProps {
   comic: ComicSeries;
@@ -40,22 +41,8 @@ export default function ComicCard({ comic, onDelete }: ComicCardProps) {
         </p>
 
         {showProgress && (
-          <div className="mt-1.5 space-y-1">
-            <div className="flex items-center justify-between text-xs text-text-muted">
-              <span>{boughtCount} / {total}</span>
-            </div>
-            <div
-              aria-valuemax={total}
-              aria-valuemin={0}
-              aria-valuenow={boughtCount}
-              className="h-1.5 overflow-hidden rounded-full bg-surface-tertiary"
-              role="progressbar"
-            >
-              <div
-                className="h-full rounded-full bg-primary-600 transition-all"
-                style={{ width: `${total > 0 ? (boughtCount / total) * 100 : 0}%` }}
-              />
-            </div>
+          <div className="mt-1.5">
+            <ProgressBar compact current={boughtCount} label="Progression d'achat" total={total} />
           </div>
         )}
 
