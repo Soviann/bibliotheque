@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import ComicCard from "../components/ComicCard";
+import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { ComicStatus } from "../types/enums";
@@ -59,7 +60,11 @@ export default function Wishlist() {
       </div>
 
       {isLoading ? (
-        <div className="py-12 text-center text-text-muted">Chargement…</div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {Array.from({ length: 8 }, (_, i) => (
+            <ComicCardSkeleton key={i} />
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
         <div className="py-12 text-center text-text-muted">Aucun souhait pour le moment</div>
       ) : (

@@ -22,10 +22,11 @@ describe("Wishlist", () => {
     expect(screen.getByText("Liste de souhaits")).toBeInTheDocument();
   });
 
-  it("shows loading state initially", () => {
+  it("shows skeleton loaders initially", () => {
     renderWithProviders(<Wishlist />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    const skeletons = screen.getAllByTestId("comic-card-skeleton");
+    expect(skeletons).toHaveLength(8);
   });
 
   it("shows wishlist comics only", async () => {

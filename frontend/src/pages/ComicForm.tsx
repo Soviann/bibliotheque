@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import BarcodeScanner from "../components/BarcodeScanner";
+import SkeletonBox from "../components/SkeletonBox";
 import { useAuthors } from "../hooks/useAuthors";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { apiFetch } from "../services/api";
@@ -183,7 +184,46 @@ export default function ComicForm() {
   }, [comic, isEdit, initialized]);
 
   if (isEdit && !initialized) {
-    return <div className="py-12 text-center text-text-muted">Chargement…</div>;
+    return (
+      <div className="mx-auto max-w-3xl space-y-6" data-testid="comic-form-skeleton">
+        <div className="flex items-center gap-3">
+          <SkeletonBox className="h-5 w-5" />
+          <SkeletonBox className="h-6 w-40" />
+        </div>
+        <div className="space-y-5">
+          {/* Title field */}
+          <div>
+            <SkeletonBox className="mb-1 h-4 w-16" />
+            <SkeletonBox className="h-10 w-full" />
+          </div>
+          {/* Type + Status */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <SkeletonBox className="mb-1 h-4 w-12" />
+              <SkeletonBox className="h-10 w-full" />
+            </div>
+            <div>
+              <SkeletonBox className="mb-1 h-4 w-14" />
+              <SkeletonBox className="h-10 w-full" />
+            </div>
+          </div>
+          {/* Publisher + Cover */}
+          <div>
+            <SkeletonBox className="mb-1 h-4 w-16" />
+            <SkeletonBox className="h-10 w-full" />
+          </div>
+          <div>
+            <SkeletonBox className="mb-1 h-4 w-28" />
+            <SkeletonBox className="h-10 w-full" />
+          </div>
+          {/* Description */}
+          <div>
+            <SkeletonBox className="mb-1 h-4 w-24" />
+            <SkeletonBox className="h-20 w-full" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const update = <K extends keyof FormData>(key: K, value: FormData[K]) => {

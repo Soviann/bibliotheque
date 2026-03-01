@@ -2,6 +2,7 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
+import SkeletonBox from "../components/SkeletonBox";
 import { usePermanentDelete, useRestoreComic, useTrash } from "../hooks/useTrash";
 import type { ComicSeries } from "../types/api";
 
@@ -18,7 +19,16 @@ export default function Trash() {
       <h1 className="text-xl font-bold text-text-primary">Corbeille</h1>
 
       {isLoading ? (
-        <div className="py-12 text-center text-text-muted">Chargement…</div>
+        <div className="space-y-2" data-testid="trash-skeleton">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div className="flex items-center gap-3 rounded-lg border border-surface-border bg-surface-primary p-3" key={i}>
+              <SkeletonBox className="h-12 w-9 !rounded" />
+              <SkeletonBox className="h-5 flex-1" />
+              <SkeletonBox className="h-8 w-8" />
+              <SkeletonBox className="h-8 w-8" />
+            </div>
+          ))}
+        </div>
       ) : comics.length === 0 ? (
         <div className="py-12 text-center text-text-muted">La corbeille est vide</div>
       ) : (

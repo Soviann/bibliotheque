@@ -33,10 +33,11 @@ describe("Trash", () => {
     expect(screen.getByText("Corbeille")).toBeInTheDocument();
   });
 
-  it("shows loading state initially", () => {
+  it("shows skeleton loader initially", () => {
     renderWithProviders(<Trash />);
 
-    expect(screen.getByText("Chargement…")).toBeInTheDocument();
+    expect(screen.getByTestId("trash-skeleton")).toBeInTheDocument();
+    expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(4);
   });
 
   it("shows empty state when no trashed comics", async () => {
