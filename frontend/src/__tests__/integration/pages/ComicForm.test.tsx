@@ -1093,11 +1093,7 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const cardsView = screen.getByTestId("tomes-cards");
-      const deleteButtons = cardsView.querySelectorAll("button");
-      const trashButtons = Array.from(deleteButtons).filter((btn) =>
-        btn.querySelector("svg") && btn.closest("[data-testid='tomes-cards']"),
-      );
-      expect(trashButtons.length).toBeGreaterThan(0);
+      expect(within(cardsView).getByRole("button", { name: /Supprimer tome/ })).toBeInTheDocument();
     });
 
     it("updates tome fields from card view", async () => {

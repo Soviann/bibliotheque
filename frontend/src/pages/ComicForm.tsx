@@ -694,6 +694,7 @@ export default function ComicForm() {
                       value={tome.title}
                     />
                     <button
+                      aria-label={`Supprimer tome ${tome.number}`}
                       className="shrink-0 rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                       onClick={() => removeTome(i)}
                       type="button"
