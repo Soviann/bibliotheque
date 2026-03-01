@@ -18,6 +18,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
   - Toasts Sonner pour le feedback de synchronisation
   - Stratégie last-write-wins pour la résolution de conflits
 - **Rate limiting API lookup** : Limitation à 30 requêtes/min par IP sur les endpoints `/api/lookup/isbn` et `/api/lookup/title` (#29)
+- **Refonte complète des tests (928 tests)** : Couverture exhaustive backend (549 PHPUnit) et frontend (379 Vitest) avec architecture 3 tiers Unit/Integration/Functional (#83)
 
 ### Changed
 
