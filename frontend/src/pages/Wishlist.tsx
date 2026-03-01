@@ -5,6 +5,7 @@ import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { ComicStatus } from "../types/enums";
+import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
 import type { SortOption } from "../utils/sortComics";
 
@@ -20,13 +21,11 @@ export default function Wishlist() {
   );
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    const result = allWishlist.filter((c) => {
+    const preFiltered = allWishlist.filter((c) => {
       if (type && c.type !== type) return false;
-      if (q && !c.title.toLowerCase().includes(q)) return false;
       return true;
     });
-    return sortComics(result, sort);
+    return sortComics(searchComics(preFiltered, search), sort);
   }, [allWishlist, search, sort, type]);
 
   return (
@@ -38,7 +37,7 @@ export default function Wishlist() {
         <input
           className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher…"
+          placeholder="Rechercher par titre, auteur, éditeur…"
           type="search"
           value={search}
         />

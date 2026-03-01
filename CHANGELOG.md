@@ -13,6 +13,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Recherche par auteur et éditeur** : La barre de recherche (Accueil + Liste de souhaits) filtre désormais sur le titre, les auteurs et l'éditeur avec recherche floue tolérante aux fautes de frappe via Fuse.js (#89)
 - **Ajout de tomes en lot** : Inputs « Du tome X au tome Y » avec bouton « Générer » dans le formulaire de série — création en lot avec numéros pré-remplis, ignore les numéros déjà existants, tri automatique (#88)
 - **Toggle inline des tomes** : Checkboxes cliquables directement sur la page détail pour basculer acheté/téléchargé/lu/NAS sans passer par le formulaire d'édition — optimistic update, gestion d'erreur avec revert, support offline (#86)
 - **Skeleton loaders** : Remplacement du texte « Chargement… » par des skeleton placeholders animés sur toutes les pages — grille de cartes (Home/Wishlist), détail série, corbeille, formulaire d'édition (#85)

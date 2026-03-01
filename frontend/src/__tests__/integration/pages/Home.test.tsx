@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import { toast } from "sonner";
 import Home from "../../../pages/Home";
 import {
+  createMockAuthor,
   createMockComicSeries,
   createMockHydraCollection,
   createMockTome,
@@ -73,7 +74,7 @@ describe("Home", () => {
   it("renders search input", async () => {
     renderWithProviders(<Home />);
 
-    expect(screen.getByPlaceholderText("Rechercher une série…")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…")).toBeInTheDocument();
   });
 
   it("filters comics by search text", async () => {
@@ -95,7 +96,7 @@ describe("Home", () => {
       expect(screen.getByText("Naruto")).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher une série…"), "Naruto");
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Naruto");
 
     expect(screen.getByText("Naruto")).toBeInTheDocument();
     expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
@@ -372,6 +373,93 @@ describe("Home", () => {
     expect(headings[2]).toHaveTextContent("None");
   });
 
+  it("filters comics by author name", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({
+        authors: [createMockAuthor({ name: "Naoki Urasawa" })],
+        id: 1,
+        title: "Monster",
+      }),
+      createMockComicSeries({
+        authors: [createMockAuthor({ name: "Eiichiro Oda" })],
+        id: 2,
+        title: "One Piece",
+      }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Monster")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Urasawa");
+
+    expect(screen.getByText("Monster")).toBeInTheDocument();
+    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+  });
+
+  it("filters comics by publisher", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, publisher: "Kana", title: "Monster" }),
+      createMockComicSeries({ id: 2, publisher: "Glénat", title: "One Piece" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Monster")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Kana");
+
+    expect(screen.getByText("Monster")).toBeInTheDocument();
+    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+  });
+
+  it("filters comics with fuzzy search (typos)", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({
+        authors: [createMockAuthor({ name: "Naoki Urasawa" })],
+        id: 1,
+        title: "Monster",
+      }),
+      createMockComicSeries({ id: 2, title: "One Piece" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Monster")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Uraswa");
+
+    expect(screen.getByText("Monster")).toBeInTheDocument();
+    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+  });
+
   it("handles case-insensitive search with surrounding whitespace", async () => {
     const user = userEvent.setup();
     const comics = [
@@ -391,7 +479,7 @@ describe("Home", () => {
       expect(screen.getByText("Naruto")).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher une série…"), "  naruto  ");
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "  naruto  ");
 
     expect(screen.getByText("Naruto")).toBeInTheDocument();
     expect(screen.queryByText("One Piece")).not.toBeInTheDocument();

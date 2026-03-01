@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import Wishlist from "../../../pages/Wishlist";
 import {
+  createMockAuthor,
   createMockComicSeries,
   createMockHydraCollection,
 } from "../../helpers/factories";
@@ -103,7 +104,7 @@ describe("Wishlist", () => {
   it("renders search input", () => {
     renderWithProviders(<Wishlist />);
 
-    expect(screen.getByPlaceholderText("Rechercher…")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…")).toBeInTheDocument();
   });
 
   it("hides status filter", () => {
@@ -132,9 +133,69 @@ describe("Wishlist", () => {
       expect(screen.getByText("Dragon Ball")).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher…"), "Dragon");
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Dragon");
 
     expect(screen.getByText("Dragon Ball")).toBeInTheDocument();
+    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+  });
+
+  it("filters wishlist comics by author name", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({
+        authors: [createMockAuthor({ name: "Naoki Urasawa" })],
+        id: 1,
+        status: ComicStatus.WISHLIST,
+        title: "Monster",
+      }),
+      createMockComicSeries({
+        authors: [createMockAuthor({ name: "Eiichiro Oda" })],
+        id: 2,
+        status: ComicStatus.WISHLIST,
+        title: "One Piece",
+      }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Wishlist />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Monster")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Urasawa");
+
+    expect(screen.getByText("Monster")).toBeInTheDocument();
+    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+  });
+
+  it("filters wishlist comics by publisher", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, publisher: "Kana", status: ComicStatus.WISHLIST, title: "Monster" }),
+      createMockComicSeries({ id: 2, publisher: "Glénat", status: ComicStatus.WISHLIST, title: "One Piece" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Wishlist />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Monster")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Kana");
+
+    expect(screen.getByText("Monster")).toBeInTheDocument();
     expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
   });
 
@@ -189,7 +250,7 @@ describe("Wishlist", () => {
     await user.click(screen.getByText("Manga"));
 
     // Then search within the filtered results
-    await user.type(screen.getByPlaceholderText("Rechercher…"), "Naruto");
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Naruto");
 
     expect(screen.getByText("Naruto")).toBeInTheDocument();
     expect(screen.queryByText("Dragon Ball")).not.toBeInTheDocument();
