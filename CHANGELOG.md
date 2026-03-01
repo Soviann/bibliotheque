@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Layout carte des tomes sur mobile** : Remplacement du tableau à 8 colonnes par des cartes empilées dans le formulaire de série sur mobile (< `sm`) — numéro + titre, ISBN avec lookup, checkboxes en grille 2×2, bouton supprimer. Tableau conservé sur desktop (#87)
+
 ### Added
 
 - **Toggle inline des tomes** : Checkboxes cliquables directement sur la page détail pour basculer acheté/téléchargé/lu/NAS sans passer par le formulaire d'édition — optimistic update, gestion d'erreur avec revert, support offline (#86)
