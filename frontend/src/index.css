@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  --bottom-nav-h: 3.5rem;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
