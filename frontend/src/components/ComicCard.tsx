@@ -12,6 +12,9 @@ export default function ComicCard({ comic, onDelete }: ComicCardProps) {
   const navigate = useNavigate();
   const coverSrc = comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : null);
   const tomeCount = comic.tomes?.length ?? 0;
+  const boughtCount = comic.tomes?.filter((t) => t.bought).length ?? 0;
+  const total = comic.latestPublishedIssue ?? tomeCount;
+  const showProgress = !comic.isOneShot && tomeCount > 0;
 
   return (
     <Link
@@ -35,6 +38,26 @@ export default function ComicCard({ comic, onDelete }: ComicCardProps) {
           {ComicTypeLabel[comic.type]}
           {!comic.isOneShot && ` · ${tomeCount} t.`}
         </p>
+
+        {showProgress && (
+          <div className="mt-1.5 space-y-1">
+            <div className="flex items-center justify-between text-xs text-text-muted">
+              <span>{boughtCount} / {total}</span>
+            </div>
+            <div
+              aria-valuemax={total}
+              aria-valuemin={0}
+              aria-valuenow={boughtCount}
+              className="h-1.5 overflow-hidden rounded-full bg-surface-tertiary"
+              role="progressbar"
+            >
+              <div
+                className="h-full rounded-full bg-primary-600 transition-all"
+                style={{ width: `${total > 0 ? (boughtCount / total) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="mt-2 flex gap-1 border-t border-surface-border pt-2">

@@ -491,6 +491,122 @@ describe("ComicDetail", () => {
     });
   });
 
+  it("shows progress bars for bought, read, and downloaded", async () => {
+    const tomes = [
+      createMockTome({ bought: true, downloaded: true, id: 1, number: 1, read: true }),
+      createMockTome({ bought: true, downloaded: false, id: 2, number: 2, read: false }),
+      createMockTome({ bought: false, downloaded: false, id: 3, number: 3, read: false }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            latestPublishedIssue: 5,
+            title: "Progress Test",
+            tomes,
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Achetés")).toBeInTheDocument();
+    });
+
+    // Should show three progress bars
+    const progressBars = screen.getAllByRole("progressbar");
+    expect(progressBars.length).toBe(3);
+
+    // Achetés: 2/5
+    expect(screen.getByText("2 / 5")).toBeInTheDocument();
+
+    // Lus: 1/5, Téléchargés: 1/5
+    expect(screen.getByText("Lus")).toBeInTheDocument();
+    expect(screen.getByText("Téléchargés")).toBeInTheDocument();
+    expect(screen.getAllByText("1 / 5")).toHaveLength(2);
+  });
+
+  it("uses tome count as total when latestPublishedIssue is null", async () => {
+    const tomes = [
+      createMockTome({ bought: true, id: 1, number: 1 }),
+      createMockTome({ bought: true, id: 2, number: 2 }),
+      createMockTome({ bought: false, id: 3, number: 3 }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            latestPublishedIssue: null,
+            title: "No Total",
+            tomes,
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    // Achetés: 2/3 (tomes.length as total since latestPublishedIssue is null)
+    await waitFor(() => {
+      expect(screen.getByText("2 / 3")).toBeInTheDocument();
+    });
+  });
+
+  it("does not show progress bars for oneshot series", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            id: 1,
+            isOneShot: true,
+            title: "Oneshot Progress",
+            tomes: [createMockTome({ bought: true, id: 1, number: 1 })],
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Oneshot Progress")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByText("Achetés")).not.toBeInTheDocument();
+  });
+
+  it("does not show progress bars when no tomes", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "No Tomes Progress",
+            tomes: [],
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Tomes Progress")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
   it("does not render tomes section for non-oneshot with empty tomes", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>

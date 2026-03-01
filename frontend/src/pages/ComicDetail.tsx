@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
+import ProgressBar from "../components/ProgressBar";
 import SkeletonBox from "../components/SkeletonBox";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
@@ -149,6 +150,21 @@ export default function ComicDetail() {
           )}
         </div>
       </div>
+
+      {/* Progression */}
+      {!comic.isOneShot && optimisticTomes.length > 0 && (() => {
+        const total = comic.latestPublishedIssue ?? optimisticTomes.length;
+        const boughtCount = optimisticTomes.filter((t) => t.bought).length;
+        const readCount = optimisticTomes.filter((t) => t.read).length;
+        const downloadedCount = optimisticTomes.filter((t) => t.downloaded).length;
+        return (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <ProgressBar color="bg-primary-600" current={boughtCount} label="Achetés" total={total} />
+            <ProgressBar color="bg-green-500" current={readCount} label="Lus" total={total} />
+            <ProgressBar color="bg-blue-500" current={downloadedCount} label="Téléchargés" total={total} />
+          </div>
+        );
+      })()}
 
       {/* Tomes */}
       {!comic.isOneShot && optimisticTomes.length > 0 && (
