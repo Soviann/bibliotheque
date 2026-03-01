@@ -480,6 +480,143 @@ final class GoogleBooksLookupTest extends TestCase
     }
 
     /**
+     * Teste extractIsbn ignore les identifiants qui ne sont pas des tableaux.
+     */
+    public function testResolveLookupExtractIsbnSkipsNonArrayIdentifier(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'industryIdentifiers' => [
+                            'not-an-array',
+                            42,
+                            null,
+                        ],
+                        'title' => 'Test',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->isbn);
+    }
+
+    /**
+     * Teste extractIsbn retourne null quand aucun identifiant n'est ISBN_13 ni ISBN_10.
+     */
+    public function testResolveLookupExtractIsbnNoIsbnTypeReturnsNull(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'industryIdentifiers' => [
+                            ['identifier' => 'SOME_ID', 'type' => 'OTHER'],
+                            ['identifier' => 'ANOTHER', 'type' => 'ISSN'],
+                        ],
+                        'title' => 'Test',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->isbn);
+    }
+
+    /**
+     * Teste mergeItems ignore les items dont volumeInfo n'est pas un tableau.
+     */
+    public function testResolveLookupMergeItemsSkipsNonArrayVolumeInfo(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => 'not-an-array',
+                ],
+                [
+                    'volumeInfo' => [
+                        'title' => 'Valid Item',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('Valid Item', $result->title);
+    }
+
+    /**
+     * Teste mergeItems retourne thumbnail null quand imageLinks est null.
+     */
+    public function testResolveLookupImageLinksNullReturnsThumbnailNull(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => null,
+                        'title' => 'Test',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->thumbnail);
+    }
+
+    /**
+     * Teste mergeItems arrete l'iteration quand tous les champs principaux sont remplis.
+     */
+    public function testResolveLookupMergeItemsBreaksWhenAllFieldsComplete(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Author'],
+                        'description' => 'Desc',
+                        'imageLinks' => ['thumbnail' => 'https://example.com/img.jpg'],
+                        'publishedDate' => '2020',
+                        'publisher' => 'Publisher',
+                        'title' => 'Complete',
+                    ],
+                ],
+                [
+                    'volumeInfo' => [
+                        'title' => 'Should Not Override',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('Complete', $result->title);
+        self::assertSame('Author', $result->authors);
+        self::assertSame('Desc', $result->description);
+        self::assertSame('2020', $result->publishedDate);
+        self::assertSame('Publisher', $result->publisher);
+    }
+
+    /**
      * Teste l'extraction de l'ISBN depuis les identifiants.
      */
     public function testResolveLookupExtractsIsbn(): void

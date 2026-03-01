@@ -140,4 +140,39 @@ describe("useSyncStatus", () => {
       expect.any(Function),
     );
   });
+
+  it("defaults syncedCount to 0 when sync-complete has no count field", () => {
+    const { result } = renderHook(() => useSyncStatus());
+
+    act(() => {
+      messageHandler?.({ data: { type: "sync-complete" } } as MessageEvent);
+    });
+
+    expect(result.current.status).toBe("success");
+    expect(result.current.syncedCount).toBe(0);
+  });
+
+  it("stays idle when message data is null", () => {
+    const { result } = renderHook(() => useSyncStatus());
+
+    act(() => {
+      messageHandler?.({ data: null } as MessageEvent);
+    });
+
+    expect(result.current.status).toBe("idle");
+    expect(result.current.syncedCount).toBe(0);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("does not change state on unknown message type", () => {
+    const { result } = renderHook(() => useSyncStatus());
+
+    act(() => {
+      messageHandler?.({ data: { type: "unknown" } } as MessageEvent);
+    });
+
+    expect(result.current.status).toBe("idle");
+    expect(result.current.syncedCount).toBe(0);
+    expect(result.current.error).toBeNull();
+  });
 });

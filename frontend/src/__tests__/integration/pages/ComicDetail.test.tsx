@@ -2,6 +2,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { Route, Routes } from "react-router-dom";
+import { toast } from "sonner";
 import ComicDetail from "../../../pages/ComicDetail";
 import {
   createMockAuthor,
@@ -11,6 +12,17 @@ import {
 import { server } from "../../helpers/server";
 import { renderWithProviders } from "../../helpers/test-utils";
 import { ComicStatus, ComicType } from "../../../types/enums";
+
+vi.mock("sonner", async () => {
+  const actual = await vi.importActual("sonner");
+  return {
+    ...actual,
+    toast: Object.assign(vi.fn(), {
+      error: vi.fn(),
+      success: vi.fn(),
+    }),
+  };
+});
 
 function renderComicDetail(id: number = 1) {
   return renderWithProviders(
@@ -405,6 +417,148 @@ describe("ComicDetail", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Série introuvable")).toBeInTheDocument();
+    });
+  });
+
+  it("does not render authors section when no authors", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ authors: [], id: 1, title: "No Authors" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Authors")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Auteurs :")).not.toBeInTheDocument();
+  });
+
+  it("does not render publisher section when publisher is null", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, publisher: null, title: "No Publisher" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Publisher")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Éditeur :")).not.toBeInTheDocument();
+  });
+
+  it("does not render description when description is null", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ description: null, id: 1, title: "No Desc" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Desc")).toBeInTheDocument();
+    });
+    // Only type/status badges + title should be present, no description paragraph
+    const paragraphs = document.querySelectorAll("p.leading-relaxed");
+    expect(paragraphs.length).toBe(0);
+  });
+
+  it("shows placeholder cover when both coverUrl and coverImage are null", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ coverImage: null, coverUrl: null, id: 1, title: "No Cover" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      const img = screen.getByAltText("No Cover");
+      expect(img).toHaveAttribute("src", "/placeholder-cover.png");
+    });
+  });
+
+  it("does not render tomes section for non-oneshot with empty tomes", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "No Volumes", tomes: [] }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Volumes")).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/Tomes \(/)).not.toBeInTheDocument();
+  });
+
+  it("shows checkmarks for tome downloaded and onNas fields", async () => {
+    const tomes = [
+      createMockTome({ downloaded: true, id: 1, number: 1, onNas: true, title: "Full Tome" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Tome Checks", tomes }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Full Tome")).toBeInTheDocument();
+    });
+
+    // The row should contain checkmarks for downloaded and onNas
+    const row = screen.getByText("Full Tome").closest("tr")!;
+    const cells = row.querySelectorAll("td");
+    // Columns: #, Title, Acheté, Téléchargé, Lu, NAS
+    expect(cells[3].textContent).toBe("✓"); // Téléchargé (downloaded)
+    expect(cells[5].textContent).toBe("✓"); // NAS (onNas)
+  });
+
+  it("shows success toast after delete confirmation", async () => {
+    const user = userEvent.setup();
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(createMockComicSeries({ id: 1, title: "To Toast" })),
+      ),
+      http.delete("/api/comic_series/1", () =>
+        new HttpResponse(null, { status: 204 }),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("To Toast")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("Supprimer"));
+
+    const confirmButton = screen.getByText("Supprimer cette série ?").closest("[role='dialog']")?.querySelector("button.bg-red-600");
+    await user.click(confirmButton!);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Série supprimée");
     });
   });
 });

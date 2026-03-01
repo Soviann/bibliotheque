@@ -697,6 +697,94 @@ final class LookupOrchestratorTest extends TestCase
     }
 
     /**
+     * Teste que l'enrichissement est ignore quand le resultat initial est complet.
+     */
+    public function testNoEnrichmentWhenResultIsComplete(): void
+    {
+        $completeResult = new LookupResult(
+            authors: 'Oda',
+            description: 'Un manga de pirates',
+            publishedDate: '1997',
+            publisher: 'Glenat',
+            source: 'lookup_provider',
+            thumbnail: 'https://example.com/cover.jpg',
+            title: 'One Piece',
+        );
+
+        $lookupProvider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'lookup_provider',
+            result: $completeResult,
+            supports: true,
+        );
+
+        // Le provider enrichable ne devrait PAS etre appele
+        $enrichProvider = $this->createStubEnrichableProvider(
+            enrichResult: new LookupResult(description: 'Should not appear', source: 'enrich'),
+            fieldPriority: 50,
+            name: 'enrich_provider',
+            result: null,
+            supports: false,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$lookupProvider, $enrichProvider]);
+
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('Un manga de pirates', $result->description);
+        self::assertNotContains('enrich_provider', $orchestrator->getLastSources());
+    }
+
+    /**
+     * Teste que getLastApiMessage retournant null ne produit pas de message enregistre.
+     */
+    public function testGetLastApiMessageNullDoesNotRecordMessage(): void
+    {
+        $provider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'silent_provider',
+            result: new LookupResult(title: 'Test', source: 'silent'),
+            supports: true,
+            apiMessage: null,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);
+
+        $orchestrator->lookup('1234567890');
+
+        $messages = $orchestrator->getLastApiMessages();
+        self::assertArrayNotHasKey('silent_provider', $messages);
+    }
+
+    /**
+     * Teste que le resultat du lookup recoit l'ISBN via withIsbn.
+     */
+    public function testLookupResultGetsIsbnInjected(): void
+    {
+        $result = new LookupResult(
+            source: 'provider',
+            title: 'Test',
+        );
+
+        $provider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'provider',
+            result: $result,
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);
+
+        $lookupResult = $orchestrator->lookup('978-2-7234-8900-3');
+
+        self::assertNotNull($lookupResult);
+        self::assertSame('9782723489003', $lookupResult->isbn);
+        // Le resultat original n'avait pas d'ISBN
+        self::assertNull($result->isbn);
+    }
+
+    /**
      * Cree un stub enrichable pour les tests d'enrichissement.
      */
     private function createStubEnrichableProvider(

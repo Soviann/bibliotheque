@@ -92,4 +92,32 @@ describe("useComic", () => {
     // Should immediately have data from cache
     expect(result.current.data?.title).toBe("AoT");
   });
+
+  it("fetches from API when comics cache does not contain target ID", async () => {
+    const otherComic = createMockComicSeries({ id: 20, title: "Other" });
+    const targetComic = createMockComicSeries({ id: 30, title: "Target" });
+    const queryClient = createTestQueryClient();
+
+    // Pre-populate comics collection with a different comic
+    queryClient.setQueryData(
+      ["comics"],
+      createMockHydraCollection([otherComic]),
+    );
+
+    server.use(
+      http.get("/api/comic_series/30", () => HttpResponse.json(targetComic)),
+    );
+
+    const { result } = renderHook(() => useComic(30), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    // initialData should be undefined since ID 30 is not in cache
+    expect(result.current.data).toBeUndefined();
+
+    // Should fetch from API
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.title).toBe("Target");
+  });
 });

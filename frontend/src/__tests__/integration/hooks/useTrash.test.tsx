@@ -8,12 +8,18 @@ import {
   useRestoreComic,
   usePermanentDelete,
 } from "../../../hooks/useTrash";
+import { enqueue } from "../../../services/offlineQueue";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import {
   createMockComicSeries,
   createMockHydraCollection,
 } from "../../helpers/factories";
 import { server } from "../../helpers/server";
+
+vi.mock("../../../services/offlineQueue", () => ({
+  enqueue: vi.fn().mockResolvedValue(1),
+  getPendingCount: vi.fn().mockResolvedValue(0),
+}));
 
 function createWrapper(queryClient = createTestQueryClient()) {
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -232,5 +238,97 @@ describe("usePermanentDelete", () => {
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+});
+
+describe("useRestoreComic — offline", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
+    Object.defineProperty(navigator, "serviceWorker", {
+      configurable: true,
+      value: {
+        ready: Promise.resolve({ sync: { register: vi.fn() } }),
+      },
+      writable: true,
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: true,
+      writable: true,
+    });
+  });
+
+  it("enqueues restore mutation with correct resourceId when offline", async () => {
+    const { result } = renderHook(() => useRestoreComic(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ id: 7 });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "update",
+        resourceId: "7",
+        resourceType: "comic_series",
+      }),
+    );
+  });
+});
+
+describe("usePermanentDelete — offline", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
+    Object.defineProperty(navigator, "serviceWorker", {
+      configurable: true,
+      value: {
+        ready: Promise.resolve({ sync: { register: vi.fn() } }),
+      },
+      writable: true,
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: true,
+      writable: true,
+    });
+  });
+
+  it("enqueues permanent delete mutation with correct resourceId when offline", async () => {
+    const { result } = renderHook(() => usePermanentDelete(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ id: 9 });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "delete",
+        resourceId: "9",
+        resourceType: "comic_series",
+      }),
+    );
   });
 });

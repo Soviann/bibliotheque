@@ -665,6 +665,190 @@ final class AniListLookupTest extends TestCase
     }
 
     /**
+     * Teste le fallback titre : tous les titres sont null.
+     */
+    public function testResolveLookupTitleAllNullReturnsNull(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => [
+                        'english' => null,
+                        'native' => null,
+                        'romaji' => null,
+                    ],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->title);
+    }
+
+    /**
+     * Teste le fallback thumbnail : les deux null → thumbnail null.
+     */
+    public function testResolveLookupThumbnailBothNullReturnsNull(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [
+                        'extraLarge' => null,
+                        'large' => null,
+                    ],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => ['english' => 'Test', 'native' => null, 'romaji' => null],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->thumbnail);
+    }
+
+    /**
+     * Teste isOneShot=false quand multi-volumes et en cours.
+     */
+    public function testResolveLookupIsOneShotFalseWhenMultiVolumeOngoing(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => ['english' => 'Ongoing Series', 'native' => null, 'romaji' => null],
+                    'volumes' => 50,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertFalse($result->isOneShot);
+    }
+
+    /**
+     * Teste latestPublishedIssue null quand volumes est null.
+     */
+    public function testResolveLookupLatestPublishedIssueNullWhenVolumesNull(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => ['english' => 'Test', 'native' => null, 'romaji' => null],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->latestPublishedIssue);
+    }
+
+    /**
+     * Teste extractAuthors avec un node manquant dans les donnees staff.
+     */
+    public function testResolveLookupExtractAuthorsWithMissingNodeData(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => [
+                        'edges' => [
+                            [
+                                'node' => null,
+                                'role' => 'Story',
+                            ],
+                            [
+                                'node' => ['name' => null],
+                                'role' => 'Art',
+                            ],
+                            [
+                                'node' => ['name' => ['full' => null]],
+                                'role' => 'Story & Art',
+                            ],
+                        ],
+                    ],
+                    'startDate' => [],
+                    'status' => 'RELEASING',
+                    'title' => ['english' => 'Test', 'native' => null, 'romaji' => null],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->authors);
+    }
+
+    /**
+     * Teste formatDate retourne null quand year est null.
+     */
+    public function testResolveLookupDateFormatNullYearReturnsNull(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Media' => [
+                    'coverImage' => [],
+                    'description' => null,
+                    'format' => 'MANGA',
+                    'staff' => ['edges' => []],
+                    'startDate' => ['day' => 1, 'month' => 5, 'year' => null],
+                    'status' => 'RELEASING',
+                    'title' => ['english' => 'Test', 'native' => null, 'romaji' => null],
+                    'volumes' => null,
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->publishedDate);
+    }
+
+    /**
      * Teste que latestPublishedIssue est extrait du nombre de volumes.
      */
     public function testResolveLookupExtractsLatestPublishedIssue(): void

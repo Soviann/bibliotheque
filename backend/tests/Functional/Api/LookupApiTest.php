@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use App\Tests\Factory\EntityFactory;
 use App\Tests\Trait\AuthenticatedTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Tests fonctionnels pour les endpoints de lookup.
@@ -25,10 +26,14 @@ final class LookupApiTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $container = static::getContainer();
+        $em = $container->get(EntityManagerInterface::class);
+
+        // Réinitialiser le rate limiter pour éviter les 429 entre tests
+        $container->get('cache.rate_limiter')->clear();
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = $container->get(UserRepository::class);
 
         if (null === $userRepo->findOneBy(['email' => 'test@example.com'])) {
             $user = EntityFactory::createUser();
@@ -113,5 +118,41 @@ final class LookupApiTest extends ApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(401);
+    }
+
+    // ---------------------------------------------------------------
+    // Paramètre type
+    // ---------------------------------------------------------------
+
+    /**
+     * Teste qu'un type invalide est ignoré (tryFrom retourne null) sans erreur 400.
+     */
+    public function testIsbnLookupWithInvalidTypeParameterStillProcesses(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('GET', '/api/lookup/isbn', [
+            'query' => ['isbn' => '978-2-1234-5678-9', 'type' => 'invalid'],
+        ]);
+
+        // Le type invalide ne provoque pas d'erreur 400/500
+        $statusCode = $client->getResponse()->getStatusCode();
+        self::assertContains($statusCode, [200, 404], 'Doit être 200 ou 404, pas une erreur serveur');
+    }
+
+    /**
+     * Teste qu'un type valide est correctement résolu.
+     */
+    public function testIsbnLookupWithValidTypeParameterProcesses(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('GET', '/api/lookup/isbn', [
+            'query' => ['isbn' => '978-2-1234-5678-9', 'type' => 'manga'],
+        ]);
+
+        // Le type valide est résolu, la requête passe (200 ou 404)
+        $statusCode = $client->getResponse()->getStatusCode();
+        self::assertContains($statusCode, [200, 404], 'Doit être 200 ou 404, pas une erreur serveur');
     }
 }

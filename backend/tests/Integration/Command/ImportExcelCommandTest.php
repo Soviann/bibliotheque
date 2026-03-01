@@ -308,6 +308,121 @@ final class ImportExcelCommandTest extends KernelTestCase
         }
     }
 
+    /**
+     * Teste qu'une ligne avec un titre vide (après trim) est ignorée.
+     */
+    public function testRowWithEmptyTitleAfterTrimIsSkipped(): void
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('BD');
+        $sheet->setCellValue('A1', 'Titre');
+        $sheet->setCellValue('B1', 'Buy?');
+        $sheet->setCellValue('C1', 'Last bought');
+        $sheet->setCellValue('D1', 'Current');
+        $sheet->setCellValue('E1', 'Parution');
+        // Ligne avec titre vide (espaces uniquement)
+        $sheet->setCellValue('A2', '   ');
+        $sheet->setCellValue('B2', 'oui');
+        $sheet->setCellValue('D2', '3');
+        // Ligne avec titre valide
+        $sheet->setCellValue('A3', 'Valid Series');
+        $sheet->setCellValue('B3', 'oui');
+        $sheet->setCellValue('D3', '2');
+
+        $tmpFile = \tempnam(\sys_get_temp_dir(), 'test_import_').'.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tmpFile);
+
+        try {
+            $this->commandTester->execute(['file' => $tmpFile]);
+
+            self::assertSame(Command::SUCCESS, $this->commandTester->getStatusCode());
+
+            // Seule la série valide doit être importée
+            $series = $this->em->getRepository(ComicSeries::class)->findAll();
+            self::assertCount(1, $series);
+            self::assertSame('Valid Series', $series[0]->getTitle());
+        } finally {
+            @\unlink($tmpFile);
+        }
+    }
+
+    /**
+     * Teste determineStatus avec une chaîne vide → BUYING.
+     */
+    public function testDetermineStatusWithEmptyStringReturnsBuying(): void
+    {
+        $command = new ImportExcelCommand($this->em);
+        $method = new \ReflectionMethod($command, 'determineStatus');
+
+        self::assertSame(ComicStatus::BUYING, $method->invoke($command, ''));
+    }
+
+    /**
+     * Teste determineStatus avec une valeur non reconnue → BUYING.
+     */
+    public function testDetermineStatusWithUnrecognizedValueReturnsBuying(): void
+    {
+        $command = new ImportExcelCommand($this->em);
+        $method = new \ReflectionMethod($command, 'determineStatus');
+
+        self::assertSame(ComicStatus::BUYING, $method->invoke($command, 'xyz'));
+    }
+
+    /**
+     * Teste determineOnNas avec "non" → false.
+     */
+    public function testDetermineOnNasWithNonReturnsFalse(): void
+    {
+        $command = new ImportExcelCommand($this->em);
+        $method = new \ReflectionMethod($command, 'determineOnNas');
+
+        self::assertFalse($method->invoke($command, 'non'));
+    }
+
+    /**
+     * Teste parseIntegerValue avec "0, 0" → [null, false].
+     */
+    public function testParseIntegerValueWithZeroCommaZeroReturnsNull(): void
+    {
+        $command = new ImportExcelCommand($this->em);
+        $method = new \ReflectionMethod($command, 'parseIntegerValue');
+
+        self::assertSame([null, false], $method->invoke($command, '0, 0'));
+    }
+
+    /**
+     * Teste parseIntegerValue avec 0 → [null, false].
+     */
+    public function testParseIntegerValueWithZeroReturnsNull(): void
+    {
+        $command = new ImportExcelCommand($this->em);
+        $method = new \ReflectionMethod($command, 'parseIntegerValue');
+
+        self::assertSame([null, false], $method->invoke($command, 0));
+    }
+
+    /**
+     * Teste qu'un fichier non-Excel retourne FAILURE.
+     */
+    public function testInvalidExcelFileReturnsFailure(): void
+    {
+        $tmpFile = \tempnam(\sys_get_temp_dir(), 'test_import_').'.xlsx';
+        // Le préfixe PK\x03\x04 simule un fichier ZIP corrompu, ce qui force PhpSpreadsheet
+        // à identifier le format Xlsx mais échouer à le lire (ReaderException).
+        \file_put_contents($tmpFile, "PK\x03\x04corrupt");
+
+        try {
+            $this->commandTester->execute(['file' => $tmpFile]);
+
+            self::assertSame(Command::FAILURE, $this->commandTester->getStatusCode());
+            self::assertStringContainsString('Impossible de lire le fichier Excel', $this->commandTester->getDisplay());
+        } finally {
+            @\unlink($tmpFile);
+        }
+    }
+
     public function testDryRunDoesNotPersistData(): void
     {
         // Creer un fichier Excel minimal avec PhpSpreadsheet

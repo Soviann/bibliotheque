@@ -528,6 +528,161 @@ final class GeminiLookupTest extends TestCase
     }
 
     /**
+     * Teste callGemini avec isOneShot non-bool dans la reponse → null.
+     */
+    public function testResolveLookupNonBoolIsOneShotBecomesNull(): void
+    {
+        $jsonResponse = \json_encode([
+            'authors' => 'Test Author',
+            'isOneShot' => 'yes',
+            'title' => 'Test',
+        ]);
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->isOneShot);
+    }
+
+    /**
+     * Teste callGemini avec latestPublishedIssue non-int dans la reponse → null.
+     */
+    public function testResolveLookupNonIntLatestPublishedIssueBecomesNull(): void
+    {
+        $jsonResponse = \json_encode([
+            'authors' => 'Test Author',
+            'latestPublishedIssue' => '42',
+            'title' => 'Test',
+        ]);
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->latestPublishedIssue);
+    }
+
+    /**
+     * Teste prepareWithCache avec une entree cache corrompue (non-LookupResult) → passe au rate limit.
+     */
+    public function testPrepareLookupCorruptedCacheEntryFallsThrough(): void
+    {
+        $cacheItem = $this->createCacheItem('test_key', 'corrupted_string_value', true);
+        $this->cache->method('getItem')->willReturn($cacheItem);
+
+        $provider = $this->createProvider();
+        $state = $provider->prepareLookup('Test', ComicType::MANGA, 'title');
+
+        // La valeur corrompue est ignoree, on passe au rate limit et on obtient un prompt
+        self::assertIsArray($state);
+        self::assertArrayHasKey('prompt', $state);
+    }
+
+    /**
+     * Teste parseJsonFromText retourne null quand json_decode donne un scalaire.
+     */
+    public function testResolveLookupJsonScalarResponseReturnsNull(): void
+    {
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => '"just a string"'],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertSame('error', $apiMessage['status']);
+    }
+
+    /**
+     * Teste consumeRateLimit rejete → rate_limited, prepareLookup retourne null.
+     */
+    public function testPrepareLookupRateLimitRejectedReturnsNull(): void
+    {
+        $cacheItem = $this->createCacheItem('test_key', null, false);
+        $this->cache->method('getItem')->willReturn($cacheItem);
+
+        $storage = new InMemoryStorage();
+        $limiterFactory = new RateLimiterFactory(
+            ['id' => 'test', 'policy' => 'fixed_window', 'interval' => '1 minute', 'limit' => 1],
+            $storage,
+        );
+
+        // Consommer le seul token disponible
+        $limiterFactory->create('gemini_global')->consume();
+
+        $provider = $this->createProvider(limiterFactory: $limiterFactory);
+        $state = $provider->prepareLookup('Test', ComicType::MANGA, 'title');
+
+        self::assertNull($state);
+
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertSame('rate_limited', $apiMessage['status']);
+    }
+
+    /**
      * Cree un CacheItem avec les valeurs souhaitees via reflexion.
      */
     private function createCacheItem(string $key, mixed $value, bool $isHit): CacheItem

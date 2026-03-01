@@ -488,6 +488,42 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame([], $result);
     }
 
+    public function testFindWithFiltersUnknownReadingFilterReturnsAll(): void
+    {
+        $seriesA = EntityFactory::createComicSeries('Alpha');
+        $seriesA->addTome(EntityFactory::createTome(1, read: true));
+
+        $seriesB = EntityFactory::createComicSeries('Bravo');
+        $seriesB->addTome(EntityFactory::createTome(1, read: false));
+
+        $this->em->persist($seriesA);
+        $this->em->persist($seriesB);
+        $this->em->flush();
+
+        // Valeur inconnue → le match default retourne null, pas de filtre appliqué
+        $result = $this->repository->findWithFilters(['reading' => 'invalid_reading']);
+
+        self::assertCount(2, $result);
+    }
+
+    public function testFindWithFiltersOnNasNullDoesNotFilter(): void
+    {
+        $withNas = EntityFactory::createComicSeries('With NAS');
+        $withNas->addTome(EntityFactory::createTome(1, onNas: true));
+
+        $withoutNas = EntityFactory::createComicSeries('Without NAS');
+        $withoutNas->addTome(EntityFactory::createTome(1, onNas: false));
+
+        $this->em->persist($withNas);
+        $this->em->persist($withoutNas);
+        $this->em->flush();
+
+        // onNas null → pas de filtre, toutes les séries retournées
+        $result = $this->repository->findWithFilters(['onNas' => null]);
+
+        self::assertCount(2, $result);
+    }
+
     public function testFindAllForApiWithSeriesWithoutTomes(): void
     {
         $series = EntityFactory::createComicSeries('Empty Series');

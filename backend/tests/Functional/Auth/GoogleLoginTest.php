@@ -25,6 +25,13 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 final class GoogleLoginTest extends ApiTestCase
 {
     protected static ?bool $alwaysBootKernel = true;
+
+    protected function setUp(): void
+    {
+        // Réinitialiser le rate limiter pour éviter les 429 entre tests
+        static::getContainer()->get('cache.rate_limiter')->clear();
+    }
+
     // ---------------------------------------------------------------
     // POST /api/login/google
     // ---------------------------------------------------------------

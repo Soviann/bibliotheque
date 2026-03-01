@@ -1,6 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
+import { toast } from "sonner";
 import Trash from "../../../pages/Trash";
 import {
   createMockComicSeries,
@@ -8,6 +9,17 @@ import {
 } from "../../helpers/factories";
 import { server } from "../../helpers/server";
 import { renderWithProviders } from "../../helpers/test-utils";
+
+vi.mock("sonner", async () => {
+  const actual = await vi.importActual("sonner");
+  return {
+    ...actual,
+    toast: Object.assign(vi.fn(), {
+      error: vi.fn(),
+      success: vi.fn(),
+    }),
+  };
+});
 
 describe("Trash", () => {
   beforeEach(() => {
@@ -183,6 +195,122 @@ describe("Trash", () => {
 
     await waitFor(() => {
       expect(restoreCalled).toBe(true);
+    });
+  });
+
+  it("shows success toast after restore", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Restored Comic" }),
+    ];
+
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
+      ),
+      http.put("/api/comic_series/1/restore", () =>
+        HttpResponse.json(createMockComicSeries({ id: 1, title: "Restored Comic" })),
+      ),
+    );
+
+    renderWithProviders(<Trash />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Restored Comic")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByTitle("Restaurer"));
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Restored Comic restaurée");
+    });
+  });
+
+  it("shows success toast after permanent delete", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Gone Forever" }),
+    ];
+
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
+      ),
+      http.delete("/api/trash/1/permanent", () =>
+        new HttpResponse(null, { status: 204 }),
+      ),
+    );
+
+    renderWithProviders(<Trash />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Gone Forever")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByTitle("Supprimer définitivement"));
+
+    const confirmButton = screen.getByRole("button", { name: "Supprimer définitivement" });
+    await user.click(confirmButton);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Gone Forever supprimée définitivement");
+    });
+  });
+
+  it("renders correct cover source for coverUrl", async () => {
+    const comics = [
+      createMockComicSeries({ coverUrl: "https://example.com/cover.jpg", id: 1, title: "URL Cover" }),
+    ];
+
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
+      ),
+    );
+
+    renderWithProviders(<Trash />);
+
+    await waitFor(() => {
+      const img = screen.getByAltText("URL Cover");
+      expect(img).toHaveAttribute("src", "https://example.com/cover.jpg");
+    });
+  });
+
+  it("renders correct cover source for coverImage fallback", async () => {
+    const comics = [
+      createMockComicSeries({ coverImage: "local.jpg", coverUrl: null, id: 1, title: "Local Cover" }),
+    ];
+
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
+      ),
+    );
+
+    renderWithProviders(<Trash />);
+
+    await waitFor(() => {
+      const img = screen.getByAltText("Local Cover");
+      expect(img).toHaveAttribute("src", "/uploads/covers/local.jpg");
+    });
+  });
+
+  it("renders placeholder cover when both coverUrl and coverImage are null", async () => {
+    const comics = [
+      createMockComicSeries({ coverImage: null, coverUrl: null, id: 1, title: "No Cover" }),
+    ];
+
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
+      ),
+    );
+
+    renderWithProviders(<Trash />);
+
+    await waitFor(() => {
+      const img = screen.getByAltText("No Cover");
+      expect(img).toHaveAttribute("src", "/placeholder-cover.png");
     });
   });
 });

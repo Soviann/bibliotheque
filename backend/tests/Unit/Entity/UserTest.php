@@ -108,6 +108,16 @@ final class UserTest extends TestCase
         self::assertCount(2, $roles);
     }
 
+    public function testGetRolesDoesNotDuplicateRoleUser(): void
+    {
+        $user = new User();
+        $user->setRoles(['ROLE_USER']);
+
+        $roles = $user->getRoles();
+
+        self::assertSame(['ROLE_USER'], $roles);
+    }
+
     public function testGetRolesDeduplicatesRoleUser(): void
     {
         $user = new User();

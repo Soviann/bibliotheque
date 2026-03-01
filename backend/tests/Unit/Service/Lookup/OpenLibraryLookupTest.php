@@ -322,6 +322,76 @@ final class OpenLibraryLookupTest extends TestCase
     }
 
     /**
+     * Teste resolveLookup retourne not_found pour un status HTTP non-200/non-404/non-429 (ex: 500).
+     */
+    public function testResolveLookupNon200Non404Non429ReturnsNotFound(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(500);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNull($result);
+
+        $apiMessage = $this->provider->getLastApiMessage();
+        self::assertSame('not_found', $apiMessage['status']);
+    }
+
+    /**
+     * Teste que seul le premier editeur est utilise quand il y en a plusieurs.
+     */
+    public function testResolveLookupMultiplePublishersUsesFirst(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willReturn([
+            'publishers' => ['Glenat', 'Kana', 'Delcourt'],
+            'title' => 'Test',
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('Glenat', $result->publisher);
+    }
+
+    /**
+     * Teste que seule la premiere couverture est utilisee quand il y en a plusieurs.
+     */
+    public function testResolveLookupMultipleCoversUsesFirst(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willReturn([
+            'covers' => [11111, 22222, 33333],
+            'title' => 'Test',
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('https://covers.openlibrary.org/b/id/11111-M.jpg', $result->thumbnail);
+    }
+
+    /**
+     * Teste publishedDate null quand publish_date est absent.
+     */
+    public function testResolveLookupMissingPublishDateReturnsNull(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willReturn([
+            'publishers' => ['Kana'],
+            'title' => 'Test',
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->publishedDate);
+    }
+
+    /**
      * Teste resolveLookup avec plusieurs auteurs en parallele.
      */
     public function testResolveLookupMultipleAuthorsParallel(): void

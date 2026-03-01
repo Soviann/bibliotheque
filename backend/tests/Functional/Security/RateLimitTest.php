@@ -30,10 +30,14 @@ final class RateLimitTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $container = static::getContainer();
+        $em = $container->get(EntityManagerInterface::class);
+
+        // Réinitialiser le rate limiter pour éviter les 429 entre tests
+        $container->get('cache.rate_limiter')->clear();
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = $container->get(UserRepository::class);
 
         if (null === $userRepo->findOneBy(['email' => 'test@example.com'])) {
             $user = EntityFactory::createUser();

@@ -2,11 +2,27 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
+import { toast } from "sonner";
 import { useServiceWorker } from "../../../hooks/useServiceWorker";
 import { createTestQueryClient } from "../../helpers/test-utils";
 
-// The hook imports from "virtual:pwa-register" which is mocked in vitest config
-// via src/__mocks__/virtual-pwa-register.ts
+vi.mock("sonner", async () => {
+  const actual = await vi.importActual("sonner");
+  return {
+    ...actual,
+    toast: Object.assign(vi.fn(), {
+      error: vi.fn(),
+      info: vi.fn(),
+      success: vi.fn(),
+    }),
+  };
+});
+
+// Mock virtual:pwa-register with a vi.fn so we can override per-test
+const mockRegisterSW = vi.fn(() => () => {});
+vi.mock("virtual:pwa-register", () => ({
+  registerSW: mockRegisterSW,
+}));
 
 function createWrapper() {
   const queryClient = createTestQueryClient();
@@ -132,6 +148,49 @@ describe("useServiceWorker", () => {
         ports: [],
       } as unknown as MessageEvent);
     }).not.toThrow();
+  });
+
+  it("calls toast when onNeedRefresh is triggered", async () => {
+    mockRegisterSW.mockImplementationOnce((options?: { onNeedRefresh?: () => void }) => {
+      options?.onNeedRefresh?.();
+      return () => {};
+    });
+
+    renderHook(() => useServiceWorker(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith(
+        "Nouvelle version disponible",
+        expect.objectContaining({
+          action: expect.objectContaining({ label: "Recharger" }),
+          duration: Infinity,
+        }),
+      );
+    });
+  });
+
+  it("does not post message for non-matching message type", async () => {
+    renderHook(() => useServiceWorker(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(addEventListenerSpy).toHaveBeenCalled();
+    });
+
+    const messageHandler = addEventListenerSpy.mock.calls.find(
+      (call: [string, unknown]) => call[0] === "message",
+    )?.[1] as (event: MessageEvent) => void;
+
+    const mockPort = { postMessage: vi.fn() };
+    messageHandler({
+      data: { type: "other" },
+      ports: [mockPort],
+    } as unknown as MessageEvent);
+
+    expect(mockPort.postMessage).not.toHaveBeenCalled();
   });
 
   it("responds with null token when no token is stored", async () => {

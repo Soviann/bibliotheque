@@ -207,6 +207,38 @@ describe("apiFetch", () => {
     expect(result).toBeUndefined();
   });
 
+  it("merges custom headers from options", async () => {
+    let capturedHeaders: Headers | undefined;
+
+    server.use(
+      http.get("/api/test", ({ request }) => {
+        capturedHeaders = request.headers;
+        return HttpResponse.json({ data: "ok" });
+      }),
+    );
+
+    await apiFetch("/test", {
+      headers: { "X-Custom-Header": "custom-value" },
+    });
+
+    expect(capturedHeaders?.get("X-Custom-Header")).toBe("custom-value");
+    // Default headers should still be present
+    expect(capturedHeaders?.get("Accept")).toBe("application/ld+json");
+  });
+
+  it("falls back to generic error when non-OK response has non-JSON body", async () => {
+    server.use(
+      http.get("/api/test", () =>
+        new HttpResponse("not json", {
+          headers: { "Content-Type": "text/plain" },
+          status: 500,
+        }),
+      ),
+    );
+
+    await expect(apiFetch("/test")).rejects.toThrow("Erreur 500");
+  });
+
   it("does not set Content-Type for FormData body", async () => {
     let capturedContentType: string | null = null;
 

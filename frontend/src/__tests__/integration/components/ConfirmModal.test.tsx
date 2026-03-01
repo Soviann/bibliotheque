@@ -57,4 +57,15 @@ describe("ConfirmModal", () => {
 
     expect(screen.queryByText("Confirmer la suppression")).not.toBeInTheDocument();
   });
+
+  it("closes modal when Escape key is pressed", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ConfirmModal {...defaultProps} />);
+
+    expect(screen.getByText("Confirmer la suppression")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+
+    expect(defaultProps.onClose).toHaveBeenCalledOnce();
+  });
 });

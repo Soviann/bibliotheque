@@ -3,7 +3,12 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { useLookupIsbn, useLookupTitle } from "../../../hooks/useLookup";
+import {
+  fetchLookupIsbn,
+  fetchLookupTitle,
+  useLookupIsbn,
+  useLookupTitle,
+} from "../../../hooks/useLookup";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import { createMockLookupResult } from "../../helpers/factories";
 import { server } from "../../helpers/server";
@@ -115,6 +120,31 @@ describe("useLookupIsbn", () => {
   });
 });
 
+describe("useLookupIsbn — without type parameter", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("does not include type parameter in URL when type is not provided", async () => {
+    let capturedUrl = "";
+
+    server.use(
+      http.get("/api/lookup/isbn", ({ request }) => {
+        capturedUrl = new URL(request.url).search;
+        return HttpResponse.json(createMockLookupResult({ title: "No Type" }));
+      }),
+    );
+
+    const { result } = renderHook(() => useLookupIsbn("9781234567890"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(capturedUrl).not.toContain("type=");
+  });
+});
+
 describe("useLookupTitle", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -162,5 +192,65 @@ describe("useLookupTitle", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(result.current.error?.message).toBe("Server error");
+  });
+
+  it("includes type parameter in URL when type is provided", async () => {
+    let capturedUrl = "";
+
+    server.use(
+      http.get("/api/lookup/title", ({ request }) => {
+        capturedUrl = new URL(request.url).search;
+        return HttpResponse.json(createMockLookupResult({ title: "Naruto" }));
+      }),
+    );
+
+    const { result } = renderHook(() => useLookupTitle("Naruto", "manga"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(capturedUrl).toContain("type=manga");
+  });
+});
+
+describe("fetchLookupIsbn", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("returns lookup result imperatively by ISBN", async () => {
+    const lookupResult = createMockLookupResult({
+      isbn: "9781234567890",
+      title: "Imperative ISBN",
+    });
+
+    server.use(
+      http.get("/api/lookup/isbn", () => HttpResponse.json(lookupResult)),
+    );
+
+    const result = await fetchLookupIsbn("9781234567890");
+
+    expect(result.title).toBe("Imperative ISBN");
+  });
+});
+
+describe("fetchLookupTitle", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("returns lookup result imperatively by title", async () => {
+    const lookupResult = createMockLookupResult({
+      title: "Imperative Title",
+    });
+
+    server.use(
+      http.get("/api/lookup/title", () => HttpResponse.json(lookupResult)),
+    );
+
+    const result = await fetchLookupTitle("Imperative");
+
+    expect(result.title).toBe("Imperative Title");
   });
 });

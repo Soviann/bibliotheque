@@ -4,9 +4,15 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useDeleteComic } from "../../../hooks/useDeleteComic";
+import { enqueue } from "../../../services/offlineQueue";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import { createMockHydraCollection } from "../../helpers/factories";
 import { server } from "../../helpers/server";
+
+vi.mock("../../../services/offlineQueue", () => ({
+  enqueue: vi.fn().mockResolvedValue(1),
+  getPendingCount: vi.fn().mockResolvedValue(0),
+}));
 
 function createWrapper(queryClient = createTestQueryClient()) {
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -93,5 +99,39 @@ describe("useDeleteComic", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(result.current.error?.message).toBe("Forbidden");
+  });
+
+  it("enqueues mutation with correct resourceId when offline", async () => {
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
+
+    Object.defineProperty(navigator, "serviceWorker", {
+      configurable: true,
+      value: {
+        ready: Promise.resolve({ sync: { register: vi.fn() } }),
+      },
+      writable: true,
+    });
+
+    const { result } = renderHook(() => useDeleteComic(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({ id: 5 });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "delete",
+        resourceId: "5",
+        resourceType: "comic_series",
+      }),
+    );
   });
 });

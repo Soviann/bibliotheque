@@ -79,4 +79,50 @@ describe("Login", () => {
       expect(screen.getByText("Email non autorisé")).toBeInTheDocument();
     });
   });
+
+  it("does not call login when credential is undefined", async () => {
+    let loginCalled = false;
+
+    server.use(
+      http.post("/api/login/google", () => {
+        loginCalled = true;
+        return HttpResponse.json({ token: "jwt" });
+      }),
+    );
+
+    renderWithProviders(<Login />);
+
+    const { act } = await import("@testing-library/react");
+    await act(async () => {
+      // Trigger onSuccess with undefined credential
+      mockOnSuccess?.({ credential: undefined } as unknown as { credential: string });
+    });
+
+    // Give a tick for any potential async call
+    await new Promise((r) => setTimeout(r, 50));
+    expect(loginCalled).toBe(false);
+  });
+
+  it("shows loading state while login is pending", async () => {
+    // Use a handler that delays response to keep loginPending=true
+    server.use(
+      http.post("/api/login/google", async () => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        return HttpResponse.json({ token: "jwt" });
+      }),
+    );
+
+    renderWithProviders(<Login />);
+
+    const { act } = await import("@testing-library/react");
+    // Trigger onSuccess but don't await the full mutation
+    act(() => {
+      mockOnSuccess?.({ credential: "valid-google-token" });
+    });
+
+    // The mutation is now in-flight, so isPending should be true
+    await waitFor(() => {
+      expect(screen.getByText("Connexion…")).toBeInTheDocument();
+    });
+  });
 });

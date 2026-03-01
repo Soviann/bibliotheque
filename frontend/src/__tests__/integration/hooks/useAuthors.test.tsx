@@ -96,4 +96,26 @@ describe("useAuthors", () => {
 
     expect(result.current.data?.member).toHaveLength(0);
   });
+
+  it("properly encodes special characters in search URL", async () => {
+    let capturedUrl = "";
+
+    server.use(
+      http.get("/api/authors", ({ request }) => {
+        capturedUrl = request.url;
+        return HttpResponse.json(
+          createMockHydraCollection([], "/api/authors"),
+        );
+      }),
+    );
+
+    const { result } = renderHook(() => useAuthors("Oda & Friends"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const url = new URL(capturedUrl);
+    expect(url.searchParams.get("name")).toBe("Oda & Friends");
+  });
 });

@@ -77,4 +77,17 @@ describe("useOnlineStatus", () => {
 
     expect(result.current).toBe(true);
   });
+
+  it("removes event listeners on unmount", () => {
+    const removeSpy = vi.spyOn(window, "removeEventListener");
+
+    const { unmount } = renderHook(() => useOnlineStatus());
+
+    unmount();
+
+    expect(removeSpy).toHaveBeenCalledWith("online", expect.any(Function));
+    expect(removeSpy).toHaveBeenCalledWith("offline", expect.any(Function));
+
+    removeSpy.mockRestore();
+  });
 });

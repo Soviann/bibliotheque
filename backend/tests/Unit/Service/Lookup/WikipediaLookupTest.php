@@ -15,6 +15,7 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -853,6 +854,596 @@ final class WikipediaLookupTest extends TestCase
         self::assertNotNull($result);
         self::assertSame('Serie Par ISBN', $result->title);
         self::assertSame('wikipedia', $result->source);
+    }
+
+    /**
+     * Teste prepareEnrich retourne null quand le titre est null.
+     */
+    public function testPrepareEnrichReturnsNullForNullTitle(): void
+    {
+        $partial = new LookupResult(source: 'test');
+
+        $state = $this->provider->prepareEnrich($partial, ComicType::MANGA);
+
+        self::assertNull($state);
+    }
+
+    /**
+     * Teste prepareEnrich retourne null quand le titre est vide.
+     */
+    public function testPrepareEnrichReturnsNullForEmptyTitle(): void
+    {
+        $partial = new LookupResult(title: '', source: 'test');
+
+        $state = $this->provider->prepareEnrich($partial, ComicType::MANGA);
+
+        self::assertNull($state);
+    }
+
+    /**
+     * Teste prepareLookup avec cache corrompue (non-LookupResult) → passe a la requete HTTP.
+     */
+    public function testPrepareLookupCorruptedCacheFallsThrough(): void
+    {
+        $cacheItem = $this->createCacheItem('test_key', 'corrupted_string', true);
+        $this->cache->method('getItem')->willReturn($cacheItem);
+
+        $response = $this->createMock(ResponseInterface::class);
+
+        $this->httpClient->expects(self::once())
+            ->method('request')
+            ->willReturn($response);
+
+        $state = $this->provider->prepareLookup('Test', ComicType::MANGA, 'title');
+
+        self::assertIsArray($state);
+        self::assertSame('title', $state['mode']);
+    }
+
+    /**
+     * Teste resolveEnrich retourne null quand l'etat est null.
+     */
+    public function testResolveEnrichReturnsNullForNullState(): void
+    {
+        $result = $this->provider->resolveEnrich(null);
+
+        self::assertNull($result);
+    }
+
+    /**
+     * Teste resolveLookup en cas de RedirectionExceptionInterface non-429.
+     */
+    public function testResolveLookupRedirectionException(): void
+    {
+        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse->method('getStatusCode')->willReturn(301);
+
+        $exception = new class ('Redirect', $innerResponse) extends \RuntimeException implements RedirectionExceptionInterface {
+            public function __construct(
+                string $message,
+                private readonly ResponseInterface $response,
+            ) {
+                parent::__construct($message);
+            }
+
+            public function getResponse(): ResponseInterface
+            {
+                return $this->response;
+            }
+        };
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('toArray')->willThrowException($exception);
+
+        $this->logger->expects(self::once())->method('warning');
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $response,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNull($result);
+
+        $apiMessage = $this->provider->getLastApiMessage();
+        self::assertSame('error', $apiMessage['status']);
+        self::assertStringContainsString('301', $apiMessage['message']);
+    }
+
+    /**
+     * Teste extractEntityId retourne null avec une claim malformee (mainsnak/datavalue/value.id absents).
+     */
+    public function testExtractEntityIdWithMalformedClaimReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_MALFORMED']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_MALFORMED' => [
+                    'claims' => [
+                        'P31' => [
+                            ['mainsnak' => ['datavalue' => ['value' => 'not-an-array']]],
+                        ],
+                    ],
+                    'labels' => ['fr' => ['value' => 'Test']],
+                    'sitelinks' => [],
+                ],
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        // P31 IDs will be empty → no relevant P31 → null result
+        self::assertNull($result);
+    }
+
+    /**
+     * Teste extractPublishedDate retourne null quand time n'est pas une string.
+     */
+    public function testExtractPublishedDateNonStringTimeReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_BADDATE']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_BADDATE' => [
+                    'claims' => [
+                        'P31' => [
+                            ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q21198342']]]],
+                        ],
+                        'P577' => [
+                            ['mainsnak' => ['datavalue' => ['value' => ['time' => 12345]]]],
+                        ],
+                    ],
+                    'labels' => ['fr' => ['value' => 'Test']],
+                    'sitelinks' => [],
+                ],
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->publishedDate);
+    }
+
+    /**
+     * Teste extractPublishedDate retourne null avec une chaine time malformee.
+     */
+    public function testExtractPublishedDateMalformedTimeStringReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_MALTIME']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_MALTIME' => [
+                    'claims' => [
+                        'P31' => [
+                            ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q21198342']]]],
+                        ],
+                        'P577' => [
+                            ['mainsnak' => ['datavalue' => ['value' => ['time' => 'not-a-date']]]],
+                        ],
+                    ],
+                    'labels' => ['fr' => ['value' => 'Test']],
+                    'sitelinks' => [],
+                ],
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->publishedDate);
+    }
+
+    /**
+     * Teste getP31Ids retourne un tableau vide quand P31 n'est pas un tableau.
+     */
+    public function testGetP31IdsNonArrayClaimsReturnsEmpty(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_NONARRAY_P31']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_NONARRAY_P31' => [
+                    'claims' => [
+                        'P31' => 'not-an-array',
+                    ],
+                    'labels' => ['fr' => ['value' => 'Test']],
+                    'sitelinks' => [],
+                ],
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        // P31 non-array → empty p31Ids → null result (no relevant P31)
+        self::assertNull($result);
+    }
+
+    /**
+     * Teste getP31Ids ignore les claims individuelles non-array.
+     */
+    public function testGetP31IdsSkipsNonArrayIndividualClaim(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_MIXED_P31']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_MIXED_P31' => [
+                    'claims' => [
+                        'P31' => [
+                            'not-an-array-claim',
+                            ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q21198342']]]],
+                        ],
+                    ],
+                    'labels' => ['fr' => ['value' => 'Valid After Skip']],
+                    'sitelinks' => [],
+                ],
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertSame('Valid After Skip', $result->title);
+    }
+
+    /**
+     * Teste resolveIsbnLookup retourne NOT_FOUND quand entityId est vide.
+     */
+    public function testResolveIsbnLookupEmptyEntityIdReturnsNotFound(): void
+    {
+        $sparqlResponse = $this->createMock(ResponseInterface::class);
+        $sparqlResponse->method('toArray')->willReturn([
+            'results' => [
+                'bindings' => [
+                    ['item' => ['value' => '']],
+                ],
+            ],
+        ]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'isbn',
+            'response' => $sparqlResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNull($result);
+
+        $apiMessage = $this->provider->getLastApiMessage();
+        self::assertSame('not_found', $apiMessage['status']);
+    }
+
+    /**
+     * Teste resolveEntity retourne null quand l'entite fetched n'est pas un tableau.
+     */
+    public function testResolveEntityNonArrayEntityReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_NONARRAY']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_NONARRAY' => 'not-an-array',
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNull($result);
+    }
+
+    /**
+     * Teste edition (Q3331189) sans P629 valide → retourne null (pas de fallthrough vers extractFromEntity).
+     */
+    public function testResolveEntityEditionWithNoValidP629ReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_EDITION_NO_P629']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_EDITION_NO_P629' => [
+                    'claims' => [
+                        'P31' => [
+                            ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q3331189']]]],
+                        ],
+                        'P629' => [
+                            ['mainsnak' => ['datavalue' => ['value' => 'not-an-array']]],
+                        ],
+                    ],
+                    'labels' => ['fr' => ['value' => 'Edition sans oeuvre']],
+                    'sitelinks' => [],
+                ],
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        // Edition P31 = Q3331189 (not in RELEVANT_P31) → extractFromEntity returns null
+        self::assertNull($result);
+    }
+
+    /**
+     * Teste resolveEntityLabel retourne null quand toutes les claims sont non-array.
+     */
+    public function testResolveEntityLabelAllNonArrayClaimsReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_BAD_AUTHOR']],
+        ]);
+
+        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse->method('toArray')->willReturn([
+            'entities' => [
+                'Q_BAD_AUTHOR' => [
+                    'claims' => [
+                        'P31' => [
+                            ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q21198342']]]],
+                        ],
+                        'P50' => [
+                            'not-an-array',
+                            42,
+                        ],
+                    ],
+                    'labels' => ['fr' => ['value' => 'Test']],
+                    'sitelinks' => [],
+                ],
+            ],
+        ]);
+
+        $this->httpClient->method('request')->willReturn($entityResponse);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->authors);
+    }
+
+    /**
+     * Teste resolveEntityLabel retourne null quand l'entite associee est absente.
+     */
+    public function testResolveEntityLabelMissingRelatedEntityReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_MISSING_REL']],
+        ]);
+
+        $requestCount = 0;
+        $this->httpClient->method('request')->willReturnCallback(
+            function () use (&$requestCount): ResponseInterface {
+                ++$requestCount;
+                $response = $this->createMock(ResponseInterface::class);
+
+                if (1 === $requestCount) {
+                    // Premiere requete : l'entite principale
+                    $response->method('toArray')->willReturn([
+                        'entities' => [
+                            'Q_MISSING_REL' => [
+                                'claims' => [
+                                    'P31' => [
+                                        ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q21198342']]]],
+                                    ],
+                                    'P50' => [
+                                        ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q_NONEXISTENT']]]],
+                                    ],
+                                ],
+                                'labels' => ['fr' => ['value' => 'Test']],
+                                'sitelinks' => [],
+                            ],
+                        ],
+                    ]);
+                } else {
+                    // Deuxieme requete : l'entite auteur n'existe pas
+                    $response->method('toArray')->willReturn([
+                        'entities' => [],
+                    ]);
+                }
+
+                return $response;
+            }
+        );
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->authors);
+    }
+
+    /**
+     * Teste resolveEntityLabel retourne null quand la valeur du label n'est pas une string.
+     */
+    public function testResolveEntityLabelNonStringValueReturnsNull(): void
+    {
+        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse->method('toArray')->willReturn([
+            'search' => [['id' => 'Q_BAD_LABEL']],
+        ]);
+
+        $requestCount = 0;
+        $this->httpClient->method('request')->willReturnCallback(
+            function () use (&$requestCount): ResponseInterface {
+                ++$requestCount;
+                $response = $this->createMock(ResponseInterface::class);
+
+                if (1 === $requestCount) {
+                    $response->method('toArray')->willReturn([
+                        'entities' => [
+                            'Q_BAD_LABEL' => [
+                                'claims' => [
+                                    'P31' => [
+                                        ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q21198342']]]],
+                                    ],
+                                    'P50' => [
+                                        ['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q_AUTHOR']]]],
+                                    ],
+                                ],
+                                'labels' => ['fr' => ['value' => 'Test']],
+                                'sitelinks' => [],
+                            ],
+                        ],
+                    ]);
+                } else {
+                    // Auteur avec label non-string
+                    $response->method('toArray')->willReturn([
+                        'entities' => [
+                            'Q_AUTHOR' => [
+                                'claims' => [],
+                                'labels' => ['fr' => ['value' => 12345]],
+                            ],
+                        ],
+                    ]);
+                }
+
+                return $response;
+            }
+        );
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $state = [
+            'cacheKey' => 'test_key',
+            'mode' => 'title',
+            'response' => $searchResponse,
+        ];
+
+        $result = $this->provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->authors);
     }
 
     /**

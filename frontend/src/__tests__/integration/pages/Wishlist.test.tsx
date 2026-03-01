@@ -162,4 +162,50 @@ describe("Wishlist", () => {
     expect(screen.getByText("Naruto")).toBeInTheDocument();
     expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
   });
+
+  it("applies combined search + type filter simultaneously", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, status: ComicStatus.WISHLIST, title: "Naruto", type: ComicType.MANGA }),
+      createMockComicSeries({ id: 2, status: ComicStatus.WISHLIST, title: "Dragon Ball", type: ComicType.MANGA }),
+      createMockComicSeries({ id: 3, status: ComicStatus.WISHLIST, title: "Tintin", type: ComicType.BD }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Wishlist />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    // Apply type filter first
+    await user.click(screen.getByText("Tous les types"));
+    await user.click(screen.getByText("Manga"));
+
+    // Then search within the filtered results
+    await user.type(screen.getByPlaceholderText("Rechercher…"), "Naruto");
+
+    expect(screen.getByText("Naruto")).toBeInTheDocument();
+    expect(screen.queryByText("Dragon Ball")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
+  });
+
+  it("shows plural 'souhaits' for 0 items", async () => {
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection([])),
+      ),
+    );
+
+    renderWithProviders(<Wishlist />);
+
+    await waitFor(() => {
+      expect(screen.getByText("0 souhaits")).toBeInTheDocument();
+    });
+  });
 });

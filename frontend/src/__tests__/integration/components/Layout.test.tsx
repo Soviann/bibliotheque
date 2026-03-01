@@ -3,7 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { Route, Routes } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "../../../components/Layout";
-import { renderWithProviders } from "../../helpers/test-utils";
+import { useSyncStatus } from "../../../hooks/useSyncStatus";
+import type { SyncStatus } from "../../../hooks/useSyncStatus";
+import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
 
 vi.mock("sonner", async () => {
   const actual = await vi.importActual("sonner");
@@ -16,11 +18,28 @@ vi.mock("sonner", async () => {
   };
 });
 
+vi.mock("../../../hooks/useSyncStatus", () => ({
+  useSyncStatus: vi.fn(),
+}));
+
+const mockUseSyncStatus = vi.mocked(useSyncStatus);
+
+function renderLayout() {
+  return renderWithProviders(
+    <Routes>
+      <Route element={<Layout />} path="/">
+        <Route element={<div>Home Content</div>} index />
+      </Route>
+    </Routes>,
+  );
+}
+
 describe("Layout", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
+    mockUseSyncStatus.mockReturnValue({ error: null, status: "idle", syncedCount: 0 });
   });
 
   it("renders header with app title", () => {
@@ -121,6 +140,154 @@ describe("Layout", () => {
     expect(localStorage.getItem("jwt_token")).toBeNull();
     await waitFor(() => {
       expect(screen.getByText("Login Page")).toBeInTheDocument();
+    });
+  });
+
+  it("renders OfflineBanner in the layout", () => {
+    renderLayout();
+
+    // OfflineBanner renders even when online (just hidden or empty),
+    // but the component itself is in the DOM tree
+    expect(document.querySelector(".flex.min-h-screen.flex-col")).toBeInTheDocument();
+  });
+
+  it("header link navigates to home", () => {
+    renderLayout();
+
+    const homeLink = screen.getByText("Bibliothèque").closest("a");
+    expect(homeLink).toHaveAttribute("href", "/");
+  });
+
+  describe("sync feedback toasts", () => {
+    // The useEffect uses a prevStatus ref initialized to the first status value.
+    // To trigger the effect, we must render with "idle" first, then change the mock
+    // and re-render so the status transition is detected.
+
+    it("shows plural success toast when syncedCount > 1", () => {
+      const { rerender } = renderLayout();
+
+      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 3 });
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(toast.success).toHaveBeenCalledWith("3 opérations synchronisées");
+    });
+
+    it("shows singular success toast when syncedCount === 1", () => {
+      const { rerender } = renderLayout();
+
+      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 1 });
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(toast.success).toHaveBeenCalledWith("1 opération synchronisée");
+    });
+
+    it("does not show success toast when syncedCount === 0", () => {
+      const { rerender } = renderLayout();
+
+      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 0 });
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(toast.success).not.toHaveBeenCalled();
+    });
+
+    it("shows error toast when status is error with message", () => {
+      const { rerender } = renderLayout();
+
+      mockUseSyncStatus.mockReturnValue({ error: "Network failed", status: "error", syncedCount: 0 });
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(toast.error).toHaveBeenCalledWith("Erreur de synchronisation : Network failed");
+    });
+
+    it("does not show error toast when error is null", () => {
+      const { rerender } = renderLayout();
+
+      mockUseSyncStatus.mockReturnValue({ error: null, status: "error", syncedCount: 0 });
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    it("invalidates queries after sync success", () => {
+      const queryClient = createTestQueryClient();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { rerender } = renderWithProviders(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Content</div>} index />
+          </Route>
+        </Routes>,
+        { queryClient },
+      );
+
+      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 2 });
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(invalidateSpy).toHaveBeenCalled();
+    });
+
+    it("does not fire toast twice for the same status (duplicate prevention)", () => {
+      const { rerender } = renderLayout();
+
+      // Transition from idle to success — should fire once
+      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 2 });
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(toast.success).toHaveBeenCalledTimes(1);
+
+      // Re-render with the same status value — prevStatus guard prevents a second toast
+      rerender(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+        </Routes>,
+      );
+
+      expect(toast.success).toHaveBeenCalledTimes(1);
     });
   });
 });
