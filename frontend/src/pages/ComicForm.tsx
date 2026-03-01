@@ -8,7 +8,7 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/react";
-import { ArrowLeft, Check, ChevronDown, Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Layers, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -166,6 +166,10 @@ export default function ComicForm() {
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("title");
   const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(null);
 
+  // Batch add state
+  const [batchFrom, setBatchFrom] = useState(1);
+  const [batchTo, setBatchTo] = useState(1);
+
   const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
   const titleLookup = useLookupTitle(lookupMode === "title" ? lookupTitle : "", form.type);
   const lookupResult = lookupMode === "isbn" ? isbnLookup : titleLookup;
@@ -277,6 +281,20 @@ export default function ComicForm() {
   const addTome = () => {
     const nextNum = form.tomes.length > 0 ? Math.max(...form.tomes.map((t) => t.number)) + 1 : 1;
     update("tomes", [...form.tomes, emptyTome(nextNum)]);
+  };
+
+  const addBatchTomes = () => {
+    if (batchFrom < 1 || batchFrom > batchTo) return;
+    const existingNumbers = new Set(form.tomes.map((t) => t.number));
+    const newTomes: TomeFormData[] = [];
+    for (let n = batchFrom; n <= batchTo; n++) {
+      if (!existingNumbers.has(n)) {
+        newTomes.push(emptyTome(n));
+      }
+    }
+    if (newTomes.length > 0) {
+      update("tomes", [...form.tomes, ...newTomes].sort((a, b) => a.number - b.number));
+    }
   };
 
   const removeTome = (index: number) => {
@@ -673,6 +691,38 @@ export default function ComicForm() {
                 type="button"
               >
                 <Plus className="h-4 w-4" /> Ajouter
+              </button>
+            </div>
+            <div className="mb-3 flex flex-wrap items-end gap-2 rounded-lg border border-surface-border bg-surface-tertiary p-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-text-muted" htmlFor="batch-from">Du tome</label>
+                <input
+                  className="w-16 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
+                  id="batch-from"
+                  min="1"
+                  onChange={(e) => setBatchFrom(Number(e.target.value))}
+                  type="number"
+                  value={batchFrom}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-text-muted" htmlFor="batch-to">au tome</label>
+                <input
+                  className="w-16 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
+                  id="batch-to"
+                  min="1"
+                  onChange={(e) => setBatchTo(Number(e.target.value))}
+                  type="number"
+                  value={batchTo}
+                />
+              </div>
+              <button
+                className="flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                disabled={batchFrom < 1 || batchFrom > batchTo}
+                onClick={addBatchTomes}
+                type="button"
+              >
+                <Layers className="h-4 w-4" /> Générer
               </button>
             </div>
             {/* Mobile: card layout */}
