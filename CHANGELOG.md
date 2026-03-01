@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Toggle inline des tomes** : Checkboxes cliquables directement sur la page détail pour basculer acheté/téléchargé/lu/NAS sans passer par le formulaire d'édition — optimistic update, gestion d'erreur avec revert, support offline (#86)
 - **Skeleton loaders** : Remplacement du texte « Chargement… » par des skeleton placeholders animés sur toutes les pages — grille de cartes (Home/Wishlist), détail série, corbeille, formulaire d'édition (#85)
 - **Tri des séries** : Sélecteur de tri sur les pages Accueil et Liste de souhaits — titre (A→Z/Z→A), date d'ajout (récent/ancien), nombre de tomes (#84)
 - **Mode hors-ligne avec synchronisation différée** : CRUD complet (séries + tomes) en mode offline avec synchronisation automatique au retour en ligne (#3)

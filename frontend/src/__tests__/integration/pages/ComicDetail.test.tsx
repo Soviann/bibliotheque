@@ -508,7 +508,7 @@ describe("ComicDetail", () => {
     expect(screen.queryByText(/Tomes \(/)).not.toBeInTheDocument();
   });
 
-  it("shows checkmarks for tome downloaded and onNas fields", async () => {
+  it("shows checked checkboxes for tome downloaded and onNas fields", async () => {
     const tomes = [
       createMockTome({ downloaded: true, id: 1, number: 1, onNas: true, title: "Full Tome" }),
     ];
@@ -527,12 +527,10 @@ describe("ComicDetail", () => {
       expect(screen.getByText("Full Tome")).toBeInTheDocument();
     });
 
-    // The row should contain checkmarks for downloaded and onNas
-    const row = screen.getByText("Full Tome").closest("tr")!;
-    const cells = row.querySelectorAll("td");
-    // Columns: #, Title, Acheté, Téléchargé, Lu, NAS
-    expect(cells[3].textContent).toBe("✓"); // Téléchargé (downloaded)
-    expect(cells[5].textContent).toBe("✓"); // NAS (onNas)
+    expect(screen.getByRole("checkbox", { name: /tome 1.*téléchargé/i })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /tome 1.*nas/i })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /tome 1.*acheté/i })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /tome 1.*lu/i })).not.toBeChecked();
   });
 
   it("shows success toast after delete confirmation", async () => {

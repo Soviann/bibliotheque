@@ -97,7 +97,7 @@ Si la série n'est pas un one-shot, la liste des tomes s'affiche avec pour chaqu
 - Numéro
 - Titre (optionnel)
 - ISBN (optionnel)
-- Indicateurs : Acheté, Téléchargé, Sur le NAS, Lu
+- Cases à cocher interactives : Acheté, Téléchargé, Lu, NAS — un clic bascule le statut directement (mise à jour optimiste, support hors-ligne)
 
 ### Actions disponibles
 
