@@ -122,6 +122,84 @@ describe("ComicCard", () => {
     expect(onDelete).toHaveBeenCalledWith(comic);
   });
 
+  it("shows progress text when latestPublishedIssue is set", () => {
+    const comic = createMockComicSeries({
+      isOneShot: false,
+      latestPublishedIssue: 24,
+      title: "Naruto",
+      tomes: [
+        createMockTome({ bought: true }),
+        createMockTome({ bought: true }),
+        createMockTome({ bought: false }),
+      ],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.getByText(/2\s*\/\s*24/)).toBeInTheDocument();
+  });
+
+  it("shows progress bar when latestPublishedIssue is set", () => {
+    const comic = createMockComicSeries({
+      isOneShot: false,
+      latestPublishedIssue: 10,
+      title: "One Piece",
+      tomes: [
+        createMockTome({ bought: true }),
+        createMockTome({ bought: true }),
+        createMockTome({ bought: true }),
+      ],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    const progressBar = screen.getByRole("progressbar");
+    expect(progressBar).toHaveAttribute("aria-valuenow", "3");
+    expect(progressBar).toHaveAttribute("aria-valuemax", "10");
+  });
+
+  it("uses tome count as total when latestPublishedIssue is null", () => {
+    const comic = createMockComicSeries({
+      isOneShot: false,
+      latestPublishedIssue: null,
+      title: "Unknown Total",
+      tomes: [
+        createMockTome({ bought: true }),
+        createMockTome({ bought: false }),
+      ],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.getByText(/1\s*\/\s*2/)).toBeInTheDocument();
+  });
+
+  it("does not show progress for oneshot series", () => {
+    const comic = createMockComicSeries({
+      isOneShot: true,
+      latestPublishedIssue: 1,
+      title: "Single",
+      tomes: [createMockTome({ bought: true })],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("does not show progress when no tomes", () => {
+    const comic = createMockComicSeries({
+      isOneShot: false,
+      latestPublishedIssue: null,
+      title: "Empty",
+      tomes: [],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
   it("has an edit button that navigates to edit page", async () => {
     const user = userEvent.setup();
     const comic = createMockComicSeries({ id: 5, title: "Test" });

@@ -2,6 +2,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel } from "../types/enums";
+import ProgressBar from "./ProgressBar";
 
 interface ComicCardProps {
   comic: ComicSeries;
@@ -12,6 +13,9 @@ export default function ComicCard({ comic, onDelete }: ComicCardProps) {
   const navigate = useNavigate();
   const coverSrc = comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : null);
   const tomeCount = comic.tomes?.length ?? 0;
+  const boughtCount = comic.tomes?.filter((t) => t.bought).length ?? 0;
+  const total = comic.latestPublishedIssue ?? tomeCount;
+  const showProgress = !comic.isOneShot && tomeCount > 0;
 
   return (
     <Link
@@ -35,6 +39,12 @@ export default function ComicCard({ comic, onDelete }: ComicCardProps) {
           {ComicTypeLabel[comic.type]}
           {!comic.isOneShot && ` · ${tomeCount} t.`}
         </p>
+
+        {showProgress && (
+          <div className="mt-1.5">
+            <ProgressBar compact current={boughtCount} label="Progression d'achat" total={total} />
+          </div>
+        )}
 
         {/* Actions */}
         <div className="mt-2 flex gap-1 border-t border-surface-border pt-2">

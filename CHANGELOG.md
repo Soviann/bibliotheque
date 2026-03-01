@@ -13,6 +13,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Indicateur de progression de collection** : Barre de progression achetés/total sur les cartes (ComicCard) et barres détaillées achetés/lus/téléchargés sur la page détail (ComicDetail). Total basé sur `latestPublishedIssue` ou nombre de tomes (#90)
 - **Recherche par auteur et éditeur** : La barre de recherche (Accueil + Liste de souhaits) filtre désormais sur le titre, les auteurs et l'éditeur avec recherche floue tolérante aux fautes de frappe via Fuse.js (#89)
 - **Ajout de tomes en lot** : Inputs « Du tome X au tome Y » avec bouton « Générer » dans le formulaire de série — création en lot avec numéros pré-remplis, ignore les numéros déjà existants, tri automatique (#88)
 - **Toggle inline des tomes** : Checkboxes cliquables directement sur la page détail pour basculer acheté/téléchargé/lu/NAS sans passer par le formulaire d'édition — optimistic update, gestion d'erreur avec revert, support offline (#86)
