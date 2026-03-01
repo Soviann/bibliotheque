@@ -38,6 +38,7 @@
     "@vitest/coverage-v8": "^4.0",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^28.0",
+    "msw": "^2.12.10",
     "tailwindcss": "^4.1",
     "typescript": "~5.9",
     "vite": "^7.2",
