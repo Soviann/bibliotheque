@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import ComicCard from "../components/ComicCard";
@@ -32,6 +32,10 @@ export default function Home() {
 
   const [search, setSearch] = useState(searchParam);
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
+
+  useEffect(() => {
+    setSearch(searchParam);
+  }, [searchParam]);
 
   const updateParam = useCallback(
     (key: string, value: string) => {
