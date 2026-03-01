@@ -1,4 +1,4 @@
-import { sortComics } from "../../../utils/sortComics";
+import { sortComics, type SortOption } from "../../../utils/sortComics";
 import { createMockComicSeries, createMockTome } from "../../helpers/factories";
 
 describe("sortComics", () => {
@@ -90,8 +90,12 @@ describe("sortComics", () => {
       createMockComicSeries({ id: 2, title: "Astérix" }),
     ];
 
-    const result = sortComics(comics, "unknown");
+    const result = sortComics(comics, "unknown" as SortOption);
 
     expect(result.map((c) => c.title)).toEqual(["Astérix", "Zelda"]);
+  });
+
+  it("returns empty array for empty input", () => {
+    expect(sortComics([], "title-asc")).toEqual([]);
   });
 });

@@ -11,13 +11,14 @@ import {
   ComicType,
   ComicTypeLabel,
 } from "../types/enums";
+import type { SortOption } from "../utils/sortComics";
 
 interface FiltersProps {
   hideStatus?: boolean;
-  onSortChange: (sort: string) => void;
+  onSortChange: (sort: SortOption) => void;
   onStatusChange: (status: string) => void;
   onTypeChange: (type: string) => void;
-  sort: string;
+  sort: SortOption;
   status: string;
   type: string;
 }
@@ -111,7 +112,7 @@ export default function Filters({
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <SelectListbox onChange={onSortChange} options={sortOptions} value={sort} />
+        <SelectListbox onChange={(v) => onSortChange(v as SortOption)} options={sortOptions} value={sort} />
       </div>
     </div>
   );

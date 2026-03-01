@@ -1,10 +1,12 @@
 import type { ComicSeries } from "../types/api";
 
-export function sortComics(comics: ComicSeries[], sort: string): ComicSeries[] {
+export type SortOption = "createdAt-asc" | "createdAt-desc" | "title-asc" | "title-desc" | "tomes-asc" | "tomes-desc";
+
+export function sortComics(comics: ComicSeries[], sort: SortOption): ComicSeries[] {
   const sorted = [...comics];
   switch (sort) {
     case "title-desc":
-      return sorted.sort((a, b) => b.title.localeCompare(a.title));
+      return sorted.sort((a, b) => b.title.localeCompare(a.title, "fr"));
     case "createdAt-desc":
       return sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     case "createdAt-asc":
@@ -14,6 +16,6 @@ export function sortComics(comics: ComicSeries[], sort: string): ComicSeries[] {
     case "tomes-asc":
       return sorted.sort((a, b) => (a.tomes?.length ?? 0) - (b.tomes?.length ?? 0));
     default: // title-asc
-      return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      return sorted.sort((a, b) => a.title.localeCompare(b.title, "fr"));
   }
 }

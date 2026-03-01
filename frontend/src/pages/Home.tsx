@@ -8,10 +8,11 @@ import { useComics } from "../hooks/useComics";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import type { ComicSeries } from "../types/api";
 import { sortComics } from "../utils/sortComics";
+import type { SortOption } from "../utils/sortComics";
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("title-asc");
+  const [sort, setSort] = useState<SortOption>("title-asc");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);

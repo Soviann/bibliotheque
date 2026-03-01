@@ -5,10 +5,11 @@ import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { ComicStatus } from "../types/enums";
 import { sortComics } from "../utils/sortComics";
+import type { SortOption } from "../utils/sortComics";
 
 export default function Wishlist() {
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("title-asc");
+  const [sort, setSort] = useState<SortOption>("title-asc");
   const [type, setType] = useState("");
 
   const { data, isLoading } = useComics();
