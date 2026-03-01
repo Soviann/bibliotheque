@@ -218,6 +218,25 @@ describe("ComicForm", () => {
       expect(screen.getByLabelText("Description")).toHaveValue("A great series");
     });
 
+    it("shows empty string in latestPublishedIssue field when comic has null value", async () => {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({ id: 1, latestPublishedIssue: null, title: "No Issue" }),
+          ),
+        ),
+      );
+
+      renderEditForm();
+
+      await waitFor(() => {
+        expect(screen.getByLabelText("Titre *")).toHaveValue("No Issue");
+      });
+
+      const field = screen.getByLabelText("Dernier tome paru") as HTMLInputElement;
+      expect(field).toHaveValue(null);
+    });
+
     it("renders save button instead of create", async () => {
       server.use(
         http.get("/api/comic_series/1", () =>
@@ -401,6 +420,52 @@ describe("ComicForm", () => {
       expect(screen.getByLabelText("Description")).toHaveValue("Chained description");
     });
 
+    it("ISBN lookup with empty title applies result directly without title lookup", async () => {
+      const user = userEvent.setup();
+
+      const isbnResult = createMockLookupResult({
+        isbn: "9781234567890",
+        publisher: "DirectPub",
+        thumbnail: "https://example.com/cover.jpg",
+        title: "",
+      });
+
+      let titleLookupCalled = false;
+      server.use(
+        http.get("/api/lookup/isbn", () => HttpResponse.json(isbnResult)),
+        http.get("/api/lookup/title", () => {
+          titleLookupCalled = true;
+          return HttpResponse.json(createMockLookupResult({ title: "Should Not Be Called" }));
+        }),
+      );
+
+      renderCreateForm();
+
+      // Switch to ISBN mode
+      const isbnButtons = screen.getAllByText("ISBN");
+      const isbnToggle = isbnButtons.find((el) => el.tagName === "BUTTON")!;
+      await user.click(isbnToggle);
+
+      await user.type(screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"), "9781234567890");
+
+      await waitFor(() => {
+        expect(screen.getByText("Appliquer")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("Appliquer"));
+
+      // Publisher should be applied directly from ISBN result
+      await waitFor(() => {
+        expect(screen.getByLabelText("Éditeur")).toHaveValue("DirectPub");
+      });
+      // Title lookup must NOT have been called
+      expect(titleLookupCalled).toBe(false);
+      // Toast for direct apply
+      await waitFor(() => {
+        expect(screen.getByText("Informations récupérées")).toBeInTheDocument();
+      });
+    });
+
     it("falls back to ISBN result when title lookup fails after ISBN lookup", async () => {
       const user = userEvent.setup();
 
@@ -437,6 +502,39 @@ describe("ComicForm", () => {
         expect(screen.getByLabelText("Titre *")).toHaveValue("Fallback Title");
       });
       expect(screen.getByLabelText("Éditeur")).toHaveValue("ISBN-Only Pub");
+    });
+
+    it("applies isOneShot=true from lookup result and checks the oneshot checkbox", async () => {
+      const user = userEvent.setup();
+
+      const lookupResult = createMockLookupResult({
+        isOneShot: true,
+        title: "One Shot Series",
+      });
+
+      server.use(
+        http.get("/api/lookup/title", () => HttpResponse.json(lookupResult)),
+      );
+
+      renderCreateForm();
+
+      const lookupInput = screen.getByPlaceholderText("Titre de la série");
+      await user.type(lookupInput, "One Shot Series");
+
+      await waitFor(() => {
+        expect(screen.getByText("Appliquer")).toBeInTheDocument();
+      });
+
+      // Oneshot checkbox should be unchecked before applying
+      const oneshotCheckbox = screen.getByRole("checkbox", { name: /One-shot/ }) as HTMLInputElement;
+      expect(oneshotCheckbox).not.toBeChecked();
+
+      await user.click(screen.getByText("Appliquer"));
+
+      // After applying, oneshot checkbox must be checked
+      await waitFor(() => {
+        expect(oneshotCheckbox).toBeChecked();
+      });
     });
 
     it("shows loading indicator during lookup", async () => {
@@ -570,6 +668,61 @@ describe("ComicForm", () => {
       await waitFor(() => {
         expect(seriesPostCalled).toBe(true);
       });
+    });
+
+    it("uses existing author IRI directly in payload without POST /api/authors", async () => {
+      const user = userEvent.setup();
+      let authorPostCalled = false;
+      let capturedPayload: Record<string, unknown> | null = null;
+
+      const existingAuthor = createMockAuthor({ id: 7, name: "Existing Author" });
+
+      server.use(
+        http.get("/api/authors", () =>
+          HttpResponse.json(
+            createMockHydraCollection([existingAuthor], "/api/authors"),
+          ),
+        ),
+        http.post("/api/authors", () => {
+          authorPostCalled = true;
+          return HttpResponse.json(createMockAuthor(), { status: 201 });
+        }),
+        http.post("/api/comic_series", async ({ request }) => {
+          capturedPayload = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(
+            createMockComicSeries({ id: 10, title: "With Existing Author" }),
+            { status: 201 },
+          );
+        }),
+      );
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "With Existing Author");
+
+      // Search for the existing author
+      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      await user.type(authorInput, "Existing");
+
+      await waitFor(() => {
+        expect(screen.getByText("Existing Author")).toBeInTheDocument();
+      });
+
+      // Click the existing author option from the dropdown
+      const options = screen.getAllByText("Existing Author");
+      await user.click(options[0]);
+
+      // Submit
+      await user.click(screen.getByText("Créer"));
+
+      await waitFor(() => {
+        expect(capturedPayload).not.toBeNull();
+      });
+
+      // POST /api/authors must NOT have been called
+      expect(authorPostCalled).toBe(false);
+      // Payload must contain the existing author's IRI
+      expect(capturedPayload!.authors).toEqual(["/api/authors/7"]);
     });
 
     it("shows error toast and stops submission when author creation fails", async () => {
@@ -823,6 +976,41 @@ describe("ComicForm", () => {
       });
     });
 
+    it("keeps original tome isbn and title when lookup returns null values", async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.get("/api/lookup/isbn", () =>
+          HttpResponse.json(
+            createMockLookupResult({
+              isbn: null,
+              title: null,
+            }),
+          ),
+        ),
+      );
+
+      renderCreateForm();
+
+      const isbnInput = screen.getByPlaceholderText("ISBN") as HTMLInputElement;
+      await user.type(isbnInput, "9781234567890");
+
+      // Set a title on the tome so we can verify it's preserved
+      const tomeTitleInput = screen.getByPlaceholderText("Titre") as HTMLInputElement;
+      await user.type(tomeTitleInput, "Original Tome Title");
+
+      const isbnSearchButtons = document.querySelectorAll("tbody td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      expect(isbnSearchButtons[0]).toBeEnabled();
+      await user.click(isbnSearchButtons[0]);
+
+      // isbn should remain the original value (fallback via ??)
+      await waitFor(() => {
+        expect(isbnInput).toHaveValue("9781234567890");
+      });
+      // title should remain the original value (fallback via ??)
+      expect(tomeTitleInput).toHaveValue("Original Tome Title");
+    });
+
     it("shows error toast when tome ISBN lookup fails", async () => {
       const user = userEvent.setup();
 
@@ -866,6 +1054,38 @@ describe("ComicForm", () => {
   });
 
   describe("Submit behavior", () => {
+    it("omits tomes from payload when isOneShot is checked", async () => {
+      const user = userEvent.setup();
+      let capturedPayload: Record<string, unknown> | null = null;
+
+      server.use(
+        http.post("/api/comic_series", async ({ request }) => {
+          capturedPayload = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(
+            createMockComicSeries({ id: 10, title: "OneShot Comic" }),
+            { status: 201 },
+          );
+        }),
+      );
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "OneShot Comic");
+
+      // Check the oneshot checkbox
+      const oneshotCheckbox = screen.getByRole("checkbox", { name: /One-shot/ });
+      await user.click(oneshotCheckbox);
+
+      await user.click(screen.getByText("Créer"));
+
+      await waitFor(() => {
+        expect(capturedPayload).not.toBeNull();
+      });
+
+      expect(capturedPayload!.isOneShot).toBe(true);
+      expect(capturedPayload).not.toHaveProperty("tomes");
+    });
+
     it("navigates to /comic/:id after successful create", async () => {
       const user = userEvent.setup();
 

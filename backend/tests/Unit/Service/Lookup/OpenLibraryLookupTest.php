@@ -231,6 +231,42 @@ final class OpenLibraryLookupTest extends TestCase
     }
 
     /**
+     * Teste resolveLookup en cas de ClientExceptionInterface avec statut 429 (rate limited).
+     */
+    public function testResolveLookupClientExceptionRateLimited(): void
+    {
+        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse->method('getStatusCode')->willReturn(429);
+
+        $exception = new class ('Too Many Requests', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+            public function __construct(
+                string $message,
+                private readonly ResponseInterface $response,
+            ) {
+                parent::__construct($message);
+            }
+
+            public function getResponse(): ResponseInterface
+            {
+                return $this->response;
+            }
+        };
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willThrowException($exception);
+
+        $this->logger->expects(self::once())->method('warning');
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNull($result);
+
+        $apiMessage = $this->provider->getLastApiMessage();
+        self::assertSame('rate_limited', $apiMessage['status']);
+    }
+
+    /**
      * Teste resolveLookup en cas de ClientExceptionInterface.
      */
     public function testResolveLookupClientException(): void

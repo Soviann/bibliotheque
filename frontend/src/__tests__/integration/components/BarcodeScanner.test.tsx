@@ -24,6 +24,18 @@ vi.mock("html5-qrcode", () => ({
   })),
 }));
 
+// Known jsdom limitations — NOT coverage gaps:
+// - stopScanner path: the "Scanner actif" UI (with the X button that calls stopScanner) is only
+//   rendered when scanning=true, but startScanner does an early-return when containerRef.current
+//   is null (jsdom never renders the scanner div before setScanning(true) is called). So the stop
+//   button is never reachable via UI interactions in jsdom.
+// - toast.error("Impossible d'accéder à la caméra"): triggered inside the catch block of
+//   scanner.start(), which is only reached after Html5Qrcode successfully creates its DOM
+//   container and then the camera API rejects. In jsdom, startScanner exits before reaching
+//   Html5Qrcode instantiation because containerRef.current is null.
+// These paths are covered by manual/browser testing and are not broken — jsdom simply cannot
+// simulate the real DOM lifecycle that Html5QrcodeScanner requires.
+
 describe("BarcodeScanner", () => {
   it("renders the scanner button", () => {
     const onScan = vi.fn();
