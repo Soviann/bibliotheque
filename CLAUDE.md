@@ -102,9 +102,9 @@ ddev exec bin/console app:invalidate-tokens --email=X # Invalidate tokens for on
 2. **Implement**: minimum to make the test pass
 3. **Refactor**: green tests
 
-**Backend convention**: `backend/src/X/Foo.php` → `backend/tests/X/FooTest.php`
+**Backend convention**: `backend/src/X/Foo.php` → `backend/tests/Unit/X/FooTest.php` (unit), `backend/tests/Integration/X/FooTest.php` (integration), `backend/tests/Functional/X/FooTest.php` (functional)
 
-**Frontend convention**: `frontend/src/X/Foo.tsx` → `frontend/src/__tests__/X/Foo.test.tsx`
+**Frontend convention**: `frontend/src/X/Foo.tsx` → `frontend/src/__tests__/unit/X/Foo.test.tsx` (unit) or `frontend/src/__tests__/integration/X/Foo.test.tsx` (integration)
 
 **Test environment**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 
@@ -221,7 +221,7 @@ Full file map with all entities, hooks, components, services → `memory/pattern
 
 ```
 backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,Entity,Enum,EventListener,Repository,Service,State}/
-backend/tests/{Command,Doctrine/Filter,Entity,Enum,EventListener,Repository,Service,State}/
+backend/tests/{Unit,Integration,Functional,Factory,Trait}/
 
 frontend/src/{components,hooks,pages,services,types,__tests__}/
 ```
