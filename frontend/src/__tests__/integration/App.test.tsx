@@ -285,10 +285,6 @@ describe("Route rendering", () => {
     default: () => <div>Home Page</div>,
   }));
 
-  vi.mock("../../pages/Wishlist", () => ({
-    default: () => <div>Wishlist Page</div>,
-  }));
-
   vi.mock("../../pages/Trash", () => ({
     default: () => <div>Trash Page</div>,
   }));
@@ -330,7 +326,6 @@ describe("Route rendering", () => {
               />
               <Route element={<LayoutWrapper />}>
                 <Route element={<HomePage />} index />
-                <Route element={<WishlistPage />} path="wishlist" />
                 <Route element={<TrashPage />} path="trash" />
                 <Route element={<NotFoundPage />} path="*" />
               </Route>
@@ -344,9 +339,6 @@ describe("Route rendering", () => {
   // Simple components matching the mocked modules
   function HomePage() {
     return <div>Home Page</div>;
-  }
-  function WishlistPage() {
-    return <div>Wishlist Page</div>;
   }
   function TrashPage() {
     return <div>Trash Page</div>;
@@ -367,9 +359,9 @@ describe("Route rendering", () => {
     expect(screen.getByText("Home Page")).toBeInTheDocument();
   });
 
-  it("renders Wishlist at /wishlist", () => {
+  it("renders NotFound at /wishlist (removed route)", () => {
     renderApp("/wishlist");
-    expect(screen.getByText("Wishlist Page")).toBeInTheDocument();
+    expect(screen.getByText("NotFound Page")).toBeInTheDocument();
   });
 
   it("renders Trash at /trash", () => {

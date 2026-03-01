@@ -484,4 +484,90 @@ describe("Home", () => {
     expect(screen.getByText("Naruto")).toBeInTheDocument();
     expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
   });
+
+  it("pre-filters by status URL param", async () => {
+    const comics = [
+      createMockComicSeries({ id: 1, status: ComicStatus.WISHLIST, title: "Wanted Comic" }),
+      createMockComicSeries({ id: 2, status: ComicStatus.BUYING, title: "Buying Comic" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />, { initialEntries: ["/?status=wishlist"] });
+
+    await waitFor(() => {
+      expect(screen.getByText("Wanted Comic")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Buying Comic")).not.toBeInTheDocument();
+  });
+
+  it("pre-filters by type URL param", async () => {
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Naruto", type: ComicType.MANGA }),
+      createMockComicSeries({ id: 2, title: "Tintin", type: ComicType.BD }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />, { initialEntries: ["/?type=manga"] });
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
+  });
+
+  it("pre-selects sort from URL param", async () => {
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Astérix", createdAt: "2024-01-01T00:00:00+00:00" }),
+      createMockComicSeries({ id: 2, title: "Zelda", createdAt: "2025-06-01T00:00:00+00:00" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />, { initialEntries: ["/?sort=createdAt-desc"] });
+
+    await waitFor(() => {
+      expect(screen.getByText("Astérix")).toBeInTheDocument();
+    });
+
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings[0]).toHaveTextContent("Zelda");
+    expect(headings[1]).toHaveTextContent("Astérix");
+  });
+
+  it("pre-fills search from URL param", async () => {
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Naruto" }),
+      createMockComicSeries({ id: 2, title: "One Piece" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />, { initialEntries: ["/?search=Naruto"] });
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
+    expect(searchInput).toHaveValue("Naruto");
+  });
 });
