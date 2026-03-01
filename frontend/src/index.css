@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  /* Hauteur du BottomNav — utilisée pour le padding du main et les barres sticky */
   --bottom-nav-h: 3.5rem;
 }
 
