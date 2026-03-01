@@ -28,7 +28,7 @@ L'interface s'adapte à la taille de l'écran :
 | Onglet | Description |
 |--------|-------------|
 | Accueil | Bibliothèque complète |
-| Wishlist | Liste de souhaits |
+| Wishlist | Bibliothèque filtrée sur le statut « Liste de souhaits » |
 | Ajouter | Formulaire de création |
 | Recherche | Recherche dans la collection |
 | Corbeille | Séries supprimées |
@@ -70,7 +70,7 @@ Un sélecteur de tri permet d'ordonner les séries affichées :
 
 ## Wishlist
 
-Affiche uniquement les séries avec le statut **Liste de souhaits**. L'interface est identique à la bibliothèque avec les mêmes filtres et options de tri.
+Le bouton **Wishlist** dans la barre de navigation redirige vers la page d'accueil avec le filtre statut pré-sélectionné sur **Liste de souhaits** (`/?status=wishlist`). Tous les autres filtres (type, tri, recherche) restent disponibles.
 
 ---
 

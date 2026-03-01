@@ -14,7 +14,6 @@ import {
 import type { SortOption } from "../utils/sortComics";
 
 interface FiltersProps {
-  hideStatus?: boolean;
   onSortChange: (sort: SortOption) => void;
   onStatusChange: (status: string) => void;
   onTypeChange: (type: string) => void;
@@ -93,7 +92,6 @@ function SelectListbox({
 }
 
 export default function Filters({
-  hideStatus,
   onSortChange,
   onStatusChange,
   onTypeChange,
@@ -106,11 +104,9 @@ export default function Filters({
       <div className="min-w-0 flex-1">
         <SelectListbox onChange={onTypeChange} options={typeOptions} value={type} />
       </div>
-      {!hideStatus && (
-        <div className="min-w-0 flex-1">
-          <SelectListbox onChange={onStatusChange} options={statusOptions} value={status} />
-        </div>
-      )}
+      <div className="min-w-0 flex-1">
+        <SelectListbox onChange={onStatusChange} options={statusOptions} value={status} />
+      </div>
       <div className="min-w-0 flex-1">
         <SelectListbox onChange={(v) => onSortChange(v as SortOption)} options={sortOptions} value={sort} />
       </div>

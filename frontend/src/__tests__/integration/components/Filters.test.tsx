@@ -31,13 +31,6 @@ describe("Filters", () => {
     expect(screen.getByText("Tous les statuts")).toBeInTheDocument();
   });
 
-  it("hides status filter when hideStatus is true", () => {
-    renderWithProviders(<Filters {...defaultProps} hideStatus />);
-
-    expect(screen.queryByText("Tous les statuts")).not.toBeInTheDocument();
-    expect(screen.getByText("Tous les types")).toBeInTheDocument();
-  });
-
   it("calls onTypeChange when type filter is changed", async () => {
     const user = userEvent.setup();
     renderWithProviders(<Filters {...defaultProps} />);

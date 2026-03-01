@@ -56,7 +56,6 @@ const ComicForm = lazyWithRetry(() => import("./pages/ComicForm"));
 const Login = lazyWithRetry(() => import("./pages/Login"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const Trash = lazyWithRetry(() => import("./pages/Trash"));
-const Wishlist = lazyWithRetry(() => import("./pages/Wishlist"));
 
 function Loading() {
   return <div className="py-12 text-center text-text-muted">Chargement…</div>;
@@ -86,7 +85,6 @@ export default function App() {
                   }
                 >
                   <Route element={<Home />} index />
-                  <Route element={<Wishlist />} path="wishlist" />
                   <Route element={<ComicForm />} path="comic/new" />
                   <Route element={<ComicDetail />} path="comic/:id" />
                   <Route element={<ComicForm />} path="comic/:id/edit" />
