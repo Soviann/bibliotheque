@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Tri des séries** : Sélecteur de tri sur les pages Accueil et Liste de souhaits — titre (A→Z/Z→A), date d'ajout (récent/ancien), nombre de tomes (#84)
 - **Mode hors-ligne avec synchronisation différée** : CRUD complet (séries + tomes) en mode offline avec synchronisation automatique au retour en ligne (#3)
   - File d'attente IndexedDB (via `idb`) pour les opérations offline
   - Background Sync API pour la synchronisation automatique (Service Worker custom)

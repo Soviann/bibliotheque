@@ -11,11 +11,14 @@ import {
   ComicType,
   ComicTypeLabel,
 } from "../types/enums";
+import type { SortOption } from "../utils/sortComics";
 
 interface FiltersProps {
   hideStatus?: boolean;
+  onSortChange: (sort: SortOption) => void;
   onStatusChange: (status: string) => void;
   onTypeChange: (type: string) => void;
+  sort: SortOption;
   status: string;
   type: string;
 }
@@ -31,6 +34,15 @@ const typeOptions: Option[] = [
     label: ComicTypeLabel[value],
     value,
   })),
+];
+
+const sortOptions: Option[] = [
+  { label: "Titre A→Z", value: "title-asc" },
+  { label: "Titre Z→A", value: "title-desc" },
+  { label: "Plus récent", value: "createdAt-desc" },
+  { label: "Plus ancien", value: "createdAt-asc" },
+  { label: "Plus de tomes", value: "tomes-desc" },
+  { label: "Moins de tomes", value: "tomes-asc" },
 ];
 
 const statusOptions: Option[] = [
@@ -82,8 +94,10 @@ function SelectListbox({
 
 export default function Filters({
   hideStatus,
+  onSortChange,
   onStatusChange,
   onTypeChange,
+  sort,
   status,
   type,
 }: FiltersProps) {
@@ -97,6 +111,9 @@ export default function Filters({
           <SelectListbox onChange={onStatusChange} options={statusOptions} value={status} />
         </div>
       )}
+      <div className="min-w-0 flex-1">
+        <SelectListbox onChange={(v) => onSortChange(v as SortOption)} options={sortOptions} value={sort} />
+      </div>
     </div>
   );
 }

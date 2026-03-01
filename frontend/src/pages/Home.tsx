@@ -7,9 +7,12 @@ import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import type { ComicSeries } from "../types/api";
+import { sortComics } from "../utils/sortComics";
+import type { SortOption } from "../utils/sortComics";
 
 export default function Home() {
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortOption>("title-asc");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
@@ -20,13 +23,14 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return allComics.filter((c) => {
+    const result = allComics.filter((c) => {
       if (type && c.type !== type) return false;
       if (status && c.status !== status) return false;
       if (q && !c.title.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [allComics, search, status, type]);
+    return sortComics(result, sort);
+  }, [allComics, search, sort, status, type]);
 
   return (
     <div className="space-y-4">
@@ -45,8 +49,10 @@ export default function Home() {
       {/* Filters + count */}
       <div className="flex items-center gap-3">
         <Filters
+          onSortChange={setSort}
           onStatusChange={setStatus}
           onTypeChange={setType}
+          sort={sort}
           status={status}
           type={type}
         />
