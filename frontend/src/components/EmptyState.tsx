@@ -18,6 +18,8 @@ export default function EmptyState({
   onAction,
   title,
 }: EmptyStateProps) {
+  const ctaClassName = "mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700";
+
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <Icon
@@ -32,19 +34,12 @@ export default function EmptyState({
         </p>
       )}
       {actionLabel && actionHref && (
-        <Link
-          className="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-          to={actionHref}
-        >
+        <Link className={ctaClassName} to={actionHref}>
           {actionLabel}
         </Link>
       )}
       {actionLabel && onAction && !actionHref && (
-        <button
-          className="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-          onClick={onAction}
-          type="button"
-        >
+        <button className={ctaClassName} onClick={onAction} type="button">
           {actionLabel}
         </button>
       )}
