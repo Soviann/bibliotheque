@@ -9,7 +9,7 @@ import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useUpdateTome } from "../hooks/useUpdateTome";
-import { ComicStatus, ComicStatusLabel, ComicTypeLabel } from "../types/enums";
+import { ComicStatusLabel, ComicTypeLabel } from "../types/enums";
 
 export default function ComicDetail() {
   const { id } = useParams<{ id: string }>();
@@ -106,9 +106,9 @@ export default function ComicDetail() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link className="text-text-muted hover:text-text-secondary" to={comic.status === ComicStatus.WISHLIST ? "/wishlist" : "/"}>
+        <button aria-label="Retour" className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
           <ArrowLeft className="h-5 w-5" />
-        </Link>
+        </button>
         <h1 className="flex-1 text-xl font-bold text-text-primary">{comic.title}</h1>
       </div>
 
