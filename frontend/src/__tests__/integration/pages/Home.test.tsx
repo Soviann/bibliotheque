@@ -243,8 +243,12 @@ describe("Home", () => {
       expect(screen.getByText("Delete Me")).toBeInTheDocument();
     });
 
-    // Click delete button on the card
-    await user.click(screen.getByTitle("Supprimer"));
+    // Open the ⋮ dropdown menu on desktop
+    const menuButtons = screen.getAllByTitle("Actions");
+    await user.click(menuButtons[menuButtons.length - 1]);
+
+    // Click "Supprimer" in the dropdown
+    await user.click(screen.getByText("Supprimer"));
 
     // Confirm modal should appear
     expect(screen.getByText(/Supprimer Delete Me/)).toBeInTheDocument();
@@ -306,7 +310,14 @@ describe("Home", () => {
       expect(screen.getByText("Toast Delete")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByTitle("Supprimer"));
+    // Open the ⋮ dropdown menu on desktop
+    const menuButtons = screen.getAllByTitle("Actions");
+    await user.click(menuButtons[menuButtons.length - 1]);
+
+    // Click "Supprimer" in the dropdown
+    await user.click(screen.getByText("Supprimer"));
+
+    // Click the confirm button in the modal
     const confirmButton = screen.getByRole("button", { name: "Supprimer" });
     await user.click(confirmButton);
 

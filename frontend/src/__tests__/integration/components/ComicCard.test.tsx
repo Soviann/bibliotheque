@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import ComicCard from "../../../components/ComicCard";
 import { createMockComicSeries, createMockTome } from "../../helpers/factories";
 import { renderWithProviders } from "../../helpers/test-utils";
-import { ComicStatus, ComicType } from "../../../types/enums";
+import { ComicType } from "../../../types/enums";
 
 describe("ComicCard", () => {
   beforeEach(() => {
@@ -93,31 +93,66 @@ describe("ComicCard", () => {
     expect(screen.queryByText(/t\./)).not.toBeInTheDocument();
   });
 
-  it("shows delete button when onDelete is provided", () => {
+  it("shows the ⋮ menu button", () => {
     const comic = createMockComicSeries({ title: "Test" });
-    const onDelete = vi.fn();
 
-    renderWithProviders(<ComicCard comic={comic} onDelete={onDelete} />);
+    renderWithProviders(<ComicCard comic={comic} onDelete={vi.fn()} />);
 
-    expect(screen.getByTitle("Supprimer")).toBeInTheDocument();
+    const buttons = screen.getAllByTitle("Actions");
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("does not show delete button when onDelete is not provided", () => {
+  it("does not show ⋮ button when no action callbacks are provided", () => {
     const comic = createMockComicSeries({ title: "Test" });
 
     renderWithProviders(<ComicCard comic={comic} />);
 
-    expect(screen.queryByTitle("Supprimer")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Actions")).not.toBeInTheDocument();
   });
 
-  it("calls onDelete when delete button is clicked", async () => {
+  it("calls onMenuOpen when mobile ⋮ button is clicked", async () => {
     const user = userEvent.setup();
     const comic = createMockComicSeries({ title: "Test" });
+    const onMenuOpen = vi.fn();
+
+    renderWithProviders(
+      <ComicCard comic={comic} onDelete={vi.fn()} onMenuOpen={onMenuOpen} />,
+    );
+
+    // Click the mobile button (lg:hidden)
+    const buttons = screen.getAllByTitle("Actions");
+    // The first one is the mobile button
+    await user.click(buttons[0]);
+
+    expect(onMenuOpen).toHaveBeenCalledWith(comic);
+  });
+
+  it("shows desktop dropdown with edit and delete options", async () => {
+    const user = userEvent.setup();
+    const comic = createMockComicSeries({ id: 5, title: "Test" });
     const onDelete = vi.fn();
 
     renderWithProviders(<ComicCard comic={comic} onDelete={onDelete} />);
 
-    await user.click(screen.getByTitle("Supprimer"));
+    // Click the desktop menu button (hidden lg:block)
+    const buttons = screen.getAllByTitle("Actions");
+    // The last one is the desktop Headless UI MenuButton
+    await user.click(buttons[buttons.length - 1]);
+
+    expect(screen.getByText("Modifier")).toBeInTheDocument();
+    expect(screen.getByText("Supprimer")).toBeInTheDocument();
+  });
+
+  it("calls onDelete from desktop dropdown", async () => {
+    const user = userEvent.setup();
+    const comic = createMockComicSeries({ id: 5, title: "Test" });
+    const onDelete = vi.fn();
+
+    renderWithProviders(<ComicCard comic={comic} onDelete={onDelete} />);
+
+    const buttons = screen.getAllByTitle("Actions");
+    await user.click(buttons[buttons.length - 1]);
+    await user.click(screen.getByText("Supprimer"));
 
     expect(onDelete).toHaveBeenCalledWith(comic);
   });
@@ -198,26 +233,5 @@ describe("ComicCard", () => {
     renderWithProviders(<ComicCard comic={comic} />);
 
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-  });
-
-  it("has an edit button that navigates to edit page", async () => {
-    const user = userEvent.setup();
-    const comic = createMockComicSeries({ id: 5, title: "Test" });
-
-    const { Route, Routes } = await import("react-router-dom");
-
-    renderWithProviders(
-      <Routes>
-        <Route element={<ComicCard comic={comic} />} path="/" />
-        <Route element={<div>Edit Page</div>} path="/comic/5/edit" />
-      </Routes>,
-    );
-
-    const editButton = screen.getByTitle("Modifier");
-    expect(editButton).toBeInTheDocument();
-
-    await user.click(editButton);
-
-    expect(screen.getByText("Edit Page")).toBeInTheDocument();
   });
 });
