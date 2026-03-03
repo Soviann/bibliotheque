@@ -1,7 +1,8 @@
 import { BookOpen, Filter, Heart, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import CardActionBar from "../components/CardActionBar";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import ConfirmModal from "../components/ConfirmModal";
@@ -31,8 +32,10 @@ export default function Home() {
   const sort: SortOption = VALID_SORTS.has(sortParam) ? (sortParam as SortOption) : "title-asc";
   const searchParam = searchParams.get("search") ?? "";
 
+  const navigate = useNavigate();
   const [search, setSearch] = useState(searchParam);
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
+  const [menuComic, setMenuComic] = useState<ComicSeries | null>(null);
 
   useEffect(() => {
     setSearch(searchParam);
@@ -149,10 +152,23 @@ export default function Home() {
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {filtered.map((comic) => (
-            <ComicCard comic={comic} key={comic.id} onDelete={setDeleteTarget} />
+            <ComicCard comic={comic} key={comic.id} onDelete={setDeleteTarget} onMenuOpen={setMenuComic} />
           ))}
         </div>
       )}
+
+      <CardActionBar
+        comic={menuComic}
+        onClose={() => setMenuComic(null)}
+        onDelete={(c) => {
+          setMenuComic(null);
+          setDeleteTarget(c);
+        }}
+        onEdit={(c) => {
+          setMenuComic(null);
+          navigate(`/comic/${c.id}/edit`);
+        }}
+      />
 
       <ConfirmModal
         confirmLabel="Supprimer"
