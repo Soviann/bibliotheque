@@ -26,7 +26,7 @@ final class ComicSeriesDeleteProcessorTest extends TestCase
             ->with($comic);
 
         $processor = new ComicSeriesDeleteProcessor($comicSeriesService);
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
 
         $processor->process($comic, $operation);
     }

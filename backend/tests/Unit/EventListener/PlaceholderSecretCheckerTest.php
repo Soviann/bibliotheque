@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\EventListener;
 
 use App\EventListener\PlaceholderSecretChecker;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
@@ -131,17 +131,17 @@ final class PlaceholderSecretCheckerTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    private function createMainRequestEvent(): RequestEvent&MockObject
+    private function createMainRequestEvent(): RequestEvent&Stub
     {
-        $event = $this->createMock(RequestEvent::class);
+        $event = $this->createStub(RequestEvent::class);
         $event->method('isMainRequest')->willReturn(true);
 
         return $event;
     }
 
-    private function createSubRequestEvent(): RequestEvent&MockObject
+    private function createSubRequestEvent(): RequestEvent&Stub
     {
-        $event = $this->createMock(RequestEvent::class);
+        $event = $this->createStub(RequestEvent::class);
         $event->method('isMainRequest')->willReturn(false);
 
         return $event;

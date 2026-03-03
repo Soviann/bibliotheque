@@ -20,14 +20,14 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final class OpenLibraryLookupTest extends TestCase
 {
-    private HttpClientInterface&MockObject $httpClient;
-    private LoggerInterface&MockObject $logger;
+    private HttpClientInterface $httpClient;
+    private LoggerInterface $logger;
     private OpenLibraryLookup $provider;
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock(HttpClientInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->httpClient = $this->createStub(HttpClientInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
 
         $this->provider = new OpenLibraryLookup(
             $this->httpClient,
@@ -76,9 +76,10 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testPrepareLookupSendsCorrectRequest(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -99,7 +100,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupSuccessWithAuthors(): void
     {
-        $mainResponse = $this->createMock(ResponseInterface::class);
+        $mainResponse = $this->createStub(ResponseInterface::class);
         $mainResponse->method('getStatusCode')->willReturn(200);
         $mainResponse->method('toArray')->willReturn([
             'authors' => [
@@ -111,12 +112,12 @@ final class OpenLibraryLookupTest extends TestCase
             'title' => 'One Piece',
         ]);
 
-        $authorResponse = $this->createMock(ResponseInterface::class);
+        $authorResponse = $this->createStub(ResponseInterface::class);
         $authorResponse->method('toArray')->willReturn([
             'name' => 'Eiichiro Oda',
         ]);
 
-        $this->httpClient->expects(self::once())
+        $this->createHttpClientMock()->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -141,7 +142,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupSuccessWithoutAuthorsOrCover(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willReturn([
             'publish_date' => '2000',
@@ -163,7 +164,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupRateLimited429(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(429);
 
         $result = $this->provider->resolveLookup($response);
@@ -179,7 +180,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupNotFound404(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(404);
 
         $result = $this->provider->resolveLookup($response);
@@ -195,7 +196,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupNoTitle(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willReturn([
             'publishers' => ['Kana'],
@@ -214,12 +215,12 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupTransportException(): void
     {
-        $exception = new class ('Connection failed') extends \RuntimeException implements TransportExceptionInterface {};
+        $exception = new class('Connection failed') extends \RuntimeException implements TransportExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -235,10 +236,10 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupClientExceptionRateLimited(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(429);
 
-        $exception = new class ('Too Many Requests', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+        $exception = new class('Too Many Requests', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -252,11 +253,11 @@ final class OpenLibraryLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('warning');
+        $this->createLoggerMock()->expects(self::once())->method('warning');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -271,10 +272,10 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupClientException(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(403);
 
-        $exception = new class ('Forbidden', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+        $exception = new class('Forbidden', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -288,11 +289,11 @@ final class OpenLibraryLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('warning');
+        $this->createLoggerMock()->expects(self::once())->method('warning');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -308,13 +309,13 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupDecodingException(): void
     {
-        $exception = new class ('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
+        $exception = new class('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -330,7 +331,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupAuthorSubRequestFailureSkipsSilently(): void
     {
-        $mainResponse = $this->createMock(ResponseInterface::class);
+        $mainResponse = $this->createStub(ResponseInterface::class);
         $mainResponse->method('getStatusCode')->willReturn(200);
         $mainResponse->method('toArray')->willReturn([
             'authors' => [
@@ -339,16 +340,20 @@ final class OpenLibraryLookupTest extends TestCase
             'title' => 'Test Book',
         ]);
 
-        $exception = new class ('Author network error') extends \RuntimeException implements TransportExceptionInterface {};
+        $exception = new class('Author network error') extends \RuntimeException implements TransportExceptionInterface {};
 
-        $authorResponse = $this->createMock(ResponseInterface::class);
+        $authorResponse = $this->createStub(ResponseInterface::class);
         $authorResponse->method('toArray')->willThrowException($exception);
 
-        $this->httpClient->expects(self::once())
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects(self::once())
             ->method('request')
             ->willReturn($authorResponse);
 
-        $this->logger->expects(self::once())->method('debug');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('debug');
+
+        $this->provider = new OpenLibraryLookup($httpClient, $logger);
 
         $result = $this->provider->resolveLookup($mainResponse);
 
@@ -362,7 +367,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupNon200Non404Non429ReturnsNotFound(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(500);
 
         $result = $this->provider->resolveLookup($response);
@@ -378,7 +383,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupMultiplePublishersUsesFirst(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willReturn([
             'publishers' => ['Glenat', 'Kana', 'Delcourt'],
@@ -396,7 +401,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupMultipleCoversUsesFirst(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willReturn([
             'covers' => [11111, 22222, 33333],
@@ -414,7 +419,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupMissingPublishDateReturnsNull(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $response->method('toArray')->willReturn([
             'publishers' => ['Kana'],
@@ -432,7 +437,7 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testResolveLookupMultipleAuthorsParallel(): void
     {
-        $mainResponse = $this->createMock(ResponseInterface::class);
+        $mainResponse = $this->createStub(ResponseInterface::class);
         $mainResponse->method('getStatusCode')->willReturn(200);
         $mainResponse->method('toArray')->willReturn([
             'authors' => [
@@ -442,13 +447,13 @@ final class OpenLibraryLookupTest extends TestCase
             'title' => 'Collaboration',
         ]);
 
-        $authorResponse1 = $this->createMock(ResponseInterface::class);
+        $authorResponse1 = $this->createStub(ResponseInterface::class);
         $authorResponse1->method('toArray')->willReturn(['name' => 'Auteur Un']);
 
-        $authorResponse2 = $this->createMock(ResponseInterface::class);
+        $authorResponse2 = $this->createStub(ResponseInterface::class);
         $authorResponse2->method('toArray')->willReturn(['name' => 'Auteur Deux']);
 
-        $this->httpClient->expects(self::exactly(2))
+        $this->createHttpClientMock()->expects(self::exactly(2))
             ->method('request')
             ->willReturnCallback(static function (string $method, string $url) use ($authorResponse1, $authorResponse2): ResponseInterface {
                 if (\str_contains($url, 'OL1A')) {
@@ -462,5 +467,29 @@ final class OpenLibraryLookupTest extends TestCase
 
         self::assertNotNull($result);
         self::assertSame('Auteur Un, Auteur Deux', $result->authors);
+    }
+
+    /**
+     * Recree le provider avec un mock httpClient pour les tests d'attente.
+     */
+    private function createHttpClientMock(): HttpClientInterface&MockObject
+    {
+        $mock = $this->createMock(HttpClientInterface::class);
+        $this->httpClient = $mock;
+        $this->provider = new OpenLibraryLookup($this->httpClient, $this->logger);
+
+        return $mock;
+    }
+
+    /**
+     * Recree le provider avec un mock logger pour les tests d'attente.
+     */
+    private function createLoggerMock(): LoggerInterface&MockObject
+    {
+        $mock = $this->createMock(LoggerInterface::class);
+        $this->logger = $mock;
+        $this->provider = new OpenLibraryLookup($this->httpClient, $this->logger);
+
+        return $mock;
     }
 }

@@ -570,7 +570,7 @@ final class LookupOrchestratorTest extends TestCase
         $calledWithType = null;
         $calledSupportsType = null;
 
-        $provider = new class ($calledWithType, $calledSupportsType) implements LookupProviderInterface {
+        $provider = new class($calledWithType, $calledSupportsType) implements LookupProviderInterface {
             public function __construct(
                 private mixed &$calledWithType,
                 private mixed &$calledSupportsType,
@@ -796,7 +796,7 @@ final class LookupOrchestratorTest extends TestCase
         ?\Throwable $throwOnPrepareEnrich = null,
         ?\Throwable $throwOnResolveEnrich = null,
     ): EnrichableLookupProviderInterface {
-        return new class ($enrichResult, $fieldPriority, $name, $result, $supports, $throwOnPrepareEnrich, $throwOnResolveEnrich) implements EnrichableLookupProviderInterface {
+        return new class($enrichResult, $fieldPriority, $name, $result, $supports, $throwOnPrepareEnrich, $throwOnResolveEnrich) implements EnrichableLookupProviderInterface {
             public function __construct(
                 private readonly ?LookupResult $enrichResult,
                 private readonly int $fieldPriority,
@@ -872,7 +872,7 @@ final class LookupOrchestratorTest extends TestCase
         ?\Throwable $throwOnResolve = null,
         ?array $apiMessage = null,
     ): LookupProviderInterface {
-        return new class ($apiMessage, $fieldPriority, $name, $result, $supports, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
+        return new class($apiMessage, $fieldPriority, $name, $result, $supports, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
             public function __construct(
                 private readonly ?array $apiMessage,
                 private readonly int $fieldPriority,

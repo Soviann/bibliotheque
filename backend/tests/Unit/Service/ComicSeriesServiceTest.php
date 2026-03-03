@@ -11,7 +11,6 @@ use App\Service\ComicSeriesService;
 use App\Service\CoverRemoverInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -20,18 +19,18 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 final class ComicSeriesServiceTest extends TestCase
 {
-    private Connection&MockObject $connection;
-    private CoverRemoverInterface&MockObject $coverRemover;
-    private EntityManagerInterface&MockObject $entityManager;
-    private EventDispatcherInterface&MockObject $eventDispatcher;
+    private Connection $connection;
+    private CoverRemoverInterface $coverRemover;
+    private EntityManagerInterface $entityManager;
+    private EventDispatcherInterface $eventDispatcher;
     private ComicSeriesService $service;
 
     protected function setUp(): void
     {
-        $this->connection = $this->createMock(Connection::class);
-        $this->coverRemover = $this->createMock(CoverRemoverInterface::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->connection = $this->createStub(Connection::class);
+        $this->coverRemover = $this->createStub(CoverRemoverInterface::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
+        $this->eventDispatcher = $this->createStub(EventDispatcherInterface::class);
 
         $this->service = new ComicSeriesService(
             $this->connection,
@@ -46,15 +45,16 @@ final class ComicSeriesServiceTest extends TestCase
      */
     public function testSoftDeleteCallsRemoveAndFlush(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $this->rebuildService(entityManager: $em);
+
         $comic = new ComicSeries();
 
-        $this->entityManager
-            ->expects(self::once())
+        $em->expects(self::once())
             ->method('remove')
             ->with($comic);
 
-        $this->entityManager
-            ->expects(self::once())
+        $em->expects(self::once())
             ->method('flush');
 
         $this->service->softDelete($comic);
@@ -65,10 +65,12 @@ final class ComicSeriesServiceTest extends TestCase
      */
     public function testSoftDeleteDoesNotCallCoverRemover(): void
     {
+        $coverRemover = $this->createMock(CoverRemoverInterface::class);
+        $this->rebuildService(coverRemover: $coverRemover);
+
         $comic = new ComicSeries();
 
-        $this->coverRemover
-            ->expects(self::never())
+        $coverRemover->expects(self::never())
             ->method('remove');
 
         $this->service->softDelete($comic);
@@ -79,11 +81,13 @@ final class ComicSeriesServiceTest extends TestCase
      */
     public function testMoveToLibrarySetsStatusToBuyingAndFlushes(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $this->rebuildService(entityManager: $em);
+
         $comic = new ComicSeries();
         $comic->setStatus(ComicStatus::WISHLIST);
 
-        $this->entityManager
-            ->expects(self::once())
+        $em->expects(self::once())
             ->method('flush');
 
         $this->service->moveToLibrary($comic);
@@ -96,14 +100,15 @@ final class ComicSeriesServiceTest extends TestCase
      */
     public function testRestoreCallsRestoreOnComicAndFlushes(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $this->rebuildService(entityManager: $em);
+
         $comic = $this->createMock(ComicSeries::class);
 
-        $comic
-            ->expects(self::once())
+        $comic->expects(self::once())
             ->method('restore');
 
-        $this->entityManager
-            ->expects(self::once())
+        $em->expects(self::once())
             ->method('flush');
 
         $this->service->restore($comic);
@@ -114,20 +119,22 @@ final class ComicSeriesServiceTest extends TestCase
      */
     public function testPermanentDeleteRemovesCoverThenDbalEntriesInOrder(): void
     {
+        $coverRemover = $this->createMock(CoverRemoverInterface::class);
+        $connection = $this->createMock(Connection::class);
+        $this->rebuildService(connection: $connection, coverRemover: $coverRemover);
+
         $comic = new ComicSeries();
         $id = 42;
 
-        $this->coverRemover
-            ->expects(self::once())
+        $coverRemover->expects(self::once())
             ->method('remove')
             ->with($comic);
 
         // V\u00e9rifie l'ordre des appels DBAL : comic_series_author, tome, comic_series
         $deleteCallOrder = [];
-        $this->connection
-            ->expects(self::exactly(3))
+        $connection->expects(self::exactly(3))
             ->method('delete')
-            ->willReturnCallback(function (string $table, array $criteria) use (&$deleteCallOrder, $id): int {
+            ->willReturnCallback(static function (string $table, array $criteria) use (&$deleteCallOrder, $id): int {
                 $deleteCallOrder[] = $table;
 
                 if ('comic_series' === $table) {
@@ -152,12 +159,14 @@ final class ComicSeriesServiceTest extends TestCase
      */
     public function testPermanentDeleteDispatchesDeletedEvent(): void
     {
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->rebuildService(eventDispatcher: $eventDispatcher);
+
         $comic = new ComicSeries();
         $comic->setTitle('Bleach');
         $id = 7;
 
-        $this->eventDispatcher
-            ->expects(self::once())
+        $eventDispatcher->expects(self::once())
             ->method('dispatch')
             ->with(self::callback(static function (object $event): bool {
                 return $event instanceof ComicSeriesDeletedEvent
@@ -166,5 +175,31 @@ final class ComicSeriesServiceTest extends TestCase
             }));
 
         $this->service->permanentDelete($id, $comic);
+    }
+
+    private function rebuildService(
+        ?Connection $connection = null,
+        ?CoverRemoverInterface $coverRemover = null,
+        ?EntityManagerInterface $entityManager = null,
+        ?EventDispatcherInterface $eventDispatcher = null,
+    ): void {
+        if (null !== $connection) {
+            $this->connection = $connection;
+        }
+        if (null !== $coverRemover) {
+            $this->coverRemover = $coverRemover;
+        }
+        if (null !== $entityManager) {
+            $this->entityManager = $entityManager;
+        }
+        if (null !== $eventDispatcher) {
+            $this->eventDispatcher = $eventDispatcher;
+        }
+        $this->service = new ComicSeriesService(
+            $this->connection,
+            $this->coverRemover,
+            $this->entityManager,
+            $this->eventDispatcher,
+        );
     }
 }

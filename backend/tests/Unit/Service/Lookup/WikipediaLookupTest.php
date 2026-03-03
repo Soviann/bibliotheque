@@ -26,16 +26,16 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final class WikipediaLookupTest extends TestCase
 {
-    private AdapterInterface&MockObject $cache;
-    private HttpClientInterface&MockObject $httpClient;
-    private LoggerInterface&MockObject $logger;
+    private AdapterInterface $cache;
+    private HttpClientInterface $httpClient;
+    private LoggerInterface $logger;
     private WikipediaLookup $provider;
 
     protected function setUp(): void
     {
-        $this->cache = $this->createMock(AdapterInterface::class);
-        $this->httpClient = $this->createMock(HttpClientInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->cache = $this->createStub(AdapterInterface::class);
+        $this->httpClient = $this->createStub(HttpClientInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
 
         $this->provider = new WikipediaLookup(
             $this->cache,
@@ -101,7 +101,7 @@ final class WikipediaLookupTest extends TestCase
         $cacheItem = $this->createCacheItem('test_key', $cachedResult, true);
         $this->cache->method('getItem')->willReturn($cacheItem);
 
-        $this->httpClient->expects(self::never())->method('request');
+        $this->createHttpClientMock()->expects(self::never())->method('request');
 
         $state = $this->provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
 
@@ -129,9 +129,10 @@ final class WikipediaLookupTest extends TestCase
         $cacheItem = $this->createCacheItem('test_key', null, false);
         $this->cache->method('getItem')->willReturn($cacheItem);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -160,9 +161,10 @@ final class WikipediaLookupTest extends TestCase
         $cacheItem = $this->createCacheItem('test_key', null, false);
         $this->cache->method('getItem')->willReturn($cacheItem);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -184,9 +186,10 @@ final class WikipediaLookupTest extends TestCase
         $cacheItem = $this->createCacheItem('test_key', null, false);
         $this->cache->method('getItem')->willReturn($cacheItem);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -211,9 +214,9 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupTransportException(): void
     {
-        $exception = new class ('Connection error') extends \RuntimeException implements TransportExceptionInterface {};
+        $exception = new class('Connection error') extends \RuntimeException implements TransportExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
         $state = [
@@ -222,7 +225,7 @@ final class WikipediaLookupTest extends TestCase
             'response' => $response,
         ];
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($state);
 
@@ -237,10 +240,10 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupRateLimited(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(429);
 
-        $exception = new class ('Rate limited', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+        $exception = new class('Rate limited', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -254,7 +257,7 @@ final class WikipediaLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
         $state = [
@@ -276,7 +279,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupTitleModeNoResults(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'search' => [],
         ]);
@@ -300,7 +303,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupIsbnModeNoBindings(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'results' => [
                 'bindings' => [],
@@ -327,7 +330,7 @@ final class WikipediaLookupTest extends TestCase
     public function testResolveLookupCachesSuccessfulResult(): void
     {
         // Premiere requete : wbsearchentities
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [
                 ['id' => 'Q634523'],
@@ -335,7 +338,7 @@ final class WikipediaLookupTest extends TestCase
         ]);
 
         // Deuxieme requete : wbgetentities pour l'entite
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q634523' => [
@@ -362,8 +365,9 @@ final class WikipediaLookupTest extends TestCase
 
         $realCache = new ArrayAdapter();
         $cacheItem = $realCache->getItem('test_key');
-        $this->cache->method('getItem')->willReturn($cacheItem);
-        $this->cache->expects(self::once())->method('save');
+        $cache = $this->createCacheMock();
+        $cache->method('getItem')->willReturn($cacheItem);
+        $cache->expects(self::once())->method('save');
 
         $state = [
             'cacheKey' => 'test_key',
@@ -384,7 +388,7 @@ final class WikipediaLookupTest extends TestCase
     public function testResolveLookupEditionResolutionViaP629(): void
     {
         // Premiere requete : wbsearchentities retourne une edition
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [
                 ['id' => 'Q_EDITION'],
@@ -424,7 +428,7 @@ final class WikipediaLookupTest extends TestCase
         $this->httpClient->method('request')->willReturnCallback(
             function () use (&$requestCount, $editionEntity, $workEntity): ResponseInterface {
                 ++$requestCount;
-                $response = $this->createMock(ResponseInterface::class);
+                $response = $this->createStub(ResponseInterface::class);
 
                 if (1 === $requestCount) {
                     $response->method('toArray')->willReturn(['entities' => ['Q_EDITION' => $editionEntity]]);
@@ -456,12 +460,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupDecodingException(): void
     {
-        $exception = new class ('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
+        $exception = new class('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $state = [
             'cacheKey' => 'test_key',
@@ -483,10 +487,10 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupServerException500(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(500);
 
-        $exception = new class ('Server error', $innerResponse) extends \RuntimeException implements ServerExceptionInterface {
+        $exception = new class('Server error', $innerResponse) extends \RuntimeException implements ServerExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -500,10 +504,10 @@ final class WikipediaLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('warning');
+        $this->createLoggerMock()->expects(self::once())->method('warning');
 
         $state = [
             'cacheKey' => 'test_key',
@@ -525,14 +529,14 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupEntityWithNoRelevantP31ReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [
                 ['id' => 'Q_IRRELEVANT'],
             ],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_IRRELEVANT' => [
@@ -568,12 +572,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testIsOneShotReturnsFalseForSeriesType(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_SERIES']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_SERIES' => [
@@ -610,12 +614,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testIsOneShotReturnsTrueForOneShotType(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_ONESHOT']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_ONESHOT' => [
@@ -652,12 +656,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testIsOneShotReturnsNullForNeitherSeriesNorOneShot(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_NEITHER']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_NEITHER' => [
@@ -702,12 +706,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testBuildThumbnailUrlViaEntity(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_THUMB']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_THUMB' => [
@@ -757,7 +761,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testFetchWikipediaSummaryFailureReturnsNullDescription(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_SUMMARY']],
         ]);
@@ -766,7 +770,7 @@ final class WikipediaLookupTest extends TestCase
         $this->httpClient->method('request')->willReturnCallback(
             function (string $method, string $url) use (&$requestCount): ResponseInterface {
                 ++$requestCount;
-                $response = $this->createMock(ResponseInterface::class);
+                $response = $this->createStub(ResponseInterface::class);
 
                 if (\str_contains($url, 'fr.wikipedia.org')) {
                     // Wikipedia summary fails
@@ -814,7 +818,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupIsbnModeFullResolve(): void
     {
-        $sparqlResponse = $this->createMock(ResponseInterface::class);
+        $sparqlResponse = $this->createStub(ResponseInterface::class);
         $sparqlResponse->method('toArray')->willReturn([
             'results' => [
                 'bindings' => [
@@ -823,7 +827,7 @@ final class WikipediaLookupTest extends TestCase
             ],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_ISBN' => [
@@ -888,9 +892,10 @@ final class WikipediaLookupTest extends TestCase
         $cacheItem = $this->createCacheItem('test_key', 'corrupted_string', true);
         $this->cache->method('getItem')->willReturn($cacheItem);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->willReturn($response);
 
@@ -915,10 +920,10 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupRedirectionException(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(301);
 
-        $exception = new class ('Redirect', $innerResponse) extends \RuntimeException implements RedirectionExceptionInterface {
+        $exception = new class('Redirect', $innerResponse) extends \RuntimeException implements RedirectionExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -932,10 +937,10 @@ final class WikipediaLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('warning');
+        $this->createLoggerMock()->expects(self::once())->method('warning');
 
         $state = [
             'cacheKey' => 'test_key',
@@ -957,12 +962,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testExtractEntityIdWithMalformedClaimReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_MALFORMED']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_MALFORMED' => [
@@ -999,12 +1004,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testExtractPublishedDateNonStringTimeReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_BADDATE']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_BADDATE' => [
@@ -1044,12 +1049,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testExtractPublishedDateMalformedTimeStringReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_MALTIME']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_MALTIME' => [
@@ -1089,12 +1094,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testGetP31IdsNonArrayClaimsReturnsEmpty(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_NONARRAY_P31']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_NONARRAY_P31' => [
@@ -1129,12 +1134,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testGetP31IdsSkipsNonArrayIndividualClaim(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_MIXED_P31']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_MIXED_P31' => [
@@ -1172,7 +1177,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveIsbnLookupEmptyEntityIdReturnsNotFound(): void
     {
-        $sparqlResponse = $this->createMock(ResponseInterface::class);
+        $sparqlResponse = $this->createStub(ResponseInterface::class);
         $sparqlResponse->method('toArray')->willReturn([
             'results' => [
                 'bindings' => [
@@ -1203,12 +1208,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveEntityNonArrayEntityReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_NONARRAY']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_NONARRAY' => 'not-an-array',
@@ -1236,12 +1241,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveEntityEditionWithNoValidP629ReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_EDITION_NO_P629']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_EDITION_NO_P629' => [
@@ -1281,12 +1286,12 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveEntityLabelAllNonArrayClaimsReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_BAD_AUTHOR']],
         ]);
 
-        $entityResponse = $this->createMock(ResponseInterface::class);
+        $entityResponse = $this->createStub(ResponseInterface::class);
         $entityResponse->method('toArray')->willReturn([
             'entities' => [
                 'Q_BAD_AUTHOR' => [
@@ -1327,7 +1332,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveEntityLabelMissingRelatedEntityReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_MISSING_REL']],
         ]);
@@ -1336,7 +1341,7 @@ final class WikipediaLookupTest extends TestCase
         $this->httpClient->method('request')->willReturnCallback(
             function () use (&$requestCount): ResponseInterface {
                 ++$requestCount;
-                $response = $this->createMock(ResponseInterface::class);
+                $response = $this->createStub(ResponseInterface::class);
 
                 if (1 === $requestCount) {
                     // Premiere requete : l'entite principale
@@ -1387,7 +1392,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveEntityLabelNonStringValueReturnsNull(): void
     {
-        $searchResponse = $this->createMock(ResponseInterface::class);
+        $searchResponse = $this->createStub(ResponseInterface::class);
         $searchResponse->method('toArray')->willReturn([
             'search' => [['id' => 'Q_BAD_LABEL']],
         ]);
@@ -1396,7 +1401,7 @@ final class WikipediaLookupTest extends TestCase
         $this->httpClient->method('request')->willReturnCallback(
             function () use (&$requestCount): ResponseInterface {
                 ++$requestCount;
-                $response = $this->createMock(ResponseInterface::class);
+                $response = $this->createStub(ResponseInterface::class);
 
                 if (1 === $requestCount) {
                     $response->method('toArray')->willReturn([
@@ -1444,6 +1449,42 @@ final class WikipediaLookupTest extends TestCase
 
         self::assertNotNull($result);
         self::assertNull($result->authors);
+    }
+
+    /**
+     * Recree le provider avec un mock httpClient pour les tests d'attente.
+     */
+    private function createHttpClientMock(): HttpClientInterface&MockObject
+    {
+        $mock = $this->createMock(HttpClientInterface::class);
+        $this->httpClient = $mock;
+        $this->provider = new WikipediaLookup($this->cache, $this->httpClient, $this->logger);
+
+        return $mock;
+    }
+
+    /**
+     * Recree le provider avec un mock logger pour les tests d'attente.
+     */
+    private function createLoggerMock(): LoggerInterface&MockObject
+    {
+        $mock = $this->createMock(LoggerInterface::class);
+        $this->logger = $mock;
+        $this->provider = new WikipediaLookup($this->cache, $this->httpClient, $this->logger);
+
+        return $mock;
+    }
+
+    /**
+     * Recree le provider avec un mock cache pour les tests d'attente.
+     */
+    private function createCacheMock(): AdapterInterface&MockObject
+    {
+        $mock = $this->createMock(AdapterInterface::class);
+        $this->cache = $mock;
+        $this->provider = new WikipediaLookup($this->cache, $this->httpClient, $this->logger);
+
+        return $mock;
     }
 
     /**

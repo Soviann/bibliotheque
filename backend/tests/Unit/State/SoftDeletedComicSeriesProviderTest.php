@@ -18,121 +18,126 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final class SoftDeletedComicSeriesProviderTest extends TestCase
 {
-    private ComicSeriesRepository $repository;
-    private EntityManagerInterface $entityManager;
-    private FilterCollection $filterCollection;
-    private SoftDeletedComicSeriesProvider $provider;
-
-    protected function setUp(): void
-    {
-        $this->repository = $this->createMock(ComicSeriesRepository::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->filterCollection = $this->createMock(FilterCollection::class);
-
-        $this->entityManager
-            ->method('getFilters')
-            ->willReturn($this->filterCollection);
-
-        $this->provider = new SoftDeletedComicSeriesProvider(
-            $this->repository,
-            $this->entityManager,
-        );
-    }
-
     public function testProvideReturnsDeletedComic(): void
     {
-        $comic = $this->createMock(ComicSeries::class);
+        $comic = $this->createStub(ComicSeries::class);
         $comic->method('isDeleted')->willReturn(true);
 
-        $this->repository
+        $repository = $this->createStub(ComicSeriesRepository::class);
+        $repository
             ->method('find')
-            ->with(7)
             ->willReturn($comic);
 
-        $this->filterCollection
+        $filterCollection = $this->createMock(FilterCollection::class);
+        $filterCollection
             ->expects(self::once())
             ->method('disable')
             ->with('soft_delete');
 
-        $this->filterCollection
+        $filterCollection
             ->expects(self::once())
             ->method('enable')
             ->with('soft_delete');
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($repository, $filterCollection);
+        $operation = $this->createStub(Operation::class);
 
-        $result = $this->provider->provide($operation, ['id' => 7]);
+        $result = $provider->provide($operation, ['id' => 7]);
 
         self::assertSame($comic, $result);
     }
 
     public function testProvideThrowsNotFoundWhenComicNotFound(): void
     {
-        $this->repository
+        $repository = $this->createStub(ComicSeriesRepository::class);
+        $repository
             ->method('find')
-            ->with(99)
             ->willReturn(null);
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($repository);
+        $operation = $this->createStub(Operation::class);
 
         $this->expectException(NotFoundHttpException::class);
         $this->expectExceptionMessage('Série non trouvée.');
 
-        $this->provider->provide($operation, ['id' => 99]);
+        $provider->provide($operation, ['id' => 99]);
     }
 
     public function testProvideThrowsNotFoundWhenComicIsNotDeleted(): void
     {
-        $comic = $this->createMock(ComicSeries::class);
+        $comic = $this->createStub(ComicSeries::class);
         $comic->method('isDeleted')->willReturn(false);
 
-        $this->repository
+        $repository = $this->createStub(ComicSeriesRepository::class);
+        $repository
             ->method('find')
-            ->with(5)
             ->willReturn($comic);
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($repository);
+        $operation = $this->createStub(Operation::class);
 
         $this->expectException(NotFoundHttpException::class);
 
-        $this->provider->provide($operation, ['id' => 5]);
+        $provider->provide($operation, ['id' => 5]);
     }
 
     public function testProvideUsesZeroAsFallbackWhenNoIdInUriVariables(): void
     {
-        $this->repository
+        $repository = $this->createMock(ComicSeriesRepository::class);
+        $repository
             ->expects(self::once())
             ->method('find')
             ->with(0)
             ->willReturn(null);
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($repository);
+        $operation = $this->createStub(Operation::class);
 
         $this->expectException(NotFoundHttpException::class);
 
-        $this->provider->provide($operation, []);
+        $provider->provide($operation, []);
     }
 
     public function testProvideReEnablesFilterEvenOnException(): void
     {
-        $this->repository
+        $repository = $this->createStub(ComicSeriesRepository::class);
+        $repository
             ->method('find')
             ->willThrowException(new \RuntimeException('DB error'));
 
-        $this->filterCollection
+        $filterCollection = $this->createMock(FilterCollection::class);
+        $filterCollection
             ->expects(self::once())
             ->method('disable')
             ->with('soft_delete');
 
-        $this->filterCollection
+        $filterCollection
             ->expects(self::once())
             ->method('enable')
             ->with('soft_delete');
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($repository, $filterCollection);
+        $operation = $this->createStub(Operation::class);
 
         $this->expectException(\RuntimeException::class);
 
-        $this->provider->provide($operation, ['id' => 1]);
+        $provider->provide($operation, ['id' => 1]);
+    }
+
+    private function createProvider(
+        ComicSeriesRepository $repository,
+        ?FilterCollection $filterCollection = null,
+    ): SoftDeletedComicSeriesProvider {
+        $filterCollection ??= $this->createStub(FilterCollection::class);
+
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager
+            ->method('getFilters')
+            ->willReturn($filterCollection);
+
+        return new SoftDeletedComicSeriesProvider(
+            $repository,
+            $entityManager,
+        );
     }
 }
