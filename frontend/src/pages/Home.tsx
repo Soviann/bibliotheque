@@ -1,10 +1,11 @@
-import { Search } from "lucide-react";
+import { BookOpen, Filter, Heart, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import ConfirmModal from "../components/ConfirmModal";
+import EmptyState from "../components/EmptyState";
 import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { useDeleteComic } from "../hooks/useDeleteComic";
@@ -118,7 +119,33 @@ export default function Home() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-12 text-center text-text-muted">Aucune série trouvée</div>
+        allComics.length === 0 ? (
+          <EmptyState
+            actionHref="/comic/new"
+            actionLabel="Ajouter une série"
+            description="Commencez par ajouter votre première série"
+            icon={BookOpen}
+            title="Votre bibliothèque est vide"
+          />
+        ) : search ? (
+          <EmptyState
+            icon={Search}
+            title={`Aucun résultat pour « ${search} »`}
+          />
+        ) : status === "wishlist" ? (
+          <EmptyState
+            actionHref="/comic/new"
+            actionLabel="Ajouter une série"
+            description="Les séries que vous souhaitez acheter apparaîtront ici"
+            icon={Heart}
+            title="Votre liste de souhaits est vide"
+          />
+        ) : (
+          <EmptyState
+            icon={Filter}
+            title="Aucune série avec ces filtres"
+          />
+        )
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {filtered.map((comic) => (

@@ -40,7 +40,7 @@ describe("Trash", () => {
     expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(4);
   });
 
-  it("shows empty state when no trashed comics", async () => {
+  it("shows empty state with icon and description when no trashed comics", async () => {
     server.use(
       http.get("/api/trash", () =>
         HttpResponse.json(createMockHydraCollection([], "/api/trash")),
@@ -52,6 +52,8 @@ describe("Trash", () => {
     await waitFor(() => {
       expect(screen.getByText("La corbeille est vide")).toBeInTheDocument();
     });
+    expect(screen.getByText("Les séries supprimées apparaîtront ici")).toBeInTheDocument();
+    expect(screen.getByTestId("empty-state-icon")).toBeInTheDocument();
   });
 
   it("renders trashed comics", async () => {

@@ -2,6 +2,7 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
+import EmptyState from "../components/EmptyState";
 import SkeletonBox from "../components/SkeletonBox";
 import { usePermanentDelete, useRestoreComic, useTrash } from "../hooks/useTrash";
 import type { ComicSeries } from "../types/api";
@@ -30,7 +31,11 @@ export default function Trash() {
           ))}
         </div>
       ) : comics.length === 0 ? (
-        <div className="py-12 text-center text-text-muted">La corbeille est vide</div>
+        <EmptyState
+          description="Les séries supprimées apparaîtront ici"
+          icon={Trash2}
+          title="La corbeille est vide"
+        />
       ) : (
         <div className="space-y-2">
           {comics.map((comic) => (
