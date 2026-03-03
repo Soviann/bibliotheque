@@ -2,7 +2,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { Edit, EllipsisVertical, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
-import { ComicTypeLabel } from "../types/enums";
+import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import ProgressBar from "./ProgressBar";
 
 interface ComicCardProps {
@@ -31,7 +31,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
           alt={comic.title}
           className="h-full w-full object-cover transition group-hover:scale-105"
           loading="lazy"
-          src={coverSrc ?? "/placeholder-cover.png"}
+          src={coverSrc ?? ComicTypePlaceholder[comic.type]}
         />
       </div>
 

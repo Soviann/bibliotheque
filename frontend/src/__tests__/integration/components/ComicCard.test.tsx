@@ -47,17 +47,18 @@ describe("ComicCard", () => {
     expect(img).toHaveAttribute("src", "/uploads/covers/naruto.jpg");
   });
 
-  it("shows placeholder when no cover", () => {
+  it("shows type-specific placeholder when no cover", () => {
     const comic = createMockComicSeries({
       coverImage: null,
       coverUrl: null,
       title: "No Cover",
+      type: ComicType.BD,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
 
     const img = screen.getByAltText("No Cover");
-    expect(img).toHaveAttribute("src", "/placeholder-cover.png");
+    expect(img).toHaveAttribute("src", "/placeholder-bd.jpg");
   });
 
   it("links to comic detail page", () => {

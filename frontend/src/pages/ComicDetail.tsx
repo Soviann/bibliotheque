@@ -9,7 +9,7 @@ import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useUpdateTome } from "../hooks/useUpdateTome";
-import { ComicStatusLabel, ComicTypeLabel } from "../types/enums";
+import { ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 
 export default function ComicDetail() {
   const { id } = useParams<{ id: string }>();
@@ -119,7 +119,7 @@ export default function ComicDetail() {
           <img
             alt={comic.title}
             className="w-full rounded-lg shadow"
-            src={coverSrc ?? "/placeholder-cover.png"}
+            src={coverSrc ?? ComicTypePlaceholder[comic.type]}
           />
         </div>
 

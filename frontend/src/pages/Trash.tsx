@@ -6,6 +6,7 @@ import EmptyState from "../components/EmptyState";
 import SkeletonBox from "../components/SkeletonBox";
 import { usePermanentDelete, useRestoreComic, useTrash } from "../hooks/useTrash";
 import type { ComicSeries } from "../types/api";
+import { ComicTypePlaceholder } from "../types/enums";
 
 export default function Trash() {
   const { data, isLoading } = useTrash();
@@ -46,7 +47,7 @@ export default function Trash() {
               <img
                 alt={comic.title}
                 className="h-12 w-9 rounded object-cover"
-                src={comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : "/placeholder-cover.png")}
+                src={comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : ComicTypePlaceholder[comic.type])}
               />
               <span className="flex-1 font-medium text-text-primary">{comic.title}</span>
               <button
