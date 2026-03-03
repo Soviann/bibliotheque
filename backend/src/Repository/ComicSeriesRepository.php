@@ -10,14 +10,20 @@ use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @extends ServiceEntityRepository<ComicSeries>
  */
 class ComicSeriesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        #[Autowire(service: 'comic_series_api.cache')]
+        private readonly CacheInterface $cache,
+        ManagerRegistry $registry,
+    ) {
         parent::__construct($registry, ComicSeries::class);
     }
 
@@ -114,12 +120,27 @@ class ComicSeriesRepository extends ServiceEntityRepository
     /**
      * Retourne toutes les séries avec leurs relations pour l'API PWA.
      *
-     * Utilise un eager loading avec leftJoin + addSelect pour éviter
-     * le problème N+1 (une requête par série pour chaque relation).
+     * Utilise un cache applicatif (15 min) pour éviter de requêter la base
+     * à chaque chargement. Le cache est invalidé par ComicSeriesCacheInvalidator.
      *
      * @return list<array<string, mixed>>
      */
     public function findAllForApi(): array
+    {
+        /* @var list<array<string, mixed>> */
+        return $this->cache->get('comic_series_api_all', function (ItemInterface $item): array {
+            $item->expiresAfter(900);
+
+            return $this->doFindAllForApi();
+        });
+    }
+
+    /**
+     * Exécute la requête complète avec eager loading pour éviter le N+1.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function doFindAllForApi(): array
     {
         /** @var ComicSeries[] $comics */
         $comics = $this->createQueryBuilder('c')
