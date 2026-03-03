@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Menu contextuel des cartes** : Les actions Modifier/Supprimer sont masquées derrière un bouton `⋮` — barre d'actions fixe en bas sur mobile, dropdown Headless UI sur desktop. Suppression de la barre d'actions permanente et du skeleton correspondant (#95)
 - **Unification Wishlist dans Home** : Suppression de la page Wishlist séparée, les filtres (statut, type, tri, recherche) sont désormais synchronisés avec les paramètres URL sur la page d'accueil. Le lien Wishlist dans la navigation mène vers `/?status=wishlist` (#92)
 - **Layout carte des tomes sur mobile** : Remplacement du tableau à 8 colonnes par des cartes empilées dans le formulaire de série sur mobile (< `sm`) — numéro + titre, ISBN avec lookup, checkboxes en grille 2×2, bouton supprimer. Tableau conservé sur desktop (#87)
 
