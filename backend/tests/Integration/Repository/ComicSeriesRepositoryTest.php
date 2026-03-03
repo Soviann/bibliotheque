@@ -621,4 +621,129 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $secondResult = $this->repository->findAllForApi();
         self::assertSame(1, $secondResult[0]['tomesCount']);
     }
+
+    // ---------------------------------------------------------------
+    // findWithMissingLookupData
+    // ---------------------------------------------------------------
+
+    public function testFindWithMissingLookupDataReturnsSeriesWithoutDescription(): void
+    {
+        $missing = EntityFactory::createComicSeries('Missing');
+        $complete = EntityFactory::createComicSeries('Complete');
+        $complete->setDescription('Une description');
+        $complete->setPublisher('Editeur');
+        $complete->setPublishedDate('2024');
+        $complete->setCoverUrl('https://example.com/cover.jpg');
+        $complete->setLatestPublishedIssue(5);
+        $author = EntityFactory::createAuthor('Auteur');
+        $this->em->persist($author);
+        $complete->addAuthor($author);
+
+        $this->em->persist($complete);
+        $this->em->persist($missing);
+        $this->em->flush();
+
+        $result = $this->repository->findWithMissingLookupData();
+
+        self::assertCount(1, $result);
+        self::assertSame('Missing', $result[0]->getTitle());
+    }
+
+    public function testFindWithMissingLookupDataSkipsLookupCompleted(): void
+    {
+        $alreadyLooked = EntityFactory::createComicSeries('Already Looked');
+        $alreadyLooked->setLookupCompletedAt(new \DateTimeImmutable());
+
+        $notLooked = EntityFactory::createComicSeries('Not Looked');
+
+        $this->em->persist($alreadyLooked);
+        $this->em->persist($notLooked);
+        $this->em->flush();
+
+        $result = $this->repository->findWithMissingLookupData();
+
+        self::assertCount(1, $result);
+        self::assertSame('Not Looked', $result[0]->getTitle());
+    }
+
+    public function testFindWithMissingLookupDataWithTypeFilter(): void
+    {
+        $manga = EntityFactory::createComicSeries('Naruto', ComicStatus::BUYING, ComicType::MANGA);
+        $bd = EntityFactory::createComicSeries('Asterix', ComicStatus::BUYING, ComicType::BD);
+
+        $this->em->persist($bd);
+        $this->em->persist($manga);
+        $this->em->flush();
+
+        $result = $this->repository->findWithMissingLookupData(type: ComicType::MANGA);
+
+        self::assertCount(1, $result);
+        self::assertSame('Naruto', $result[0]->getTitle());
+    }
+
+    public function testFindWithMissingLookupDataWithLimit(): void
+    {
+        $this->em->persist(EntityFactory::createComicSeries('Alpha'));
+        $this->em->persist(EntityFactory::createComicSeries('Bravo'));
+        $this->em->persist(EntityFactory::createComicSeries('Charlie'));
+        $this->em->flush();
+
+        $result = $this->repository->findWithMissingLookupData(limit: 2);
+
+        self::assertCount(2, $result);
+    }
+
+    public function testFindWithMissingLookupDataReturnsMissingCover(): void
+    {
+        $noCover = EntityFactory::createComicSeries('No Cover');
+        $noCover->setDescription('Has description');
+        $noCover->setPublisher('Editeur');
+        $noCover->setPublishedDate('2024');
+        $noCover->setLatestPublishedIssue(5);
+        $author = EntityFactory::createAuthor('Auteur');
+        $this->em->persist($author);
+        $noCover->addAuthor($author);
+        // Pas de coverUrl ni coverImage → doit être retourné
+
+        $this->em->persist($noCover);
+        $this->em->flush();
+
+        $result = $this->repository->findWithMissingLookupData();
+
+        self::assertCount(1, $result);
+        self::assertSame('No Cover', $result[0]->getTitle());
+    }
+
+    public function testFindWithMissingLookupDataReturnsMissingAuthors(): void
+    {
+        $noAuthors = EntityFactory::createComicSeries('No Authors');
+        $noAuthors->setDescription('Has description');
+        $noAuthors->setPublisher('Editeur');
+        $noAuthors->setPublishedDate('2024');
+        $noAuthors->setCoverUrl('https://example.com/cover.jpg');
+        $noAuthors->setLatestPublishedIssue(5);
+        // Pas d'auteurs → doit être retourné
+
+        $this->em->persist($noAuthors);
+        $this->em->flush();
+
+        $result = $this->repository->findWithMissingLookupData();
+
+        self::assertCount(1, $result);
+        self::assertSame('No Authors', $result[0]->getTitle());
+    }
+
+    public function testFindWithMissingLookupDataForceIgnoresLookupCompletedAt(): void
+    {
+        $alreadyLooked = EntityFactory::createComicSeries('Already Looked');
+        $alreadyLooked->setLookupCompletedAt(new \DateTimeImmutable());
+
+        $this->em->persist($alreadyLooked);
+        $this->em->flush();
+
+        $result = $this->repository->findWithMissingLookupData(force: true);
+
+        self::assertCount(1, $result);
+        self::assertSame('Already Looked', $result[0]->getTitle());
+    }
 }

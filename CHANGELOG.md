@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Lookup automatique des métadonnées manquantes** : Commande `app:lookup-missing` pour rechercher automatiquement description, couverture, éditeur, auteurs et date de publication des séries incomplètes. Gestion du rate-limiting avec backoff exponentiel, options `--dry-run`, `--limit`, `--type`, `--series`, `--force`. Champ `lookupCompletedAt` pour éviter les re-lookups. Service `LookupApplier` réutilisable pour appliquer un `LookupResult` sur une série (#112)
 - **Transitions animées entre les pages** : Fade subtil entre les pages via la View Transition API native (CSS `::view-transition`) intégrée avec React Router (`viewTransition` sur les Links et `navigate()`). Respect de `prefers-reduced-motion`. Aucune dépendance ajoutée (#96)
 - **Tomes multi-numéros (intégrales)** : Champ optionnel `tomeEnd` sur l'entité Tome pour représenter une plage de numéros (ex : tome 4-6). Affiché dans la page détail et éditable dans le formulaire. Enrichissement Gemini : détection automatique des intégrales lors du lookup ISBN avec pré-remplissage de `tomeEnd` (#111)
 - **Cache sur findAllForApi()** : Cache applicatif Symfony (15 min, filesystem) sur la requête principale de l'API PWA avec invalidation automatique via listener Doctrine lors de modifications sur ComicSeries, Tome ou Author (#23)

@@ -165,6 +165,10 @@ class ImportExcelCommand extends Command
             $totalTomes
         ));
 
+        if ($totalImported > 0 && !$dryRun) {
+            $io->info('Pour compléter les données des séries importées, exécutez : bin/console app:lookup-missing');
+        }
+
         return Command::SUCCESS;
     }
 
