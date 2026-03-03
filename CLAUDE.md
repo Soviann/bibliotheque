@@ -141,7 +141,6 @@ Run PHP-CS-Fixer and tests afterwards.
 
 ### Commits
 
-Format: `<type>(scope): description in French` — Types: `feat`, `fix`, `chore`, `refactor`, `docs`
 **Always** reference the issue: append `#N` in the message body or use `fixes #N` to auto-close.
 
 ### Branches (GitHub Flow)
