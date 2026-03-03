@@ -33,6 +33,7 @@ export interface Tome {
   onNas: boolean;
   read: boolean;
   title: string | null;
+  tomeEnd: number | null;
   updatedAt: string;
 }
 
@@ -68,4 +69,6 @@ export interface LookupResult {
   sources: string[];
   thumbnail: string | null;
   title: string | null;
+  tomeEnd: number | null;
+  tomeNumber: number | null;
 }

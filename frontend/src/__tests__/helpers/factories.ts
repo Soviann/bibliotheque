@@ -26,6 +26,7 @@ export function createMockTome(overrides: Partial<Tome> = {}): Tome {
     onNas: false,
     read: false,
     title: null,
+    tomeEnd: null,
     updatedAt: "2025-01-01T00:00:00+00:00",
     ...overrides,
   };
@@ -72,6 +73,8 @@ export function createMockLookupResult(
     sources: [],
     thumbnail: null,
     title: null,
+    tomeEnd: null,
+    tomeNumber: null,
     ...overrides,
   };
 }

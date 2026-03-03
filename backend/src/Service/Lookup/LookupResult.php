@@ -20,6 +20,8 @@ class LookupResult implements \JsonSerializable
         public readonly string $source = '',
         public readonly ?string $thumbnail = null,
         public readonly ?string $title = null,
+        public readonly ?int $tomeEnd = null,
+        public readonly ?int $tomeNumber = null,
     ) {
     }
 
@@ -40,6 +42,8 @@ class LookupResult implements \JsonSerializable
         $this->source = \is_string($data['source'] ?? null) ? $data['source'] : '';
         $this->thumbnail = \is_string($data['thumbnail'] ?? null) ? $data['thumbnail'] : null;
         $this->title = \is_string($data['title'] ?? null) ? $data['title'] : null;
+        $this->tomeEnd = \is_int($data['tomeEnd'] ?? null) ? $data['tomeEnd'] : null;
+        $this->tomeNumber = \is_int($data['tomeNumber'] ?? null) ? $data['tomeNumber'] : null;
     }
 
     /**
@@ -51,7 +55,7 @@ class LookupResult implements \JsonSerializable
     }
 
     /**
-     * @return array{authors: ?string, description: ?string, isbn: ?string, isOneShot: ?bool, latestPublishedIssue: ?int, publishedDate: ?string, publisher: ?string, thumbnail: ?string, title: ?string}
+     * @return array{authors: ?string, description: ?string, isbn: ?string, isOneShot: ?bool, latestPublishedIssue: ?int, publishedDate: ?string, publisher: ?string, thumbnail: ?string, title: ?string, tomeEnd: ?int, tomeNumber: ?int}
      */
     public function jsonSerialize(): array
     {
@@ -65,6 +69,8 @@ class LookupResult implements \JsonSerializable
             'publisher' => $this->publisher,
             'thumbnail' => $this->thumbnail,
             'title' => $this->title,
+            'tomeEnd' => $this->tomeEnd,
+            'tomeNumber' => $this->tomeNumber,
         ];
     }
 
@@ -84,6 +90,8 @@ class LookupResult implements \JsonSerializable
             source: $this->source,
             thumbnail: $this->thumbnail,
             title: $this->title,
+            tomeEnd: $this->tomeEnd,
+            tomeNumber: $this->tomeNumber,
         );
     }
 }

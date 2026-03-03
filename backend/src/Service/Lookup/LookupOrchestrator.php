@@ -179,7 +179,7 @@ class LookupOrchestrator
      */
     private function mergeByFieldPriority(array $providerResults, ?ComicType $type): LookupResult
     {
-        $fields = ['authors', 'description', 'isbn', 'isOneShot', 'latestPublishedIssue', 'publishedDate', 'publisher', 'thumbnail', 'title'];
+        $fields = ['authors', 'description', 'isbn', 'isOneShot', 'latestPublishedIssue', 'publishedDate', 'publisher', 'thumbnail', 'title', 'tomeEnd', 'tomeNumber'];
         $bestPriorities = \array_fill_keys($fields, -1);
         $bestValues = \array_fill_keys($fields, null);
 
@@ -209,6 +209,8 @@ class LookupOrchestrator
             source: $providerResults[0][1]->source,
             thumbnail: $bestValues['thumbnail'], // @phpstan-ignore argument.type
             title: $bestValues['title'], // @phpstan-ignore argument.type
+            tomeEnd: $bestValues['tomeEnd'], // @phpstan-ignore argument.type
+            tomeNumber: $bestValues['tomeNumber'], // @phpstan-ignore argument.type
         );
     }
 
