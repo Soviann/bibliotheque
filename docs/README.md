@@ -8,7 +8,9 @@ Application de gestion de collection BD/Manga/Comics — React 19 + Symfony 7.4 
 |-------|-------------|
 | [Guide utilisateur](guide-utilisateur.md) | Utilisation de l'application (connexion, navigation, ajout, recherche, corbeille, PWA) |
 | [Guide développeur](guide-developpeur.md) | Architecture, setup DDEV, API, tests, qualité de code, workflow Git |
-| [Guide de déploiement](guide-deploiement.md) | Déploiement sur serveur Linux OVH (nginx, PHP-FPM, MariaDB, SSL) |
+| [Déploiement NAS Synology](guide-deploiement-nas.md) | Déploiement Docker Compose sur NAS Synology |
+| [Runbook NAS (Claude)](guide-deploiement-nas-claude.md) | Runbook pas-à-pas pour déploiement automatisé via SSH |
+| [Déploiement OVH](guide-deploiement-ovh.md) | Déploiement bare metal sur serveur Linux (nginx, PHP-FPM, MariaDB, SSL) |
 
 ## Stack technique
 
