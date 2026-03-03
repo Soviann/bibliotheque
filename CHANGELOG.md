@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Cache sur findAllForApi()** : Cache applicatif Symfony (15 min, filesystem) sur la requête principale de l'API PWA avec invalidation automatique via listener Doctrine lors de modifications sur ComicSeries, Tome ou Author (#23)
 - **Placeholder de couverture stylisé** : Les séries sans couverture affichent une illustration spécifique au type (BD, Manga, Comics, Livre) au lieu du placeholder générique (#100)
 
 ### Changed

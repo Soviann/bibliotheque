@@ -11,12 +11,14 @@ use App\Repository\ComicSeriesRepository;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Tests d'integration pour ComicSeriesRepository.
  */
 final class ComicSeriesRepositoryTest extends KernelTestCase
 {
+    private CacheInterface $cache;
     private ComicSeriesRepository $repository;
     private EntityManagerInterface $em;
 
@@ -24,8 +26,12 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
     {
         self::bootKernel();
 
+        $this->cache = static::getContainer()->get('comic_series_api.cache');
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
         $this->repository = static::getContainer()->get(ComicSeriesRepository::class);
+
+        // Vider le cache avant chaque test pour garantir l'isolation
+        $this->cache->delete('comic_series_api_all');
     }
 
     // ---------------------------------------------------------------
@@ -538,5 +544,81 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame(0, $result[0]['tomesCount']);
         self::assertSame(0, $result[0]['readTomesCount']);
         self::assertFalse($result[0]['hasNasTome']);
+    }
+
+    // ---------------------------------------------------------------
+    // findAllForApi — cache
+    // ---------------------------------------------------------------
+
+    public function testFindAllForApiReturnsSameResultOnConsecutiveCalls(): void
+    {
+        $series = EntityFactory::createComicSeries('Alpha');
+        $this->em->persist($series);
+        $this->em->flush();
+
+        // Deux appels consécutifs doivent retourner le même résultat (cache)
+        $firstResult = $this->repository->findAllForApi();
+        $secondResult = $this->repository->findAllForApi();
+
+        self::assertSame($firstResult, $secondResult);
+    }
+
+    public function testFindAllForApiCacheInvalidatedAfterNewSeries(): void
+    {
+        $series = EntityFactory::createComicSeries('Alpha');
+        $this->em->persist($series);
+        $this->em->flush();
+
+        // Premier appel → remplit le cache
+        $firstResult = $this->repository->findAllForApi();
+        self::assertCount(1, $firstResult);
+
+        // Ajouter une nouvelle série via Doctrine (déclenche le listener)
+        $newSeries = EntityFactory::createComicSeries('Bravo');
+        $this->em->persist($newSeries);
+        $this->em->flush();
+
+        // Le cache doit être invalidé, nouveau résultat avec 2 séries
+        $secondResult = $this->repository->findAllForApi();
+        self::assertCount(2, $secondResult);
+    }
+
+    public function testFindAllForApiCacheInvalidatedAfterSeriesUpdate(): void
+    {
+        $series = EntityFactory::createComicSeries('Alpha');
+        $this->em->persist($series);
+        $this->em->flush();
+
+        // Premier appel → remplit le cache
+        $firstResult = $this->repository->findAllForApi();
+        self::assertSame('Alpha', $firstResult[0]['title']);
+
+        // Modifier la série
+        $series->setTitle('Alpha Modifié');
+        $this->em->flush();
+
+        // Le cache doit être invalidé, titre mis à jour
+        $secondResult = $this->repository->findAllForApi();
+        self::assertSame('Alpha Modifié', $secondResult[0]['title']);
+    }
+
+    public function testFindAllForApiCacheInvalidatedAfterTomePersist(): void
+    {
+        $series = EntityFactory::createComicSeries('Alpha');
+        $this->em->persist($series);
+        $this->em->flush();
+
+        // Premier appel → 0 tomes
+        $firstResult = $this->repository->findAllForApi();
+        self::assertSame(0, $firstResult[0]['tomesCount']);
+
+        // Ajouter un tome
+        $tome = EntityFactory::createTome(1);
+        $series->addTome($tome);
+        $this->em->flush();
+
+        // Le cache doit être invalidé, 1 tome maintenant
+        $secondResult = $this->repository->findAllForApi();
+        self::assertSame(1, $secondResult[0]['tomesCount']);
     }
 }
