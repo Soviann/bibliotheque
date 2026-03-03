@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Google\Client as GoogleClient;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,19 +28,19 @@ final class GoogleLoginControllerTest extends TestCase
 {
     private const string ALLOWED_EMAIL = 'allowed@example.com';
 
-    private EntityManagerInterface&MockObject $entityManager;
-    private GoogleClient&MockObject $googleClient;
-    private JWTTokenManagerInterface&MockObject $jwtManager;
-    private UserRepository&MockObject $userRepository;
-    private ValidatorInterface&MockObject $validator;
+    private EntityManagerInterface $entityManager;
+    private GoogleClient&Stub $googleClient;
+    private JWTTokenManagerInterface&Stub $jwtManager;
+    private UserRepository&Stub $userRepository;
+    private ValidatorInterface&Stub $validator;
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->googleClient = $this->createMock(GoogleClient::class);
-        $this->jwtManager = $this->createMock(JWTTokenManagerInterface::class);
-        $this->userRepository = $this->createMock(UserRepository::class);
-        $this->validator = $this->createMock(ValidatorInterface::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
+        $this->googleClient = $this->createStub(GoogleClient::class);
+        $this->jwtManager = $this->createStub(JWTTokenManagerInterface::class);
+        $this->userRepository = $this->createStub(UserRepository::class);
+        $this->validator = $this->createStub(ValidatorInterface::class);
     }
 
     public function testMissingCredentialReturns400(): void
@@ -91,8 +92,9 @@ final class GoogleLoginControllerTest extends TestCase
         ]);
         $this->userRepository->method('findOneBy')->willReturn(null);
         $this->validator->method('validate')->willReturn(new ConstraintViolationList());
-        $this->entityManager->expects(self::once())->method('persist');
-        $this->entityManager->expects(self::once())->method('flush');
+        $em = $this->createEntityManagerMock();
+        $em->expects(self::once())->method('persist');
+        $em->expects(self::once())->method('flush');
         $this->jwtManager->method('create')->willReturn('jwt-token-new');
 
         $controller = $this->createController();
@@ -116,8 +118,9 @@ final class GoogleLoginControllerTest extends TestCase
             'sub' => 'google-id-456',
         ]);
         $this->userRepository->method('findOneBy')->willReturn($user);
-        $this->entityManager->expects(self::never())->method('persist');
-        $this->entityManager->expects(self::once())->method('flush');
+        $em = $this->createEntityManagerMock();
+        $em->expects(self::never())->method('persist');
+        $em->expects(self::once())->method('flush');
         $this->jwtManager->method('create')->willReturn('jwt-token-existing');
 
         $controller = $this->createController();
@@ -141,8 +144,9 @@ final class GoogleLoginControllerTest extends TestCase
             'sub' => 'existing-google-id',
         ]);
         $this->userRepository->method('findOneBy')->willReturn($user);
-        $this->entityManager->expects(self::never())->method('persist');
-        $this->entityManager->expects(self::never())->method('flush');
+        $em = $this->createEntityManagerMock();
+        $em->expects(self::never())->method('persist');
+        $em->expects(self::never())->method('flush');
         $this->jwtManager->method('create')->willReturn('jwt-token-nochange');
 
         $controller = $this->createController();
@@ -163,11 +167,12 @@ final class GoogleLoginControllerTest extends TestCase
         ]);
         $this->userRepository->method('findOneBy')->willReturn(null);
 
-        $violation = $this->createMock(\Symfony\Component\Validator\ConstraintViolationInterface::class);
+        $violation = $this->createStub(\Symfony\Component\Validator\ConstraintViolationInterface::class);
         $violations = new ConstraintViolationList([$violation]);
         $this->validator->method('validate')->willReturn($violations);
 
-        $this->entityManager->expects(self::never())->method('persist');
+        $em = $this->createEntityManagerMock();
+        $em->expects(self::never())->method('persist');
 
         $controller = $this->createController();
         $request = $this->createJsonRequest('{"credential": "valid-token"}');
@@ -206,6 +211,14 @@ final class GoogleLoginControllerTest extends TestCase
 
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
         self::assertStringContainsString('Trop de tentatives', $response->getContent());
+    }
+
+    private function createEntityManagerMock(): EntityManagerInterface&MockObject
+    {
+        $mock = $this->createMock(EntityManagerInterface::class);
+        $this->entityManager = $mock;
+
+        return $mock;
     }
 
     private function createController(): GoogleLoginController

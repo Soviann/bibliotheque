@@ -20,14 +20,14 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final class AniListLookupTest extends TestCase
 {
-    private HttpClientInterface&MockObject $httpClient;
-    private LoggerInterface&MockObject $logger;
+    private HttpClientInterface $httpClient;
+    private LoggerInterface $logger;
     private AniListLookup $provider;
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock(HttpClientInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->httpClient = $this->createStub(HttpClientInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
 
         $this->provider = new AniListLookup(
             $this->httpClient,
@@ -89,9 +89,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testPrepareLookupSendsGraphqlPost(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'POST',
@@ -114,9 +115,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testPrepareLookupCleansTitle(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'POST',
@@ -135,7 +137,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupSuccess(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -182,7 +184,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupTitleFallbackToRomaji(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -213,7 +215,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupOneShotByFormat(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -240,7 +242,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupOneShotByVolumesAndStatus(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -267,7 +269,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupFiltersAuthorsByRole(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -313,7 +315,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupNoMedia(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => null,
@@ -333,12 +335,12 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupTransportException(): void
     {
-        $exception = new class ('Connection timeout') extends \RuntimeException implements TransportExceptionInterface {};
+        $exception = new class('Connection timeout') extends \RuntimeException implements TransportExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -353,10 +355,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupRateLimited429(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(429);
 
-        $exception = new class ('Rate limited', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+        $exception = new class('Rate limited', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -370,7 +372,7 @@ final class AniListLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
         $result = $this->provider->resolveLookup($response);
@@ -386,10 +388,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupOtherHttpError(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(500);
 
-        $exception = new class ('Server error', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+        $exception = new class('Server error', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -403,7 +405,7 @@ final class AniListLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
         $result = $this->provider->resolveLookup($response);
@@ -420,12 +422,12 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupDecodingException(): void
     {
-        $exception = new class ('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
+        $exception = new class('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -440,7 +442,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupDateFormatYearOnly(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -467,7 +469,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupDateFormatYearMonth(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -494,9 +496,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testPrepareLookupCleansHashSuffix(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'POST',
@@ -515,9 +518,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testPrepareLookupCleansParenthesisNumber(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'POST',
@@ -536,9 +540,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testPrepareLookupCleansVolPrefix(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'POST',
@@ -557,9 +562,10 @@ final class AniListLookupTest extends TestCase
      */
     public function testPrepareLookupCleansTrailingBareNumber(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'POST',
@@ -578,7 +584,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupThumbnailFallbackToLarge(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -608,7 +614,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupTitleFallbackToNative(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -639,7 +645,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupDescriptionDecodesHtmlEntities(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -669,7 +675,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupTitleAllNullReturnsNull(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -700,7 +706,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupThumbnailBothNullReturnsNull(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -730,7 +736,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupIsOneShotFalseWhenMultiVolumeOngoing(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -757,7 +763,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupLatestPublishedIssueNullWhenVolumesNull(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -784,7 +790,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupExtractAuthorsWithMissingNodeData(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -826,7 +832,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupDateFormatNullYearReturnsNull(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -853,7 +859,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testResolveLookupExtractsLatestPublishedIssue(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'data' => [
                 'Media' => [
@@ -873,5 +879,29 @@ final class AniListLookupTest extends TestCase
 
         self::assertNotNull($result);
         self::assertSame(25, $result->latestPublishedIssue);
+    }
+
+    /**
+     * Recree le provider avec un mock httpClient pour les tests d'attente.
+     */
+    private function createHttpClientMock(): HttpClientInterface&MockObject
+    {
+        $mock = $this->createMock(HttpClientInterface::class);
+        $this->httpClient = $mock;
+        $this->provider = new AniListLookup($this->httpClient, $this->logger);
+
+        return $mock;
+    }
+
+    /**
+     * Recree le provider avec un mock logger pour les tests d'attente.
+     */
+    private function createLoggerMock(): LoggerInterface&MockObject
+    {
+        $mock = $this->createMock(LoggerInterface::class);
+        $this->logger = $mock;
+        $this->provider = new AniListLookup($this->httpClient, $this->logger);
+
+        return $mock;
     }
 }

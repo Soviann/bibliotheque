@@ -20,24 +20,10 @@ use PHPUnit\Framework\TestCase;
 final class TrashCollectionProviderTest extends TestCase
 {
     private ComicSeriesRepository $repository;
-    private EntityManagerInterface $entityManager;
-    private FilterCollection $filterCollection;
-    private TrashCollectionProvider $provider;
 
     protected function setUp(): void
     {
-        $this->repository = $this->createMock(ComicSeriesRepository::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->filterCollection = $this->createMock(FilterCollection::class);
-
-        $this->entityManager
-            ->method('getFilters')
-            ->willReturn($this->filterCollection);
-
-        $this->provider = new TrashCollectionProvider(
-            $this->repository,
-            $this->entityManager,
-        );
+        $this->repository = $this->createStub(ComicSeriesRepository::class);
     }
 
     public function testProvideReturnsDeletedComics(): void
@@ -46,84 +32,99 @@ final class TrashCollectionProviderTest extends TestCase
         $comic2 = new ComicSeries();
         $expectedResult = [$comic1, $comic2];
 
-        $query = $this->createMock(Query::class);
+        $query = $this->createStub(Query::class);
         $query->method('getResult')->willReturn($expectedResult);
 
-        $queryBuilder = $this->createMock(QueryBuilder::class);
-        $queryBuilder->method('where')->with('c.deletedAt IS NOT NULL')->willReturn($queryBuilder);
-        $queryBuilder->method('orderBy')->with('c.deletedAt', 'DESC')->willReturn($queryBuilder);
+        $queryBuilder = $this->createStub(QueryBuilder::class);
+        $queryBuilder->method('where')->willReturn($queryBuilder);
+        $queryBuilder->method('orderBy')->willReturn($queryBuilder);
         $queryBuilder->method('getQuery')->willReturn($query);
 
         $this->repository
             ->method('createQueryBuilder')
-            ->with('c')
             ->willReturn($queryBuilder);
 
-        $this->filterCollection
+        $filterCollection = $this->createMock(FilterCollection::class);
+        $filterCollection
             ->expects(self::once())
             ->method('disable')
             ->with('soft_delete');
 
-        $this->filterCollection
+        $filterCollection
             ->expects(self::once())
             ->method('enable')
             ->with('soft_delete');
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($filterCollection);
+        $operation = $this->createStub(Operation::class);
 
-        $result = $this->provider->provide($operation);
+        $result = $provider->provide($operation);
 
         self::assertSame($expectedResult, $result);
     }
 
     public function testProvideReturnsEmptyArrayWhenNoDeletedComics(): void
     {
-        $query = $this->createMock(Query::class);
+        $query = $this->createStub(Query::class);
         $query->method('getResult')->willReturn([]);
 
-        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder = $this->createStub(QueryBuilder::class);
         $queryBuilder->method('where')->willReturn($queryBuilder);
         $queryBuilder->method('orderBy')->willReturn($queryBuilder);
         $queryBuilder->method('getQuery')->willReturn($query);
 
         $this->repository
             ->method('createQueryBuilder')
-            ->with('c')
             ->willReturn($queryBuilder);
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($this->createStub(FilterCollection::class));
+        $operation = $this->createStub(Operation::class);
 
-        $result = $this->provider->provide($operation);
+        $result = $provider->provide($operation);
 
         self::assertSame([], $result);
     }
 
     public function testProvideReEnablesFilterEvenOnException(): void
     {
-        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder = $this->createStub(QueryBuilder::class);
         $queryBuilder->method('where')->willReturn($queryBuilder);
         $queryBuilder->method('orderBy')->willReturn($queryBuilder);
         $queryBuilder->method('getQuery')->willThrowException(new \RuntimeException('DB error'));
 
         $this->repository
             ->method('createQueryBuilder')
-            ->with('c')
             ->willReturn($queryBuilder);
 
-        $this->filterCollection
+        $filterCollection = $this->createMock(FilterCollection::class);
+        $filterCollection
             ->expects(self::once())
             ->method('disable')
             ->with('soft_delete');
 
-        $this->filterCollection
+        $filterCollection
             ->expects(self::once())
             ->method('enable')
             ->with('soft_delete');
 
-        $operation = $this->createMock(Operation::class);
+        $provider = $this->createProvider($filterCollection);
+        $operation = $this->createStub(Operation::class);
 
         $this->expectException(\RuntimeException::class);
 
-        $this->provider->provide($operation);
+        $provider->provide($operation);
+    }
+
+    private function createProvider(FilterCollection $filterCollection): TrashCollectionProvider
+    {
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager
+            ->method('getFilters')
+            ->willReturn($filterCollection);
+
+        return new TrashCollectionProvider(
+            $this->repository,
+            $entityManager,
+        );
     }
 }

@@ -18,14 +18,14 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final class BnfLookupTest extends TestCase
 {
-    private HttpClientInterface&MockObject $httpClient;
-    private LoggerInterface&MockObject $logger;
+    private HttpClientInterface $httpClient;
+    private LoggerInterface $logger;
     private BnfLookup $provider;
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock(HttpClientInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->httpClient = $this->createStub(HttpClientInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
 
         $this->provider = new BnfLookup(
             $this->httpClient,
@@ -86,9 +86,10 @@ final class BnfLookupTest extends TestCase
      */
     public function testPrepareLookupIsbnMode(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -111,9 +112,10 @@ final class BnfLookupTest extends TestCase
      */
     public function testPrepareLookupTitleMode(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -153,7 +155,7 @@ final class BnfLookupTest extends TestCase
             </srw:searchRetrieveResponse>
             XML;
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
@@ -177,7 +179,7 @@ final class BnfLookupTest extends TestCase
             creator: 'Toriyama, Akira',
         );
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
@@ -196,7 +198,7 @@ final class BnfLookupTest extends TestCase
             title: 'Dragon Ball',
         );
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
@@ -217,7 +219,7 @@ final class BnfLookupTest extends TestCase
             </srw:searchRetrieveResponse>
             XML;
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
@@ -233,7 +235,7 @@ final class BnfLookupTest extends TestCase
      */
     public function testResolveLookupInvalidXml(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn('<invalid xml <<<');
 
         $result = $this->provider->resolveLookup($response);
@@ -249,12 +251,12 @@ final class BnfLookupTest extends TestCase
      */
     public function testResolveLookupTransportException(): void
     {
-        $exception = new class ('Network error') extends \RuntimeException implements TransportExceptionInterface {};
+        $exception = new class('Network error') extends \RuntimeException implements TransportExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -270,10 +272,10 @@ final class BnfLookupTest extends TestCase
      */
     public function testResolveLookupGenericHttpError(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willThrowException(new \RuntimeException('500 Server Error'));
 
-        $this->logger->expects(self::once())->method('warning');
+        $this->createLoggerMock()->expects(self::once())->method('warning');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -293,7 +295,7 @@ final class BnfLookupTest extends TestCase
             title: 'Naruto',
         );
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
@@ -326,7 +328,7 @@ final class BnfLookupTest extends TestCase
             </srw:searchRetrieveResponse>
             XML;
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
@@ -359,7 +361,7 @@ final class BnfLookupTest extends TestCase
             </srw:searchRetrieveResponse>
             XML;
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
@@ -378,13 +380,37 @@ final class BnfLookupTest extends TestCase
             title: 'Arzach',
         );
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getContent')->willReturn($xml);
 
         $result = $this->provider->resolveLookup($response);
 
         self::assertNotNull($result);
         self::assertSame('Moebius', $result->authors);
+    }
+
+    /**
+     * Recree le provider avec un mock httpClient pour les tests d'attente.
+     */
+    private function createHttpClientMock(): HttpClientInterface&MockObject
+    {
+        $mock = $this->createMock(HttpClientInterface::class);
+        $this->httpClient = $mock;
+        $this->provider = new BnfLookup($this->httpClient, $this->logger);
+
+        return $mock;
+    }
+
+    /**
+     * Recree le provider avec un mock logger pour les tests d'attente.
+     */
+    private function createLoggerMock(): LoggerInterface&MockObject
+    {
+        $mock = $this->createMock(LoggerInterface::class);
+        $this->logger = $mock;
+        $this->provider = new BnfLookup($this->httpClient, $this->logger);
+
+        return $mock;
     }
 
     /**

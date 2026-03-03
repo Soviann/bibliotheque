@@ -12,7 +12,6 @@ use Gemini\Contracts\Resources\GenerativeModelContract;
 use Gemini\Exceptions\ErrorException;
 use Gemini\Responses\GenerativeModel\GenerateContentResponse;
 use Gemini\Testing\ClientFake;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -26,13 +25,13 @@ use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
  */
 final class GeminiLookupTest extends TestCase
 {
-    private AdapterInterface&MockObject $cache;
-    private LoggerInterface&MockObject $logger;
+    private AdapterInterface $cache;
+    private LoggerInterface $logger;
 
     protected function setUp(): void
     {
-        $this->cache = $this->createMock(AdapterInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->cache = $this->createStub(AdapterInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
     }
 
     /**
@@ -200,8 +199,10 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $cacheItem = $realCache->getItem('test_key');
 
-        $this->cache->method('getItem')->willReturn($cacheItem);
-        $this->cache->expects(self::once())->method('save');
+        $cache = $this->createMock(AdapterInterface::class);
+        $cache->method('getItem')->willReturn($cacheItem);
+        $cache->expects(self::once())->method('save');
+        $this->cache = $cache;
 
         $provider = $this->createProvider(geminiClient: $geminiClient);
 
@@ -343,7 +344,9 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $this->logger->expects(self::once())->method('error');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+        $this->logger = $logger;
 
         $provider = $this->createProvider(geminiClient: $geminiClient);
 
@@ -372,7 +375,9 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $this->logger->expects(self::once())->method('error');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+        $this->logger = $logger;
 
         $provider = $this->createProvider(geminiClient: $geminiClient);
 
@@ -390,8 +395,8 @@ final class GeminiLookupTest extends TestCase
      */
     public function testResolveLookupGenericThrowable(): void
     {
-        $geminiClient = $this->createMock(GeminiClient::class);
-        $model = $this->createMock(GenerativeModelContract::class);
+        $geminiClient = $this->createStub(GeminiClient::class);
+        $model = $this->createStub(GenerativeModelContract::class);
 
         $geminiClient->method('generativeModel')->willReturn($model);
         $model->method('withTool')->willReturn($model);
@@ -400,7 +405,9 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $this->logger->expects(self::once())->method('error');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+        $this->logger = $logger;
 
         $provider = $this->createProvider(geminiClient: $geminiClient);
 
@@ -703,7 +710,7 @@ final class GeminiLookupTest extends TestCase
         ?GeminiClient $geminiClient = null,
         ?RateLimiterFactory $limiterFactory = null,
     ): GeminiLookup {
-        $geminiClient ??= $this->createMock(GeminiClient::class);
+        $geminiClient ??= $this->createStub(GeminiClient::class);
 
         $limiterFactory ??= new RateLimiterFactory(
             ['id' => 'test', 'policy' => 'fixed_window', 'interval' => '1 minute', 'limit' => 100],

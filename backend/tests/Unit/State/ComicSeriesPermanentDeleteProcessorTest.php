@@ -17,7 +17,7 @@ final class ComicSeriesPermanentDeleteProcessorTest extends TestCase
 {
     public function testProcessWithValidIdCallsPermanentDelete(): void
     {
-        $comic = $this->createMock(ComicSeries::class);
+        $comic = $this->createStub(ComicSeries::class);
         $comic->method('getId')->willReturn(42);
 
         $comicSeriesService = $this->createMock(ComicSeriesService::class);
@@ -27,14 +27,14 @@ final class ComicSeriesPermanentDeleteProcessorTest extends TestCase
             ->with(42, $comic);
 
         $processor = new ComicSeriesPermanentDeleteProcessor($comicSeriesService);
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
 
         $processor->process($comic, $operation);
     }
 
     public function testProcessWithNullIdThrowsLogicException(): void
     {
-        $comic = $this->createMock(ComicSeries::class);
+        $comic = $this->createStub(ComicSeries::class);
         $comic->method('getId')->willReturn(null);
 
         $comicSeriesService = $this->createMock(ComicSeriesService::class);
@@ -43,7 +43,7 @@ final class ComicSeriesPermanentDeleteProcessorTest extends TestCase
             ->method('permanentDelete');
 
         $processor = new ComicSeriesPermanentDeleteProcessor($comicSeriesService);
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
 
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Impossible de supprimer définitivement une série sans identifiant.');

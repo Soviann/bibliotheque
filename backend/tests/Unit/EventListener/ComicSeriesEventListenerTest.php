@@ -22,14 +22,14 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 final class ComicSeriesEventListenerTest extends TestCase
 {
-    private EntityManagerInterface&MockObject $entityManager;
+    private EntityManagerInterface $entityManager;
     private EventDispatcherInterface&MockObject $eventDispatcher;
     private ComicSeriesEventListener $listener;
 
     protected function setUp(): void
     {
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
 
         $this->listener = new ComicSeriesEventListener($this->eventDispatcher);
     }

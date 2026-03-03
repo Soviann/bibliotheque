@@ -20,14 +20,14 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final class GoogleBooksLookupTest extends TestCase
 {
-    private HttpClientInterface&MockObject $httpClient;
-    private LoggerInterface&MockObject $logger;
+    private HttpClientInterface $httpClient;
+    private LoggerInterface $logger;
     private GoogleBooksLookup $provider;
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock(HttpClientInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->httpClient = $this->createStub(HttpClientInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
 
         $this->provider = new GoogleBooksLookup(
             'test-api-key',
@@ -78,9 +78,10 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testPrepareLookupIsbnMode(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -104,9 +105,10 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testPrepareLookupTitleMode(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -126,10 +128,11 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testPrepareLookupWithoutApiKey(): void
     {
-        $provider = new GoogleBooksLookup('', $this->httpClient, $this->logger);
-        $response = $this->createMock(ResponseInterface::class);
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $provider = new GoogleBooksLookup('', $httpClient, $this->logger);
+        $response = $this->createStub(ResponseInterface::class);
 
-        $this->httpClient->expects(self::once())
+        $httpClient->expects(self::once())
             ->method('request')
             ->with(
                 'GET',
@@ -148,7 +151,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupSuccess(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -182,7 +185,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupOptimizesThumbnailUrl(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -210,7 +213,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupNoItems(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['items' => []]);
 
         $result = $this->provider->resolveLookup($response);
@@ -227,7 +230,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupNoItemsKey(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['totalItems' => 0]);
 
         $result = $this->provider->resolveLookup($response);
@@ -243,11 +246,11 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupTransportException(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
-        $exception = new class ('Connection timeout') extends \RuntimeException implements TransportExceptionInterface {};
+        $response = $this->createStub(ResponseInterface::class);
+        $exception = new class('Connection timeout') extends \RuntimeException implements TransportExceptionInterface {};
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -263,10 +266,10 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupRateLimited429(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(429);
 
-        $exception = new class ('Rate limited', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+        $exception = new class('Rate limited', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -280,7 +283,7 @@ final class GoogleBooksLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
         $result = $this->provider->resolveLookup($response);
@@ -296,10 +299,10 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupOtherHttpError(): void
     {
-        $innerResponse = $this->createMock(ResponseInterface::class);
+        $innerResponse = $this->createStub(ResponseInterface::class);
         $innerResponse->method('getStatusCode')->willReturn(500);
 
-        $exception = new class ('Server error', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
+        $exception = new class('Server error', $innerResponse) extends \RuntimeException implements ClientExceptionInterface {
             public function __construct(
                 string $message,
                 private readonly ResponseInterface $response,
@@ -313,7 +316,7 @@ final class GoogleBooksLookupTest extends TestCase
             }
         };
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
         $result = $this->provider->resolveLookup($response);
@@ -330,12 +333,12 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupDecodingException(): void
     {
-        $exception = new class ('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
+        $exception = new class('Invalid JSON') extends \RuntimeException implements DecodingExceptionInterface {};
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $this->logger->expects(self::once())->method('error');
+        $this->createLoggerMock()->expects(self::once())->method('error');
 
         $result = $this->provider->resolveLookup($response);
 
@@ -351,7 +354,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupMergesMultipleItems(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -385,7 +388,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testOptimizeThumbnailUrlNonGoogleBooksUrlReturnedUnchanged(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -410,7 +413,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupSmallThumbnailFallback(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -436,7 +439,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupExtractsIsbn10Only(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -461,7 +464,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupIsOneShotViaSeriesInfo(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -484,7 +487,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupExtractIsbnSkipsNonArrayIdentifier(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -511,7 +514,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupExtractIsbnNoIsbnTypeReturnsNull(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -537,7 +540,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupMergeItemsSkipsNonArrayVolumeInfo(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -562,7 +565,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupImageLinksNullReturnsThumbnailNull(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -585,7 +588,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupMergeItemsBreaksWhenAllFieldsComplete(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -621,7 +624,7 @@ final class GoogleBooksLookupTest extends TestCase
      */
     public function testResolveLookupExtractsIsbn(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
             'items' => [
                 [
@@ -640,5 +643,29 @@ final class GoogleBooksLookupTest extends TestCase
 
         self::assertNotNull($result);
         self::assertSame('9782723489003', $result->isbn);
+    }
+
+    /**
+     * Recree le provider avec un mock httpClient pour les tests d'attente.
+     */
+    private function createHttpClientMock(): HttpClientInterface&MockObject
+    {
+        $mock = $this->createMock(HttpClientInterface::class);
+        $this->httpClient = $mock;
+        $this->provider = new GoogleBooksLookup('test-api-key', $this->httpClient, $this->logger);
+
+        return $mock;
+    }
+
+    /**
+     * Recree le provider avec un mock logger pour les tests d'attente.
+     */
+    private function createLoggerMock(): LoggerInterface&MockObject
+    {
+        $mock = $this->createMock(LoggerInterface::class);
+        $this->logger = $mock;
+        $this->provider = new GoogleBooksLookup('test-api-key', $this->httpClient, $this->logger);
+
+        return $mock;
     }
 }

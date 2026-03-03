@@ -26,7 +26,7 @@ final class ComicSeriesRestoreProcessorTest extends TestCase
             ->with($comic);
 
         $processor = new ComicSeriesRestoreProcessor($comicSeriesService);
-        $operation = $this->createMock(Operation::class);
+        $operation = $this->createStub(Operation::class);
 
         $result = $processor->process($comic, $operation);
 
