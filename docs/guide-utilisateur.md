@@ -42,7 +42,7 @@ La page d'accueil affiche toutes les séries de la collection sous forme de gril
 ### Cartes de série
 
 Chaque carte affiche :
-- La couverture (ou un placeholder si absente)
+- La couverture (ou une illustration spécifique au type si absente)
 - Le titre
 - Le(s) auteur(s)
 - Le type (BD, Manga, Comics, Roman, Webtoon)
