@@ -14,6 +14,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Persistance des filtres au retour arrière** : Le bouton retour de la page détail utilise désormais `navigate(-1)` au lieu d'un lien statique vers `/`, les filtres de recherche sont préservés lors de la navigation retour (#93)
 - **Positionnement de la barre d'actions sticky** : Remplacement de `fixed bottom-14` par `sticky` avec variable CSS `--bottom-nav-h`, la barre est désormais ancrée au contenu et alignée avec le conteneur sur desktop (#91)
 
 ### Added

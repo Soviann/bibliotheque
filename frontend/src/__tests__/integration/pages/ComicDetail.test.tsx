@@ -29,7 +29,6 @@ function renderComicDetail(id: number = 1) {
     <Routes>
       <Route element={<ComicDetail />} path="/comic/:id" />
       <Route element={<div>Home Page</div>} path="/" />
-      <Route element={<div>Wishlist Page</div>} path="/wishlist" />
     </Routes>,
     { initialEntries: [`/comic/${id}`] },
   );
@@ -321,43 +320,34 @@ describe("ComicDetail", () => {
     });
   });
 
-  it("links back to wishlist for wishlist comics", async () => {
+  it("navigates back in history when clicking back button", async () => {
+    const user = userEvent.setup();
+
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, status: ComicStatus.WISHLIST, title: "Wish Comic" }),
+          createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Back Nav Comic" }),
         ),
       ),
     );
 
-    renderComicDetail();
-
-    await waitFor(() => {
-      expect(screen.getByText("Wish Comic")).toBeInTheDocument();
-    });
-
-    // The back link (ArrowLeft) should point to /wishlist
-    const backLink = document.querySelector('a[href="/wishlist"]');
-    expect(backLink).toBeInTheDocument();
-  });
-
-  it("links back to / for non-wishlist comics", async () => {
-    server.use(
-      http.get("/api/comic_series/1", () =>
-        HttpResponse.json(
-          createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Normal Comic" }),
-        ),
-      ),
+    renderWithProviders(
+      <Routes>
+        <Route element={<ComicDetail />} path="/comic/:id" />
+        <Route element={<div>Home Page</div>} path="/" />
+      </Routes>,
+      { initialEntries: ["/?search=aqua", "/comic/1"] },
     );
 
-    renderComicDetail();
-
     await waitFor(() => {
-      expect(screen.getByText("Normal Comic")).toBeInTheDocument();
+      expect(screen.getByText("Back Nav Comic")).toBeInTheDocument();
     });
 
-    const backLink = document.querySelector('a[href="/"]');
-    expect(backLink).toBeInTheDocument();
+    await user.click(screen.getByLabelText("Retour"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Home Page")).toBeInTheDocument();
+    });
   });
 
   it("renders coverImage fallback when coverUrl is null", async () => {
