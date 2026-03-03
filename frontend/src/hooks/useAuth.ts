@@ -13,13 +13,13 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: (credential: string) => apiLoginWithGoogle(credential),
     onSuccess: () => {
-      navigate("/");
+      navigate("/", { viewTransition: true });
     },
   });
 
   const logout = useCallback(() => {
     removeToken();
-    navigate("/login");
+    navigate("/login", { viewTransition: true });
   }, [navigate]);
 
   return {

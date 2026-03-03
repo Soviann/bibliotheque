@@ -38,7 +38,7 @@ export default function Layout() {
 
       {/* Header */}
       <header className="flex items-center justify-between border-b border-surface-border bg-surface-primary px-4 py-2.5">
-        <Link className="flex items-center gap-2" to="/">
+        <Link className="flex items-center gap-2" to="/" viewTransition>
           <img alt="" className="h-8 w-8 rounded-lg" src="/app-icon.png" />
           <span className="text-lg font-bold text-text-primary">Bibliothèque</span>
         </Link>
