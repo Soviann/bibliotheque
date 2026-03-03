@@ -8,6 +8,7 @@ export default function NotFound() {
       <Link
         className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
         to="/"
+        viewTransition
       >
         Retour à l'accueil
       </Link>

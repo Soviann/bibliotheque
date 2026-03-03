@@ -166,7 +166,7 @@ export default function Home() {
         }}
         onEdit={(c) => {
           setMenuComic(null);
-          navigate(`/comic/${c.id}/edit`);
+          navigate(`/comic/${c.id}/edit`, { viewTransition: true });
         }}
       />
 

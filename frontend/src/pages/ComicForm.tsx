@@ -413,7 +413,7 @@ export default function ComicForm() {
           onSuccess: (data) => {
             if (!data) return; // offline: déjà géré par useOfflineMutation
             toast.success("Série mise à jour");
-            navigate(`/comic/${id}`);
+            navigate(`/comic/${id}`, { viewTransition: true });
           },
           onError: (err) => toast.error(err.message),
         },
@@ -423,14 +423,14 @@ export default function ComicForm() {
         onSuccess: (created) => {
           if (!created) return; // offline: déjà géré par useOfflineMutation
           toast.success("Série créée");
-          navigate(`/comic/${created.id}`);
+          navigate(`/comic/${created.id}`, { viewTransition: true });
         },
         onError: (err) => toast.error(err.message),
       });
     }
 
     if (!navigator.onLine) {
-      navigate("/");
+      navigate("/", { viewTransition: true });
     }
   };
 

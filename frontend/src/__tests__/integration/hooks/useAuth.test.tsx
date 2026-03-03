@@ -120,7 +120,7 @@ describe("useAuth", () => {
     await waitFor(() => expect(result.current.loginPending).toBe(false));
 
     expect(localStorage.getItem("jwt_token")).toBe("jwt-from-google");
-    expect(mockNavigate).toHaveBeenCalledWith("/");
+    expect(mockNavigate).toHaveBeenCalledWith("/", { viewTransition: true });
   });
 
   it("login sets error on failure", async () => {
@@ -158,6 +158,6 @@ describe("useAuth", () => {
     });
 
     expect(localStorage.getItem("jwt_token")).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith("/login");
+    expect(mockNavigate).toHaveBeenCalledWith("/login", { viewTransition: true });
   });
 });

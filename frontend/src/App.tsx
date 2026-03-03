@@ -5,7 +5,7 @@ import { WifiOff } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import type { ComponentType } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import AuthGuard from "./components/AuthGuard";
 import ErrorFallback from "./components/ErrorFallback";
@@ -67,33 +67,43 @@ function ScrollToTop() {
   return null;
 }
 
+function RootLayout() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <ScrollToTop />
+      <Outlet />
+    </Suspense>
+  );
+}
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      <Route element={<Login />} path="/login" />
+      <Route
+        element={
+          <AuthGuard>
+            <Layout />
+          </AuthGuard>
+        }
+      >
+        <Route element={<Home />} index />
+        <Route element={<ComicForm />} path="comic/new" />
+        <Route element={<ComicDetail />} path="comic/:id" />
+        <Route element={<ComicForm />} path="comic/:id/edit" />
+        <Route element={<Trash />} path="trash" />
+        <Route element={<NotFound />} path="*" />
+      </Route>
+    </Route>
+  ),
+);
+
 export default function App() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <ScrollToTop />
-            <Suspense fallback={<Loading />}>
-              <Routes>
-                <Route element={<Login />} path="/login" />
-                <Route
-                  element={
-                    <AuthGuard>
-                      <Layout />
-                    </AuthGuard>
-                  }
-                >
-                  <Route element={<Home />} index />
-                  <Route element={<ComicForm />} path="comic/new" />
-                  <Route element={<ComicDetail />} path="comic/:id" />
-                  <Route element={<ComicForm />} path="comic/:id/edit" />
-                  <Route element={<Trash />} path="trash" />
-                  <Route element={<NotFound />} path="*" />
-                </Route>
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+          <RouterProvider router={router} />
           <Toaster position="top-center" richColors />
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
