@@ -6,12 +6,14 @@ namespace App\Tests\Unit\Service;
 
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
+use App\Event\ComicSeriesDeletedEvent;
 use App\Service\ComicSeriesService;
 use App\Service\CoverRemoverInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Tests unitaires pour ComicSeriesService.
@@ -21,6 +23,7 @@ final class ComicSeriesServiceTest extends TestCase
     private Connection&MockObject $connection;
     private CoverRemoverInterface&MockObject $coverRemover;
     private EntityManagerInterface&MockObject $entityManager;
+    private EventDispatcherInterface&MockObject $eventDispatcher;
     private ComicSeriesService $service;
 
     protected function setUp(): void
@@ -28,11 +31,13 @@ final class ComicSeriesServiceTest extends TestCase
         $this->connection = $this->createMock(Connection::class);
         $this->coverRemover = $this->createMock(CoverRemoverInterface::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
         $this->service = new ComicSeriesService(
             $this->connection,
             $this->coverRemover,
             $this->entityManager,
+            $this->eventDispatcher,
         );
     }
 
@@ -140,5 +145,26 @@ final class ComicSeriesServiceTest extends TestCase
             ['comic_series_author', 'tome', 'comic_series'],
             $deleteCallOrder,
         );
+    }
+
+    /**
+     * Teste que permanentDelete dispatche un ComicSeriesDeletedEvent.
+     */
+    public function testPermanentDeleteDispatchesDeletedEvent(): void
+    {
+        $comic = new ComicSeries();
+        $comic->setTitle('Bleach');
+        $id = 7;
+
+        $this->eventDispatcher
+            ->expects(self::once())
+            ->method('dispatch')
+            ->with(self::callback(static function (object $event): bool {
+                return $event instanceof ComicSeriesDeletedEvent
+                    && 7 === $event->getId()
+                    && 'Bleach' === $event->getTitle();
+            }));
+
+        $this->service->permanentDelete($id, $comic);
     }
 }
