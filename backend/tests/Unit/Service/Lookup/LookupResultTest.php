@@ -29,6 +29,8 @@ final class LookupResultTest extends TestCase
             source: 'google_books',
             thumbnail: 'https://example.com/cover.jpg',
             title: 'One Piece',
+            tomeEnd: 6,
+            tomeNumber: 4,
         );
 
         self::assertSame('Eiichiro Oda', $result->authors);
@@ -41,6 +43,8 @@ final class LookupResultTest extends TestCase
         self::assertSame('google_books', $result->source);
         self::assertSame('https://example.com/cover.jpg', $result->thumbnail);
         self::assertSame('One Piece', $result->title);
+        self::assertSame(6, $result->tomeEnd);
+        self::assertSame(4, $result->tomeNumber);
     }
 
     /**
@@ -60,6 +64,8 @@ final class LookupResultTest extends TestCase
         self::assertSame('', $result->source);
         self::assertNull($result->thumbnail);
         self::assertNull($result->title);
+        self::assertNull($result->tomeEnd);
+        self::assertNull($result->tomeNumber);
     }
 
     /**
@@ -78,6 +84,8 @@ final class LookupResultTest extends TestCase
             source: 'anilist',
             thumbnail: 'https://example.com/db.jpg',
             title: 'Dragon Ball',
+            tomeEnd: 6,
+            tomeNumber: 4,
         );
 
         $json = $result->jsonSerialize();
@@ -92,6 +100,8 @@ final class LookupResultTest extends TestCase
         self::assertSame('Glenat', $json['publisher']);
         self::assertSame('https://example.com/db.jpg', $json['thumbnail']);
         self::assertSame('Dragon Ball', $json['title']);
+        self::assertSame(6, $json['tomeEnd']);
+        self::assertSame(4, $json['tomeNumber']);
     }
 
     /**
@@ -157,6 +167,8 @@ final class LookupResultTest extends TestCase
             authors: 'Oda',
             source: 'google_books',
             title: 'One Piece',
+            tomeEnd: 6,
+            tomeNumber: 4,
         );
 
         $withIsbn = $original->withIsbn('978-2723489');
@@ -167,6 +179,8 @@ final class LookupResultTest extends TestCase
         self::assertSame('Oda', $withIsbn->authors);
         self::assertSame('google_books', $withIsbn->source);
         self::assertSame('One Piece', $withIsbn->title);
+        self::assertSame(6, $withIsbn->tomeEnd);
+        self::assertSame(4, $withIsbn->tomeNumber);
     }
 
     /**
@@ -185,6 +199,8 @@ final class LookupResultTest extends TestCase
             source: 'test',
             thumbnail: 'https://example.com/img.jpg',
             title: 'One Piece',
+            tomeEnd: 6,
+            tomeNumber: 4,
         );
 
         /** @var LookupResult $result */
@@ -200,6 +216,8 @@ final class LookupResultTest extends TestCase
         self::assertSame('test', $result->source);
         self::assertSame('https://example.com/img.jpg', $result->thumbnail);
         self::assertSame('One Piece', $result->title);
+        self::assertSame(6, $result->tomeEnd);
+        self::assertSame(4, $result->tomeNumber);
     }
 
     /**

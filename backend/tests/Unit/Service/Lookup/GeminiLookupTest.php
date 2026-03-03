@@ -535,6 +535,88 @@ final class GeminiLookupTest extends TestCase
     }
 
     /**
+     * Teste resolveLookup avec tomeEnd et tomeNumber dans la reponse Gemini.
+     */
+    public function testResolveLookupParsesTomeEndAndTomeNumber(): void
+    {
+        $jsonResponse = \json_encode([
+            'authors' => 'Akira Toriyama',
+            'title' => 'Dragon Ball - Perfect Edition',
+            'tomeEnd' => 6,
+            'tomeNumber' => 4,
+        ]);
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertSame(6, $result->tomeEnd);
+        self::assertSame(4, $result->tomeNumber);
+    }
+
+    /**
+     * Teste callGemini avec tomeEnd/tomeNumber non-int dans la reponse → null.
+     */
+    public function testResolveLookupNonIntTomeFieldsBecomesNull(): void
+    {
+        $jsonResponse = \json_encode([
+            'authors' => 'Test Author',
+            'title' => 'Test',
+            'tomeEnd' => '6',
+            'tomeNumber' => 'quatre',
+        ]);
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertNull($result->tomeEnd);
+        self::assertNull($result->tomeNumber);
+    }
+
+    /**
      * Teste callGemini avec isOneShot non-bool dans la reponse → null.
      */
     public function testResolveLookupNonBoolIsOneShotBecomesNull(): void

@@ -73,6 +73,8 @@ export function createMockLookupResult(
     sources: [],
     thumbnail: null,
     title: null,
+    tomeEnd: null,
+    tomeNumber: null,
     ...overrides,
   };
 }

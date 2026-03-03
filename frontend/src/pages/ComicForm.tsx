@@ -327,7 +327,7 @@ export default function ComicForm() {
         "tomes",
         form.tomes.map((t, i) =>
           i === index
-            ? { ...t, isbn: result.isbn ?? t.isbn, title: result.title ?? t.title }
+            ? { ...t, isbn: result.isbn ?? t.isbn, title: result.title ?? t.title, tomeEnd: result.tomeEnd?.toString() ?? t.tomeEnd }
             : t,
         ),
       );

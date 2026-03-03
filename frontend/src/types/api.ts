@@ -69,4 +69,6 @@ export interface LookupResult {
   sources: string[];
   thumbnail: string | null;
   title: string | null;
+  tomeEnd: number | null;
+  tomeNumber: number | null;
 }

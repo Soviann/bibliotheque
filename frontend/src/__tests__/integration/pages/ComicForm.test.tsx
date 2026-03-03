@@ -1016,6 +1016,37 @@ describe("ComicForm", () => {
       expect(tomeTitleInput).toHaveValue("Original Tome Title");
     });
 
+    it("applies tomeEnd from ISBN lookup result", async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.get("/api/lookup/isbn", () =>
+          HttpResponse.json(
+            createMockLookupResult({
+              isbn: "9781234567890",
+              title: "Dragon Ball Perfect Edition",
+              tomeEnd: 6,
+              tomeNumber: 4,
+            }),
+          ),
+        ),
+      );
+
+      renderCreateForm();
+
+      const tableView = screen.getByTestId("tomes-table");
+      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
+      await user.type(isbnInput, "9781234567890");
+
+      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      await user.click(isbnSearchButtons[0]);
+
+      const tomeEndInput = within(tableView).getByPlaceholderText("Fin") as HTMLInputElement;
+      await waitFor(() => {
+        expect(tomeEndInput).toHaveValue(6);
+      });
+    });
+
     it("shows error toast when tome ISBN lookup fails", async () => {
       const user = userEvent.setup();
 
