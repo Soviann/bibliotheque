@@ -428,6 +428,41 @@ describe("ComicDetail", () => {
     expect(screen.queryByText("Auteurs :")).not.toBeInTheDocument();
   });
 
+  it("renders published date when available", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, publishedDate: "2020-03-15", title: "With Date" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("With Date")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Parution :")).toBeInTheDocument();
+    expect(screen.getByText("15 mars 2020")).toBeInTheDocument();
+  });
+
+  it("does not render published date when null", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, publishedDate: null, title: "No Date" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Date")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Parution :")).not.toBeInTheDocument();
+  });
+
   it("does not render publisher section when publisher is null", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
