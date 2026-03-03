@@ -65,14 +65,13 @@ cd bibliotheque
 # Démarrer DDEV et installer les dépendances
 ddev start
 ddev exec make dev
-
-# Créer un utilisateur
-ddev exec make sf CMD="app:create-user admin@example.com motdepasse"
 ```
 
 L'application est accessible à :
 - **Frontend (dev)** : `https://bibliotheque.ddev.site:5173`
 - **API docs** : `https://bibliotheque.ddev.site/api/docs`
+
+> **Note** : pas de création d'utilisateur manuelle. Le premier login Google crée le compte automatiquement.
 
 ---
 
@@ -130,8 +129,8 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 
 | Enum | Valeurs |
 |------|---------|
-| `ComicStatus` | `buying`, `complete`, `dropped`, `paused`, `wishlist` |
-| `ComicType` | `bd`, `comics`, `manga`, `novel`, `webtoon` |
+| `ComicStatus` | `buying`, `finished`, `stopped`, `wishlist` |
+| `ComicType` | `bd`, `comics`, `livre`, `manga` |
 
 ### Endpoints API
 
@@ -139,7 +138,7 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 
 | Méthode | URL | Description |
 |---------|-----|-------------|
-| POST | `/api/login` | Login (retourne un token JWT) |
+| POST | `/api/login/google` | Login Google OAuth (retourne un token JWT) |
 
 **Séries :**
 
@@ -193,7 +192,7 @@ API Platform utilise des processeurs custom pour certaines opérations :
 
 ### Service de lookup
 
-Le `LookupOrchestrator` interroge séquentiellement plusieurs providers pour trouver les informations d'une série. Chaque provider a une priorité par champ :
+Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver les informations d'une série (via le multiplexage natif de Symfony HttpClient). Chaque provider a une priorité par champ :
 
 | Provider | Sources | Spécialité |
 |----------|---------|------------|
@@ -208,8 +207,9 @@ Le `LookupOrchestrator` interroge séquentiellement plusieurs providers pour tro
 
 | Commande | Description |
 |----------|-------------|
-| `app:create-user <email> <password>` | Créer un utilisateur |
 | `app:import-excel <fichier>` | Importer une collection depuis un fichier Excel |
+| `app:invalidate-tokens [--email=...]` | Invalider les tokens JWT (tous ou par utilisateur) |
+| `app:lookup-missing` | Rechercher les métadonnées manquantes des séries |
 | `app:purge-deleted` | Supprimer définitivement les séries dans la corbeille |
 
 ---
@@ -272,7 +272,7 @@ ddev exec make test-back                           # Tous les tests
 ddev exec "cd backend && vendor/bin/phpunit tests/Service/Lookup/GoogleBooksLookupTest.php"  # Un fichier
 ```
 
-Convention : `backend/src/X/Foo.php` → `backend/tests/X/FooTest.php`
+Convention : `backend/src/X/Foo.php` → `backend/tests/{Unit,Integration,Functional}/X/FooTest.php`
 
 Le bundle `DAMA\DoctrineTestBundle` est utilisé pour isoler chaque test dans une transaction (rollback automatique).
 
@@ -346,10 +346,13 @@ Exemples :
 | Variable | Description | Défaut |
 |----------|-------------|--------|
 | `APP_ENV` | Environnement (`dev`, `prod`, `test`) | `dev` |
-| `APP_SECRET` | Secret Symfony (32 chars hex) | À définir dans `.env.local` |
+| `APP_SECRET` | Secret Symfony (vault Secrets en prod) | À définir dans `.env.local` |
 | `DATABASE_URL` | URL de connexion MariaDB | `mysql://db:db@db:3306/db` |
 | `JWT_SECRET_KEY` | Chemin vers la clé privée JWT | `config/jwt/private.pem` |
 | `JWT_PUBLIC_KEY` | Chemin vers la clé publique JWT | `config/jwt/public.pem` |
-| `JWT_PASSPHRASE` | Passphrase des clés JWT | À définir dans `.env.local` |
+| `JWT_PASSPHRASE` | Passphrase des clés JWT (vault Secrets en prod) | À définir dans `.env.local` |
 | `GEMINI_API_KEY` | Clé API Google Gemini (optionnel) | vide |
+| `GOOGLE_BOOKS_API_KEY` | Clé API Google Books (optionnel) | vide |
+| `OAUTH_GOOGLE_ID` | ID client OAuth Google | À définir dans `.env.local` |
+| `OAUTH_ALLOWED_EMAIL` | Email Gmail autorisé pour le login | À définir dans `.env.local` |
 | `CORS_ALLOW_ORIGIN` | Regex des origines CORS autorisées | `localhost` |

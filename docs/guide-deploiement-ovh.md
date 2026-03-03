@@ -110,6 +110,7 @@ APP_ENV=prod
 DATABASE_URL="mysql://bibliotheque:MOT_DE_PASSE_SECURISE@127.0.0.1:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4"
 CORS_ALLOW_ORIGIN='^https://votre-domaine\.fr$'
 GEMINI_API_KEY=votre_cle_api_gemini_optionnelle
+GOOGLE_BOOKS_API_KEY=votre_cle_google_books_optionnelle
 OAUTH_GOOGLE_ID=votre_google_client_id.apps.googleusercontent.com
 OAUTH_ALLOWED_EMAIL=votre_email@gmail.com
 ```
