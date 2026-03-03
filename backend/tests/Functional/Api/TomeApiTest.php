@@ -137,6 +137,55 @@ final class TomeApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
+    public function testPostTomeWithTomeEndReturns201(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Serie TomeEnd Post');
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $seriesId = $series->getId();
+
+        $client->request('POST', '/api/comic_series/'.$seriesId.'/tomes', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'comicSeries' => '/api/comic_series/'.$seriesId,
+                'number' => 4,
+                'tomeEnd' => 6,
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertSame(4, $data['number']);
+        self::assertSame(6, $data['tomeEnd']);
+    }
+
+    public function testPostTomeWithTomeEndLessThanNumberReturns422(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Serie TomeEnd Validation');
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $seriesId = $series->getId();
+
+        $client->request('POST', '/api/comic_series/'.$seriesId.'/tomes', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'comicSeries' => '/api/comic_series/'.$seriesId,
+                'number' => 5,
+                'tomeEnd' => 3,
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
     public function testPostTomeUnauthenticatedReturns401(): void
     {
         $client = $this->createUnauthenticatedClient();
@@ -182,6 +231,49 @@ final class TomeApiTest extends ApiTestCase
         self::assertSame(5, $data['number']);
         self::assertSame('Tome Special', $data['title']);
         self::assertTrue($data['bought']);
+    }
+
+    public function testGetSingleTomeReturnsTomeEnd(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Serie TomeEnd');
+
+        $tome = EntityFactory::createTome(4, tomeEnd: 6);
+        $series->addTome($tome);
+
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $client->request('GET', '/api/tomes/'.$tome->getId());
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertSame(4, $data['number']);
+        self::assertSame(6, $data['tomeEnd']);
+    }
+
+    public function testGetSingleTomeReturnsTomeEndNull(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Serie TomeEnd Null');
+
+        $tome = EntityFactory::createTome(1);
+        $series->addTome($tome);
+
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $client->request('GET', '/api/tomes/'.$tome->getId());
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertNull($data['tomeEnd']);
     }
 
     // ---------------------------------------------------------------

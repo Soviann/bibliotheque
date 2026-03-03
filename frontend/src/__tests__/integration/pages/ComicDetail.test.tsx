@@ -614,6 +614,55 @@ describe("ComicDetail", () => {
     expect(screen.queryByText(/Tomes \(/)).not.toBeInTheDocument();
   });
 
+  it("displays tome range when tomeEnd is set", async () => {
+    const tomes = [
+      createMockTome({ id: 1, number: 1, title: null }),
+      createMockTome({ id: 2, number: 4, title: null, tomeEnd: 6 }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Intégrales", tomes }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Intégrales")).toBeInTheDocument();
+    });
+
+    // Tome 1 should show just "1"
+    expect(screen.getByText("1")).toBeInTheDocument();
+    // Tome 4-6 should show the range
+    expect(screen.getByText("4-6")).toBeInTheDocument();
+  });
+
+  it("displays single tome number when tomeEnd is null", async () => {
+    const tomes = [
+      createMockTome({ id: 1, number: 3, title: null, tomeEnd: null }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Single Tome", tomes }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Single Tome")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.queryByText("3-")).not.toBeInTheDocument();
+  });
+
   it("shows checked checkboxes for tome downloaded and onNas fields", async () => {
     const tomes = [
       createMockTome({ downloaded: true, id: 1, number: 1, onNas: true, title: "Full Tome" }),

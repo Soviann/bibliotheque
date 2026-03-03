@@ -38,6 +38,7 @@ interface TomeFormData {
   onNas: boolean;
   read: boolean;
   title: string;
+  tomeEnd: string;
 }
 
 interface FormData {
@@ -54,7 +55,7 @@ interface FormData {
 }
 
 function emptyTome(number: number): TomeFormData {
-  return { bought: false, downloaded: false, isbn: "", number, onNas: false, read: false, title: "" };
+  return { bought: false, downloaded: false, isbn: "", number, onNas: false, read: false, title: "", tomeEnd: "" };
 }
 
 function buildInitialForm(comic?: ComicSeries): FormData {
@@ -77,6 +78,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
         onNas: t.onNas,
         read: t.read,
         title: t.title ?? "",
+        tomeEnd: t.tomeEnd?.toString() ?? "",
       })),
       type: comic.type,
     };
@@ -400,6 +402,7 @@ export default function ComicForm() {
         onNas: t.onNas,
         read: t.read,
         title: t.title || null,
+        tomeEnd: t.tomeEnd ? Number(t.tomeEnd) : null,
       }));
     }
 
@@ -744,6 +747,14 @@ export default function ComicForm() {
                       value={tome.number}
                     />
                     <input
+                      className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm text-text-primary"
+                      min="0"
+                      onChange={(e) => updateTome(i, "tomeEnd", e.target.value)}
+                      placeholder="Fin"
+                      type="number"
+                      value={tome.tomeEnd}
+                    />
+                    <input
                       className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
                       onChange={(e) => updateTome(i, "title", e.target.value)}
                       placeholder="Titre"
@@ -825,6 +836,7 @@ export default function ComicForm() {
                 <thead className="bg-surface-tertiary">
                   <tr>
                     <th className="px-3 py-2 text-left font-medium text-text-secondary">#</th>
+                    <th className="px-3 py-2 text-left font-medium text-text-secondary">Fin</th>
                     <th className="px-3 py-2 text-left font-medium text-text-secondary">Titre</th>
                     <th className="px-3 py-2 text-left font-medium text-text-secondary">ISBN</th>
                     <th className="px-3 py-2 text-center font-medium text-text-secondary">Acheté</th>
@@ -844,6 +856,16 @@ export default function ComicForm() {
                           onChange={(e) => updateTome(i, "number", Number(e.target.value))}
                           type="number"
                           value={tome.number}
+                        />
+                      </td>
+                      <td className="px-3 py-1.5">
+                        <input
+                          className="w-14 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
+                          min="0"
+                          onChange={(e) => updateTome(i, "tomeEnd", e.target.value)}
+                          placeholder="Fin"
+                          type="number"
+                          value={tome.tomeEnd}
                         />
                       </td>
                       <td className="px-3 py-1.5">

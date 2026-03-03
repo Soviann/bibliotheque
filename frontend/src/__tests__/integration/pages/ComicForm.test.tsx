@@ -929,8 +929,8 @@ describe("ComicForm", () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      // Get the tome number input (first number input in tomes table)
-      const tomeNumberInputs = document.querySelectorAll("tbody input[type='number']");
+      // Get the tome number input (first column number input)
+      const tomeNumberInputs = document.querySelectorAll("tbody td:first-child input[type='number']");
       const tomeNumberInput = tomeNumberInputs[0] as HTMLInputElement;
 
       await user.clear(tomeNumberInput);
@@ -1054,7 +1054,7 @@ describe("ComicForm", () => {
 
       expect(screen.getByText("Tomes (1)")).toBeInTheDocument();
       // The new tome number should be 1
-      const tomeNumberInputs = document.querySelectorAll("tbody input[type='number']");
+      const tomeNumberInputs = document.querySelectorAll("tbody td:first-child input[type='number']");
       expect(tomeNumberInputs[0]).toHaveValue(1);
     });
 
@@ -1088,8 +1088,8 @@ describe("ComicForm", () => {
 
         expect(screen.getByText("Tomes (5)")).toBeInTheDocument();
 
-        // Verify tome numbers are 1 through 5
-        const tomeNumberInputs = document.querySelectorAll("tbody input[type='number']");
+        // Verify tome numbers are 1 through 5 (first number input per row = tome number)
+        const tomeNumberInputs = document.querySelectorAll("tbody td:first-child input[type='number']");
         expect(tomeNumberInputs).toHaveLength(5);
         expect(tomeNumberInputs[0]).toHaveValue(1);
         expect(tomeNumberInputs[1]).toHaveValue(2);
@@ -1210,6 +1210,106 @@ describe("ComicForm", () => {
       await user.type(titleInput, "Card Title");
 
       expect(titleInput).toHaveValue("Card Title");
+    });
+  });
+
+  describe("Tome tomeEnd field", () => {
+    it("renders tomeEnd input in desktop table", () => {
+      renderCreateForm();
+
+      const tableView = screen.getByTestId("tomes-table");
+      expect(within(tableView).getByPlaceholderText("Fin")).toBeInTheDocument();
+    });
+
+    it("renders tomeEnd input in mobile cards", () => {
+      renderCreateForm();
+
+      const cardsView = screen.getByTestId("tomes-cards");
+      expect(within(cardsView).getByPlaceholderText("Fin")).toBeInTheDocument();
+    });
+
+    it("populates tomeEnd from existing comic data in edit mode", async () => {
+      const tomes = [
+        createMockTome({ id: 1, number: 4, tomeEnd: 6 }),
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({ id: 1, title: "Intégrales", tomes }),
+          ),
+        ),
+      );
+
+      renderEditForm();
+
+      await waitFor(() => {
+        expect(screen.getByLabelText("Titre *")).toHaveValue("Intégrales");
+      });
+
+      const tableView = screen.getByTestId("tomes-table");
+      const tomeEndInput = within(tableView).getByPlaceholderText("Fin") as HTMLInputElement;
+      expect(tomeEndInput).toHaveValue(6);
+    });
+
+    it("includes tomeEnd in submit payload", async () => {
+      const user = userEvent.setup();
+      let capturedPayload: Record<string, unknown> | null = null;
+
+      server.use(
+        http.post("/api/comic_series", async ({ request }) => {
+          capturedPayload = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(
+            createMockComicSeries({ id: 10, title: "Intégrale Test" }),
+            { status: 201 },
+          );
+        }),
+      );
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "Intégrale Test");
+
+      const tableView = screen.getByTestId("tomes-table");
+      const tomeEndInput = within(tableView).getByPlaceholderText("Fin") as HTMLInputElement;
+      await user.type(tomeEndInput, "3");
+
+      await user.click(screen.getByText("Créer"));
+
+      await waitFor(() => {
+        expect(capturedPayload).not.toBeNull();
+      });
+
+      const tomes = capturedPayload!.tomes as Array<Record<string, unknown>>;
+      expect(tomes[0].tomeEnd).toBe(3);
+    });
+
+    it("sends tomeEnd as null when empty", async () => {
+      const user = userEvent.setup();
+      let capturedPayload: Record<string, unknown> | null = null;
+
+      server.use(
+        http.post("/api/comic_series", async ({ request }) => {
+          capturedPayload = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(
+            createMockComicSeries({ id: 10, title: "No End" }),
+            { status: 201 },
+          );
+        }),
+      );
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "No End");
+
+      await user.click(screen.getByText("Créer"));
+
+      await waitFor(() => {
+        expect(capturedPayload).not.toBeNull();
+      });
+
+      const tomes = capturedPayload!.tomes as Array<Record<string, unknown>>;
+      expect(tomes[0].tomeEnd).toBeNull();
     });
   });
 

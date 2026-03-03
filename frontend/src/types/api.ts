@@ -33,6 +33,7 @@ export interface Tome {
   onNas: boolean;
   read: boolean;
   title: string | null;
+  tomeEnd: number | null;
   updatedAt: string;
 }
 
