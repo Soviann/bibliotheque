@@ -278,6 +278,10 @@ class ComicSeries implements SoftDeletableInterface
 
     public function setCoverUrl(?string $coverUrl): static
     {
+        if (null !== $coverUrl) {
+            $coverUrl = (string) \preg_replace('#^http://#', 'https://', $coverUrl);
+        }
+
         $this->coverUrl = $coverUrl;
 
         return $this;
