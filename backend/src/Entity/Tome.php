@@ -115,6 +115,15 @@ class Tome
     private bool $read = false;
 
     /**
+     * Numéro de fin pour les tomes multi-numéros (intégrales).
+     * Ex : number=4, tomeEnd=6 → « Tome 4-6 ».
+     */
+    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[ORM\Column(nullable: true)]
+    #[Assert\GreaterThanOrEqual(propertyPath: 'number')]
+    private ?int $tomeEnd = null;
+
+    /**
      * Titre spécifique du tome (optionnel).
      */
     #[Groups(['tome:read', 'tome:write', 'comic:read'])]
@@ -234,6 +243,18 @@ class Tome
     public function setRead(bool $read): static
     {
         $this->read = $read;
+
+        return $this;
+    }
+
+    public function getTomeEnd(): ?int
+    {
+        return $this->tomeEnd;
+    }
+
+    public function setTomeEnd(?int $tomeEnd): static
+    {
+        $this->tomeEnd = $tomeEnd;
 
         return $this;
     }

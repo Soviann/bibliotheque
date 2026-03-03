@@ -94,7 +94,7 @@ La page de détail affiche toutes les informations d'une série :
 ### Gestion des tomes
 
 Si la série n'est pas un one-shot, la liste des tomes s'affiche avec pour chaque tome :
-- Numéro
+- Numéro (affiché sous forme de plage si un numéro de fin est défini, ex : « 4-6 »)
 - Titre (optionnel)
 - ISBN (optionnel)
 - Cases à cocher interactives : Acheté, Téléchargé, Lu, NAS — un clic bascule le statut directement (mise à jour optimiste, support hors-ligne)
@@ -148,7 +148,7 @@ Le champ auteur utilise l'auto-complétion :
 Pour les séries non one-shot, une section permet d'ajouter des tomes :
 - Cliquer sur **Ajouter** pour créer une nouvelle ligne
 - **Ajout en lot** : Renseigner les champs « Du tome X » et « au tome Y » puis cliquer sur **Générer** pour créer plusieurs tomes d'un coup. Les numéros déjà existants sont ignorés
-- Chaque tome a un numéro, un titre optionnel, un ISBN optionnel, et des cases à cocher (acheté, téléchargé, sur le NAS, lu)
+- Chaque tome a un numéro, un numéro de fin optionnel (pour les intégrales multi-numéros, ex : tome 4-6), un titre optionnel, un ISBN optionnel, et des cases à cocher (acheté, téléchargé, sur le NAS, lu)
 - Les tomes peuvent être supprimés individuellement
 
 ---

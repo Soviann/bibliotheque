@@ -29,6 +29,7 @@ final class TomeTest extends TestCase
         self::assertSame(0, $tome->getNumber());
         self::assertNull($tome->getIsbn());
         self::assertNull($tome->getTitle());
+        self::assertNull($tome->getTomeEnd());
         self::assertNull($tome->getComicSeries());
         self::assertInstanceOf(\DateTimeImmutable::class, $tome->getCreatedAt());
         self::assertInstanceOf(\DateTimeImmutable::class, $tome->getUpdatedAt());
@@ -164,6 +165,25 @@ final class TomeTest extends TestCase
         self::assertNull($tome->getTitle());
     }
 
+    public function testSetTomeEndReturnsFluent(): void
+    {
+        $tome = new Tome();
+        $tome->setNumber(1);
+        $result = $tome->setTomeEnd(3);
+
+        self::assertSame($tome, $result);
+        self::assertSame(3, $tome->getTomeEnd());
+    }
+
+    public function testSetTomeEndNull(): void
+    {
+        $tome = new Tome();
+        $tome->setTomeEnd(5);
+        $tome->setTomeEnd(null);
+
+        self::assertNull($tome->getTomeEnd());
+    }
+
     public function testSetComicSeriesReturnsFluent(): void
     {
         $tome = new Tome();
@@ -233,6 +253,7 @@ final class TomeTest extends TestCase
             downloaded: true,
             onNas: true,
             read: true,
+            tomeEnd: 9,
         );
 
         self::assertSame(7, $tome->getNumber());
@@ -240,5 +261,6 @@ final class TomeTest extends TestCase
         self::assertTrue($tome->isDownloaded());
         self::assertTrue($tome->isOnNas());
         self::assertTrue($tome->isRead());
+        self::assertSame(9, $tome->getTomeEnd());
     }
 }

@@ -43,6 +43,7 @@ final class EntityFactory
         bool $downloaded = false,
         bool $onNas = false,
         bool $read = false,
+        ?int $tomeEnd = null,
     ): Tome {
         $tome = new Tome();
         $tome->setNumber($number);
@@ -50,6 +51,7 @@ final class EntityFactory
         $tome->setDownloaded($downloaded);
         $tome->setOnNas($onNas);
         $tome->setRead($read);
+        $tome->setTomeEnd($tomeEnd);
 
         return $tome;
     }

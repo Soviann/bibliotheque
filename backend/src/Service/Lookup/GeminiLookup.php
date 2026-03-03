@@ -32,6 +32,8 @@ class GeminiLookup extends AbstractLookupProvider implements EnrichableLookupPro
         - "thumbnail" (string|null) : URL image de couverture
         - "isOneShot" (boolean|null) : true = tome unique, false = série multi-tomes
         - "latestPublishedIssue" (integer|null) : nombre de tomes parus
+        - "tomeNumber" (integer|null) : si cet ISBN correspond à un tome précis, son numéro (ex : 4 pour le tome 4). Pour une intégrale/omnibus, le premier numéro couvert (ex : 4 pour « tomes 4-6 »). null si inconnu.
+        - "tomeEnd" (integer|null) : uniquement pour les intégrales/omnibus couvrant plusieurs tomes, le dernier numéro couvert (ex : 6 pour « tomes 4-6 »). null si c'est un tome simple.
         TEXT;
 
     private const string MODEL = 'gemini-2.5-flash';
@@ -190,6 +192,8 @@ class GeminiLookup extends AbstractLookupProvider implements EnrichableLookupPro
                 source: 'gemini',
                 thumbnail: \is_string($data['thumbnail'] ?? null) ? $data['thumbnail'] : null,
                 title: \is_string($data['title'] ?? null) ? $data['title'] : null,
+                tomeEnd: \is_int($data['tomeEnd'] ?? null) ? $data['tomeEnd'] : null,
+                tomeNumber: \is_int($data['tomeNumber'] ?? null) ? $data['tomeNumber'] : null,
             );
         } catch (ErrorException $e) {
             $this->logger->error('Erreur Gemini API : {error}', ['code' => $e->getErrorCode(), 'error' => $e->getMessage()]);
