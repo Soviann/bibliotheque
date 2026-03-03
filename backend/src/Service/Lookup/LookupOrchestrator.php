@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
  */
 class LookupOrchestrator
 {
-    /** @var array<string, array{status: string, message: string}> */
+    /** @var array<string, ApiMessage> */
     private array $apiMessages = [];
 
     /** @var list<string> */
@@ -36,7 +36,7 @@ class LookupOrchestrator
     }
 
     /**
-     * @return array<string, array{status: string, message: string}>
+     * @return array<string, ApiMessage>
      */
     public function getLastApiMessages(): array
     {
@@ -109,10 +109,10 @@ class LookupOrchestrator
                     'error' => $e->getMessage(),
                     'provider' => $provider->getName(),
                 ]);
-                $this->apiMessages[$provider->getName()] = [
-                    'message' => $e->getMessage(),
-                    'status' => ApiLookupStatus::ERROR->value,
-                ];
+                $this->apiMessages[$provider->getName()] = new ApiMessage(
+                    message: $e->getMessage(),
+                    status: ApiLookupStatus::ERROR->value,
+                );
             }
         }
 
@@ -124,10 +124,10 @@ class LookupOrchestrator
             $elapsed = \microtime(true) - $startTime;
 
             if ($elapsed >= $this->globalTimeout) {
-                $this->apiMessages[$provider->getName()] = [
-                    'message' => 'Timeout global dépassé',
-                    'status' => ApiLookupStatus::TIMEOUT->value,
-                ];
+                $this->apiMessages[$provider->getName()] = new ApiMessage(
+                    message: 'Timeout global dépassé',
+                    status: ApiLookupStatus::TIMEOUT->value,
+                );
 
                 continue;
             }
@@ -149,10 +149,10 @@ class LookupOrchestrator
                     'error' => $e->getMessage(),
                     'provider' => $provider->getName(),
                 ]);
-                $this->apiMessages[$provider->getName()] = [
-                    'message' => $e->getMessage(),
-                    'status' => ApiLookupStatus::ERROR->value,
-                ];
+                $this->apiMessages[$provider->getName()] = new ApiMessage(
+                    message: $e->getMessage(),
+                    status: ApiLookupStatus::ERROR->value,
+                );
             }
         }
 
@@ -238,10 +238,10 @@ class LookupOrchestrator
                     'error' => $e->getMessage(),
                     'provider' => $provider->getName(),
                 ]);
-                $this->apiMessages[$provider->getName().'.enrich'] = [
-                    'message' => $e->getMessage(),
-                    'status' => ApiLookupStatus::ERROR->value,
-                ];
+                $this->apiMessages[$provider->getName().'.enrich'] = new ApiMessage(
+                    message: $e->getMessage(),
+                    status: ApiLookupStatus::ERROR->value,
+                );
             }
         }
 
@@ -267,10 +267,10 @@ class LookupOrchestrator
                     'error' => $e->getMessage(),
                     'provider' => $provider->getName(),
                 ]);
-                $this->apiMessages[$provider->getName().'.enrich'] = [
-                    'message' => $e->getMessage(),
-                    'status' => ApiLookupStatus::ERROR->value,
-                ];
+                $this->apiMessages[$provider->getName().'.enrich'] = new ApiMessage(
+                    message: $e->getMessage(),
+                    status: ApiLookupStatus::ERROR->value,
+                );
             }
         }
 

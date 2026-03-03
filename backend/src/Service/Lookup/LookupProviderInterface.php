@@ -33,10 +33,8 @@ interface LookupProviderInterface
 
     /**
      * Retourne le message de statut du dernier appel.
-     *
-     * @return array{status: string, message: string}|null
      */
-    public function getLastApiMessage(): ?array;
+    public function getLastApiMessage(): ?ApiMessage;
 
     /**
      * Phase 1 : lance la requête HTTP (non bloquante) et retourne un état intermédiaire.

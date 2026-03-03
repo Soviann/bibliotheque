@@ -43,8 +43,8 @@ parameters:
 			path: src/Repository/ComicSeriesRepository.php
 
 		-
-			message: '#^Strict comparison using \!\=\= between null and bool will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findWithMissingLookupData\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Repository/ComicSeriesRepository.php
 

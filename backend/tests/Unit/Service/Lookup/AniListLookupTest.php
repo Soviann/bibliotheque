@@ -327,7 +327,7 @@ final class AniListLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
@@ -347,7 +347,7 @@ final class AniListLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**
@@ -380,7 +380,7 @@ final class AniListLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('rate_limited', $apiMessage['status']);
+        self::assertSame('rate_limited', $apiMessage->status);
     }
 
     /**
@@ -413,8 +413,8 @@ final class AniListLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertStringContainsString('500', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertStringContainsString('500', $apiMessage->message);
     }
 
     /**
@@ -434,7 +434,7 @@ final class AniListLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**

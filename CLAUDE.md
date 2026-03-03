@@ -92,6 +92,8 @@ ddev exec bin/console app:invalidate-tokens --email=X # Invalidate tokens for on
 6. Documentation in French
 7. Symfony standards
 
+8. **Prefer DTOs over arrays**: For structured data (return types, parameters), use `readonly` DTO classes instead of typed arrays. DTOs go in `src/DTO/` (domain) or same namespace (internal). `JsonSerializable` only where needed for API/cache.
+
 **Entity validation**: `$this->validator->validate($entity)` before persist.
 
 **DB queries**: All database queries MUST live in dedicated entity repositories (`src/Repository/`). Use QueryBuilder exclusively (no raw DQL strings). Services and controllers inject repositories, never `EntityManagerInterface` for queries.
@@ -219,7 +221,7 @@ Format: `- **Name**: Description`
 Full file map with all entities, hooks, components, services → `memory/patterns.md`
 
 ```
-backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,Entity,Enum,EventListener,Repository,Service,State}/
+backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,EventListener,Repository,Service,State}/
 backend/tests/{Unit,Integration,Functional,Factory,Trait}/
 
 frontend/src/{components,hooks,pages,services,types,__tests__}/

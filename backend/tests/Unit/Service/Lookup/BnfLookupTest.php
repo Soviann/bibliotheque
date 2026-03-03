@@ -227,7 +227,7 @@ final class BnfLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
@@ -243,7 +243,7 @@ final class BnfLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**
@@ -263,8 +263,8 @@ final class BnfLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertSame('Erreur de connexion', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertSame('Erreur de connexion', $apiMessage->message);
     }
 
     /**
@@ -282,7 +282,7 @@ final class BnfLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**

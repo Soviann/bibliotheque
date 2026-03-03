@@ -172,7 +172,7 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('rate_limited', $apiMessage['status']);
+        self::assertSame('rate_limited', $apiMessage->status);
     }
 
     /**
@@ -188,7 +188,7 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
@@ -207,7 +207,7 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
@@ -227,8 +227,8 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertSame('Erreur de connexion', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertSame('Erreur de connexion', $apiMessage->message);
     }
 
     /**
@@ -264,7 +264,7 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('rate_limited', $apiMessage['status']);
+        self::assertSame('rate_limited', $apiMessage->status);
     }
 
     /**
@@ -300,8 +300,8 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertStringContainsString('403', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertStringContainsString('403', $apiMessage->message);
     }
 
     /**
@@ -322,8 +322,8 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertSame('Réponse invalide', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertSame('Réponse invalide', $apiMessage->message);
     }
 
     /**
@@ -375,7 +375,7 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**

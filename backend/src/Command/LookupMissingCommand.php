@@ -212,7 +212,7 @@ class LookupMissingCommand extends Command
     private function hasRateLimitError(): bool
     {
         foreach ($this->lookupOrchestrator->getLastApiMessages() as $message) {
-            if (ApiLookupStatus::RATE_LIMITED->value === $message['status']) {
+            if (ApiLookupStatus::RATE_LIMITED->value === $message->status) {
                 return true;
             }
         }
