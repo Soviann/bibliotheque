@@ -150,6 +150,12 @@ export default function ComicDetail() {
               <span className="font-medium">Éditeur :</span> {comic.publisher}
             </p>
           )}
+          {comic.publishedDate && (
+            <p className="text-sm text-text-secondary">
+              <span className="font-medium">Parution :</span>{" "}
+              {new Date(comic.publishedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+          )}
           {comic.description && (
             <p className="text-sm leading-relaxed text-text-secondary">{comic.description}</p>
           )}
