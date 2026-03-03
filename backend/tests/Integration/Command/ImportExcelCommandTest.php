@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Integration\Command;
 
 use App\Command\ImportExcelCommand;
+use App\DTO\ParsedIntegerValue;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
@@ -382,25 +383,31 @@ final class ImportExcelCommandTest extends KernelTestCase
     }
 
     /**
-     * Teste parseIntegerValue avec "0, 0" → [null, false].
+     * Teste parseIntegerValue avec "0, 0" → ParsedIntegerValue(isComplete: false, value: null).
      */
     public function testParseIntegerValueWithZeroCommaZeroReturnsNull(): void
     {
         $command = new ImportExcelCommand($this->em);
         $method = new \ReflectionMethod($command, 'parseIntegerValue');
 
-        self::assertSame([null, false], $method->invoke($command, '0, 0'));
+        $result = $method->invoke($command, '0, 0');
+        self::assertInstanceOf(ParsedIntegerValue::class, $result);
+        self::assertNull($result->value);
+        self::assertFalse($result->isComplete);
     }
 
     /**
-     * Teste parseIntegerValue avec 0 → [null, false].
+     * Teste parseIntegerValue avec 0 → ParsedIntegerValue(isComplete: false, value: null).
      */
     public function testParseIntegerValueWithZeroReturnsNull(): void
     {
         $command = new ImportExcelCommand($this->em);
         $method = new \ReflectionMethod($command, 'parseIntegerValue');
 
-        self::assertSame([null, false], $method->invoke($command, 0));
+        $result = $method->invoke($command, 0);
+        self::assertInstanceOf(ParsedIntegerValue::class, $result);
+        self::assertNull($result->value);
+        self::assertFalse($result->isComplete);
     }
 
     /**
@@ -446,7 +453,7 @@ final class ImportExcelCommandTest extends KernelTestCase
         $sheet->setCellValue('F2', '');
         $sheet->setCellValue('G2', '');
 
-        $tmpFile = \tempnam(\sys_get_temp_dir(), 'test_import_') . '.xlsx';
+        $tmpFile = \tempnam(\sys_get_temp_dir(), 'test_import_').'.xlsx';
         $writer = new Xlsx($spreadsheet);
         $writer->save($tmpFile);
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\DTO\ImportResult;
+use App\DTO\ParsedIntegerValue;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
@@ -138,10 +140,10 @@ class ImportExcelCommand extends Command
 
                 if (null !== $result) {
                     if (!$dryRun) {
-                        $this->entityManager->persist($result['series']);
+                        $this->entityManager->persist($result->series);
                     }
                     ++$imported;
-                    $tomesCreated += $result['tomesCount'];
+                    $tomesCreated += $result->tomesCount;
                 }
             }
 
@@ -176,10 +178,8 @@ class ImportExcelCommand extends Command
      * Importe une ligne du fichier Excel.
      *
      * @param array<int, mixed> $row
-     *
-     * @return array{series: ComicSeries, tomesCount: int}|null
      */
-    private function importRow(array $row, ComicType $comicType): ?array
+    private function importRow(array $row, ComicType $comicType): ?ImportResult
     {
         $title = \is_scalar($row[0]) ? \trim((string) $row[0]) : '';
 
@@ -198,22 +198,22 @@ class ImportExcelCommand extends Command
         // isWishlist est calculé automatiquement à partir du statut
 
         // Extraction des valeurs numériques
-        [$lastBoughtValue, $lastBoughtComplete] = $this->parseIntegerValue($row[2] ?? null);
-        [$currentIssueValue, $currentIssueComplete] = $this->parseIntegerValue($row[3] ?? null);
-        [$publishedCountValue, $publishedCountComplete] = $this->parseIntegerValue($row[4] ?? null);
-        [$lastDownloadedValue, $lastDownloadedComplete] = $this->parseIntegerValue($row[5] ?? null);
+        $lastBought = $this->parseIntegerValue($row[2] ?? null);
+        $currentIssue = $this->parseIntegerValue($row[3] ?? null);
+        $publishedCount = $this->parseIntegerValue($row[4] ?? null);
+        $lastDownloaded = $this->parseIntegerValue($row[5] ?? null);
         $onNas = $this->determineOnNas($row[6] ?? null);
 
         // Détermination du dernier tome paru
-        $latestPublishedIssue = $publishedCountValue;
-        $latestPublishedIssueComplete = $publishedCountComplete;
+        $latestPublishedIssue = $publishedCount->value;
+        $latestPublishedIssueComplete = $publishedCount->isComplete;
 
         // Si "fini" pour parution, on prend le max des autres valeurs
-        if ($publishedCountComplete && null === $publishedCountValue) {
+        if ($publishedCount->isComplete && null === $publishedCount->value) {
             $latestPublishedIssue = \max(
-                $currentIssueValue ?? 0,
-                $lastBoughtValue ?? 0,
-                $lastDownloadedValue ?? 0
+                $currentIssue->value ?? 0,
+                $lastBought->value ?? 0,
+                $lastDownloaded->value ?? 0
             );
             if (0 === $latestPublishedIssue) {
                 $latestPublishedIssue = null;
@@ -226,20 +226,17 @@ class ImportExcelCommand extends Command
         // Création des tomes
         $tomesCount = $this->createTomes(
             $comic,
-            $currentIssueValue,
-            $currentIssueComplete,
-            $lastBoughtValue,
-            $lastBoughtComplete,
-            $lastDownloadedValue,
-            $lastDownloadedComplete,
+            $currentIssue->value,
+            $currentIssue->isComplete,
+            $lastBought->value,
+            $lastBought->isComplete,
+            $lastDownloaded->value,
+            $lastDownloaded->isComplete,
             $onNas,
             $latestPublishedIssue
         );
 
-        return [
-            'series' => $comic,
-            'tomesCount' => $tomesCount,
-        ];
+        return new ImportResult(series: $comic, tomesCount: $tomesCount);
     }
 
     /**
@@ -362,23 +359,21 @@ class ImportExcelCommand extends Command
 
     /**
      * Parse une valeur qui peut être un entier ou "fini".
-     *
-     * @return array{0: ?int, 1: bool}
      */
-    private function parseIntegerValue(mixed $value): array
+    private function parseIntegerValue(mixed $value): ParsedIntegerValue
     {
         if (null === $value) {
-            return [null, false];
+            return new ParsedIntegerValue(isComplete: false, value: null);
         }
 
         $value = \is_scalar($value) ? \trim((string) $value) : '';
 
         if ('' === $value) {
-            return [null, false];
+            return new ParsedIntegerValue(isComplete: false, value: null);
         }
 
         if ('fini' === \mb_strtolower($value)) {
-            return [null, true];
+            return new ParsedIntegerValue(isComplete: true, value: null);
         }
 
         // Gérer les valeurs comme "3, 4" en prenant le max
@@ -392,11 +387,11 @@ class ImportExcelCommand extends Command
                 }
             }
 
-            return $maxVal > 0 ? [$maxVal, false] : [null, false];
+            return new ParsedIntegerValue(isComplete: false, value: $maxVal > 0 ? $maxVal : null);
         }
 
         $intValue = (int) $value;
 
-        return $intValue > 0 ? [$intValue, false] : [null, false];
+        return new ParsedIntegerValue(isComplete: false, value: $intValue > 0 ? $intValue : null);
     }
 }
