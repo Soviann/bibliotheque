@@ -57,7 +57,7 @@ describe("Home", () => {
     expect(screen.getByText("One Piece")).toBeInTheDocument();
   });
 
-  it("shows empty state when no comics", async () => {
+  it("shows empty library state when no comics exist", async () => {
     server.use(
       http.get("/api/comic_series", () =>
         HttpResponse.json(createMockHydraCollection([])),
@@ -67,7 +67,71 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Aucune série trouvée")).toBeInTheDocument();
+      expect(screen.getByText("Votre bibliothèque est vide")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Commencez par ajouter votre première série")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ajouter une série" })).toHaveAttribute("href", "/comic/new");
+  });
+
+  it("shows empty wishlist state when status=wishlist and no results", async () => {
+    const comics = [
+      createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />, { initialEntries: ["/?status=wishlist"] });
+
+    await waitFor(() => {
+      expect(screen.getByText("Votre liste de souhaits est vide")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Les séries que vous souhaitez acheter apparaîtront ici")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ajouter une série" })).toHaveAttribute("href", "/comic/new");
+  });
+
+  it("shows empty search results state when search yields nothing", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Naruto" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "XYZNOTFOUND");
+
+    expect(screen.getByText(/Aucun résultat pour/)).toBeInTheDocument();
+    expect(screen.getByText(/XYZNOTFOUND/)).toBeInTheDocument();
+  });
+
+  it("shows empty filter results state when filters yield nothing", async () => {
+    const comics = [
+      createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic", type: ComicType.MANGA }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />, { initialEntries: ["/?type=bd"] });
+
+    await waitFor(() => {
+      expect(screen.getByText("Aucune série avec ces filtres")).toBeInTheDocument();
     });
   });
 
