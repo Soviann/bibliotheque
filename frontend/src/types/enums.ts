@@ -29,3 +29,10 @@ export const ComicTypeLabel: Record<ComicType, string> = {
   [ComicType.LIVRE]: "Livre",
   [ComicType.MANGA]: "Manga",
 };
+
+export const ComicTypePlaceholder: Record<ComicType, string> = {
+  [ComicType.BD]: "/placeholder-bd.jpg",
+  [ComicType.COMICS]: "/placeholder-comics.jpg",
+  [ComicType.LIVRE]: "/placeholder-livre.jpg",
+  [ComicType.MANGA]: "/placeholder-manga.jpg",
+};

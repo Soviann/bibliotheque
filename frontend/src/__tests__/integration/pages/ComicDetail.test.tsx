@@ -477,7 +477,7 @@ describe("ComicDetail", () => {
 
     await waitFor(() => {
       const img = screen.getByAltText("No Cover");
-      expect(img).toHaveAttribute("src", "/placeholder-cover.png");
+      expect(img).toHaveAttribute("src", "/placeholder-bd.jpg");
     });
   });
 

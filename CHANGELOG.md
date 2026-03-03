@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Placeholder de couverture stylisé** : Les séries sans couverture affichent une illustration spécifique au type (BD, Manga, Comics, Livre) au lieu du placeholder générique (#100)
+
 ### Changed
 
 - **Menu contextuel des cartes** : Les actions Modifier/Supprimer sont masquées derrière un bouton `⋮` — barre d'actions fixe en bas sur mobile, dropdown Headless UI sur desktop. Suppression de la barre d'actions permanente et du skeleton correspondant (#95)
