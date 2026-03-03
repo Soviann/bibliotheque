@@ -166,6 +166,12 @@ class ComicSeries implements SoftDeletableInterface
     private ?string $description = null;
 
     /**
+     * Date du dernier lookup automatique effectué.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lookupCompletedAt = null;
+
+    /**
      * Date de publication.
      */
     #[Groups(['comic:read', 'comic:write'])]
@@ -351,6 +357,18 @@ class ComicSeries implements SoftDeletableInterface
     public function getLatestPublishedIssue(): ?int
     {
         return $this->latestPublishedIssue;
+    }
+
+    public function getLookupCompletedAt(): ?\DateTimeImmutable
+    {
+        return $this->lookupCompletedAt;
+    }
+
+    public function setLookupCompletedAt(?\DateTimeImmutable $lookupCompletedAt): static
+    {
+        $this->lookupCompletedAt = $lookupCompletedAt;
+
+        return $this;
     }
 
     public function setLatestPublishedIssue(?int $latestPublishedIssue): static

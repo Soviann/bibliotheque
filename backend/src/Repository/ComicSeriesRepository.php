@@ -118,6 +118,43 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries dont au moins un champ remplissable par lookup est vide.
+     *
+     * @return ComicSeries[]
+     */
+    public function findWithMissingLookupData(?ComicType $type = null, ?int $limit = null, bool $force = false): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.authors', 'a')
+            ->groupBy('c.id')
+            ->having(
+                'c.description IS NULL'
+                .' OR c.publisher IS NULL'
+                .' OR c.publishedDate IS NULL'
+                .' OR (c.coverUrl IS NULL AND c.coverImage IS NULL)'
+                .' OR c.latestPublishedIssue IS NULL'
+                .' OR COUNT(a.id) = 0'
+            )
+            ->orderBy('c.title', 'ASC');
+
+        if (!$force) {
+            $qb->andWhere('c.lookupCompletedAt IS NULL');
+        }
+
+        if (null !== $type) {
+            $qb->andWhere('c.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if (null !== $limit && $limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        /** @var ComicSeries[] */
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
      * Retourne toutes les séries avec leurs relations pour l'API PWA.
      *
      * Utilise un cache applicatif (15 min) pour éviter de requêter la base
