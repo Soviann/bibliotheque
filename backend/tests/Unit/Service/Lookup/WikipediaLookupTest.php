@@ -232,7 +232,7 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**
@@ -271,7 +271,7 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('rate_limited', $apiMessage['status']);
+        self::assertSame('rate_limited', $apiMessage->status);
     }
 
     /**
@@ -295,7 +295,7 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
@@ -321,7 +321,7 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
@@ -478,8 +478,8 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertSame('Réponse invalide', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertSame('Réponse invalide', $apiMessage->message);
     }
 
     /**
@@ -520,8 +520,8 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertStringContainsString('500', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertStringContainsString('500', $apiMessage->message);
     }
 
     /**
@@ -953,8 +953,8 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertStringContainsString('301', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertStringContainsString('301', $apiMessage->message);
     }
 
     /**
@@ -1200,7 +1200,7 @@ final class WikipediaLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $this->provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
