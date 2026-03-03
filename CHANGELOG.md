@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Transitions animées entre les pages** : Fade subtil entre les pages via la View Transition API native (CSS `::view-transition`) intégrée avec React Router (`viewTransition` sur les Links et `navigate()`). Respect de `prefers-reduced-motion`. Aucune dépendance ajoutée (#96)
 - **Tomes multi-numéros (intégrales)** : Champ optionnel `tomeEnd` sur l'entité Tome pour représenter une plage de numéros (ex : tome 4-6). Affiché dans la page détail et éditable dans le formulaire. Enrichissement Gemini : détection automatique des intégrales lors du lookup ISBN avec pré-remplissage de `tomeEnd` (#111)
 - **Cache sur findAllForApi()** : Cache applicatif Symfony (15 min, filesystem) sur la requête principale de l'API PWA avec invalidation automatique via listener Doctrine lors de modifications sur ComicSeries, Tome ou Author (#23)
 - **Événements domaine ComicSeries** : Système d'événements Symfony dispatché via un listener Doctrine — `ComicSeriesCreatedEvent`, `ComicSeriesUpdatedEvent`, `ComicSeriesDeletedEvent` (soft-delete, hard-delete et suppression permanente DBAL) (#36)

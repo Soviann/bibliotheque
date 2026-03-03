@@ -24,6 +24,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
     <Link
       className="group block overflow-hidden rounded-xl border border-surface-border bg-surface-primary shadow-sm transition hover:shadow-md"
       to={`/comic/${comic.id}`}
+      viewTransition
     >
       {/* Cover */}
       <div className="aspect-[3/4] overflow-hidden bg-surface-tertiary">
@@ -81,7 +82,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        navigate(`/comic/${comic.id}/edit`);
+                        navigate(`/comic/${comic.id}/edit`, { viewTransition: true });
                       }}
                       type="button"
                     >

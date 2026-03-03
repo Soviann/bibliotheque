@@ -34,7 +34,7 @@ export default function EmptyState({
         </p>
       )}
       {actionLabel && actionHref && (
-        <Link className={ctaClassName} to={actionHref}>
+        <Link className={ctaClassName} to={actionHref} viewTransition>
           {actionLabel}
         </Link>
       )}

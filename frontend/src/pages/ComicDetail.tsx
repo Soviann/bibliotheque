@@ -222,6 +222,7 @@ export default function ComicDetail() {
         <Link
           className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
           to={`/comic/${comic.id}/edit`}
+          viewTransition
         >
           <Edit className="h-5 w-5" />
           Modifier
@@ -236,7 +237,7 @@ export default function ComicDetail() {
           deleteComic.mutate({ id: comic.id }, {
             onSuccess: () => {
               toast.success("Série supprimée");
-              navigate("/");
+              navigate("/", { viewTransition: true });
             },
           });
         }}

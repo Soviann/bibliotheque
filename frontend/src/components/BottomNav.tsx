@@ -58,6 +58,7 @@ export default function BottomNav() {
               }`}
               key={label}
               to={to}
+              viewTransition
             >
               <Icon className="h-5 w-5" />
               {label}

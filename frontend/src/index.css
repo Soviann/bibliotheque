@@ -47,6 +47,20 @@
   --color-text-inverse: #0f172a;
 }
 
+/* View Transition API — cross-fade entre les pages */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 150ms;
+}
+
+/* Désactiver les transitions si l'utilisateur préfère un mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0s;
+  }
+}
+
 /* Hide native search cancel button */
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {
