@@ -51,56 +51,50 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
 			identifier: argument.type
-			count: 6
-			path: tests/Command/CreateUserCommandTest.php
-
-		-
-			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
-			identifier: argument.type
 			count: 15
-			path: tests/Command/ImportExcelCommandTest.php
+			path: tests/Integration/Command/ImportExcelCommandTest.php
 
 		-
 			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
 			identifier: argument.type
 			count: 3
-			path: tests/Command/InvalidateTokensCommandTest.php
+			path: tests/Integration/Command/InvalidateTokensCommandTest.php
 
 		-
 			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
 			identifier: argument.type
 			count: 4
-			path: tests/Command/PurgeDeletedCommandTest.php
+			path: tests/Integration/Command/PurgeDeletedCommandTest.php
 
 		-
 			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
 			identifier: staticMethod.alreadyNarrowedType
 			count: 1
-			path: tests/Entity/UserTest.php
+			path: tests/Unit/Entity/UserTest.php
 
 		-
 			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
 			identifier: staticMethod.alreadyNarrowedType
 			count: 2
-			path: tests/Enum/ComicStatusTest.php
+			path: tests/Unit/Enum/ComicStatusTest.php
 
 		-
 			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
 			identifier: staticMethod.alreadyNarrowedType
 			count: 3
-			path: tests/Enum/ComicTypeTest.php
+			path: tests/Unit/Enum/ComicTypeTest.php
 
 		-
-			message: '#^Property App\\Tests\\Repository\\AuthorRepositoryTest\:\:\$repository \(App\\Repository\\AuthorRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\Author\>\.$#'
+			message: '#^Property App\\Tests\\Integration\\Repository\\AuthorRepositoryTest\:\:\$repository \(App\\Repository\\AuthorRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\Author\>\.$#'
 			identifier: assign.propertyType
 			count: 1
-			path: tests/Repository/AuthorRepositoryTest.php
+			path: tests/Integration/Repository/AuthorRepositoryTest.php
 
 		-
-			message: '#^Property App\\Tests\\Repository\\ComicSeriesRepositoryTest\:\:\$repository \(App\\Repository\\ComicSeriesRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\ComicSeries\>\.$#'
+			message: '#^Property App\\Tests\\Integration\\Repository\\ComicSeriesRepositoryTest\:\:\$repository \(App\\Repository\\ComicSeriesRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\ComicSeries\>\.$#'
 			identifier: assign.propertyType
 			count: 1
-			path: tests/Repository/ComicSeriesRepositoryTest.php
+			path: tests/Integration/Repository/ComicSeriesRepositoryTest.php
 
 		-
 			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'

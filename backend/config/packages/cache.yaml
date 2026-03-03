@@ -16,6 +16,9 @@ framework:
 
         # Namespaced pools use the above "app" backend by default
         pools:
+            comic_series_api.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 900 # 15 minutes
             gemini.cache:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 2592000 # 30 jours
