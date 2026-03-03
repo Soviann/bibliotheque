@@ -11,17 +11,16 @@ use App\Enum\ApiLookupStatus;
  */
 abstract class AbstractLookupProvider implements LookupProviderInterface
 {
-    /** @var array{status: string, message: string}|null */
-    private ?array $lastApiMessage = null;
+    private ?ApiMessage $lastApiMessage = null;
 
-    public function getLastApiMessage(): ?array
+    public function getLastApiMessage(): ?ApiMessage
     {
         return $this->lastApiMessage;
     }
 
     protected function recordApiMessage(ApiLookupStatus $status, string $message): void
     {
-        $this->lastApiMessage = ['message' => $message, 'status' => $status->value];
+        $this->lastApiMessage = new ApiMessage(message: $message, status: $status->value);
     }
 
     protected function resetApiMessage(): void

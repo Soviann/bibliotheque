@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service\Lookup;
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use App\Service\Lookup\AbstractLookupProvider;
+use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\EnrichableLookupProviderInterface;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupProviderInterface;
@@ -250,7 +251,7 @@ final class LookupOrchestratorTest extends TestCase
 
         $messages = $orchestrator->getLastApiMessages();
         self::assertArrayHasKey('failing', $messages);
-        self::assertSame('error', $messages['failing']['status']);
+        self::assertSame('error', $messages['failing']->status);
     }
 
     /**
@@ -286,7 +287,7 @@ final class LookupOrchestratorTest extends TestCase
 
         $messages = $orchestrator->getLastApiMessages();
         self::assertArrayHasKey('failing', $messages);
-        self::assertSame('error', $messages['failing']['status']);
+        self::assertSame('error', $messages['failing']->status);
     }
 
     /**
@@ -346,7 +347,7 @@ final class LookupOrchestratorTest extends TestCase
         // Au moins un provider doit avoir le statut timeout
         $hasTimeout = false;
         foreach ($messages as $message) {
-            if ('timeout' === $message['status']) {
+            if ('timeout' === $message->status) {
                 $hasTimeout = true;
 
                 break;
@@ -366,7 +367,7 @@ final class LookupOrchestratorTest extends TestCase
             name: 'provider1',
             result: new LookupResult(title: 'T1', source: 'p1'),
             supports: true,
-            apiMessage: ['message' => 'OK', 'status' => 'success'],
+            apiMessage: new ApiMessage(message: 'OK', status: 'success'),
         );
 
         $provider2 = $this->createStubProvider(
@@ -374,7 +375,7 @@ final class LookupOrchestratorTest extends TestCase
             name: 'provider2',
             result: null,
             supports: true,
-            apiMessage: ['message' => 'Aucun resultat', 'status' => 'not_found'],
+            apiMessage: new ApiMessage(message: 'Aucun resultat', status: 'not_found'),
         );
 
         $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider1, $provider2]);
@@ -385,8 +386,8 @@ final class LookupOrchestratorTest extends TestCase
 
         self::assertArrayHasKey('provider1', $messages);
         self::assertArrayHasKey('provider2', $messages);
-        self::assertSame('success', $messages['provider1']['status']);
-        self::assertSame('not_found', $messages['provider2']['status']);
+        self::assertSame('success', $messages['provider1']->status);
+        self::assertSame('not_found', $messages['provider2']->status);
     }
 
     /**
@@ -515,7 +516,7 @@ final class LookupOrchestratorTest extends TestCase
 
         $messages = $orchestrator->getLastApiMessages();
         self::assertArrayHasKey('failing_enrich.enrich', $messages);
-        self::assertSame('error', $messages['failing_enrich.enrich']['status']);
+        self::assertSame('error', $messages['failing_enrich.enrich']->status);
     }
 
     /**
@@ -559,7 +560,7 @@ final class LookupOrchestratorTest extends TestCase
 
         $messages = $orchestrator->getLastApiMessages();
         self::assertArrayHasKey('failing_enrich.enrich', $messages);
-        self::assertSame('error', $messages['failing_enrich.enrich']['status']);
+        self::assertSame('error', $messages['failing_enrich.enrich']->status);
     }
 
     /**
@@ -582,7 +583,7 @@ final class LookupOrchestratorTest extends TestCase
                 return 100;
             }
 
-            public function getLastApiMessage(): ?array
+            public function getLastApiMessage(): ?ApiMessage
             {
                 return null;
             }
@@ -813,7 +814,7 @@ final class LookupOrchestratorTest extends TestCase
                 return $this->fieldPriority;
             }
 
-            public function getLastApiMessage(): ?array
+            public function getLastApiMessage(): ?ApiMessage
             {
                 return null;
             }
@@ -860,8 +861,6 @@ final class LookupOrchestratorTest extends TestCase
 
     /**
      * Cree un stub de LookupProviderInterface pour les tests.
-     *
-     * @param array{status: string, message: string}|null $apiMessage
      */
     private function createStubProvider(
         int $fieldPriority,
@@ -870,11 +869,11 @@ final class LookupOrchestratorTest extends TestCase
         bool $supports,
         ?\Throwable $throwOnPrepare = null,
         ?\Throwable $throwOnResolve = null,
-        ?array $apiMessage = null,
+        ?ApiMessage $apiMessage = null,
     ): LookupProviderInterface {
         return new class($apiMessage, $fieldPriority, $name, $result, $supports, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
             public function __construct(
-                private readonly ?array $apiMessage,
+                private readonly ?ApiMessage $apiMessage,
                 private readonly int $fieldPriority,
                 private readonly string $name,
                 private readonly ?LookupResult $result,
@@ -889,7 +888,7 @@ final class LookupOrchestratorTest extends TestCase
                 return $this->fieldPriority;
             }
 
-            public function getLastApiMessage(): ?array
+            public function getLastApiMessage(): ?ApiMessage
             {
                 return $this->apiMessage;
             }

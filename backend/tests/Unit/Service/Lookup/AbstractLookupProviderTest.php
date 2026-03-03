@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service\Lookup;
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use App\Service\Lookup\AbstractLookupProvider;
+use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\LookupResult;
 use PHPUnit\Framework\TestCase;
 
@@ -86,9 +87,9 @@ final class AbstractLookupProviderTest extends TestCase
 
         $message = $this->provider->getLastApiMessage();
 
-        self::assertNotNull($message);
-        self::assertSame('success', $message['status']);
-        self::assertSame('Donnees trouvees', $message['message']);
+        self::assertInstanceOf(ApiMessage::class, $message);
+        self::assertSame('success', $message->status);
+        self::assertSame('Donnees trouvees', $message->message);
     }
 
     /**
@@ -100,7 +101,9 @@ final class AbstractLookupProviderTest extends TestCase
 
         $message = $this->provider->getLastApiMessage();
 
-        self::assertSame(['message' => 'Erreur reseau', 'status' => 'error'], $message);
+        self::assertInstanceOf(ApiMessage::class, $message);
+        self::assertSame('error', $message->status);
+        self::assertSame('Erreur reseau', $message->message);
     }
 
     /**
@@ -127,7 +130,7 @@ final class AbstractLookupProviderTest extends TestCase
 
         $message = $this->provider->getLastApiMessage();
 
-        self::assertSame('rate_limited', $message['status']);
-        self::assertSame('Troisieme', $message['message']);
+        self::assertSame('rate_limited', $message->status);
+        self::assertSame('Troisieme', $message->message);
     }
 }

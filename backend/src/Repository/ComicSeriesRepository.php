@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\DTO\ComicSeriesFilter;
+use App\DTO\ComicSeriesListItem;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
@@ -28,27 +30,17 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param array{
-     *     isWishlist?: bool,
-     *     onNas?: bool|null,
-     *     reading?: string|null,
-     *     search?: string|null,
-     *     sort?: string,
-     *     status?: ComicStatus|null,
-     *     type?: ComicType|null,
-     * } $filters
-     *
      * @return ComicSeries[]
      */
-    public function findWithFilters(array $filters = []): array
+    public function findWithFilters(ComicSeriesFilter $filters = new ComicSeriesFilter()): array
     {
         $qb = $this->createQueryBuilder('c')
             ->leftJoin('c.tomes', 't')
             ->addSelect('t');
 
         // Wishlist filter : isWishlist est calculé à partir du statut
-        if (isset($filters['isWishlist'])) {
-            if ($filters['isWishlist']) {
+        if (null !== $filters->isWishlist) {
+            if ($filters->isWishlist) {
                 $qb->andWhere('c.status = :wishlistStatus')
                     ->setParameter('wishlistStatus', ComicStatus::WISHLIST);
             } else {
@@ -58,20 +50,20 @@ class ComicSeriesRepository extends ServiceEntityRepository
         }
 
         // Type filter
-        if (!empty($filters['type'])) {
+        if (null !== $filters->type) {
             $qb->andWhere('c.type = :type')
-                ->setParameter('type', $filters['type']);
+                ->setParameter('type', $filters->type);
         }
 
         // Status filter
-        if (!empty($filters['status'])) {
+        if (null !== $filters->status) {
             $qb->andWhere('c.status = :status')
-                ->setParameter('status', $filters['status']);
+                ->setParameter('status', $filters->status);
         }
 
         // NAS filter (vérifie si au moins un tome est sur le NAS)
-        if (isset($filters['onNas']) && null !== $filters['onNas']) {
-            if ($filters['onNas']) {
+        if (null !== $filters->onNas) {
+            if ($filters->onNas) {
                 $qb->andWhere('t.onNas = :onNas')
                     ->setParameter('onNas', true);
             } else {
@@ -81,8 +73,8 @@ class ComicSeriesRepository extends ServiceEntityRepository
         }
 
         // Reading filter
-        if (!empty($filters['reading'])) {
-            match ($filters['reading']) {
+        if (null !== $filters->reading) {
+            match ($filters->reading) {
                 'reading' => $qb
                     ->andWhere('EXISTS (SELECT r1.id FROM App\Entity\Tome r1 WHERE r1.comicSeries = c AND r1.read = true)')
                     ->andWhere('EXISTS (SELECT r2.id FROM App\Entity\Tome r2 WHERE r2.comicSeries = c AND r2.read = false)'),
@@ -95,17 +87,16 @@ class ComicSeriesRepository extends ServiceEntityRepository
         }
 
         // Search filter (titre uniquement, ISBN est maintenant sur les tomes)
-        if (!empty($filters['search'])) {
+        if (null !== $filters->search && '' !== $filters->search) {
             $qb->andWhere('c.title LIKE :search OR t.isbn LIKE :search')
-                ->setParameter('search', '%'.$filters['search'].'%');
+                ->setParameter('search', '%'.$filters->search.'%');
         }
 
         // Distinct pour éviter les doublons à cause du JOIN
         $qb->distinct();
 
         // Sorting
-        $sort = $filters['sort'] ?? 'title_asc';
-        match ($sort) {
+        match ($filters->sort) {
             'title_desc' => $qb->orderBy('c.title', 'DESC'),
             'updated_desc' => $qb->orderBy('c.updatedAt', 'DESC'),
             'updated_asc' => $qb->orderBy('c.updatedAt', 'ASC'),
@@ -150,7 +141,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        /** @var ComicSeries[] */
+        /* @var ComicSeries[] */
         return $qb->getQuery()->getResult();
     }
 
@@ -160,11 +151,11 @@ class ComicSeriesRepository extends ServiceEntityRepository
      * Utilise un cache applicatif (15 min) pour éviter de requêter la base
      * à chaque chargement. Le cache est invalidé par ComicSeriesCacheInvalidator.
      *
-     * @return list<array<string, mixed>>
+     * @return list<ComicSeriesListItem>
      */
     public function findAllForApi(): array
     {
-        /* @var list<array<string, mixed>> */
+        /* @var list<ComicSeriesListItem> */
         return $this->cache->get('comic_series_api_all', function (ItemInterface $item): array {
             $item->expiresAfter(900);
 
@@ -175,7 +166,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
     /**
      * Exécute la requête complète avec eager loading pour éviter le N+1.
      *
-     * @return list<array<string, mixed>>
+     * @return list<ComicSeriesListItem>
      */
     private function doFindAllForApi(): array
     {
@@ -193,39 +184,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
         foreach ($comics as $comic) {
             $hasNasTome = $comic->getTomes()->exists(static fn (int $key, Tome $t): bool => $t->isOnNas());
 
-            $result[] = [
-                'authors' => $comic->getAuthorsAsString(),
-                'coverUrl' => $comic->getCoverUrl(),
-                'currentIssue' => $comic->getCurrentIssue(),
-                'currentIssueComplete' => $comic->isCurrentIssueComplete(),
-                'description' => $comic->getDescription(),
-                'hasNasTome' => $hasNasTome,
-                'id' => $comic->getId(),
-                'isCurrentlyReading' => $comic->isCurrentlyReading(),
-                'isFullyRead' => $comic->isFullyRead(),
-                'isOneShot' => $comic->isOneShot(),
-                'isWishlist' => $comic->isWishlist(),
-                'lastBought' => $comic->getLastBought(),
-                'lastBoughtComplete' => $comic->isLastBoughtComplete(),
-                'lastDownloaded' => $comic->getLastDownloaded(),
-                'lastDownloadedComplete' => $comic->isLastDownloadedComplete(),
-                'lastRead' => $comic->getLastRead(),
-                'lastReadComplete' => $comic->isLastReadComplete(),
-                'latestPublishedIssue' => $comic->getLatestPublishedIssue(),
-                'latestPublishedIssueComplete' => $comic->isLatestPublishedIssueComplete(),
-                'missingTomesNumbers' => $comic->getMissingTomesNumbers(),
-                'ownedTomesNumbers' => $comic->getOwnedTomesNumbers(),
-                'publishedDate' => $comic->getPublishedDate(),
-                'publisher' => $comic->getPublisher(),
-                'readTomesCount' => $comic->getReadTomesCount(),
-                'status' => $comic->getStatus()->value,
-                'statusLabel' => $comic->getStatus()->getLabel(),
-                'title' => $comic->getTitle(),
-                'tomesCount' => $comic->getTomes()->count(),
-                'type' => $comic->getType()->value,
-                'typeLabel' => $comic->getType()->getLabel(),
-                'updatedAt' => $comic->getUpdatedAt()->format('c'),
-            ];
+            $result[] = ComicSeriesListItem::fromEntity($comic, $hasNasTome);
         }
 
         return $result;

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\DTO\BookGroup;
+use App\DTO\BookRow;
+use App\DTO\SeriesInfo;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
@@ -113,8 +116,8 @@ class ImportBooksCommand extends Command
 
         $io->section(\sprintf('%d groupes détectés (%d séries, %d one-shots)',
             \count($groups),
-            \count(\array_filter($groups, static fn (array $g): bool => \count($g['rows']) > 1 || null !== $g['rows'][0]['tomeNumber'])),
-            \count(\array_filter($groups, static fn (array $g): bool => 1 === \count($g['rows']) && null === $g['rows'][0]['tomeNumber']))
+            \count(\array_filter($groups, static fn (BookGroup $g): bool => \count($g->rows) > 1 || null !== $g->rows[0]->tomeNumber)),
+            \count(\array_filter($groups, static fn (BookGroup $g): bool => 1 === \count($g->rows) && null === $g->rows[0]->tomeNumber))
         ));
 
         // Phase 2 : importer chaque groupe
@@ -122,8 +125,8 @@ class ImportBooksCommand extends Command
         $enriched = 0;
 
         foreach ($groups as $group) {
-            $seriesName = $group['seriesName'];
-            $rows = $group['rows'];
+            $seriesName = $group->seriesName;
+            $rows = $group->rows;
 
             // Chercher une série existante en base
             $existing = $this->comicSeriesRepository->findOneBy(['title' => $seriesName]);
@@ -135,10 +138,10 @@ class ImportBooksCommand extends Command
                     $this->entityManager->flush();
                 }
 
-                $tomeNumbers = \array_filter(\array_column($rows, 'tomeNumber'));
+                $tomeNumbers = \array_filter(\array_map(static fn (BookRow $r): ?int => $r->tomeNumber, $rows));
                 $io->text(\sprintf('  [enrichi] %s%s',
                     $seriesName,
-                    [] !== $tomeNumbers ? ' (tomes ' . \implode(', ', $tomeNumbers) . ')' : ''
+                    [] !== $tomeNumbers ? ' (tomes '.\implode(', ', $tomeNumbers).')' : ''
                 ));
                 ++$enriched;
 
@@ -178,12 +181,12 @@ class ImportBooksCommand extends Command
      *
      * @param array<int, array<int, mixed>> $data
      *
-     * @return array<string, array{seriesName: string, rows: list<array{row: array<int, mixed>, tomeNumber: ?int, originalTitle: string}>}>
+     * @return array<string, BookGroup>
      */
     private function groupRows(array $data): array
     {
-        /** @var array<string, array{seriesName: string, rows: list<array{row: array<int, mixed>, tomeNumber: ?int, originalTitle: string}>}> $groups */
-        $groups = [];
+        /** @var array<string, array{seriesName: string, rows: list<BookRow>}> $groupData */
+        $groupData = [];
 
         $counter = \count($data);
         for ($i = 1; $i < $counter; ++$i) {
@@ -194,21 +197,22 @@ class ImportBooksCommand extends Command
                 continue;
             }
 
-            [$seriesName, $tomeNumber] = $this->extractSeriesInfo($title);
-            $key = \mb_strtolower($seriesName);
+            $info = $this->extractSeriesInfo($title);
+            $key = \mb_strtolower($info->name);
 
-            if (!isset($groups[$key])) {
-                $groups[$key] = [
+            if (!isset($groupData[$key])) {
+                $groupData[$key] = [
                     'rows' => [],
-                    'seriesName' => $seriesName,
+                    'seriesName' => $info->name,
                 ];
             }
 
-            $groups[$key]['rows'][] = [
-                'originalTitle' => $title,
-                'row' => $row,
-                'tomeNumber' => $tomeNumber,
-            ];
+            $groupData[$key]['rows'][] = new BookRow(originalTitle: $title, row: $row, tomeNumber: $info->tomeNumber);
+        }
+
+        $groups = [];
+        foreach ($groupData as $key => $data) {
+            $groups[$key] = new BookGroup(rows: $data['rows'], seriesName: $data['seriesName']);
         }
 
         return $groups;
@@ -216,10 +220,8 @@ class ImportBooksCommand extends Command
 
     /**
      * Extrait le nom de série et le numéro de tome depuis un titre.
-     *
-     * @return array{0: string, 1: ?int}
      */
-    private function extractSeriesInfo(string $title): array
+    private function extractSeriesInfo(string $title): SeriesInfo
     {
         foreach (self::TOME_PATTERNS as $pattern) {
             if (1 === \preg_match($pattern, $title, $matches)) {
@@ -228,30 +230,30 @@ class ImportBooksCommand extends Command
                 $seriesName = \rtrim($seriesName, ' -–:,');
 
                 if ('' !== $seriesName) {
-                    return [$seriesName, (int) $matches[2]];
+                    return new SeriesInfo(name: $seriesName, tomeNumber: (int) $matches[2]);
                 }
             }
         }
 
-        return [$title, null];
+        return new SeriesInfo(name: $title, tomeNumber: null);
     }
 
     /**
      * Crée une nouvelle série à partir d'un groupe de lignes.
      *
-     * @param list<array{row: array<int, mixed>, tomeNumber: ?int, originalTitle: string}> $rows
+     * @param list<BookRow> $rows
      */
     private function createSeries(string $seriesName, array $rows): ComicSeries
     {
         // Prendre les métadonnées du premier row qui en a
-        $firstRow = $rows[0]['row'];
+        $firstRow = $rows[0]->row;
         $authorNames = \is_scalar($firstRow[2]) ? \trim((string) $firstRow[2]) : '';
         $publisher = \is_scalar($firstRow[3]) ? \trim((string) $firstRow[3]) : null;
         $coverUrl = \is_scalar($firstRow[4]) ? \trim((string) $firstRow[4]) : null;
         $categories = \is_scalar($firstRow[5]) ? \trim((string) $firstRow[5]) : '';
         $description = \is_scalar($firstRow[6]) ? \trim((string) $firstRow[6]) : null;
 
-        $isOneShot = 1 === \count($rows) && null === $rows[0]['tomeNumber'];
+        $isOneShot = 1 === \count($rows) && null === $rows[0]->tomeNumber;
 
         $comic = new ComicSeries();
         $comic->setCoverUrl('' !== $coverUrl && !\str_starts_with((string) $coverUrl, 'file://') ? $coverUrl : null);
@@ -285,8 +287,8 @@ class ImportBooksCommand extends Command
             // Créer un tome par entrée du groupe
             $maxTome = 0;
             foreach ($rows as $entry) {
-                $tomeNumber = $entry['tomeNumber'] ?? 1;
-                $isbn = $this->cleanIsbn($entry['row'][0] ?? null);
+                $tomeNumber = $entry->tomeNumber ?? 1;
+                $isbn = $this->cleanIsbn($entry->row[0] ?? null);
 
                 $tome = new Tome();
                 $tome->setBought(true);
@@ -309,11 +311,11 @@ class ImportBooksCommand extends Command
     /**
      * Enrichit une série existante avec les métadonnées du fichier Excel.
      *
-     * @param list<array{row: array<int, mixed>, tomeNumber: ?int, originalTitle: string}> $rows
+     * @param list<BookRow> $rows
      */
     private function enrichExisting(ComicSeries $comic, array $rows): void
     {
-        $firstRow = $rows[0]['row'];
+        $firstRow = $rows[0]->row;
         $publisher = \is_scalar($firstRow[3]) ? \trim((string) $firstRow[3]) : null;
         $coverUrl = \is_scalar($firstRow[4]) ? \trim((string) $firstRow[4]) : null;
         $description = \is_scalar($firstRow[6]) ? \trim((string) $firstRow[6]) : null;
@@ -348,8 +350,8 @@ class ImportBooksCommand extends Command
         }
 
         foreach ($rows as $entry) {
-            $isbn = $this->cleanIsbn($entry['row'][0] ?? null);
-            $tomeNumber = $entry['tomeNumber'] ?? 1;
+            $isbn = $this->cleanIsbn($entry->row[0] ?? null);
+            $tomeNumber = $entry->tomeNumber ?? 1;
 
             if (null !== $isbn && isset($existingTomes[$tomeNumber]) && null === $existingTomes[$tomeNumber]->getIsbn()) {
                 $existingTomes[$tomeNumber]->setIsbn($isbn);
@@ -360,7 +362,7 @@ class ImportBooksCommand extends Command
     /**
      * Collecte les noms d'auteurs uniques depuis toutes les lignes d'un groupe.
      *
-     * @param list<array{row: array<int, mixed>, tomeNumber: ?int, originalTitle: string}> $rows
+     * @param list<BookRow> $rows
      *
      * @return string[]
      */
@@ -368,7 +370,7 @@ class ImportBooksCommand extends Command
     {
         $names = [];
         foreach ($rows as $entry) {
-            $authorField = \is_scalar($entry['row'][2]) ? \trim((string) $entry['row'][2]) : '';
+            $authorField = \is_scalar($entry->row[2]) ? \trim((string) $entry->row[2]) : '';
             if ('' !== $authorField) {
                 foreach (\explode(',', $authorField) as $name) {
                     $name = \trim($name);

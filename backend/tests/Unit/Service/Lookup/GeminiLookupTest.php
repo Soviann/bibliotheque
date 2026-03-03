@@ -92,7 +92,7 @@ final class GeminiLookupTest extends TestCase
         self::assertSame('One Piece', $state->title);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('success', $apiMessage['status']);
+        self::assertSame('success', $apiMessage->status);
     }
 
     /**
@@ -144,7 +144,7 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($state);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('rate_limited', $apiMessage['status']);
+        self::assertSame('rate_limited', $apiMessage->status);
     }
 
     /**
@@ -284,7 +284,7 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**
@@ -325,7 +325,7 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('not_found', $apiMessage['status']);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
@@ -356,7 +356,7 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('rate_limited', $apiMessage['status']);
+        self::assertSame('rate_limited', $apiMessage->status);
     }
 
     /**
@@ -387,7 +387,7 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**
@@ -417,8 +417,8 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
-        self::assertSame('Erreur de connexion', $apiMessage['message']);
+        self::assertSame('error', $apiMessage->status);
+        self::assertSame('Erreur de connexion', $apiMessage->message);
     }
 
     /**
@@ -470,8 +470,8 @@ final class GeminiLookupTest extends TestCase
         self::assertSame('Cached description', $state->description);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('success', $apiMessage['status']);
-        self::assertStringContainsString('cache', $apiMessage['message']);
+        self::assertSame('success', $apiMessage->status);
+        self::assertStringContainsString('cache', $apiMessage->message);
     }
 
     /**
@@ -742,7 +742,7 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('error', $apiMessage['status']);
+        self::assertSame('error', $apiMessage->status);
     }
 
     /**
@@ -768,7 +768,7 @@ final class GeminiLookupTest extends TestCase
         self::assertNull($state);
 
         $apiMessage = $provider->getLastApiMessage();
-        self::assertSame('rate_limited', $apiMessage['status']);
+        self::assertSame('rate_limited', $apiMessage->status);
     }
 
     /**
