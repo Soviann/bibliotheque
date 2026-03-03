@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\DTO\ComicSeriesListItem;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
@@ -150,7 +151,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        /** @var ComicSeries[] */
+        /* @var ComicSeries[] */
         return $qb->getQuery()->getResult();
     }
 
@@ -160,11 +161,11 @@ class ComicSeriesRepository extends ServiceEntityRepository
      * Utilise un cache applicatif (15 min) pour éviter de requêter la base
      * à chaque chargement. Le cache est invalidé par ComicSeriesCacheInvalidator.
      *
-     * @return list<array<string, mixed>>
+     * @return list<ComicSeriesListItem>
      */
     public function findAllForApi(): array
     {
-        /* @var list<array<string, mixed>> */
+        /* @var list<ComicSeriesListItem> */
         return $this->cache->get('comic_series_api_all', function (ItemInterface $item): array {
             $item->expiresAfter(900);
 
@@ -175,7 +176,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
     /**
      * Exécute la requête complète avec eager loading pour éviter le N+1.
      *
-     * @return list<array<string, mixed>>
+     * @return list<ComicSeriesListItem>
      */
     private function doFindAllForApi(): array
     {
@@ -193,39 +194,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
         foreach ($comics as $comic) {
             $hasNasTome = $comic->getTomes()->exists(static fn (int $key, Tome $t): bool => $t->isOnNas());
 
-            $result[] = [
-                'authors' => $comic->getAuthorsAsString(),
-                'coverUrl' => $comic->getCoverUrl(),
-                'currentIssue' => $comic->getCurrentIssue(),
-                'currentIssueComplete' => $comic->isCurrentIssueComplete(),
-                'description' => $comic->getDescription(),
-                'hasNasTome' => $hasNasTome,
-                'id' => $comic->getId(),
-                'isCurrentlyReading' => $comic->isCurrentlyReading(),
-                'isFullyRead' => $comic->isFullyRead(),
-                'isOneShot' => $comic->isOneShot(),
-                'isWishlist' => $comic->isWishlist(),
-                'lastBought' => $comic->getLastBought(),
-                'lastBoughtComplete' => $comic->isLastBoughtComplete(),
-                'lastDownloaded' => $comic->getLastDownloaded(),
-                'lastDownloadedComplete' => $comic->isLastDownloadedComplete(),
-                'lastRead' => $comic->getLastRead(),
-                'lastReadComplete' => $comic->isLastReadComplete(),
-                'latestPublishedIssue' => $comic->getLatestPublishedIssue(),
-                'latestPublishedIssueComplete' => $comic->isLatestPublishedIssueComplete(),
-                'missingTomesNumbers' => $comic->getMissingTomesNumbers(),
-                'ownedTomesNumbers' => $comic->getOwnedTomesNumbers(),
-                'publishedDate' => $comic->getPublishedDate(),
-                'publisher' => $comic->getPublisher(),
-                'readTomesCount' => $comic->getReadTomesCount(),
-                'status' => $comic->getStatus()->value,
-                'statusLabel' => $comic->getStatus()->getLabel(),
-                'title' => $comic->getTitle(),
-                'tomesCount' => $comic->getTomes()->count(),
-                'type' => $comic->getType()->value,
-                'typeLabel' => $comic->getType()->getLabel(),
-                'updatedAt' => $comic->getUpdatedAt()->format('c'),
-            ];
+            $result[] = ComicSeriesListItem::fromEntity($comic, $hasNasTome);
         }
 
         return $result;

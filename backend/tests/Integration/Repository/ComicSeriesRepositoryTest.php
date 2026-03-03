@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Repository;
 
+use App\DTO\ComicSeriesListItem;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
@@ -453,38 +454,42 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
             'typeLabel',
             'updatedAt',
         ];
+        self::assertInstanceOf(ComicSeriesListItem::class, $item);
+
+        // Vérification que jsonSerialize contient toutes les clés attendues
+        $serialized = $item->jsonSerialize();
         foreach ($expectedKeys as $key) {
-            self::assertArrayHasKey($key, $item, \sprintf('Cle manquante : %s', $key));
+            self::assertArrayHasKey($key, $serialized, \sprintf('Cle manquante : %s', $key));
         }
 
         // Verification des valeurs
-        self::assertSame('Goscinny', $item['authors']);
-        self::assertSame('Asterix', $item['title']);
-        self::assertSame('buying', $item['status']);
-        self::assertSame('En cours d\'achat', $item['statusLabel']);
-        self::assertSame('bd', $item['type']);
-        self::assertSame('BD', $item['typeLabel']);
-        self::assertSame(2, $item['currentIssue']);
-        self::assertSame(5, $item['latestPublishedIssue']);
-        self::assertTrue($item['latestPublishedIssueComplete']);
-        self::assertSame('Les aventures d\'Asterix', $item['description']);
-        self::assertSame('Hachette', $item['publisher']);
-        self::assertSame('1959', $item['publishedDate']);
-        self::assertSame('https://example.com/cover.jpg', $item['coverUrl']);
-        self::assertTrue($item['hasNasTome']);
-        self::assertTrue($item['isCurrentlyReading']);
-        self::assertFalse($item['isFullyRead']);
-        self::assertFalse($item['isWishlist']);
-        self::assertFalse($item['isOneShot']);
-        self::assertSame(2, $item['tomesCount']);
-        self::assertSame(1, $item['readTomesCount']);
-        self::assertSame(1, $item['lastRead']);
-        self::assertSame(2, $item['lastBought']);
-        self::assertContains(3, $item['missingTomesNumbers']);
-        self::assertContains(4, $item['missingTomesNumbers']);
-        self::assertContains(5, $item['missingTomesNumbers']);
-        self::assertContains(1, $item['ownedTomesNumbers']);
-        self::assertContains(2, $item['ownedTomesNumbers']);
+        self::assertSame('Goscinny', $item->authors);
+        self::assertSame('Asterix', $item->title);
+        self::assertSame('buying', $item->status);
+        self::assertSame('En cours d\'achat', $item->statusLabel);
+        self::assertSame('bd', $item->type);
+        self::assertSame('BD', $item->typeLabel);
+        self::assertSame(2, $item->currentIssue);
+        self::assertSame(5, $item->latestPublishedIssue);
+        self::assertTrue($item->latestPublishedIssueComplete);
+        self::assertSame('Les aventures d\'Asterix', $item->description);
+        self::assertSame('Hachette', $item->publisher);
+        self::assertSame('1959', $item->publishedDate);
+        self::assertSame('https://example.com/cover.jpg', $item->coverUrl);
+        self::assertTrue($item->hasNasTome);
+        self::assertTrue($item->isCurrentlyReading);
+        self::assertFalse($item->isFullyRead);
+        self::assertFalse($item->isWishlist);
+        self::assertFalse($item->isOneShot);
+        self::assertSame(2, $item->tomesCount);
+        self::assertSame(1, $item->readTomesCount);
+        self::assertSame(1, $item->lastRead);
+        self::assertSame(2, $item->lastBought);
+        self::assertContains(3, $item->missingTomesNumbers);
+        self::assertContains(4, $item->missingTomesNumbers);
+        self::assertContains(5, $item->missingTomesNumbers);
+        self::assertContains(1, $item->ownedTomesNumbers);
+        self::assertContains(2, $item->ownedTomesNumbers);
     }
 
     public function testFindAllForApiWithEmptyDatabaseReturnsEmptyArray(): void
@@ -540,10 +545,10 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $result = $this->repository->findAllForApi();
 
         self::assertCount(1, $result);
-        self::assertSame('Empty Series', $result[0]['title']);
-        self::assertSame(0, $result[0]['tomesCount']);
-        self::assertSame(0, $result[0]['readTomesCount']);
-        self::assertFalse($result[0]['hasNasTome']);
+        self::assertSame('Empty Series', $result[0]->title);
+        self::assertSame(0, $result[0]->tomesCount);
+        self::assertSame(0, $result[0]->readTomesCount);
+        self::assertFalse($result[0]->hasNasTome);
     }
 
     // ---------------------------------------------------------------
@@ -560,7 +565,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $firstResult = $this->repository->findAllForApi();
         $secondResult = $this->repository->findAllForApi();
 
-        self::assertSame($firstResult, $secondResult);
+        self::assertEquals($firstResult, $secondResult);
     }
 
     public function testFindAllForApiCacheInvalidatedAfterNewSeries(): void
@@ -591,7 +596,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // Premier appel → remplit le cache
         $firstResult = $this->repository->findAllForApi();
-        self::assertSame('Alpha', $firstResult[0]['title']);
+        self::assertSame('Alpha', $firstResult[0]->title);
 
         // Modifier la série
         $series->setTitle('Alpha Modifié');
@@ -599,7 +604,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // Le cache doit être invalidé, titre mis à jour
         $secondResult = $this->repository->findAllForApi();
-        self::assertSame('Alpha Modifié', $secondResult[0]['title']);
+        self::assertSame('Alpha Modifié', $secondResult[0]->title);
     }
 
     public function testFindAllForApiCacheInvalidatedAfterTomePersist(): void
@@ -610,7 +615,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // Premier appel → 0 tomes
         $firstResult = $this->repository->findAllForApi();
-        self::assertSame(0, $firstResult[0]['tomesCount']);
+        self::assertSame(0, $firstResult[0]->tomesCount);
 
         // Ajouter un tome
         $tome = EntityFactory::createTome(1);
@@ -619,7 +624,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // Le cache doit être invalidé, 1 tome maintenant
         $secondResult = $this->repository->findAllForApi();
-        self::assertSame(1, $secondResult[0]['tomesCount']);
+        self::assertSame(1, $secondResult[0]->tomesCount);
     }
 
     // ---------------------------------------------------------------
