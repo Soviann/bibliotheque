@@ -75,8 +75,14 @@ export default function SeriesMultiSelect({
         />
       </div>
 
+      {/* Result count */}
+      <p className="text-xs text-text-muted">
+        {filteredComics.length} serie{filteredComics.length !== 1 ? "s" : ""} affichee{filteredComics.length !== 1 ? "s" : ""}
+        {selectedIds.length > 0 && ` · ${selectedIds.length} selectionnee${selectedIds.length !== 1 ? "s" : ""}`}
+      </p>
+
       {/* Scrollable list */}
-      <div className="max-h-64 overflow-y-auto rounded-lg border border-surface-border">
+      <div className="max-h-[60vh] overflow-y-auto rounded-lg border border-surface-border">
         {filteredComics.length === 0 ? (
           <p className="px-3 py-4 text-center text-sm text-text-muted">
             Aucune serie trouvee
