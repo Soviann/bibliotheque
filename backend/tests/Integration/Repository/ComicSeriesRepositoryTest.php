@@ -736,6 +736,60 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame('No Authors', $result[0]->getTitle());
     }
 
+    // ---------------------------------------------------------------
+    // findForMergeDetection
+    // ---------------------------------------------------------------
+
+    public function testFindForMergeDetectionReturnsUncheckedSeries(): void
+    {
+        $unchecked = EntityFactory::createComicSeries('Unchecked');
+
+        $checked = EntityFactory::createComicSeries('Checked');
+        $checked->setMergeCheckedAt(new \DateTimeImmutable());
+
+        $this->em->persist($checked);
+        $this->em->persist($unchecked);
+        $this->em->flush();
+
+        $result = $this->repository->findForMergeDetection();
+
+        self::assertCount(1, $result);
+        self::assertSame('Unchecked', $result[0]->getTitle());
+    }
+
+    public function testFindForMergeDetectionWithForceReturnsAll(): void
+    {
+        $unchecked = EntityFactory::createComicSeries('Alpha');
+
+        $checked = EntityFactory::createComicSeries('Bravo');
+        $checked->setMergeCheckedAt(new \DateTimeImmutable());
+
+        $this->em->persist($checked);
+        $this->em->persist($unchecked);
+        $this->em->flush();
+
+        $result = $this->repository->findForMergeDetection(force: true);
+
+        self::assertCount(2, $result);
+        self::assertSame('Alpha', $result[0]->getTitle());
+        self::assertSame('Bravo', $result[1]->getTitle());
+    }
+
+    public function testFindForMergeDetectionFiltersByType(): void
+    {
+        $bd = EntityFactory::createComicSeries('Asterix', ComicStatus::BUYING, ComicType::BD);
+        $manga = EntityFactory::createComicSeries('Naruto', ComicStatus::BUYING, ComicType::MANGA);
+
+        $this->em->persist($bd);
+        $this->em->persist($manga);
+        $this->em->flush();
+
+        $result = $this->repository->findForMergeDetection(type: ComicType::BD);
+
+        self::assertCount(1, $result);
+        self::assertSame('Asterix', $result[0]->getTitle());
+    }
+
     public function testFindWithMissingLookupDataForceIgnoresLookupCompletedAt(): void
     {
         $alreadyLooked = EntityFactory::createComicSeries('Already Looked');

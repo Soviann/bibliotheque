@@ -59,6 +59,42 @@ export interface ComicSeries {
   updatedAt: string;
 }
 
+export interface MergeGroup {
+  entries: MergeGroupEntry[];
+  suggestedTitle: string;
+}
+
+export interface MergeGroupEntry {
+  originalTitle: string;
+  seriesId: number;
+  suggestedTomeNumber: number | null;
+}
+
+export interface MergePreview {
+  authors: string[];
+  coverUrl: string | null;
+  description: string | null;
+  isOneShot: boolean;
+  latestPublishedIssue: number | null;
+  latestPublishedIssueComplete: boolean;
+  publisher: string | null;
+  sourceSeriesIds: number[];
+  title: string;
+  tomes: MergePreviewTome[];
+  type: string;
+}
+
+export interface MergePreviewTome {
+  bought: boolean;
+  downloaded: boolean;
+  isbn: string | null;
+  number: number;
+  onNas: boolean;
+  read: boolean;
+  title: string | null;
+  tomeEnd: number | null;
+}
+
 export interface LookupResult {
   apiMessages: Record<string, { message: string; status: string }>;
   authors: string | null;

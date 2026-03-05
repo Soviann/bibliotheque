@@ -6,7 +6,7 @@ framework:
             policy: sliding_window
         gemini_api:
             interval: '1 minute'
-            limit: 10
+            limit: 20
             policy: sliding_window
         google_login:
             interval: '1 minute'

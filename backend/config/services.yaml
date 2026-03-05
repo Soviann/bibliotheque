@@ -36,3 +36,9 @@ services:
 
     Vich\UploaderBundle\Templating\Helper\UploaderHelperInterface:
         alias: Vich\UploaderBundle\Templating\Helper\UploaderHelper
+
+when@test:
+    services:
+        App\Service\Merge\SeriesMerger:
+            autowire: true
+            public: true
