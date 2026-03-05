@@ -200,9 +200,9 @@ final class SeriesGroupDetectorTest extends TestCase
     }
 
     /**
-     * Teste que detect retourne un tableau vide si le rate limiter refuse.
+     * Teste que detect lève une exception si le rate limiter refuse.
      */
-    public function testDetectReturnsEmptyOnRateLimit(): void
+    public function testDetectThrowsOnRateLimit(): void
     {
         $series = [
             $this->createSeries(1, 'Astérix'),
@@ -219,9 +219,10 @@ final class SeriesGroupDetectorTest extends TestCase
 
         $detector = $this->createDetector(limiterFactory: $limiterFactory);
 
-        $groups = $detector->detect($series);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Rate limit atteint');
 
-        self::assertSame([], $groups);
+        $detector->detect($series);
     }
 
     /**

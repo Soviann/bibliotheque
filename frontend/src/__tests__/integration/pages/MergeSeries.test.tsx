@@ -37,10 +37,11 @@ describe("MergeSeries", () => {
     expect(screen.getByText("Selection manuelle")).toBeInTheDocument();
   });
 
-  it("auto detect tab has type filter and detect button", () => {
+  it("auto detect tab has filters and detect button", () => {
     renderWithProviders(<MergeSeries />);
 
-    expect(screen.getByText("Tous les types")).toBeInTheDocument();
+    expect(screen.getByText("Type")).toBeInTheDocument();
+    expect(screen.getByText("Lettre")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Detecter les groupes/ }),
     ).toBeInTheDocument();
