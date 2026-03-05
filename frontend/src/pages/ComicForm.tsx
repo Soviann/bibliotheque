@@ -569,12 +569,24 @@ export default function ComicForm() {
               <BarcodeScanner onScan={setLookupIsbn} />
             </div>
           ) : (
-            <input
-              className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
-              onChange={(e) => setLookupTitle(e.target.value)}
-              placeholder="Titre de la série"
-              value={lookupTitle}
-            />
+            <div className="flex gap-2">
+              <input
+                className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+                onChange={(e) => setLookupTitle(e.target.value)}
+                placeholder="Titre de la série"
+                value={lookupTitle}
+              />
+              {form.title && form.title !== lookupTitle && (
+                <button
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-muted hover:border-primary-400 hover:text-primary-600 transition"
+                  onClick={() => setLookupTitle(form.title)}
+                  title="Utiliser le titre de la série"
+                  type="button"
+                >
+                  <Layers className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           )}
 
           {lookupResult.isFetching && (
@@ -584,23 +596,38 @@ export default function ComicForm() {
           )}
 
           {lookupResult.data && !lookupResult.isFetching && (
-            <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-primary p-3 border border-surface-border">
-              <div className="min-w-0 text-sm">
-                <p className="truncate font-medium text-text-primary">{lookupResult.data.title}</p>
-                <p className="truncate text-text-muted">
-                  {lookupResult.data.authors ?? ""}
-                  {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
-                </p>
+            <div className="rounded-lg bg-surface-primary p-3 border border-surface-border space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 text-sm">
+                  <p className="truncate font-medium text-text-primary">{lookupResult.data.title}</p>
+                  <p className="truncate text-text-muted">
+                    {lookupResult.data.authors ?? ""}
+                    {lookupResult.data.publisher && ` — ${lookupResult.data.publisher}`}
+                  </p>
+                </div>
+                <button
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                  disabled={isApplying}
+                  onClick={applyLookup}
+                  type="button"
+                >
+                  {isApplying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Appliquer
+                </button>
               </div>
-              <button
-                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-                disabled={isApplying}
-                onClick={applyLookup}
-                type="button"
-              >
-                {isApplying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Appliquer
-              </button>
+              {lookupResult.data.sources.length > 0 && (
+                <p className="text-xs text-text-muted">
+                  Sources : {lookupResult.data.sources.join(", ")}
+                </p>
+              )}
+              {Object.entries(lookupResult.data.apiMessages).filter(([, m]) => m.status !== "success").length > 0 && (
+                <p className="text-xs text-text-muted">
+                  {Object.entries(lookupResult.data.apiMessages)
+                    .filter(([, m]) => m.status !== "success")
+                    .map(([provider, m]) => `${provider}: ${m.message}`)
+                    .join(" · ")}
+                </p>
+              )}
             </div>
           )}
         </div>

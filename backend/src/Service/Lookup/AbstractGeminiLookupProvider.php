@@ -183,6 +183,11 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
             }
 
             return null;
+        } catch (\ValueError $e) {
+            $this->logger->warning("Gemini ({$logName}) : aucun candidat retourné", ['error' => $e->getMessage()]);
+            $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat (prompt bloqué ou vide)');
+
+            return null;
         } catch (\Throwable $e) {
             $this->logger->error("Erreur Gemini ({$logName}) : {error}", ['error' => $e->getMessage()]);
             $this->recordApiMessage(ApiLookupStatus::ERROR, 'Erreur de connexion');

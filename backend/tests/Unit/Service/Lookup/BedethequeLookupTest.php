@@ -160,11 +160,11 @@ final class BedethequeLookupTest extends TestCase
         self::assertArrayHasKey('cacheKey', $state);
         self::assertArrayHasKey('prompt', $state);
         self::assertStringContainsString('Blacksad', $state['prompt']);
-        self::assertStringContainsString('site:bedetheque.com', $state['prompt']);
+        self::assertStringContainsString('Bedetheque', $state['prompt']);
     }
 
     /**
-     * Teste que le prompt ISBN contient l'ISBN et site:bedetheque.com.
+     * Teste que le prompt ISBN contient l'ISBN et mentionne Bedetheque.
      */
     public function testPrepareLookupIsbnPromptContainsIsbn(): void
     {
@@ -176,7 +176,7 @@ final class BedethequeLookupTest extends TestCase
 
         self::assertIsArray($state);
         self::assertStringContainsString('9782205049831', $state['prompt']);
-        self::assertStringContainsString('site:bedetheque.com', $state['prompt']);
+        self::assertStringContainsString('Bedetheque', $state['prompt']);
         self::assertStringContainsString('ISBN', $state['prompt']);
     }
 

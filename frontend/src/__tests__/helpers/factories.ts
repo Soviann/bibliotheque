@@ -62,7 +62,7 @@ export function createMockLookupResult(
   overrides: Partial<LookupResult> = {},
 ): LookupResult {
   return {
-    apiMessages: [],
+    apiMessages: {},
     authors: null,
     description: null,
     isbn: null,
