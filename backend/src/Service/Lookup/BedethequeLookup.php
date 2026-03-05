@@ -122,20 +122,14 @@ class BedethequeLookup extends AbstractGeminiLookupProvider
         $searchBy = 'isbn' === $mode
             ? "l'ISBN {$query}"
             : "le titre \"{$query}\"";
-        $searchQuery = 'isbn' === $mode
-            ? "site:bedetheque.com {$query}"
-            : "site:bedetheque.com \"{$query}\"";
 
         return <<<PROMPT
             Tu es un assistant spécialisé en bandes dessinées, comics et mangas.
-            Recherche les informations sur la série identifiée par {$searchBy} (type: {$typeLabel})
-            EXCLUSIVEMENT sur le site bedetheque.com.
+            Recherche les informations sur la série identifiée par {$searchBy} (type: {$typeLabel}).
 
-            Utilise Google Search avec la requête : {$searchQuery}
-
-            Extrais les informations de la fiche série sur bedetheque.com.
-            Si aucune fiche n'est trouvée sur bedetheque.com, retourne tous les champs à null.
-            Ne complète PAS avec des informations provenant d'autres sites.
+            Cherche en priorité sur les bases de données francophones de BD comme BDGest/Bedetheque.
+            Extrais les informations les plus précises et complètes possibles.
+            Si tu ne trouves aucune information fiable, retourne tous les champs à null.
 
             PROMPT.self::JSON_INSTRUCTIONS;
     }
