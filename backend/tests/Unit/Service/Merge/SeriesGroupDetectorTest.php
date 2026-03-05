@@ -325,8 +325,8 @@ final class SeriesGroupDetectorTest extends TestCase
 
         return new SeriesGroupDetector(
             $geminiClient,
-            $logger,
             $limiterFactory,
+            $logger,
         );
     }
 }
