@@ -66,9 +66,9 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    const body = error as { detail?: string; error?: string };
     throw new Error(
-      (error as { detail?: string }).detail ??
-        `Erreur ${response.status}`,
+      body.detail ?? body.error ?? `Erreur ${response.status}`,
     );
   }
 

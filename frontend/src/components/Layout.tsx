@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, Moon, Sun } from "lucide-react";
+import { LogOut, Moon, Sun, Wrench } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { toast } from "sonner";
@@ -45,6 +45,14 @@ export default function Layout() {
           <span className="text-lg font-bold text-text-primary">Bibliothèque</span>
         </Link>
         <div className="flex items-center gap-1">
+          <Link
+            className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
+            title="Outils"
+            to="/tools"
+            viewTransition
+          >
+            <Wrench className="h-5 w-5" />
+          </Link>
           <button
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
             onClick={toggle}

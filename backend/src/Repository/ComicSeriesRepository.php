@@ -146,6 +146,39 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries candidates à la détection de fusion.
+     *
+     * @return ComicSeries[]
+     */
+    public function findForMergeDetection(bool $force = false, ?string $startsWith = null, ?ComicType $type = null): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->orderBy('c.title', 'ASC');
+
+        if (!$force) {
+            $qb->andWhere('c.mergeCheckedAt IS NULL');
+        }
+
+        if (null !== $startsWith) {
+            if ('0-9' === $startsWith) {
+                $qb->andWhere('c.title REGEXP :numericPattern')
+                    ->setParameter('numericPattern', '^[0-9]');
+            } else {
+                $qb->andWhere('UPPER(SUBSTRING(c.title, 1, 1)) = :startsWith')
+                    ->setParameter('startsWith', \mb_strtoupper($startsWith));
+            }
+        }
+
+        if (null !== $type) {
+            $qb->andWhere('c.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        /** @var ComicSeries[] */
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
      * Retourne toutes les séries avec leurs relations pour l'API PWA.
      *
      * Utilise un cache applicatif (15 min) pour éviter de requêter la base
