@@ -45,9 +45,20 @@ class MergeSeriesController
             ? ComicType::tryFrom($data['type'])
             : null;
         $force = (bool) ($data['all'] ?? false);
+        $startsWith = isset($data['startsWith']) && \is_string($data['startsWith'])
+            ? $data['startsWith']
+            : null;
 
-        $seriesList = $this->comicSeriesRepository->findForMergeDetection($force, $type);
-        $groups = $this->seriesGroupDetector->detect($seriesList);
+        $seriesList = $this->comicSeriesRepository->findForMergeDetection($force, $startsWith, $type);
+
+        try {
+            $groups = $this->seriesGroupDetector->detect($seriesList);
+        } catch (\RuntimeException $e) {
+            return new JsonResponse(
+                ['error' => $e->getMessage()],
+                Response::HTTP_TOO_MANY_REQUESTS,
+            );
+        }
 
         return new JsonResponse($groups);
     }

@@ -36,15 +36,33 @@ class SeriesGroupDetector
      * @param ComicSeries[] $seriesList
      *
      * @return list<MergeGroup>
+     *
+     * @throws \RuntimeException si le rate limit est atteint
      */
     public function detect(array $seriesList): array
     {
         $batches = $this->buildBatches($seriesList);
         $allGroups = [];
+        $processedCount = 0;
 
         foreach ($batches as $batch) {
+            $limiter = $this->limiterFactory->create('gemini_global');
+            $limit = $limiter->consume();
+            if (!$limit->isAccepted()) {
+                $this->logger->warning('Rate limit atteint après {count} batches sur {total}.', [
+                    'count' => $processedCount,
+                    'total' => \count($batches),
+                ]);
+                break;
+            }
+
             $groups = $this->processBatch($batch);
             \array_push($allGroups, ...$groups);
+            ++$processedCount;
+        }
+
+        if (0 === $processedCount) {
+            throw new \RuntimeException('Rate limit atteint. Réessayez dans quelques minutes.');
         }
 
         return $allGroups;
@@ -94,13 +112,6 @@ class SeriesGroupDetector
      */
     private function processBatch(array $batch): array
     {
-        $limiter = $this->limiterFactory->create('gemini_global');
-        if (!$limiter->consume()->isAccepted()) {
-            $this->logger->warning('Rate limit atteint pour la détection de groupes de séries.');
-
-            return [];
-        }
-
         /** @var array<int, ComicSeries> $seriesMap */
         $seriesMap = [];
         foreach ($batch as $series) {
@@ -120,6 +131,11 @@ class SeriesGroupDetector
             $this->logger->error('Erreur Gemini lors de la détection de groupes : {message}', [
                 'message' => $e->getMessage(),
             ]);
+
+            // Propager les erreurs de quota Gemini pour informer l'utilisateur
+            if (\str_contains($e->getMessage(), 'quota') || \str_contains($e->getMessage(), '429')) {
+                throw new \RuntimeException('Quota Gemini épuisé. Réessayez dans quelques minutes.');
+            }
 
             return [];
         }

@@ -25,16 +25,23 @@ import {
 import type { MergeGroup, MergePreview } from "../types/api";
 import { ComicType, ComicTypeLabel } from "../types/enums";
 
-interface TypeOption {
+interface SelectOption {
   label: string;
   value: string;
 }
 
-const typeOptions: TypeOption[] = [
-  { label: "Tous les types", value: "" },
-  ...Object.entries(ComicType).map(([, value]) => ({
+const typeOptions: SelectOption[] = Object.entries(ComicType).map(
+  ([, value]) => ({
     label: ComicTypeLabel[value],
     value,
+  }),
+);
+
+const letterOptions: SelectOption[] = [
+  { label: "0-9", value: "0-9" },
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => ({
+    label: letter,
+    value: letter,
   })),
 ];
 
@@ -45,6 +52,7 @@ export default function MergeSeries() {
 
   // Auto-detect state
   const [selectedType, setSelectedType] = useState("");
+  const [selectedLetter, setSelectedLetter] = useState("");
   const [includeChecked, setIncludeChecked] = useState(false);
   const [groups, setGroups] = useState<MergeGroup[]>([]);
   const [hasDetected, setHasDetected] = useState(false);
@@ -58,11 +66,15 @@ export default function MergeSeries() {
   const executeMerge = useExecuteMerge();
 
   const handleDetect = () => {
-    const params: { all?: boolean; type?: string } = {};
+    const params: { all?: boolean; startsWith?: string; type?: string } = {};
     if (selectedType) params.type = selectedType;
+    if (selectedLetter) params.startsWith = selectedLetter;
     if (includeChecked) params.all = true;
 
     detectMutation.mutate(params, {
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Erreur lors de la detection");
+      },
       onSuccess: (data) => {
         setGroups(data);
         setHasDetected(true);
@@ -73,6 +85,9 @@ export default function MergeSeries() {
   const handlePreviewGroup = (group: MergeGroup) => {
     const seriesIds = group.entries.map((e) => e.seriesId);
     previewMutation.mutate(seriesIds, {
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Erreur lors de la generation de l'apercu");
+      },
       onSuccess: (data) => {
         setPreviewData(data);
         setPreviewOpen(true);
@@ -86,6 +101,9 @@ export default function MergeSeries() {
 
   const handleManualPreview = () => {
     previewMutation.mutate(selectedIds, {
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Erreur lors de la generation de l'apercu");
+      },
       onSuccess: (data) => {
         setPreviewData(data);
         setPreviewOpen(true);
@@ -117,8 +135,10 @@ export default function MergeSeries() {
     [executeMerge],
   );
 
-  const selectedTypeOption =
-    typeOptions.find((o) => o.value === selectedType) ?? typeOptions[0];
+  const selectedTypeOption = typeOptions.find((o) => o.value === selectedType);
+  const selectedLetterOption = letterOptions.find(
+    (o) => o.value === selectedLetter,
+  );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -146,8 +166,8 @@ export default function MergeSeries() {
                   <Listbox onChange={setSelectedType} value={selectedType}>
                     <div className="relative">
                       <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
-                        <span className="truncate">
-                          {selectedTypeOption.label}
+                        <span className={`truncate ${!selectedTypeOption ? "text-text-muted" : ""}`}>
+                          {selectedTypeOption?.label ?? "Type"}
                         </span>
                         <ChevronDown className="h-4 w-4 text-text-muted" />
                       </ListboxButton>
@@ -161,6 +181,37 @@ export default function MergeSeries() {
                             <Check
                               className={`h-4 w-4 shrink-0 ${
                                 option.value === selectedType
+                                  ? "text-primary-600"
+                                  : "invisible"
+                              }`}
+                            />
+                            {option.label}
+                          </ListboxOption>
+                        ))}
+                      </ListboxOptions>
+                    </div>
+                  </Listbox>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <Listbox onChange={setSelectedLetter} value={selectedLetter}>
+                    <div className="relative">
+                      <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                        <span className={`truncate ${!selectedLetterOption ? "text-text-muted" : ""}`}>
+                          {selectedLetterOption?.label ?? "Lettre"}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-text-muted" />
+                      </ListboxButton>
+                      <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary py-1 shadow-lg transition focus:outline-none">
+                        {letterOptions.map((option) => (
+                          <ListboxOption
+                            className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
+                            key={option.value}
+                            value={option.value}
+                          >
+                            <Check
+                              className={`h-4 w-4 shrink-0 ${
+                                option.value === selectedLetter
                                   ? "text-primary-600"
                                   : "invisible"
                               }`}
@@ -188,7 +239,7 @@ export default function MergeSeries() {
               {/* Detect button */}
               <button
                 className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-                disabled={detectMutation.isPending}
+                disabled={detectMutation.isPending || !selectedType || !selectedLetter}
                 onClick={handleDetect}
                 type="button"
               >

@@ -4,6 +4,7 @@ import type { MergeGroup, MergePreview } from "../types/api";
 
 interface DetectParams {
   all?: boolean;
+  startsWith?: string;
   type?: string;
 }
 
