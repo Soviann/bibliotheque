@@ -1,5 +1,19 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
+import { createTestQueryClient } from "../../helpers/test-utils";
+
+function createWrapper() {
+  const queryClient = createTestQueryClient();
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
+  };
+}
 
 describe("useSyncStatus", () => {
   let addEventListenerSpy: ReturnType<typeof vi.fn>;
@@ -29,7 +43,7 @@ describe("useSyncStatus", () => {
   });
 
   it("returns idle status initially", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     expect(result.current.status).toBe("idle");
     expect(result.current.error).toBeNull();
@@ -37,7 +51,7 @@ describe("useSyncStatus", () => {
   });
 
   it("transitions to syncing on sync-start message", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: { type: "sync-start" } } as MessageEvent);
@@ -49,7 +63,7 @@ describe("useSyncStatus", () => {
   });
 
   it("transitions to success on sync-complete message", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: { type: "sync-start" } } as MessageEvent);
@@ -65,7 +79,7 @@ describe("useSyncStatus", () => {
   });
 
   it("transitions to error on sync-error message", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: { type: "sync-start" } } as MessageEvent);
@@ -82,7 +96,7 @@ describe("useSyncStatus", () => {
   });
 
   it("uses default error message when none provided", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({
@@ -94,7 +108,7 @@ describe("useSyncStatus", () => {
   });
 
   it("ignores messages without type", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: {} } as MessageEvent);
@@ -104,7 +118,7 @@ describe("useSyncStatus", () => {
   });
 
   it("handles sync-complete with count 0", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: { type: "sync-start" } } as MessageEvent);
@@ -125,13 +139,13 @@ describe("useSyncStatus", () => {
       writable: true,
     });
 
-    renderHook(() => useSyncStatus());
+    renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 
   it("cleans up event listener on unmount", () => {
-    const { unmount } = renderHook(() => useSyncStatus());
+    const { unmount } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     unmount();
 
@@ -142,7 +156,7 @@ describe("useSyncStatus", () => {
   });
 
   it("defaults syncedCount to 0 when sync-complete has no count field", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: { type: "sync-complete" } } as MessageEvent);
@@ -153,7 +167,7 @@ describe("useSyncStatus", () => {
   });
 
   it("stays idle when message data is null", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: null } as MessageEvent);
@@ -165,7 +179,7 @@ describe("useSyncStatus", () => {
   });
 
   it("does not change state on unknown message type", () => {
-    const { result } = renderHook(() => useSyncStatus());
+    const { result } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
 
     act(() => {
       messageHandler?.({ data: { type: "unknown" } } as MessageEvent);

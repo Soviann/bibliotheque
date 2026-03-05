@@ -110,6 +110,15 @@ export async function dequeue(): Promise<QueueItem | undefined> {
   return item;
 }
 
+export async function updatePayload(id: number, payload: Record<string, unknown>): Promise<void> {
+  const db = await getDb();
+  const item = await db.get("offlineQueue", id);
+  if (!item) return;
+
+  item.payload = payload;
+  await db.put("offlineQueue", item);
+}
+
 export async function updateStatus(id: number, status: QueueItemStatus): Promise<void> {
   const db = await getDb();
   const item = await db.get("offlineQueue", id);

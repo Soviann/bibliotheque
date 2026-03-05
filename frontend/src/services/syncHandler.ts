@@ -1,4 +1,4 @@
-import { addSyncFailure, getAll, removeById, updateStatus } from "./offlineQueue";
+import { addSyncFailure, getAll, removeById, updatePayload, updateStatus } from "./offlineQueue";
 import type { QueueItem } from "./offlineQueue";
 
 type PostMessageFn = (message: Record<string, unknown>) => void;
@@ -81,6 +81,7 @@ export async function processSyncQueue(
 
       item.payload.authors = [...existingIris, ...newIris];
       delete item.payload._pendingAuthors;
+      await updatePayload(item.id, item.payload);
     }
 
     const url = buildUrl(item, tempIdMap);
