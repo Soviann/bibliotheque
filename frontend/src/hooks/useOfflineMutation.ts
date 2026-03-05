@@ -18,7 +18,6 @@ interface UseOfflineMutationOptions<TData, TVariables> {
   offlineResourceType: ResourceType;
   onOfflineSuccess?: () => void;
   onSuccess?: (data: TData, variables: TVariables) => void;
-  optimisticRollback?: (queryClient: QueryClient, variables: TVariables) => void;
   optimisticUpdate?: (queryClient: QueryClient, variables: TVariables, tempId?: number) => void;
   queryKeysToInvalidate: QueryKey[];
 }
@@ -44,7 +43,6 @@ export function useOfflineMutation<TData, TVariables extends Record<string, unkn
   offlineResourceType,
   onOfflineSuccess,
   onSuccess,
-  optimisticRollback,
   optimisticUpdate,
   queryKeysToInvalidate,
 }: UseOfflineMutationOptions<TData, TVariables>) {
@@ -82,11 +80,6 @@ export function useOfflineMutation<TData, TVariables extends Record<string, unkn
       }
 
       return mutationFn(variables);
-    },
-    onError: (_error, variables) => {
-      if (!navigator.onLine) {
-        optimisticRollback?.(queryClient, variables);
-      }
     },
     onSuccess: (data, variables) => {
       if (navigator.onLine) {
