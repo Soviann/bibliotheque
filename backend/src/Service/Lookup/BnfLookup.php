@@ -96,8 +96,12 @@ class BnfLookup extends AbstractLookupProvider
      */
     private function cleanAuthorName(string $raw): string
     {
-        // Supprimer les dates entre parenthèses : "(1926-1977)" ou "(1975-....)"
-        $cleaned = \trim((string) \preg_replace('/\s*\([^)]*\)\s*$/', '', $raw));
+        // Supprimer le suffixe de rôle BnF après les dates : "(1975-....). Auteur du texte"
+        // Format : parenthèses de dates suivies d'un point et du rôle
+        $cleaned = \trim((string) \preg_replace('/\([^)]*\)\.\s+.*$/', '', $raw));
+
+        // Supprimer les dates entre parenthèses restantes : "(1926-1977)" ou "(1975-....)"
+        $cleaned = \trim((string) \preg_replace('/\s*\([^)]*\)/', '', $cleaned));
 
         // Si format "Nom, Prénom" → "Prénom Nom"
         if (\str_contains($cleaned, ',')) {
