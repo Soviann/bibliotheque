@@ -60,6 +60,15 @@ async function handleOfflineSync(): Promise<void> {
     for (const c of clients) {
       c.postMessage(message);
     }
+
+    // Notification pour les erreurs de sync
+    if (message.type === "sync-failure" && Notification.permission === "granted") {
+      const failure = message.failure as { error?: string } | undefined;
+      void self.registration.showNotification("Erreur de synchronisation", {
+        body: failure?.error ?? "Une opération hors ligne a échoué",
+        icon: "/app-icon.png",
+      });
+    }
   });
 }
 

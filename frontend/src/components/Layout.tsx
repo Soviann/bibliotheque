@@ -9,6 +9,7 @@ import { useServiceWorker } from "../hooks/useServiceWorker";
 import { useSyncStatus } from "../hooks/useSyncStatus";
 import BottomNav from "./BottomNav";
 import OfflineBanner from "./OfflineBanner";
+import SyncErrorBanner from "./SyncErrorBanner";
 
 export default function Layout() {
   const { logout } = useAuth();
@@ -35,6 +36,7 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-surface-secondary">
       <OfflineBanner />
+      <SyncErrorBanner />
 
       {/* Header */}
       <header className="flex items-center justify-between border-b border-surface-border bg-surface-primary px-4 py-2.5">
