@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
 import ProgressBar from "../components/ProgressBar";
 import SkeletonBox from "../components/SkeletonBox";
+import SyncPendingIndicator from "../components/SyncPendingIndicator";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
@@ -109,7 +110,10 @@ export default function ComicDetail() {
         <button aria-label="Retour" className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-xl font-bold text-text-primary">{comic.title}</h1>
+        <h1 className="flex-1 text-xl font-bold text-text-primary">
+          {comic._syncPending && <SyncPendingIndicator className="mr-1.5" />}
+          {comic.title}
+        </h1>
       </div>
 
       {/* Content */}
@@ -192,7 +196,10 @@ export default function ComicDetail() {
               <tbody className="divide-y divide-surface-border">
                 {optimisticTomes.map((tome) => (
                   <tr className="hover:bg-surface-tertiary/50" key={tome.id}>
-                    <td className="px-4 py-2 font-medium text-text-primary">{tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}</td>
+                    <td className="px-4 py-2 font-medium text-text-primary">
+                      {tome._syncPending && <SyncPendingIndicator className="mr-1" />}
+                      {tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
+                    </td>
                     <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
                     {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
                       <td className="px-4 py-2 text-center" key={field}>

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import ProgressBar from "./ProgressBar";
+import SyncPendingIndicator from "./SyncPendingIndicator";
 
 interface ComicCardProps {
   comic: ComicSeries;
@@ -22,7 +23,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
 
   return (
     <Link
-      className="group block overflow-hidden rounded-xl border border-surface-border bg-surface-primary shadow-sm transition hover:shadow-md"
+      className={`group block overflow-hidden rounded-xl border border-surface-border bg-surface-primary shadow-sm transition hover:shadow-md ${comic._syncPending ? "opacity-75" : ""}`}
       to={`/comic/${comic.id}`}
       viewTransition
     >
@@ -40,7 +41,10 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
       <div className="p-2">
         <div className="flex items-start gap-1">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold text-text-primary">{comic.title}</h3>
+            <h3 className="truncate text-sm font-semibold text-text-primary">
+              {comic._syncPending && <SyncPendingIndicator className="mr-1" />}
+              {comic.title}
+            </h3>
             <p className="truncate text-xs text-text-muted">
               {ComicTypeLabel[comic.type]}
               {!comic.isOneShot && ` · ${tomeCount} t.`}
