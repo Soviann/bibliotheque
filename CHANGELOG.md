@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Lookup Bedetheque via Gemini Google Search** : Nouveau provider de recherche ciblant bedetheque.com via Gemini avec Google Search grounding. Priorité élevée pour les BD (150), modérée pour manga/comics (110). Recherche par ISBN et titre (#119)
+
 ## [v2.1.0] - 2026-03-05
 
 ### Added
