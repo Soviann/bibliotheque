@@ -124,6 +124,7 @@ export async function processSyncQueue(
         error: detail,
         httpStatus: response.status,
         operation: item.operation,
+        parentResourceId: item.parentResourceId,
         payload: item.payload,
         resourceId: item.resourceId,
         resourceType: item.resourceType,

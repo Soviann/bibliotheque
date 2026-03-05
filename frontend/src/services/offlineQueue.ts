@@ -24,6 +24,7 @@ export interface SyncFailure {
   httpStatus: number;
   id?: number;
   operation: OperationType;
+  parentResourceId?: string;
   payload: Record<string, unknown>;
   resolved: boolean;
   resourceId?: string;

@@ -8,9 +8,9 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/react";
-import { ArrowLeft, Check, ChevronDown, Layers, Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, Layers, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import BarcodeScanner from "../components/BarcodeScanner";
 import SkeletonBox from "../components/SkeletonBox";
@@ -20,8 +20,10 @@ import { apiFetch } from "../services/api";
 import { useComic } from "../hooks/useComic";
 import { useCreateComic } from "../hooks/useCreateComic";
 import { fetchLookupIsbn, fetchLookupTitle, useLookupIsbn, useLookupTitle } from "../hooks/useLookup";
+import { useSyncFailures } from "../hooks/useSyncFailures";
 import { useUpdateComic } from "../hooks/useUpdateComic";
 import type { Author, ComicSeries } from "../types/api";
+import type { SyncFailure } from "../services/offlineQueue";
 import {
   ComicStatus,
   ComicStatusLabel,
@@ -149,14 +151,89 @@ const statusOptions = Object.entries(ComicStatus).map(([, value]) => ({
   value,
 }));
 
+const syncFieldLabels: Record<string, string> = {
+  authors: "Auteurs",
+  coverUrl: "Couverture",
+  description: "Description",
+  isOneShot: "One-shot",
+  latestPublishedIssue: "Dernier tome paru",
+  publisher: "Éditeur",
+  status: "Statut",
+  title: "Titre",
+  tomes: "Tomes",
+  type: "Type",
+};
+
+const syncOperationLabels: Record<string, string> = {
+  create: "Création",
+  delete: "Suppression",
+  update: "Mise à jour",
+};
+
+function formatSyncValue(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "boolean") return value ? "Oui" : "Non";
+  if (Array.isArray(value)) return `${value.length} élément(s)`;
+  return String(value);
+}
+
+function SyncFailureSection({ failure, onDismiss }: { failure: SyncFailure; onDismiss: () => void }) {
+  const entries = Object.entries(failure.payload)
+    .filter(([key]) => !key.startsWith("_") && key !== "id")
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  return (
+    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+            {syncOperationLabels[failure.operation] ?? failure.operation} échouée — {failure.error}
+          </p>
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+            Modifications tentées hors ligne :
+          </p>
+          <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+            {entries.map(([key, value]) => (
+              <div className="contents" key={key}>
+                <dt className="font-medium text-amber-800 dark:text-amber-300">
+                  {syncFieldLabels[key] ?? key}
+                </dt>
+                <dd className="truncate text-amber-700 dark:text-amber-400">
+                  {formatSyncValue(value)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-2 text-xs text-amber-600 dark:text-amber-500">
+            Enregistrez le formulaire pour résoudre automatiquement cette erreur.
+          </p>
+        </div>
+        <button
+          className="shrink-0 rounded p-1 text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+          onClick={onDismiss}
+          title="Ignorer"
+          type="button"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ComicForm() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const syncFailureId = searchParams.get("syncFailureId");
   const isEdit = Boolean(id);
   const navigate = useNavigate();
   const isOnline = useOnlineStatus();
   const { data: comic } = useComic(id ? Number(id) : undefined);
   const createComic = useCreateComic();
   const updateComic = useUpdateComic();
+  const { failures, resolveSyncFailure } = useSyncFailures();
+  const syncFailure = syncFailureId ? failures.find((f) => f.id === Number(syncFailureId)) : undefined;
 
   const [form, setForm] = useState<FormData>(buildInitialForm());
   const [initialized, setInitialized] = useState(!isEdit);
@@ -412,6 +489,7 @@ export default function ComicForm() {
         {
           onSuccess: (data) => {
             if (!data) return; // offline: déjà géré par useOfflineMutation
+            if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
             toast.success("Série mise à jour");
             navigate(`/comic/${id}`, { viewTransition: true });
           },
@@ -422,6 +500,7 @@ export default function ComicForm() {
       createComic.mutate(payload as Partial<ComicSeries>, {
         onSuccess: (created) => {
           if (!created) return; // offline: déjà géré par useOfflineMutation
+          if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
           toast.success("Série créée");
           navigate(`/comic/${created.id}`, { viewTransition: true });
         },
@@ -447,6 +526,14 @@ export default function ComicForm() {
           {isEdit ? "Modifier la série" : "Nouvelle série"}
         </h1>
       </div>
+
+      {/* Sync failure details */}
+      {syncFailure && (
+        <SyncFailureSection
+          failure={syncFailure}
+          onDismiss={() => void resolveSyncFailure(syncFailure.id!)}
+        />
+      )}
 
       {/* Lookup section — visible on create AND edit */}
       {isOnline ? (
