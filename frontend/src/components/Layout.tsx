@@ -48,7 +48,7 @@ export default function Layout() {
           <Link
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
             title="Outils"
-            to="/merge-series"
+            to="/tools"
             viewTransition
           >
             <Wrench className="h-5 w-5" />

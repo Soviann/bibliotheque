@@ -140,7 +140,9 @@ export default function MergePreviewModal({
                       className="border-b border-surface-border last:border-0"
                       key={tome.number}
                     >
-                      <td className="px-2 py-2 text-text-primary">{tome.number}</td>
+                      <td className="px-2 py-2 text-text-primary">
+                        {tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
+                      </td>
                       <td className="px-2 py-2 text-text-primary">
                         {tome.title ?? "-"}
                       </td>
