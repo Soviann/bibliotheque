@@ -1,5 +1,5 @@
 import { addSyncFailure, getAll, removeById, updateStatus } from "./offlineQueue";
-import type { OperationType, QueueItem, ResourceType } from "./offlineQueue";
+import type { QueueItem } from "./offlineQueue";
 
 type PostMessageFn = (message: Record<string, unknown>) => void;
 
