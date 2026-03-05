@@ -7,6 +7,8 @@ export function useDeleteTome(seriesId: number) {
     mutationFn: ({ id }) =>
       apiFetch(`/tomes/${id}`, { method: "DELETE" }),
     offlineOperation: "delete",
+    offlineParentResourceId: String(seriesId),
+    offlineParentResourceType: "comic_series",
     offlineResourceId: (v) => String(v.id),
     offlineResourceType: "tome",
     optimisticUpdate: (qc, variables) => {

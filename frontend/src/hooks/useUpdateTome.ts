@@ -13,6 +13,8 @@ export function useUpdateTome(seriesId?: number) {
     offlineContentType: "application/merge-patch+json",
     offlineHttpMethod: "PATCH",
     offlineOperation: "update",
+    offlineParentResourceId: seriesId ? String(seriesId) : undefined,
+    offlineParentResourceType: "comic_series",
     offlineResourceId: (v) => String(v.id),
     offlineResourceType: "tome",
     optimisticUpdate: (qc, variables) => {

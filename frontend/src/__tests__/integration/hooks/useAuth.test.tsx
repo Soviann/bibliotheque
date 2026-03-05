@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
