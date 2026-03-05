@@ -133,7 +133,7 @@ describe("syncHandler — processSyncQueue", () => {
     expect(remaining).toHaveLength(0);
   });
 
-  it("removes item and posts error on 4xx client error", async () => {
+  it("removes item and stores failure on 4xx client error", async () => {
     server.use(
       http.post("/api/comic_series", () =>
         HttpResponse.json(
@@ -155,10 +155,17 @@ describe("syncHandler — processSyncQueue", () => {
     const remaining = await getAll();
     expect(remaining).toHaveLength(0);
 
-    expect(mockPostMessage).toHaveBeenCalledWith({
-      error: "Validation failed",
-      type: "sync-error",
-    });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        failure: expect.objectContaining({
+          error: "Validation failed",
+          httpStatus: 422,
+          operation: "create",
+          resourceType: "comic_series",
+        }),
+        type: "sync-failure",
+      }),
+    );
   });
 
   it("keeps item in queue and throws on 5xx server error", async () => {
@@ -313,10 +320,12 @@ describe("syncHandler — processSyncQueue", () => {
 
     await processSyncQueue(fakeToken, mockPostMessage);
 
-    expect(mockPostMessage).toHaveBeenCalledWith({
-      error: "Erreur 422",
-      type: "sync-error",
-    });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        failure: expect.objectContaining({ error: "Erreur 422" }),
+        type: "sync-failure",
+      }),
+    );
   });
 
   it("creates pending authors before syncing the series", async () => {
@@ -465,10 +474,131 @@ describe("syncHandler — processSyncQueue", () => {
 
     await processSyncQueue(fakeToken, mockPostMessage);
 
-    expect(mockPostMessage).toHaveBeenCalledWith({
-      error: "Erreur 422",
-      type: "sync-error",
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        failure: expect.objectContaining({ error: "Erreur 422" }),
+        type: "sync-failure",
+      }),
+    );
+  });
+
+  it("builds sub-resource URL for tome creation under comic_series", async () => {
+    let capturedUrl: string | undefined;
+
+    server.use(
+      http.post("/api/comic_series/5/tomes", async ({ request }) => {
+        capturedUrl = new URL(request.url).pathname;
+        return HttpResponse.json(
+          { "@id": "/api/tomes/1", id: 1, number: 1 },
+          { status: 201 },
+        );
+      }),
+    );
+
+    await enqueue({
+      operation: "create",
+      parentResourceId: "5",
+      parentResourceType: "comic_series",
+      payload: { number: 1 },
+      resourceType: "tome",
     });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(capturedUrl).toBe("/api/comic_series/5/tomes");
+  });
+
+  it("replaces temp IDs with real IDs in create → update chain", async () => {
+    let capturedUpdateUrl: string | undefined;
+
+    server.use(
+      http.post("/api/comic_series", () =>
+        HttpResponse.json(
+          { "@id": "/api/comic_series/42", id: 42, title: "Created" },
+          { status: 201 },
+        ),
+      ),
+      http.put(/\/api\/comic_series\/\d+/, ({ request }) => {
+        capturedUpdateUrl = new URL(request.url).pathname;
+        return HttpResponse.json({ id: 42, title: "Updated" });
+      }),
+    );
+
+    // Créer avec un temp ID négatif
+    await enqueue({
+      operation: "create",
+      payload: { title: "Created" },
+      resourceId: "-12345",
+      resourceType: "comic_series",
+    });
+
+    // Mettre à jour en utilisant le même temp ID
+    await enqueue({
+      operation: "update",
+      payload: { title: "Updated" },
+      resourceId: "-12345",
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    // Le temp ID -12345 doit être remplacé par le vrai ID 42
+    expect(capturedUpdateUrl).toBe("/api/comic_series/42");
+  });
+
+  it("uses httpMethod from queue item when provided (PATCH fix)", async () => {
+    let capturedMethod: string | undefined;
+    let capturedContentType: string | null = null;
+
+    server.use(
+      http.patch("/api/tomes/10", ({ request }) => {
+        capturedMethod = request.method;
+        capturedContentType = request.headers.get("Content-Type");
+        return HttpResponse.json({ id: 10, bought: true });
+      }),
+    );
+
+    await enqueue({
+      contentType: "application/merge-patch+json",
+      httpMethod: "PATCH",
+      operation: "update",
+      payload: { bought: true },
+      resourceId: "10",
+      resourceType: "tome",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    expect(capturedMethod).toBe("PATCH");
+    expect(capturedContentType).toBe("application/merge-patch+json");
+  });
+
+  it("persists sync failure to IndexedDB on 4xx", async () => {
+    const { getSyncFailures } = await import("../../../services/offlineQueue");
+
+    server.use(
+      http.post("/api/comic_series", () =>
+        HttpResponse.json(
+          { detail: "Titre requis" },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    await enqueue({
+      operation: "create",
+      payload: { title: "" },
+      resourceType: "comic_series",
+    });
+
+    await processSyncQueue(fakeToken, mockPostMessage);
+
+    const failures = await getSyncFailures();
+    expect(failures).toHaveLength(1);
+    expect(failures[0].error).toBe("Titre requis");
+    expect(failures[0].httpStatus).toBe(422);
+    expect(failures[0].operation).toBe("create");
+    expect(failures[0].resourceType).toBe("comic_series");
   });
 
   it("sends DELETE request without Content-Type header and without body", async () => {
