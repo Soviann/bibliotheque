@@ -19,7 +19,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
  * Ce provider utilise Gemini avec grounding Google Search pour extraire
  * les données structurées depuis site:bedetheque.com.
  */
-#[AutoconfigureTag('app.lookup_provider', ['priority' => 35])]
+#[AutoconfigureTag('app.lookup_provider', ['priority' => 45])]
 class BedethequeLookup extends AbstractGeminiLookupProvider
 {
     private const string JSON_INSTRUCTIONS = <<<'TEXT'

@@ -60,7 +60,7 @@ export interface ComicSeries {
 }
 
 export interface LookupResult {
-  apiMessages: Array<{ level: string; message: string; source: string }>;
+  apiMessages: Record<string, { message: string; status: string }>;
   authors: string | null;
   description: string | null;
   isbn: string | null;
