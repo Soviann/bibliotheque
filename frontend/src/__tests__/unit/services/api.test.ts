@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {

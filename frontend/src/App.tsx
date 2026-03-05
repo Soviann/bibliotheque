@@ -1,5 +1,5 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { WifiOff } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
@@ -11,7 +11,7 @@ import AuthGuard from "./components/AuthGuard";
 import ErrorFallback from "./components/ErrorFallback";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
-import { queryClient } from "./queryClient";
+import { persister, queryClient } from "./queryClient";
 
 function OfflineFallback() {
   return (
@@ -102,11 +102,23 @@ export default function App() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{
+            dehydrateOptions: {
+              shouldDehydrateQuery: (query) => {
+                const key = query.queryKey[0];
+                return key === "comics" || key === "comic";
+              },
+            },
+            maxAge: 60 * 60 * 1000,
+            persister,
+          }}
+        >
           <RouterProvider router={router} />
           <Toaster position="top-center" richColors />
           <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </GoogleOAuthProvider>
     </ErrorBoundary>
   );

@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes } from "react-router-dom";

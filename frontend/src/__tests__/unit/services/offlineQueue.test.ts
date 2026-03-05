@@ -2,12 +2,17 @@ import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   _resetDb,
+  addSyncFailure,
   clearQueue,
   dequeue,
   enqueue,
   getAll,
   getPendingCount,
+  getSyncFailures,
+  getUnresolvedFailureCount,
   removeById,
+  removeSyncFailure,
+  resolveSyncFailure,
   updateStatus,
 } from "../../../services/offlineQueue";
 import type { QueueItem } from "../../../services/offlineQueue";
@@ -248,6 +253,113 @@ describe("offlineQueue", () => {
       const count = await getPendingCount();
       // pending (id1) + failed (id2) = 2, syncing is excluded
       expect(count).toBe(2);
+    });
+  });
+
+  describe("enqueue with new optional fields", () => {
+    it("stores parentResourceType and parentResourceId", async () => {
+      await enqueue({
+        operation: "create",
+        parentResourceId: "5",
+        parentResourceType: "comic_series",
+        payload: { number: 1 },
+        resourceType: "tome",
+      });
+
+      const items = await getAll();
+      expect(items).toHaveLength(1);
+      expect(items[0].parentResourceType).toBe("comic_series");
+      expect(items[0].parentResourceId).toBe("5");
+    });
+
+    it("stores httpMethod and contentType", async () => {
+      await enqueue({
+        contentType: "application/merge-patch+json",
+        httpMethod: "PATCH",
+        operation: "update",
+        payload: { bought: true },
+        resourceId: "10",
+        resourceType: "tome",
+      });
+
+      const items = await getAll();
+      expect(items[0].httpMethod).toBe("PATCH");
+      expect(items[0].contentType).toBe("application/merge-patch+json");
+    });
+  });
+
+  describe("syncFailures", () => {
+    it("adds and retrieves sync failures", async () => {
+      await addSyncFailure({
+        error: "Validation failed",
+        httpStatus: 422,
+        operation: "create",
+        payload: { title: "Bad" },
+        resourceType: "comic_series",
+      });
+
+      const failures = await getSyncFailures();
+      expect(failures).toHaveLength(1);
+      expect(failures[0].error).toBe("Validation failed");
+      expect(failures[0].httpStatus).toBe(422);
+      expect(failures[0].resolved).toBe(false);
+    });
+
+    it("resolves a sync failure", async () => {
+      const id = await addSyncFailure({
+        error: "Not found",
+        httpStatus: 404,
+        operation: "update",
+        payload: {},
+        resourceId: "99",
+        resourceType: "comic_series",
+      });
+
+      await resolveSyncFailure(id);
+
+      const failures = await getSyncFailures();
+      expect(failures).toHaveLength(0);
+    });
+
+    it("removes a sync failure", async () => {
+      const id = await addSyncFailure({
+        error: "Error",
+        httpStatus: 400,
+        operation: "delete",
+        payload: {},
+        resourceType: "tome",
+      });
+
+      await removeSyncFailure(id);
+
+      const failures = await getSyncFailures();
+      expect(failures).toHaveLength(0);
+    });
+
+    it("returns unresolved failure count", async () => {
+      const id1 = await addSyncFailure({
+        error: "Error 1",
+        httpStatus: 422,
+        operation: "create",
+        payload: {},
+        resourceType: "comic_series",
+      });
+      await addSyncFailure({
+        error: "Error 2",
+        httpStatus: 400,
+        operation: "update",
+        payload: {},
+        resourceType: "tome",
+      });
+
+      await resolveSyncFailure(id1);
+
+      const count = await getUnresolvedFailureCount();
+      expect(count).toBe(1);
+    });
+
+    it("silently does nothing when resolving non-existent failure", async () => {
+      await expect(resolveSyncFailure(999)).resolves.toBeUndefined();
     });
   });
 });

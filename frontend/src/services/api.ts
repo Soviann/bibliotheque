@@ -1,5 +1,8 @@
+import { del, set } from "idb-keyval";
+
 const API_BASE = "/api";
 const TOKEN_KEY = "jwt_token";
+const IDB_TOKEN_KEY = "jwt_token_sw";
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -7,10 +10,12 @@ export function getToken(): string | null {
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
+  void set(IDB_TOKEN_KEY, token);
 }
 
 export function removeToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  void del(IDB_TOKEN_KEY);
 }
 
 export function isAuthenticated(): boolean {
