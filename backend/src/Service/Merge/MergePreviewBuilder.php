@@ -68,11 +68,7 @@ class MergePreviewBuilder
             /** @var array<int, ?int> $tomeNumberMap */
             $tomeNumberMap = [];
             foreach ($geminiResult['entries'] as $entry) {
-                if (isset($entry['id']) && \is_numeric($entry['id'])) {
-                    $tomeNumberMap[(int) $entry['id']] = isset($entry['tomeNumber']) && \is_numeric($entry['tomeNumber'])
-                        ? (int) ($entry['tomeNumber'])
-                        : null;
-                }
+                $tomeNumberMap[$entry['id']] = $entry['tomeNumber'];
             }
         } else {
             // Fallback : titre de la première série, numéros séquentiels
@@ -104,10 +100,10 @@ class MergePreviewBuilder
             latestPublishedIssue: $this->reconcileLatestPublishedIssue($seriesList),
             latestPublishedIssueComplete: $this->reconcileLatestPublishedIssueComplete($seriesList),
             publisher: $this->reconcilePublisher($seriesList),
-            sourceSeriesIds: \array_map(
+            sourceSeriesIds: \array_values(\array_map(
                 static fn (ComicSeries $s): int => (int) $s->getId(),
                 $seriesList,
-            ),
+            )),
             title: $title,
             tomes: $this->buildTomes($seriesList, $tomeNumberMap),
             type: [] !== $seriesList ? $seriesList[0]->getType()->value : 'bd',
@@ -338,7 +334,7 @@ class MergePreviewBuilder
     /**
      * Parse la réponse JSON de Gemini.
      *
-     * @return array{title: string, entries: list<array{id: int, tomeNumber: ?int}>}|null
+     * @return array{title: string, entries: list<array{id: int, tomeNumber: int|null}>}|null
      */
     private function parseGeminiResponse(string $text): ?array
     {
@@ -353,6 +349,18 @@ class MergePreviewBuilder
             return null;
         }
 
-        return $data;
+        /** @var list<array{id: int, tomeNumber: int|null}> $entries */
+        $entries = [];
+        foreach ($data['entries'] as $entry) {
+            if (!\is_array($entry) || !isset($entry['id']) || !\is_numeric($entry['id'])) {
+                continue;
+            }
+            $entries[] = [
+                'id' => (int) $entry['id'],
+                'tomeNumber' => isset($entry['tomeNumber']) && \is_numeric($entry['tomeNumber']) ? (int) $entry['tomeNumber'] : null,
+            ];
+        }
+
+        return ['entries' => $entries, 'title' => $data['title']];
     }
 }
