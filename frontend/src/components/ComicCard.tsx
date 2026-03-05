@@ -21,7 +21,8 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
   const showProgress = !comic.isOneShot && tomeCount > 0;
   const hasActions = !!onDelete;
 
-  if (comic._syncPending) {
+  // Bloquer la navigation uniquement pour les créations offline (ID temporaire négatif)
+  if (comic._syncPending && comic.id < 0) {
     return (
       <div className="group block overflow-hidden rounded-xl border border-surface-border bg-surface-primary opacity-75 shadow-sm">
         {/* Cover */}
@@ -72,7 +73,10 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
       <div className="p-2">
         <div className="flex items-start gap-1">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold text-text-primary">{comic.title}</h3>
+            <h3 className="truncate text-sm font-semibold text-text-primary">
+              {comic._syncPending && <SyncPendingIndicator className="mr-1" />}
+              {comic.title}
+            </h3>
             <p className="truncate text-xs text-text-muted">
               {ComicTypeLabel[comic.type]}
               {!comic.isOneShot && ` · ${tomeCount} t.`}
