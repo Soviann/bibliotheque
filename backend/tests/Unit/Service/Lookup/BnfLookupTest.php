@@ -371,6 +371,62 @@ final class BnfLookupTest extends TestCase
     }
 
     /**
+     * Teste que cleanAuthorName supprime le suffixe de rôle BnF (". Auteur du texte").
+     */
+    public function testResolveLookupStripsRoleSuffix(): void
+    {
+        $xml = $this->buildXml(
+            creator: 'Oda, Eiichirō (1975-....). Auteur du texte',
+            title: 'One Piece',
+        );
+
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('getContent')->willReturn($xml);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('Eiichirō Oda', $result->authors);
+    }
+
+    /**
+     * Teste que cleanAuthorName supprime un rôle différent (". Illustrateur").
+     */
+    public function testResolveLookupStripsVariousRoleSuffixes(): void
+    {
+        $xml = $this->buildXml(
+            creator: 'Uderzo, Albert (1927-2020). Illustrateur',
+            title: 'Astérix',
+        );
+
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('getContent')->willReturn($xml);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('Albert Uderzo', $result->authors);
+    }
+
+    /**
+     * Teste que cleanTitle supprime les mentions de traducteur après " ; ".
+     */
+    public function testResolveLookupStripsTranslatorFromTitle(): void
+    {
+        $xml = $this->buildXml(
+            title: 'One Piece. 56 / Eiichiro Oda ; traduction Sylvain Chollet',
+        );
+
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('getContent')->willReturn($xml);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertSame('One Piece. 56', $result->title);
+    }
+
+    /**
      * Teste cleanAuthorName avec un auteur sans virgule (nom seul).
      */
     public function testResolveLookupSingleNameAuthor(): void
