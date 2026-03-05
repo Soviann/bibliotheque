@@ -4,6 +4,7 @@ import { ExpirationPlugin } from "workbox-expiration";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { CacheFirst, NetworkFirst } from "workbox-strategies";
+import { get } from "idb-keyval";
 import { processSyncQueue } from "./services/syncHandler";
 
 declare const self: ServiceWorkerGlobalScope;
@@ -49,18 +50,37 @@ self.addEventListener("sync", (event: SyncEvent) => {
 });
 
 async function handleOfflineSync(): Promise<void> {
-  const clients = await self.clients.matchAll({ type: "window" });
-  if (clients.length === 0) return;
-
-  const client = clients[0];
-  const token = await getTokenFromClient(client);
+  const token = await getToken();
   if (!token) return;
+
+  const clients = await self.clients.matchAll({ type: "window" });
 
   await processSyncQueue(token, (message) => {
     for (const c of clients) {
       c.postMessage(message);
     }
+
+    // Notification pour les erreurs de sync (utile quand l'app est fermée)
+    if (message.type === "sync-failure" && Notification.permission === "granted") {
+      const failure = message.failure as { error?: string } | undefined;
+      void self.registration.showNotification("Erreur de synchronisation", {
+        body: failure?.error ?? "Une opération hors ligne a échoué",
+        icon: "/app-icon.png",
+      });
+    }
   });
+}
+
+async function getToken(): Promise<string | null> {
+  // Lire depuis IndexedDB (fonctionne même sans client ouvert)
+  const idbToken = await get<string>("jwt_token_sw").catch(() => null);
+  if (idbToken) return idbToken;
+
+  // Fallback : demander au client (si l'app est ouverte)
+  const clients = await self.clients.matchAll({ type: "window" });
+  if (clients.length === 0) return null;
+
+  return getTokenFromClient(clients[0]);
 }
 
 function getTokenFromClient(client: Client): Promise<string | null> {

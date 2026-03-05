@@ -35,6 +35,7 @@ export default defineConfig({
         ],
       },
       injectManifest: {
+        globIgnores: ["**/app-icon.png"],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
     }),

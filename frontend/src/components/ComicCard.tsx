@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import ProgressBar from "./ProgressBar";
+import SyncPendingIndicator from "./SyncPendingIndicator";
 
 interface ComicCardProps {
   comic: ComicSeries;
@@ -19,6 +20,38 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
   const total = comic.latestPublishedIssue ?? tomeCount;
   const showProgress = !comic.isOneShot && tomeCount > 0;
   const hasActions = !!onDelete;
+
+  // Bloquer la navigation uniquement pour les créations offline (ID temporaire négatif)
+  if (comic._syncPending && comic.id < 0) {
+    return (
+      <div className="group block overflow-hidden rounded-xl border border-surface-border bg-surface-primary opacity-75 shadow-sm">
+        {/* Cover */}
+        <div className="aspect-[3/4] overflow-hidden bg-surface-tertiary">
+          <img
+            alt={comic.title}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            src={coverSrc ?? ComicTypePlaceholder[comic.type]}
+          />
+        </div>
+        {/* Info */}
+        <div className="p-2">
+          <div className="flex items-start gap-1">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-sm font-semibold text-text-primary">
+                <SyncPendingIndicator className="mr-1" />
+                {comic.title}
+              </h3>
+              <p className="truncate text-xs text-text-muted">
+                {ComicTypeLabel[comic.type]}
+                {!comic.isOneShot && ` · ${tomeCount} t.`}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Link
@@ -40,7 +73,10 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
       <div className="p-2">
         <div className="flex items-start gap-1">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold text-text-primary">{comic.title}</h3>
+            <h3 className="truncate text-sm font-semibold text-text-primary">
+              {comic._syncPending && <SyncPendingIndicator className="mr-1" />}
+              {comic.title}
+            </h3>
             <p className="truncate text-xs text-text-muted">
               {ComicTypeLabel[comic.type]}
               {!comic.isOneShot && ` · ${tomeCount} t.`}
