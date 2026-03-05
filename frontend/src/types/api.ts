@@ -59,6 +59,12 @@ export interface ComicSeries {
   updatedAt: string;
 }
 
+export interface PurgeableSeries {
+  deletedAt: string;
+  id: number;
+  title: string;
+}
+
 export interface MergeGroup {
   entries: MergeGroupEntry[];
   suggestedTitle: string;
