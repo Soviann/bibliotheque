@@ -7,9 +7,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
-### Fixed
-
-- **Lookup BnF** : Correction du parsing des noms d'auteurs contenant un suffixe de rôle BnF (ex: `. Auteur du texte`, `. Illustrateur`) (#133)
+## [v2.2.0] - 2026-03-05
 
 ### Added
 
@@ -20,6 +18,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Lookup BnF** : Correction du parsing des noms d'auteurs contenant un suffixe de rôle BnF (ex: `. Auteur du texte`, `. Illustrateur`) (#133)
 - **Provider Bedetheque** : Correction du prompt Gemini qui bloquait avec l'opérateur `site:` dans le grounding API. Gestion du ValueError (aucun candidat retourné) (#119)
 - **Type apiMessages** : Correction du type frontend (objet clé-valeur, pas tableau)
 
