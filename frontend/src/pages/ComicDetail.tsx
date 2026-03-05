@@ -16,7 +16,7 @@ export default function ComicDetail() {
   const navigate = useNavigate();
   const { data: comic, isLoading } = useComic(id ? Number(id) : undefined);
   const deleteComic = useDeleteComic();
-  const updateTome = useUpdateTome();
+  const updateTome = useUpdateTome(id ? Number(id) : undefined);
   const [showDelete, setShowDelete] = useState(false);
   const [optimisticTomes, setOptimisticTomes] = useState<Tome[]>([]);
 
