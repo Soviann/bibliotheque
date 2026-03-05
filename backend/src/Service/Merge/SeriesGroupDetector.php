@@ -11,6 +11,7 @@ use Gemini\Contracts\ClientContract as GeminiClient;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 /**
@@ -23,8 +24,9 @@ class SeriesGroupDetector
 
     public function __construct(
         private readonly GeminiClient $geminiClient,
-        private readonly LoggerInterface $logger,
+        #[Autowire(service: 'limiter.gemini_api')]
         private readonly RateLimiterFactory $limiterFactory,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -220,7 +222,7 @@ class SeriesGroupDetector
                     continue;
                 }
 
-                $seriesId = \intval($entryData['id']);
+                $seriesId = (int) $entryData['id'];
                 $series = $seriesMap[$seriesId] ?? null;
                 if (null === $series) {
                     continue;
@@ -231,7 +233,7 @@ class SeriesGroupDetector
                 $entries[] = new MergeGroupEntry(
                     originalTitle: $series->getTitle(),
                     seriesId: $seriesId,
-                    suggestedTomeNumber: \is_numeric($tomeNumber) ? \intval($tomeNumber) : null,
+                    suggestedTomeNumber: \is_numeric($tomeNumber) ? (int) $tomeNumber : null,
                 );
             }
 

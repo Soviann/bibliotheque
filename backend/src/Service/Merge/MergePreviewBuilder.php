@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Merge;
 
 use App\DTO\MergeGroup;
-use App\DTO\MergeGroupEntry;
 use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
 use App\Entity\ComicSeries;
@@ -14,6 +13,7 @@ use Gemini\Contracts\ClientContract as GeminiClient;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 /**
@@ -25,8 +25,9 @@ class MergePreviewBuilder
 
     public function __construct(
         private readonly GeminiClient $geminiClient,
-        private readonly LoggerInterface $logger,
+        #[Autowire(service: 'limiter.gemini_api')]
         private readonly RateLimiterFactory $limiterFactory,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -68,8 +69,8 @@ class MergePreviewBuilder
             $tomeNumberMap = [];
             foreach ($geminiResult['entries'] as $entry) {
                 if (isset($entry['id']) && \is_numeric($entry['id'])) {
-                    $tomeNumberMap[\intval($entry['id'])] = isset($entry['tomeNumber']) && \is_numeric($entry['tomeNumber'])
-                        ? \intval($entry['tomeNumber'])
+                    $tomeNumberMap[(int) $entry['id']] = isset($entry['tomeNumber']) && \is_numeric($entry['tomeNumber'])
+                        ? (int) ($entry['tomeNumber'])
                         : null;
                 }
             }
@@ -90,8 +91,8 @@ class MergePreviewBuilder
     /**
      * Construit l'aperçu commun à partir du titre, des séries et de la map de numéros.
      *
-     * @param ComicSeries[]           $seriesList
-     * @param array<int, ?int>        $tomeNumberMap ID série → numéro de tome suggéré
+     * @param ComicSeries[]    $seriesList
+     * @param array<int, ?int> $tomeNumberMap ID série → numéro de tome suggéré
      */
     private function buildPreview(string $title, array $seriesList, array $tomeNumberMap): MergePreview
     {
