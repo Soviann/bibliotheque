@@ -1,0 +1,282 @@
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+  Switch,
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels,
+} from "@headlessui/react";
+import { Check, ChevronDown, Loader2, Merge, Search as SearchIcon } from "lucide-react";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import EmptyState from "../components/EmptyState";
+import MergeGroupCard from "../components/MergeGroupCard";
+import MergePreviewModal from "../components/MergePreviewModal";
+import SeriesMultiSelect from "../components/SeriesMultiSelect";
+import {
+  useDetectMergeGroups,
+  useExecuteMerge,
+  useMergePreview,
+} from "../hooks/useMergeSeries";
+import type { MergeGroup, MergePreview } from "../types/api";
+import { ComicType, ComicTypeLabel } from "../types/enums";
+
+interface TypeOption {
+  label: string;
+  value: string;
+}
+
+const typeOptions: TypeOption[] = [
+  { label: "Tous les types", value: "" },
+  ...Object.entries(ComicType).map(([, value]) => ({
+    label: ComicTypeLabel[value],
+    value,
+  })),
+];
+
+export default function MergeSeries() {
+  // Shared state
+  const [previewData, setPreviewData] = useState<MergePreview | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Auto-detect state
+  const [selectedType, setSelectedType] = useState("");
+  const [includeChecked, setIncludeChecked] = useState(false);
+  const [groups, setGroups] = useState<MergeGroup[]>([]);
+  const [hasDetected, setHasDetected] = useState(false);
+
+  // Manual select state
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  // Mutations
+  const detectMutation = useDetectMergeGroups();
+  const previewMutation = useMergePreview();
+  const executeMerge = useExecuteMerge();
+
+  const handleDetect = () => {
+    const params: { all?: boolean; type?: string } = {};
+    if (selectedType) params.type = selectedType;
+    if (includeChecked) params.all = true;
+
+    detectMutation.mutate(params, {
+      onSuccess: (data) => {
+        setGroups(data);
+        setHasDetected(true);
+      },
+    });
+  };
+
+  const handlePreviewGroup = (group: MergeGroup) => {
+    const seriesIds = group.entries.map((e) => e.seriesId);
+    previewMutation.mutate(seriesIds, {
+      onSuccess: (data) => {
+        setPreviewData(data);
+        setPreviewOpen(true);
+      },
+    });
+  };
+
+  const handleSkipGroup = (group: MergeGroup) => {
+    setGroups((prev) => prev.filter((g) => g !== group));
+  };
+
+  const handleManualPreview = () => {
+    previewMutation.mutate(selectedIds, {
+      onSuccess: (data) => {
+        setPreviewData(data);
+        setPreviewOpen(true);
+      },
+    });
+  };
+
+  const handleConfirmMerge = useCallback(
+    (preview: MergePreview) => {
+      executeMerge.mutate(preview, {
+        onSuccess: () => {
+          toast.success("Series fusionnees avec succes");
+          setPreviewOpen(false);
+          setPreviewData(null);
+          // Remove merged group from auto-detect list
+          setGroups((prev) =>
+            prev.filter(
+              (g) =>
+                !g.entries.every((e) =>
+                  preview.sourceSeriesIds.includes(e.seriesId),
+                ),
+            ),
+          );
+          // Clear manual selection
+          setSelectedIds([]);
+        },
+      });
+    },
+    [executeMerge],
+  );
+
+  const selectedTypeOption =
+    typeOptions.find((o) => o.value === selectedType) ?? typeOptions[0];
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <h1 className="text-xl font-bold text-text-primary">
+        Fusion de series
+      </h1>
+
+      <TabGroup className="mt-4">
+        <TabList className="flex gap-1 rounded-lg bg-surface-secondary p-1">
+          <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
+            Detection automatique
+          </Tab>
+          <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
+            Selection manuelle
+          </Tab>
+        </TabList>
+
+        <TabPanels className="mt-4">
+          {/* Auto detect tab */}
+          <TabPanel>
+            <div className="space-y-4">
+              {/* Filters row */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <Listbox onChange={setSelectedType} value={selectedType}>
+                    <div className="relative">
+                      <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                        <span className="truncate">
+                          {selectedTypeOption.label}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-text-muted" />
+                      </ListboxButton>
+                      <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary py-1 shadow-lg transition focus:outline-none">
+                        {typeOptions.map((option) => (
+                          <ListboxOption
+                            className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
+                            key={option.value}
+                            value={option.value}
+                          >
+                            <Check
+                              className={`h-4 w-4 shrink-0 ${
+                                option.value === selectedType
+                                  ? "text-primary-600"
+                                  : "invisible"
+                              }`}
+                            />
+                            {option.label}
+                          </ListboxOption>
+                        ))}
+                      </ListboxOptions>
+                    </div>
+                  </Listbox>
+                </div>
+
+                <label className="flex items-center gap-2 text-sm text-text-secondary">
+                  <Switch
+                    checked={includeChecked}
+                    className="group relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-surface-tertiary transition-colors data-[checked]:bg-primary-600"
+                    onChange={setIncludeChecked}
+                  >
+                    <span className="pointer-events-none inline-block h-4 w-4 translate-x-0 rounded-full bg-white shadow-sm transition-transform group-data-[checked]:translate-x-4" />
+                  </Switch>
+                  Inclure les deja verifiees
+                </label>
+              </div>
+
+              {/* Detect button */}
+              <button
+                className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                disabled={detectMutation.isPending}
+                onClick={handleDetect}
+                type="button"
+              >
+                {detectMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <SearchIcon className="h-4 w-4" />
+                )}
+                Detecter les groupes
+              </button>
+
+              {/* Loading state for preview */}
+              {previewMutation.isPending && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+                  <span className="ml-2 text-sm text-text-secondary">
+                    Generation de l'apercu...
+                  </span>
+                </div>
+              )}
+
+              {/* Results */}
+              {hasDetected && groups.length === 0 && (
+                <EmptyState
+                  description="Aucun groupe de series a fusionner n'a ete detecte"
+                  icon={Merge}
+                  title="Aucun groupe detecte"
+                />
+              )}
+
+              {groups.length > 0 && (
+                <div className="space-y-3">
+                  {groups.map((group, index) => (
+                    <MergeGroupCard
+                      group={group}
+                      key={`${group.suggestedTitle}-${index}`}
+                      onPreview={handlePreviewGroup}
+                      onSkip={handleSkipGroup}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabPanel>
+
+          {/* Manual select tab */}
+          <TabPanel>
+            <div className="space-y-4">
+              <SeriesMultiSelect
+                onSelectionChange={setSelectedIds}
+                selectedIds={selectedIds}
+              />
+
+              <div className="flex items-center gap-3">
+                <button
+                  className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                  disabled={selectedIds.length < 2 || previewMutation.isPending}
+                  onClick={handleManualPreview}
+                  type="button"
+                >
+                  {previewMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Merge className="h-4 w-4" />
+                  )}
+                  Apercu de la fusion
+                </button>
+                {selectedIds.length > 0 && selectedIds.length < 2 && (
+                  <span className="text-sm text-text-muted">
+                    Selectionnez au moins 2 series
+                  </span>
+                )}
+              </div>
+            </div>
+          </TabPanel>
+        </TabPanels>
+      </TabGroup>
+
+      <MergePreviewModal
+        isExecuting={executeMerge.isPending}
+        onClose={() => {
+          setPreviewOpen(false);
+          setPreviewData(null);
+        }}
+        onConfirm={handleConfirmMerge}
+        open={previewOpen}
+        preview={previewData}
+      />
+    </div>
+  );
+}

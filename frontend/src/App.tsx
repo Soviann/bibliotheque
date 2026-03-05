@@ -54,6 +54,7 @@ function lazyWithRetry(importFn: () => Promise<LazyModule>) {
 const ComicDetail = lazyWithRetry(() => import("./pages/ComicDetail"));
 const ComicForm = lazyWithRetry(() => import("./pages/ComicForm"));
 const Login = lazyWithRetry(() => import("./pages/Login"));
+const MergeSeries = lazyWithRetry(() => import("./pages/MergeSeries"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const Trash = lazyWithRetry(() => import("./pages/Trash"));
 
@@ -91,6 +92,7 @@ const router = createBrowserRouter(
         <Route element={<ComicForm />} path="comic/new" />
         <Route element={<ComicDetail />} path="comic/:id" />
         <Route element={<ComicForm />} path="comic/:id/edit" />
+        <Route element={<MergeSeries />} path="merge-series" />
         <Route element={<Trash />} path="trash" />
         <Route element={<NotFound />} path="*" />
       </Route>
