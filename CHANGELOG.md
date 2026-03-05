@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **CRUD offline avec synchronisation automatique** : Toutes les opérations (créer, modifier, supprimer) sur les séries et tomes fonctionnent hors ligne avec mises à jour optimistes, file d'attente persistée en IndexedDB, et synchronisation automatique au retour en ligne via Background Sync API. Indicateurs visuels sur les éléments en attente de sync, bannière d'erreurs extensible avec détails du payload, notifications mobiles via Service Worker, et auto-résolution des erreurs depuis le formulaire d'édition (#126)
 - **Date de publication sur la page détail** : Affichage de la date de publication (champ `publishedDate`) dans les métadonnées de la page détail d'une série, formatée en français (#98)
 
 ## [v2.0.0] - 2026-03-03
