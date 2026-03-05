@@ -1,0 +1,526 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Service\Lookup;
+
+use App\Enum\ComicType;
+use App\Service\Lookup\BedethequeLookup;
+use App\Service\Lookup\LookupResult;
+use Gemini\Contracts\ClientContract as GeminiClient;
+use Gemini\Contracts\Resources\GenerativeModelContract;
+use Gemini\Exceptions\ErrorException;
+use Gemini\Responses\GenerativeModel\GenerateContentResponse;
+use Gemini\Testing\ClientFake;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
+
+/**
+ * Tests unitaires pour BedethequeLookup.
+ */
+final class BedethequeLookupTest extends TestCase
+{
+    private AdapterInterface $cache;
+    private LoggerInterface $logger;
+
+    protected function setUp(): void
+    {
+        $this->cache = $this->createStub(AdapterInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
+    }
+
+    /**
+     * Teste que getName retourne 'bedetheque'.
+     */
+    public function testGetNameReturnsBedetheque(): void
+    {
+        self::assertSame('bedetheque', $this->createProvider()->getName());
+    }
+
+    /**
+     * Teste que supports retourne true pour isbn et title.
+     */
+    public function testSupportsIsbnAndTitle(): void
+    {
+        $provider = $this->createProvider();
+
+        self::assertTrue($provider->supports('title', null));
+        self::assertTrue($provider->supports('title', ComicType::BD));
+        self::assertTrue($provider->supports('isbn', null));
+        self::assertTrue($provider->supports('isbn', ComicType::BD));
+    }
+
+    /**
+     * Teste que supports retourne false pour les modes non supportes.
+     */
+    public function testDoesNotSupportOtherModes(): void
+    {
+        self::assertFalse($this->createProvider()->supports('author', null));
+    }
+
+    /**
+     * Teste les priorites par champ pour le type BD (reference francophone).
+     */
+    public function testGetFieldPriorityForBdType(): void
+    {
+        $provider = $this->createProvider();
+
+        self::assertSame(150, $provider->getFieldPriority('authors', ComicType::BD));
+        self::assertSame(150, $provider->getFieldPriority('description', ComicType::BD));
+        self::assertSame(150, $provider->getFieldPriority('publisher', ComicType::BD));
+        self::assertSame(150, $provider->getFieldPriority('latestPublishedIssue', ComicType::BD));
+        self::assertSame(150, $provider->getFieldPriority('isOneShot', ComicType::BD));
+    }
+
+    /**
+     * Teste les priorites par champ pour les types non-BD.
+     */
+    public function testGetFieldPriorityForNonBdTypes(): void
+    {
+        $provider = $this->createProvider();
+
+        self::assertSame(110, $provider->getFieldPriority('authors', ComicType::MANGA));
+        self::assertSame(110, $provider->getFieldPriority('description', ComicType::COMICS));
+        self::assertSame(110, $provider->getFieldPriority('publisher', null));
+    }
+
+    /**
+     * Teste que thumbnail a une priorite basse (extraction non fiable via grounding).
+     */
+    public function testGetFieldPriorityThumbnailIsLow(): void
+    {
+        $provider = $this->createProvider();
+
+        self::assertSame(50, $provider->getFieldPriority('thumbnail', ComicType::BD));
+        self::assertSame(50, $provider->getFieldPriority('thumbnail', ComicType::MANGA));
+        self::assertSame(50, $provider->getFieldPriority('thumbnail', null));
+    }
+
+    /**
+     * Teste que prepareLookup retourne le resultat depuis le cache.
+     */
+    public function testPrepareLookupReturnsCachedResult(): void
+    {
+        $cachedResult = new LookupResult(title: 'Blacksad', source: 'bedetheque');
+
+        $realCache = new ArrayAdapter();
+        $realCache->get('test_key', static fn () => $cachedResult);
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider();
+        $state = $provider->prepareLookup('Blacksad', ComicType::BD, 'title');
+
+        self::assertInstanceOf(LookupResult::class, $state);
+        self::assertSame('Blacksad', $state->title);
+
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertSame('success', $apiMessage->status);
+    }
+
+    /**
+     * Teste que prepareLookup retourne null quand le rate limit est depasse.
+     */
+    public function testPrepareLookupReturnsNullWhenRateLimited(): void
+    {
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $storage = new InMemoryStorage();
+        $limiterFactory = new RateLimiterFactory(
+            ['id' => 'test', 'policy' => 'fixed_window', 'interval' => '1 minute', 'limit' => 1],
+            $storage,
+        );
+        $limiterFactory->create('gemini_global')->consume();
+
+        $provider = $this->createProvider(limiterFactory: $limiterFactory);
+        $state = $provider->prepareLookup('Blacksad', ComicType::BD, 'title');
+
+        self::assertNull($state);
+
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertSame('rate_limited', $apiMessage->status);
+    }
+
+    /**
+     * Teste que prepareLookup retourne un tableau avec cacheKey et prompt.
+     */
+    public function testPrepareLookupReturnsPromptState(): void
+    {
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider();
+        $state = $provider->prepareLookup('Blacksad', ComicType::BD, 'title');
+
+        self::assertIsArray($state);
+        self::assertArrayHasKey('cacheKey', $state);
+        self::assertArrayHasKey('prompt', $state);
+        self::assertStringContainsString('Blacksad', $state['prompt']);
+        self::assertStringContainsString('site:bedetheque.com', $state['prompt']);
+    }
+
+    /**
+     * Teste que le prompt ISBN contient l'ISBN et site:bedetheque.com.
+     */
+    public function testPrepareLookupIsbnPromptContainsIsbn(): void
+    {
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider();
+        $state = $provider->prepareLookup('9782205049831', ComicType::BD, 'isbn');
+
+        self::assertIsArray($state);
+        self::assertStringContainsString('9782205049831', $state['prompt']);
+        self::assertStringContainsString('site:bedetheque.com', $state['prompt']);
+        self::assertStringContainsString('ISBN', $state['prompt']);
+    }
+
+    /**
+     * Teste que le prompt contient le type quand specifie.
+     */
+    public function testPrepareLookupPromptContainsType(): void
+    {
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider();
+        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+
+        self::assertIsArray($state);
+        self::assertStringContainsString('manga', $state['prompt']);
+    }
+
+    /**
+     * Teste resolveLookup avec une reponse Gemini valide.
+     */
+    public function testResolveLookupSuccessWithValidResponse(): void
+    {
+        $jsonResponse = \json_encode([
+            'authors' => 'Juan Diaz Canales, Juanjo Guarnido',
+            'description' => 'Blacksad est une serie de bande dessinee policiere',
+            'isOneShot' => false,
+            'latestPublishedIssue' => 7,
+            'publisher' => 'Dargaud',
+            'title' => 'Blacksad',
+        ]);
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $cache = $this->createMock(AdapterInterface::class);
+        $cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+        $cache->expects(self::once())->method('save');
+        $this->cache = $cache;
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertSame('Blacksad', $result->title);
+        self::assertSame('Juan Diaz Canales, Juanjo Guarnido', $result->authors);
+        self::assertSame('Dargaud', $result->publisher);
+        self::assertSame(7, $result->latestPublishedIssue);
+        self::assertSame('bedetheque', $result->source);
+    }
+
+    /**
+     * Teste resolveLookup retourne directement un LookupResult passe en etat.
+     */
+    public function testResolveLookupReturnsCachedResultDirectly(): void
+    {
+        $cachedResult = new LookupResult(title: 'Cached', source: 'bedetheque');
+        $provider = $this->createProvider();
+
+        $result = $provider->resolveLookup($cachedResult);
+
+        self::assertSame($cachedResult, $result);
+    }
+
+    /**
+     * Teste resolveLookup retourne null quand l'etat est null.
+     */
+    public function testResolveLookupReturnsNullForNullState(): void
+    {
+        self::assertNull($this->createProvider()->resolveLookup(null));
+    }
+
+    /**
+     * Teste resolveLookup avec une reponse JSON dans un bloc markdown.
+     */
+    public function testResolveLookupHandlesMarkdownJsonBlock(): void
+    {
+        $jsonResponse = "```json\n{\"title\": \"Blacksad\", \"authors\": \"Canales, Guarnido\"}\n```";
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNotNull($result);
+        self::assertSame('Blacksad', $result->title);
+    }
+
+    /**
+     * Teste resolveLookup retourne null quand la reponse JSON est invalide.
+     */
+    public function testResolveLookupReturnsNullForInvalidJson(): void
+    {
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => 'Not JSON'],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        self::assertSame('error', $provider->getLastApiMessage()->status);
+    }
+
+    /**
+     * Teste resolveLookup retourne null quand tous les champs sont null.
+     */
+    public function testResolveLookupReturnsNullWhenNoUsefulData(): void
+    {
+        $jsonResponse = \json_encode([
+            'authors' => null,
+            'description' => null,
+            'title' => null,
+        ]);
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        self::assertSame('not_found', $provider->getLastApiMessage()->status);
+    }
+
+    /**
+     * Teste resolveLookup en cas d'ErrorException avec code 429.
+     */
+    public function testResolveLookupErrorException429(): void
+    {
+        $exception = new ErrorException([
+            'code' => 429,
+            'message' => 'Resource exhausted',
+            'status' => 'RESOURCE_EXHAUSTED',
+        ]);
+
+        $geminiClient = new ClientFake([$exception]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+        $this->logger = $logger;
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        self::assertSame('rate_limited', $provider->getLastApiMessage()->status);
+    }
+
+    /**
+     * Teste resolveLookup en cas d'ErrorException avec code autre que 429.
+     */
+    public function testResolveLookupErrorExceptionOtherCode(): void
+    {
+        $exception = new ErrorException([
+            'code' => 500,
+            'message' => 'Internal error',
+            'status' => 'INTERNAL',
+        ]);
+
+        $geminiClient = new ClientFake([$exception]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+        $this->logger = $logger;
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        self::assertSame('error', $provider->getLastApiMessage()->status);
+    }
+
+    /**
+     * Teste resolveLookup en cas de Throwable generique.
+     */
+    public function testResolveLookupGenericThrowable(): void
+    {
+        $geminiClient = $this->createStub(GeminiClient::class);
+        $model = $this->createStub(GenerativeModelContract::class);
+
+        $geminiClient->method('generativeModel')->willReturn($model);
+        $model->method('withTool')->willReturn($model);
+        $model->method('generateContent')->willThrowException(new \RuntimeException('Connection lost'));
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+        $this->logger = $logger;
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        self::assertSame('error', $provider->getLastApiMessage()->status);
+        self::assertSame('Erreur de connexion', $provider->getLastApiMessage()->message);
+    }
+
+    /**
+     * Teste que la reponse Gemini indiquant "pas de resultat sur bedetheque" retourne null.
+     */
+    public function testResolveLookupReturnsNullWhenGeminiIndicatesNoResult(): void
+    {
+        $jsonResponse = \json_encode([
+            'authors' => null,
+            'description' => null,
+            'isOneShot' => null,
+            'latestPublishedIssue' => null,
+            'publisher' => null,
+            'thumbnail' => null,
+            'title' => null,
+        ]);
+
+        $fakeResponse = GenerateContentResponse::fake([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => $jsonResponse],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(geminiClient: $geminiClient);
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        self::assertSame('not_found', $provider->getLastApiMessage()->status);
+    }
+
+    /**
+     * Cree une instance de BedethequeLookup avec des dependances configurables.
+     */
+    private function createProvider(
+        ?GeminiClient $geminiClient = null,
+        ?RateLimiterFactory $limiterFactory = null,
+    ): BedethequeLookup {
+        $geminiClient ??= $this->createStub(GeminiClient::class);
+
+        $limiterFactory ??= new RateLimiterFactory(
+            ['id' => 'test', 'policy' => 'fixed_window', 'interval' => '1 minute', 'limit' => 100],
+            new InMemoryStorage(),
+        );
+
+        return new BedethequeLookup(
+            $this->cache,
+            $geminiClient,
+            $limiterFactory,
+            $this->logger,
+        );
+    }
+}

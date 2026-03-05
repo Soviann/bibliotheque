@@ -114,7 +114,7 @@ Le formulaire de création/édition est la page la plus riche de l'application.
 
 Avant de remplir manuellement, vous pouvez utiliser la recherche automatique :
 
-1. **Par ISBN** : saisir un ISBN-10 ou ISBN-13, l'application interroge plusieurs APIs (Google Books, BnF, OpenLibrary, AniList, Wikipedia, Gemini) pour pré-remplir les champs
+1. **Par ISBN** : saisir un ISBN-10 ou ISBN-13, l'application interroge plusieurs APIs (Google Books, BnF, OpenLibrary, AniList, Wikipedia, Gemini, Bedetheque) pour pré-remplir les champs
 2. **Par titre** : saisir un titre et l'application recherche les informations correspondantes
 3. **Par scan de code-barres** : utiliser la caméra du téléphone pour scanner le code-barres d'un livre/manga
 

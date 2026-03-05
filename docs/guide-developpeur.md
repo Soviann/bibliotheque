@@ -202,6 +202,7 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 | AniListLookup | AniList GraphQL | Manga, couverture, one-shot |
 | WikipediaLookup | Wikipedia API | Description |
 | GeminiLookup | Google Gemini AI | Informations complémentaires |
+| BedethequeLookup | Bedetheque.com via Gemini | BD (référence francophone), métadonnées séries |
 
 ### Commandes console
 
