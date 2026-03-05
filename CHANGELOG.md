@@ -10,6 +10,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Added
 
 - **Lookup Bedetheque via Gemini Google Search** : Nouveau provider de recherche ciblant bedetheque.com via Gemini avec Google Search grounding. Priorité élevée pour les BD (150), modérée pour manga/comics (110). Recherche par ISBN et titre (#119)
+- **Sources des résultats de lookup** : Affichage des providers ayant contribué aux résultats (ex: "Sources : google_books, gemini, bedetheque") et des messages d'erreur/timeout des providers (#130)
+- **Bouton titre série dans le lookup** : Bouton pour pré-remplir le champ de recherche titre avec le titre de la série en cours d'édition (#131)
+- **Monolog** : Installation de symfony/monolog-bundle pour les logs applicatifs
+
+### Fixed
+
+- **Provider Bedetheque** : Correction du prompt Gemini qui bloquait avec l'opérateur `site:` dans le grounding API. Gestion du ValueError (aucun candidat retourné) (#119)
+- **Type apiMessages** : Correction du type frontend (objet clé-valeur, pas tableau)
 
 ## [v2.1.0] - 2026-03-05
 
