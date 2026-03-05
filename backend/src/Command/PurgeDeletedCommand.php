@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Entity\ComicSeries;
-use App\Service\ComicSeriesService;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\PurgeService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,8 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class PurgeDeletedCommand extends Command
 {
     public function __construct(
-        private readonly ComicSeriesService $comicSeriesService,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly PurgeService $purgeService,
     ) {
         parent::__construct();
     }
@@ -49,45 +46,26 @@ class PurgeDeletedCommand extends Command
         }
 
         $dryRun = (bool) $input->getOption('dry-run');
-        $cutoffDate = new \DateTime(\sprintf('-%d days', $days));
+        $purgeable = $this->purgeService->findPurgeable($days);
 
-        // Désactiver le filtre pour accéder aux séries soft-deleted
-        $this->entityManager->getFilters()->disable('soft_delete');
-
-        /** @var ComicSeries[] $seriesToPurge */
-        $seriesToPurge = $this->entityManager->getRepository(ComicSeries::class)
-            ->createQueryBuilder('c')
-            ->where('c.deletedAt IS NOT NULL')
-            ->andWhere('c.deletedAt <= :cutoff')
-            ->setParameter('cutoff', $cutoffDate)
-            ->getQuery()
-            ->getResult();
-
-        $this->entityManager->getFilters()->enable('soft_delete');
-
-        if ([] === $seriesToPurge) {
+        if ([] === $purgeable) {
             $io->success('Aucune série à purger.');
 
             return Command::SUCCESS;
         }
 
-        $io->section(\sprintf('%d série(s) éligible(s) à la purge (supprimées depuis plus de %d jours)', \count($seriesToPurge), $days));
+        $io->section(\sprintf('%d série(s) éligible(s) à la purge (supprimées depuis plus de %d jours)', \count($purgeable), $days));
 
-        foreach ($seriesToPurge as $series) {
-            $deletedAt = $series->getDeletedAt();
-            $io->writeln(\sprintf('  - %s (supprimée le %s)', $series->getTitle(), $deletedAt instanceof \DateTimeInterface ? $deletedAt->format('d/m/Y') : '?'));
-
-            if (!$dryRun) {
-                /** @var int $seriesId already persisted entity, getId() cannot be null */
-                $seriesId = $series->getId();
-                $this->comicSeriesService->permanentDelete($seriesId, $series);
-            }
+        foreach ($purgeable as $series) {
+            $io->writeln(\sprintf('  - %s (supprimée le %s)', $series->title, $series->deletedAt->format('d/m/Y')));
         }
 
         if ($dryRun) {
             $io->note('Mode dry-run : aucune suppression effectuée.');
         } else {
-            $io->success(\sprintf('%d série(s) purgée(s).', \count($seriesToPurge)));
+            $ids = \array_map(static fn ($s) => $s->id, $purgeable);
+            $count = $this->purgeService->executePurge($ids);
+            $io->success(\sprintf('%d série(s) purgée(s).', $count));
         }
 
         return Command::SUCCESS;
