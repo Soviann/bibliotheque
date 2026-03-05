@@ -10,8 +10,8 @@ namespace App\DTO;
 readonly class MergePreview implements \JsonSerializable
 {
     /**
-     * @param list<string>          $authors
-     * @param list<int>             $sourceSeriesIds
+     * @param list<string>           $authors
+     * @param list<int>              $sourceSeriesIds
      * @param list<MergePreviewTome> $tomes
      */
     public function __construct(
