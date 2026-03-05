@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Lookup BnF** : Correction du parsing des noms d'auteurs contenant un suffixe de rôle BnF (ex: `. Auteur du texte`, `. Illustrateur`) (#133)
+
 ### Added
 
 - **Lookup Bedetheque via Gemini Google Search** : Nouveau provider de recherche ciblant bedetheque.com via Gemini avec Google Search grounding. Priorité élevée pour les BD (150), modérée pour manga/comics (110). Recherche par ISBN et titre (#119)
