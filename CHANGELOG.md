@@ -13,6 +13,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **UX recherche** : Debounce de la synchronisation URL (300ms) pour supprimer le lag de saisie, indicateur de chargement lors du refetch, transition CSS sur la grille de résultats (#147)
+
 - **Tomes supprimés lors de l'édition d'une série** : Le PUT API Platform vidait silencieusement la collection de tomes. Migration vers PATCH (merge-patch+json) avec `@id` pour identifier les tomes existants. Les tomes sont maintenant correctement préservés, ajoutés et supprimés (#145)
 
 ### Changed
