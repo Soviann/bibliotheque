@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Import Excel depuis le frontend** : Page `/tools/import` avec deux onglets (suivi et livres), upload drag-drop, mode simulation (dry run), affichage des résultats détaillés (#135)
 - **Fusion de séries** : Détection automatique via Gemini AI des séries à fusionner (par type + lettre), avec aperçu complet et éditable avant exécution. Sélection manuelle possible. Tous les champs des tomes sont modifiables (numéro, fin, titre, ISBN, statuts). Détection des doublons de numéros avec blocage (#136)
 - **Page Outils** : Hub centralisé `/tools` pour accéder aux outils d'administration (fusion, import, lookup, purge) (#136)
 
