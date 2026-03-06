@@ -4,7 +4,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import { AlertTriangle, Loader2, X } from "lucide-react";
+import { AlertTriangle, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { MergePreview, MergePreviewTome } from "../types/api";
 
@@ -60,6 +60,25 @@ export default function MergePreviewModal({
 
   const removeTome = (index: number) => {
     setEditedTomes((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addTome = () => {
+    setEditedTomes((prev) => {
+      const maxNumber = prev.reduce((max, t) => Math.max(max, t.number, t.tomeEnd ?? 0), 0);
+      return [
+        ...prev,
+        {
+          bought: false,
+          downloaded: false,
+          isbn: null,
+          number: maxNumber + 1,
+          onNas: false,
+          read: false,
+          title: null,
+          tomeEnd: null,
+        },
+      ];
+    });
   };
 
   if (!preview) return null;
@@ -259,6 +278,14 @@ export default function MergePreviewModal({
                   })}
                 </tbody>
               </table>
+              <button
+                className="mt-2 flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-950/30"
+                onClick={addTome}
+                type="button"
+              >
+                <Plus className="h-4 w-4" />
+                Ajouter un tome
+              </button>
           </div>
 
           {/* Footer */}

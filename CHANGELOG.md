@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Ajout de tomes dans la prévisualisation de fusion** : Bouton "Ajouter un tome" dans la modale de fusion, avec numérotation automatique (#146)
+
 ### Fixed
 
 - **Tomes supprimés lors de l'édition d'une série** : Le PUT API Platform vidait silencieusement la collection de tomes. Migration vers PATCH (merge-patch+json) avec `@id` pour identifier les tomes existants. Les tomes sont maintenant correctement préservés, ajoutés et supprimés (#145)
