@@ -184,7 +184,7 @@ Chaque import peut être lancé en mode **simulation** (dry run) pour vérifier 
 
 ### Fusion de séries
 
-Détecter automatiquement (via Gemini AI) les séries potentiellement duplicates, ou sélectionner manuellement des séries à fusionner. Aperçu complet et éditable avant exécution.
+Détecter automatiquement (via Gemini AI) les séries potentiellement duplicates, ou sélectionner manuellement des séries à fusionner. Une étape de confirmation permet de vérifier et exclure des séries avant la prévisualisation des tomes. Aperçu complet et éditable avant exécution.
 
 ### Purge
 
