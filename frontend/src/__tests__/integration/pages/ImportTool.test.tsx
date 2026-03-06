@@ -44,9 +44,10 @@ describe("ImportTool", () => {
     server.use(
       http.post(`${API_BASE}/tools/import/excel`, () =>
         HttpResponse.json({
-          sheetDetails: { Mangas: { series: 3, tomes: 15 } },
-          totalSeries: 3,
+          sheetDetails: { Mangas: { created: 3, tomes: 15, updated: 0 } },
+          totalCreated: 3,
           totalTomes: 15,
+          totalUpdated: 0,
         }),
       ),
     );
@@ -122,9 +123,10 @@ describe("ImportTool", () => {
     server.use(
       http.post(`${API_BASE}/tools/import/excel`, () =>
         HttpResponse.json({
-          sheetDetails: { BD: { series: 1, tomes: 5 } },
-          totalSeries: 1,
+          sheetDetails: { BD: { created: 1, tomes: 5, updated: 0 } },
+          totalCreated: 1,
           totalTomes: 5,
+          totalUpdated: 0,
         }),
       ),
     );
@@ -150,11 +152,12 @@ describe("ImportTool", () => {
       http.post(`${API_BASE}/tools/import/excel`, () =>
         HttpResponse.json({
           sheetDetails: {
-            BD: { series: 2, tomes: 8 },
-            Mangas: { series: 4, tomes: 20 },
+            BD: { created: 2, tomes: 8, updated: 0 },
+            Mangas: { created: 4, tomes: 20, updated: 0 },
           },
-          totalSeries: 6,
+          totalCreated: 6,
           totalTomes: 28,
+          totalUpdated: 0,
         }),
       ),
     );

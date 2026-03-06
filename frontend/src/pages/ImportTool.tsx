@@ -28,7 +28,7 @@ function ExcelTab() {
           setResult(data);
           if (!dryRun) {
             toast.success(
-              `${data.totalSeries} serie(s) et ${data.totalTomes} tome(s) importes`,
+              `${data.totalCreated} creee(s), ${data.totalUpdated} mise(s) a jour, ${data.totalTomes} nouveau(x) tome(s)`,
             );
           }
         },
@@ -76,9 +76,11 @@ function ExcelTab() {
             {dryRun ? "Simulation terminee" : "Import termine"}
           </div>
           <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-text-secondary">Series</dt>
-            <dd className="text-text-primary">{result.totalSeries}</dd>
-            <dt className="text-text-secondary">Tomes</dt>
+            <dt className="text-text-secondary">Creees</dt>
+            <dd className="text-text-primary">{result.totalCreated}</dd>
+            <dt className="text-text-secondary">Mises a jour</dt>
+            <dd className="text-text-primary">{result.totalUpdated}</dd>
+            <dt className="text-text-secondary">Nouveaux tomes</dt>
             <dd className="text-text-primary">{result.totalTomes}</dd>
           </dl>
           {Object.keys(result.sheetDetails).length > 0 && (
@@ -88,7 +90,8 @@ function ExcelTab() {
               </p>
               {Object.entries(result.sheetDetails).map(([sheet, details]) => (
                 <p className="text-xs text-text-secondary" key={sheet}>
-                  {sheet}: {details.series} serie(s), {details.tomes} tome(s)
+                  {sheet}: {details.created} creee(s), {details.updated}{" "}
+                  maj, {details.tomes} nouveau(x) tome(s)
                 </p>
               ))}
             </div>

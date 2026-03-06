@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Import;
 
 use App\DTO\ImportExcelResult;
+use App\Repository\ComicSeriesRepository;
 use App\Service\Import\ImportExcelService;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -17,13 +18,15 @@ use PHPUnit\Framework\TestCase;
  */
 final class ImportExcelServiceTest extends TestCase
 {
+    private ComicSeriesRepository&MockObject $comicSeriesRepository;
     private EntityManagerInterface&MockObject $entityManager;
     private ImportExcelService $service;
 
     protected function setUp(): void
     {
+        $this->comicSeriesRepository = $this->createMock(ComicSeriesRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->service = new ImportExcelService($this->entityManager);
+        $this->service = new ImportExcelService($this->comicSeriesRepository, $this->entityManager);
     }
 
     public function testImportDryRunDoesNotPersist(): void
@@ -40,7 +43,7 @@ final class ImportExcelServiceTest extends TestCase
 
         $result = $this->service->import($filePath, true);
 
-        self::assertSame(1, $result->totalSeries);
+        self::assertSame(1, $result->totalCreated);
         self::assertSame(10, $result->totalTomes);
         self::assertArrayHasKey('Mangas', $result->sheetDetails);
 
@@ -61,9 +64,9 @@ final class ImportExcelServiceTest extends TestCase
 
         $result = $this->service->import($filePath, false);
 
-        self::assertSame(1, $result->totalSeries);
+        self::assertSame(1, $result->totalCreated);
         self::assertArrayHasKey('BD', $result->sheetDetails);
-        self::assertSame(1, $result->sheetDetails['BD']['series']);
+        self::assertSame(1, $result->sheetDetails['BD']['created']);
 
         \unlink($filePath);
     }
@@ -79,7 +82,7 @@ final class ImportExcelServiceTest extends TestCase
 
         $result = $this->service->import($filePath, true);
 
-        self::assertSame(0, $result->totalSeries);
+        self::assertSame(0, $result->totalCreated);
         self::assertSame(0, $result->totalTomes);
         self::assertSame([], $result->sheetDetails);
 
@@ -98,7 +101,7 @@ final class ImportExcelServiceTest extends TestCase
 
         $result = $this->service->import($filePath, true);
 
-        self::assertSame(0, $result->totalSeries);
+        self::assertSame(0, $result->totalCreated);
 
         \unlink($filePath);
     }
@@ -118,7 +121,7 @@ final class ImportExcelServiceTest extends TestCase
 
         $result = $this->service->import($filePath, true);
 
-        self::assertSame(2, $result->totalSeries);
+        self::assertSame(2, $result->totalCreated);
         self::assertCount(2, $result->sheetDetails);
 
         \unlink($filePath);
@@ -140,18 +143,20 @@ final class ImportExcelServiceTest extends TestCase
     public function testImportExcelResultIsJsonSerializable(): void
     {
         $result = new ImportExcelResult(
-            sheetDetails: ['BD' => ['series' => 5, 'tomes' => 20]],
-            totalSeries: 5,
+            sheetDetails: ['BD' => ['created' => 5, 'tomes' => 20, 'updated' => 2]],
+            totalCreated: 5,
             totalTomes: 20,
+            totalUpdated: 2,
         );
 
         $json = \json_encode($result);
         self::assertNotFalse($json);
 
         $data = \json_decode($json, true);
-        self::assertSame(5, $data['totalSeries']);
+        self::assertSame(5, $data['totalCreated']);
         self::assertSame(20, $data['totalTomes']);
-        self::assertSame(['series' => 5, 'tomes' => 20], $data['sheetDetails']['BD']);
+        self::assertSame(2, $data['totalUpdated']);
+        self::assertSame(['created' => 5, 'tomes' => 20, 'updated' => 2], $data['sheetDetails']['BD']);
     }
 
     /**

@@ -10,24 +10,26 @@ namespace App\DTO;
 final readonly class ImportExcelResult implements \JsonSerializable
 {
     /**
-     * @param array<string, array{series: int, tomes: int}> $sheetDetails
+     * @param array<string, array{created: int, tomes: int, updated: int}> $sheetDetails
      */
     public function __construct(
         public array $sheetDetails,
-        public int $totalSeries,
+        public int $totalCreated,
         public int $totalTomes,
+        public int $totalUpdated,
     ) {
     }
 
     /**
-     * @return array{sheetDetails: array<string, array{series: int, tomes: int}>, totalSeries: int, totalTomes: int}
+     * @return array{sheetDetails: array<string, array{created: int, tomes: int, updated: int}>, totalCreated: int, totalTomes: int, totalUpdated: int}
      */
     public function jsonSerialize(): array
     {
         return [
             'sheetDetails' => $this->sheetDetails,
-            'totalSeries' => $this->totalSeries,
+            'totalCreated' => $this->totalCreated,
             'totalTomes' => $this->totalTomes,
+            'totalUpdated' => $this->totalUpdated,
         ];
     }
 }

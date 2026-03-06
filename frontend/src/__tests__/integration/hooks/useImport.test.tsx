@@ -23,9 +23,10 @@ describe("useImportExcel", () => {
     server.use(
       http.post(`${API_BASE}/tools/import/excel`, () =>
         HttpResponse.json({
-          sheetDetails: { Mangas: { series: 2, tomes: 10 } },
-          totalSeries: 2,
+          sheetDetails: { Mangas: { created: 2, tomes: 10, updated: 0 } },
+          totalCreated: 2,
           totalTomes: 10,
+          totalUpdated: 0,
         }),
       ),
     );
@@ -39,7 +40,7 @@ describe("useImportExcel", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data?.totalSeries).toBe(2);
+    expect(result.current.data?.totalCreated).toBe(2);
     expect(result.current.data?.totalTomes).toBe(10);
   });
 });
