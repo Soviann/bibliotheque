@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\ComicSeries;
-use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
+use App\Service\BatchLookupService;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupOrchestrator;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -27,12 +26,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class LookupMissingCommand extends Command
 {
-    private const int BATCH_SIZE = 10;
-    private const int MAX_DELAY = 60;
-
     public function __construct(
+        private readonly BatchLookupService $batchLookupService,
         private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly EntityManagerInterface $entityManager,
         private readonly LookupApplier $lookupApplier,
         private readonly LookupOrchestrator $lookupOrchestrator,
     ) {
@@ -78,120 +74,50 @@ class LookupMissingCommand extends Command
             $io->warning('Mode dry-run activé. Aucune donnée ne sera persistée.');
         }
 
-        // Mode série spécifique
+        // Mode série spécifique — ne passe pas par le service batch
         if (null !== $seriesId) {
             return $this->processSpecificSeries($io, (int) $seriesId, $delay, $dryRun);
         }
 
-        $seriesToProcess = $this->comicSeriesRepository->findWithMissingLookupData(
-            force: $force,
-            limit: $limit > 0 ? $limit : null,
-            type: $type,
-        );
+        $count = $this->batchLookupService->countSeriesToProcess($type, $force);
 
-        if ([] === $seriesToProcess) {
+        if (0 === $count) {
             $io->success('Aucune série avec des données manquantes.');
 
             return Command::SUCCESS;
         }
 
-        $io->info(\sprintf('%d série(s) à traiter.', \count($seriesToProcess)));
+        $io->info(\sprintf('%d série(s) à traiter.', $count));
 
-        return $this->processSeriesList($io, $seriesToProcess, $delay, $dryRun);
-    }
-
-    private function processSpecificSeries(SymfonyStyle $io, int $seriesId, int $delay, bool $dryRun): int
-    {
-        $series = $this->comicSeriesRepository->find($seriesId);
-
-        if (!$series instanceof ComicSeries) {
-            $io->error(\sprintf('Série #%d introuvable.', $seriesId));
-
-            return Command::FAILURE;
-        }
-
-        return $this->processSeriesList($io, [$series], $delay, $dryRun);
-    }
-
-    /**
-     * @param ComicSeries[] $seriesList
-     */
-    private function processSeriesList(SymfonyStyle $io, array $seriesList, int $initialDelay, bool $dryRun): int
-    {
-        $currentDelay = $initialDelay;
         $failed = 0;
         $processed = 0;
         $skipped = 0;
         $updated = 0;
 
-        foreach ($seriesList as $index => $series) {
-            $title = $series->getTitle();
-            $type = $series->getType();
-
-            $io->text(\sprintf('[%d/%d] %s (%s)', $index + 1, \count($seriesList), $title, $type->getLabel()));
-
-            $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
-
-            // Vérifier le rate limiting
-            if ($this->hasRateLimitError()) {
-                $io->warning(\sprintf('  Rate limit détecté, attente %ds...', \min($currentDelay * 2, self::MAX_DELAY)));
-                $currentDelay = \min($currentDelay * 2, self::MAX_DELAY);
-                \sleep($currentDelay);
-
-                // Retry
-                $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
-
-                if ($this->hasRateLimitError()) { // @phpstan-ignore if.alwaysTrue (état dépend de l'appel API)
-                    $io->error(\sprintf('  Rate limit persistant pour « %s », passage à la suivante.', $title));
-                    ++$failed;
-                    ++$processed;
-
-                    continue;
-                }
-            }
-
-            if (null === $result) {
-                $io->text('  Aucun résultat trouvé.');
-                ++$skipped;
-
-                if (!$dryRun) {
-                    $series->setLookupCompletedAt(new \DateTimeImmutable());
-                }
-            } else {
-                $updatedFields = $this->lookupApplier->apply($series, $result);
-
-                if ([] !== $updatedFields) {
-                    $io->text(\sprintf('  Champs mis à jour : %s', \implode(', ', $updatedFields)));
-                    ++$updated;
-                } else {
-                    $io->text('  Résultat trouvé mais aucun champ vide à remplir.');
-                    ++$skipped;
-                }
-
-                if (!$dryRun) {
-                    $series->setLookupCompletedAt(new \DateTimeImmutable());
-                }
-
-                // Reset delay après un succès
-                $currentDelay = $initialDelay;
-            }
+        foreach ($this->batchLookupService->run(
+            delay: $delay,
+            dryRun: $dryRun,
+            force: $force,
+            limit: $limit,
+            type: $type,
+        ) as $progress) {
+            $io->text(\sprintf(
+                '[%d/%d] %s — %s%s',
+                $progress->current,
+                $progress->total,
+                $progress->seriesTitle,
+                $progress->status,
+                [] !== $progress->updatedFields ? ' ('.\implode(', ', $progress->updatedFields).')' : '',
+            ));
 
             ++$processed;
 
-            // Flush par batch
-            if (!$dryRun && 0 === $processed % self::BATCH_SIZE) {
-                $this->entityManager->flush();
-            }
-
-            // Délai entre les lookups (sauf dernier)
-            if ($index < \count($seriesList) - 1 && $currentDelay > 0) {
-                \sleep($currentDelay);
-            }
-        }
-
-        // Flush final
-        if (!$dryRun) {
-            $this->entityManager->flush();
+            match ($progress->status) {
+                'failed' => ++$failed,
+                'skipped' => ++$skipped,
+                'updated' => ++$updated,
+                default => null,
+            };
         }
 
         $io->newLine();
@@ -206,17 +132,49 @@ class LookupMissingCommand extends Command
         return Command::SUCCESS;
     }
 
-    /**
-     * Vérifie si un des messages API indique un rate limit.
-     */
-    private function hasRateLimitError(): bool
+    private function processSpecificSeries(SymfonyStyle $io, int $seriesId, int $delay, bool $dryRun): int
     {
-        foreach ($this->lookupOrchestrator->getLastApiMessages() as $message) {
-            if (ApiLookupStatus::RATE_LIMITED->value === $message->status) {
-                return true;
-            }
+        $series = $this->comicSeriesRepository->find($seriesId);
+
+        if (!$series instanceof ComicSeries) {
+            $io->error(\sprintf('Série #%d introuvable.', $seriesId));
+
+            return Command::FAILURE;
         }
 
-        return false;
+        $title = $series->getTitle();
+        $type = $series->getType();
+
+        $io->text(\sprintf('Lookup de « %s » (%s)...', $title, $type->getLabel()));
+
+        $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
+
+        if (null === $result) {
+            $io->text('Aucun résultat trouvé.');
+
+            if (!$dryRun) {
+                $series->setLookupCompletedAt(new \DateTimeImmutable());
+            }
+
+            $io->success('Terminé (aucune mise à jour).');
+
+            return Command::SUCCESS;
+        }
+
+        $updatedFields = $this->lookupApplier->apply($series, $result);
+
+        if ([] !== $updatedFields) {
+            $io->text(\sprintf('Champs mis à jour : %s', \implode(', ', $updatedFields)));
+        } else {
+            $io->text('Résultat trouvé mais aucun champ vide à remplir.');
+        }
+
+        if (!$dryRun) {
+            $series->setLookupCompletedAt(new \DateTimeImmutable());
+        }
+
+        $io->success('Terminé.');
+
+        return Command::SUCCESS;
     }
 }
