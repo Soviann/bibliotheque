@@ -9,8 +9,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Bouton vider le cache** : Bouton dans la page Outils pour purger le cache local (IndexedDB + TanStack Query) et recharger les données depuis le serveur, avec spinner et toast (#155)
 - **Sélecteur de couverture série** : Bouton de recherche d'images à côté du champ URL de couverture, modale avec grille d'images Google Custom Search, sélection visuelle (#137)
 - **Ajout de tomes dans la prévisualisation de fusion** : Bouton "Ajouter un tome" dans la modale de fusion, avec numérotation automatique (#146)
+
+### Changed
+
+- **Logout** : Le logout vide désormais le cache local (IndexedDB + TanStack Query) en plus de supprimer le token JWT (#155)
 
 ### Fixed
 
