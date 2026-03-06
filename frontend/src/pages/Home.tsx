@@ -1,5 +1,5 @@
-import { BookOpen, Filter, Heart, Search } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { BookOpen, Filter, Heart, Loader2, Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CardActionBar from "../components/CardActionBar";
@@ -65,15 +65,19 @@ export default function Home() {
     (v: SortOption) => updateParam("sort", v === "title-asc" ? "" : v),
     [updateParam],
   );
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const handleSearchChange = useCallback(
     (v: string) => {
       setSearch(v);
-      updateParam("search", v.trim());
+      clearTimeout(searchTimerRef.current);
+      searchTimerRef.current = setTimeout(() => {
+        updateParam("search", v.trim());
+      }, 300);
     },
     [updateParam],
   );
 
-  const { data, isLoading } = useComics();
+  const { data, isFetching, isLoading } = useComics();
   const deleteComic = useDeleteComic();
   const allComics = data?.member ?? [];
 
@@ -110,7 +114,10 @@ export default function Home() {
           status={status}
           type={type}
         />
-        <span className="shrink-0 text-sm text-text-muted">
+        <span className="flex shrink-0 items-center gap-1.5 text-sm text-text-muted">
+          {isFetching && !isLoading && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" data-testid="search-loading" />
+          )}
           {filtered.length}/{allComics.length}
         </span>
       </div>
@@ -150,7 +157,10 @@ export default function Home() {
           />
         )
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div
+          className="grid grid-cols-2 gap-3 transition-opacity duration-300 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+          data-testid="comics-grid"
+        >
           {filtered.map((comic) => (
             <ComicCard comic={comic} key={comic.id} onDelete={setDeleteTarget} onMenuOpen={setMenuComic} />
           ))}
