@@ -67,20 +67,22 @@ class ImportExcelCommand extends Command
 
         foreach ($result->sheetDetails as $sheetName => $details) {
             $io->success(\sprintf(
-                '%d séries importées avec %d tomes depuis "%s".',
-                $details['series'],
-                $details['tomes'],
-                $sheetName
+                '"%s" : %d créées, %d mises à jour, %d nouveaux tomes.',
+                $sheetName,
+                $details['created'],
+                $details['updated'],
+                $details['tomes']
             ));
         }
 
         $io->success(\sprintf(
-            'Import terminé. Total : %d séries, %d tomes.',
-            $result->totalSeries,
+            'Import terminé. Total : %d créées, %d mises à jour, %d nouveaux tomes.',
+            $result->totalCreated,
+            $result->totalUpdated,
             $result->totalTomes
         ));
 
-        if ($result->totalSeries > 0 && !$dryRun) {
+        if (($result->totalCreated > 0) && !$dryRun) {
             $io->info('Pour compléter les données des séries importées, exécutez : bin/console app:lookup-missing');
         }
 

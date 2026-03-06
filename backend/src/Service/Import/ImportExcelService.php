@@ -11,6 +11,7 @@ use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
+use App\Repository\ComicSeriesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -28,6 +29,7 @@ class ImportExcelService
     ];
 
     public function __construct(
+        private readonly ComicSeriesRepository $comicSeriesRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -40,8 +42,9 @@ class ImportExcelService
         $spreadsheet = IOFactory::load($filePath);
 
         $sheetDetails = [];
-        $totalImported = 0;
+        $totalCreated = 0;
         $totalTomes = 0;
+        $totalUpdated = 0;
 
         foreach (self::SHEET_TYPE_MAP as $sheetName => $comicType) {
             $sheet = $spreadsheet->getSheetByName($sheetName);
@@ -52,8 +55,9 @@ class ImportExcelService
 
             /** @var array<int, array<int, mixed>> $data */
             $data = $sheet->toArray();
-            $imported = 0;
-            $tomesCreated = 0;
+            $created = 0;
+            $tomesCount = 0;
+            $updated = 0;
             $counter = \count($data);
 
             for ($i = 1; $i < $counter; ++$i) {
@@ -70,8 +74,13 @@ class ImportExcelService
                     if (!$dryRun) {
                         $this->entityManager->persist($result->series);
                     }
-                    ++$imported;
-                    $tomesCreated += $result->tomesCount;
+
+                    if ($result->isUpdate) {
+                        ++$updated;
+                    } else {
+                        ++$created;
+                    }
+                    $tomesCount += $result->tomesCount;
                 }
             }
 
@@ -79,15 +88,17 @@ class ImportExcelService
                 $this->entityManager->flush();
             }
 
-            $sheetDetails[$sheetName] = ['series' => $imported, 'tomes' => $tomesCreated];
-            $totalImported += $imported;
-            $totalTomes += $tomesCreated;
+            $sheetDetails[$sheetName] = ['created' => $created, 'tomes' => $tomesCount, 'updated' => $updated];
+            $totalCreated += $created;
+            $totalTomes += $tomesCount;
+            $totalUpdated += $updated;
         }
 
         return new ImportExcelResult(
             sheetDetails: $sheetDetails,
-            totalSeries: $totalImported,
+            totalCreated: $totalCreated,
             totalTomes: $totalTomes,
+            totalUpdated: $totalUpdated,
         );
     }
 
@@ -125,12 +136,7 @@ class ImportExcelService
 
         $title = self::normalizeTitle($title);
 
-        $comic = new ComicSeries();
-        $comic->setTitle($title);
-        $comic->setType($comicType);
         $statusValue = isset($row[1]) && \is_string($row[1]) ? $row[1] : null;
-        $comic->setStatus($this->determineStatus($statusValue));
-
         $lastBought = $this->parseIntegerValue($row[2] ?? null);
         $currentIssue = $this->parseIntegerValue($row[3] ?? null);
         $publishedCount = $this->parseIntegerValue($row[4] ?? null);
@@ -151,10 +157,20 @@ class ImportExcelService
             }
         }
 
+        $existing = $this->comicSeriesRepository->findOneBy(['title' => $title, 'type' => $comicType]);
+        $isUpdate = null !== $existing;
+        $comic = $existing ?? new ComicSeries();
+
+        if (!$isUpdate) {
+            $comic->setTitle($title);
+            $comic->setType($comicType);
+        }
+
         $comic->setLatestPublishedIssue($latestPublishedIssue);
         $comic->setLatestPublishedIssueComplete($latestPublishedIssueComplete);
+        $comic->setStatus($this->determineStatus($statusValue));
 
-        $tomesCount = $this->createTomes(
+        $tomesCount = $this->syncTomes(
             $comic,
             $currentIssue->value,
             $currentIssue->isComplete,
@@ -166,13 +182,13 @@ class ImportExcelService
             $latestPublishedIssue
         );
 
-        return new ImportResult(series: $comic, tomesCount: $tomesCount);
+        return new ImportResult(isUpdate: $isUpdate, series: $comic, tomesCount: $tomesCount);
     }
 
     /**
-     * Crée les tomes pour une série.
+     * Synchronise les tomes pour une série (crée les manquants, met à jour les existants).
      */
-    private function createTomes(
+    private function syncTomes(
         ComicSeries $comic,
         ?int $currentIssueValue,
         bool $currentIssueComplete,
@@ -197,24 +213,35 @@ class ImportExcelService
             return 0;
         }
 
-        for ($number = 1; $number <= $maxTomeNumber; ++$number) {
-            $tome = new Tome();
-            $tome->setNumber($number);
-
-            $isBought = $lastBoughtComplete
-                || (null !== $lastBoughtValue && $number <= $lastBoughtValue);
-            $tome->setBought($isBought);
-
-            $isDownloaded = $lastDownloadedComplete
-                || (null !== $lastDownloadedValue && $number <= $lastDownloadedValue);
-            $tome->setDownloaded($isDownloaded);
-
-            $tome->setOnNas($onNas);
-
-            $comic->addTome($tome);
+        $existingTomes = [];
+        foreach ($comic->getTomes() as $tome) {
+            $existingTomes[$tome->getNumber()] = $tome;
         }
 
-        return $maxTomeNumber;
+        $newTomesCount = 0;
+
+        for ($number = 1; $number <= $maxTomeNumber; ++$number) {
+            $isBought = $lastBoughtComplete
+                || (null !== $lastBoughtValue && $number <= $lastBoughtValue);
+            $isDownloaded = $lastDownloadedComplete
+                || (null !== $lastDownloadedValue && $number <= $lastDownloadedValue);
+
+            if (isset($existingTomes[$number])) {
+                $existingTomes[$number]->setBought($isBought);
+                $existingTomes[$number]->setDownloaded($isDownloaded);
+                $existingTomes[$number]->setOnNas($onNas);
+            } else {
+                $tome = new Tome();
+                $tome->setBought($isBought);
+                $tome->setDownloaded($isDownloaded);
+                $tome->setNumber($number);
+                $tome->setOnNas($onNas);
+                $comic->addTome($tome);
+                ++$newTomesCount;
+            }
+        }
+
+        return $newTomesCount;
     }
 
     /**

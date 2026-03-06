@@ -167,7 +167,7 @@ final class ImportExcelCommandTest extends KernelTestCase
             $display = $this->commandTester->getDisplay();
 
             self::assertSame(Command::SUCCESS, $this->commandTester->getStatusCode());
-            self::assertStringContainsString('2 séries importées', $display);
+            self::assertStringContainsString('2 créées', $display);
             self::assertStringContainsString('dry-run', $display);
 
             // Rien en base
@@ -299,7 +299,7 @@ final class ImportExcelCommandTest extends KernelTestCase
             $this->commandTester->execute(['file' => $tmpFile]);
 
             self::assertSame(Command::SUCCESS, $this->commandTester->getStatusCode());
-            self::assertStringContainsString('0 séries', $this->commandTester->getDisplay());
+            self::assertStringContainsString('0 créées', $this->commandTester->getDisplay());
         } finally {
             @\unlink($tmpFile);
         }

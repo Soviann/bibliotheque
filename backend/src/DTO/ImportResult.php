@@ -12,6 +12,7 @@ use App\Entity\ComicSeries;
 readonly class ImportResult
 {
     public function __construct(
+        public bool $isUpdate,
         public ComicSeries $series,
         public int $tomesCount,
     ) {

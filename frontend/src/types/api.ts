@@ -102,9 +102,13 @@ export interface MergePreviewTome {
 }
 
 export interface ImportExcelResult {
-  sheetDetails: Record<string, { series: number; tomes: number }>;
-  totalSeries: number;
+  sheetDetails: Record<
+    string,
+    { created: number; tomes: number; updated: number }
+  >;
+  totalCreated: number;
   totalTomes: number;
+  totalUpdated: number;
 }
 
 export interface ImportBooksResult {
