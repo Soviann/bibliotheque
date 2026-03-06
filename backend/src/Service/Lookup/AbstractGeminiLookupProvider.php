@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
-use Gemini\Contracts\ClientContract as GeminiClient;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Gemini\Exceptions\ErrorException;
@@ -21,11 +20,9 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
  */
 abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
 {
-    private const string MODEL = 'gemini-2.5-flash';
-
     public function __construct(
         protected readonly AdapterInterface $cache,
-        protected readonly GeminiClient $geminiClient,
+        protected readonly GeminiClientPool $geminiClientPool,
         protected readonly RateLimiterFactory $limiterFactory,
         protected readonly LoggerInterface $logger,
     ) {
@@ -142,48 +139,50 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         $logName = $this->getLogName();
 
         try {
-            $response = $this->geminiClient
-                ->generativeModel(model: self::MODEL)
-                ->withTool(new Tool(googleSearch: GoogleSearch::from()))
-                ->generateContent($prompt);
+            return $this->geminiClientPool->executeWithRetry(function ($client, $model) use ($prompt): ?LookupResult {
+                $response = $client
+                    ->generativeModel(model: $model)
+                    ->withTool(new Tool(googleSearch: GoogleSearch::from()))
+                    ->generateContent($prompt);
 
-            $text = $response->text();
-            $data = $this->parseJsonFromText($text);
+                $text = $response->text();
+                $data = $this->parseJsonFromText($text);
 
-            if (null === $data) {
-                $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse JSON invalide');
+                if (null === $data) {
+                    $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse JSON invalide');
 
-                return null;
-            }
-
-            $hasData = false;
-            foreach ($this->getUsefulDataFields() as $field) {
-                if (!empty($data[$field])) {
-                    $hasData = true;
-                    break;
+                    return null;
                 }
-            }
 
-            if (!$hasData) {
-                $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, $this->getNotFoundMessage());
+                $hasData = false;
+                foreach ($this->getUsefulDataFields() as $field) {
+                    if (!empty($data[$field])) {
+                        $hasData = true;
+                        break;
+                    }
+                }
 
-                return null;
-            }
+                if (!$hasData) {
+                    $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, $this->getNotFoundMessage());
 
-            $this->recordApiMessage(ApiLookupStatus::SUCCESS, $this->getSuccessMessage());
+                    return null;
+                }
 
-            return $this->buildResult($data);
+                $this->recordApiMessage(ApiLookupStatus::SUCCESS, $this->getSuccessMessage());
+
+                return $this->buildResult($data);
+            });
         } catch (ErrorException $e) {
             $this->logger->error("Erreur Gemini API ({$logName}) : {error}", ['code' => $e->getErrorCode(), 'error' => $e->getMessage()]);
 
             if (429 === $e->getErrorCode()) {
-                $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota API dépassé');
+                $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota API dépassé (toutes les clés épuisées)');
             } else {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, $e->getErrorMessage());
             }
 
             return null;
-        } catch (\ValueError $e) {
+        } catch (\ValueError $e) { // @phpstan-ignore catch.neverThrown (ValueError thrown inside executeWithRetry callback)
             $this->logger->warning("Gemini ({$logName}) : aucun candidat retourné", ['error' => $e->getMessage()]);
             $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat (prompt bloqué ou vide)');
 
