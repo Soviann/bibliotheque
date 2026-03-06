@@ -210,30 +210,20 @@ final class ComicSeriesApiTest extends ApiTestCase
     // PUT /api/comic_series/{id} (update)
     // ---------------------------------------------------------------
 
-    public function testPutUpdateReturns200(): void
+    public function testPutReturns405(): void
     {
         $client = $this->createAuthenticatedClient();
 
-        $series = EntityFactory::createComicSeries('Ancien Titre');
+        $series = EntityFactory::createComicSeries('Titre');
         $this->em->persist($series);
         $this->em->flush();
 
-        $id = $series->getId();
-
-        $client->request('PUT', '/api/comic_series/'.$id, [
+        $client->request('PUT', '/api/comic_series/'.$series->getId(), [
             'headers' => ['Content-Type' => 'application/ld+json'],
-            'json' => [
-                'status' => 'finished',
-                'title' => 'Nouveau Titre',
-            ],
+            'json' => ['title' => 'Modifié'],
         ]);
 
-        self::assertResponseIsSuccessful();
-
-        $data = $client->getResponse()->toArray();
-
-        self::assertSame('Nouveau Titre', $data['title']);
-        self::assertSame('finished', $data['status']);
+        self::assertResponseStatusCodeSame(405);
     }
 
     public function testPatchWithoutTomesPreservesExisting(): void
@@ -388,22 +378,6 @@ final class ComicSeriesApiTest extends ApiTestCase
 
         $numbers = \array_map(static fn ($t) => $t['number'], $data['tomes']);
         self::assertSame([1, 3, 5], $numbers);
-    }
-
-    public function testPutUpdateUnauthenticatedReturns401(): void
-    {
-        $client = $this->createUnauthenticatedClient();
-
-        $series = EntityFactory::createComicSeries('Serie');
-        $this->em->persist($series);
-        $this->em->flush();
-
-        $client->request('PUT', '/api/comic_series/'.$series->getId(), [
-            'headers' => ['Content-Type' => 'application/ld+json'],
-            'json' => ['title' => 'Modifié'],
-        ]);
-
-        self::assertResponseStatusCodeSame(401);
     }
 
     // ---------------------------------------------------------------

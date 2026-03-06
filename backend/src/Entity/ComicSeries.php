@@ -47,7 +47,6 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
         new Get(),
         new Patch(denormalizationContext: ['groups' => ['comic:write']]),
         new Post(denormalizationContext: ['groups' => ['comic:write']]),
-        new Put(denormalizationContext: ['groups' => ['comic:write']]),
         new Delete(processor: ComicSeriesDeleteProcessor::class),
         new Put(
             uriTemplate: '/comic_series/{id}/restore',
