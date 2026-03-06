@@ -7,7 +7,6 @@ namespace App\Tests\Unit\EventListener;
 use App\Entity\User;
 use App\EventListener\JwtTokenVersionListener;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTDecodedEvent;
 use PHPUnit\Framework\TestCase;
@@ -18,46 +17,36 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 final class JwtTokenVersionListenerTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
     private JwtTokenVersionListener $listener;
     private UserRepository $userRepository;
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createStub(EntityManagerInterface::class);
         $this->userRepository = $this->createStub(UserRepository::class);
 
         $this->listener = new JwtTokenVersionListener(
-            $this->entityManager,
             $this->userRepository,
         );
     }
 
     /**
-     * Teste que onJWTCreated incr\u00e9mente la version, flush et ajoute tokenVersion au payload.
+     * Teste que onJWTCreated ajoute tokenVersion au payload sans incrémenter la version.
      */
-    public function testOnJwtCreatedWithUserIncrementsVersionAndAddsToPayload(): void
+    public function testOnJwtCreatedAddsCurrentVersionToPayloadWithoutIncrementing(): void
     {
         $user = new User();
         $user->setEmail('test@example.com');
         $initialVersion = $user->getTokenVersion();
 
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager
-            ->expects(self::once())
-            ->method('flush');
-
-        $listener = new JwtTokenVersionListener($entityManager, $this->userRepository);
-
         $event = new JWTCreatedEvent(['username' => 'test@example.com'], $user);
 
-        $listener->onJWTCreated($event);
+        $this->listener->onJWTCreated($event);
 
-        self::assertSame($initialVersion + 1, $user->getTokenVersion());
+        self::assertSame($initialVersion, $user->getTokenVersion());
 
         $data = $event->getData();
         self::assertArrayHasKey('tokenVersion', $data);
-        self::assertSame($user->getTokenVersion(), $data['tokenVersion']);
+        self::assertSame($initialVersion, $data['tokenVersion']);
     }
 
     /**
@@ -92,16 +81,9 @@ final class JwtTokenVersionListenerTest extends TestCase
     {
         $user = $this->createStub(UserInterface::class);
 
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager
-            ->expects(self::never())
-            ->method('flush');
-
-        $listener = new JwtTokenVersionListener($entityManager, $this->userRepository);
-
         $event = new JWTCreatedEvent(['username' => 'test@example.com'], $user);
 
-        $listener->onJWTCreated($event);
+        $this->listener->onJWTCreated($event);
 
         $data = $event->getData();
         self::assertArrayNotHasKey('tokenVersion', $data);
@@ -124,7 +106,7 @@ final class JwtTokenVersionListenerTest extends TestCase
             ->with(['email' => 'test@example.com'])
             ->willReturn($user);
 
-        $listener = new JwtTokenVersionListener($this->entityManager, $userRepository);
+        $listener = new JwtTokenVersionListener($userRepository);
 
         $event = new JWTDecodedEvent([
             'tokenVersion' => $tokenVersion,
@@ -146,7 +128,7 @@ final class JwtTokenVersionListenerTest extends TestCase
             ->expects(self::never())
             ->method('findOneBy');
 
-        $listener = new JwtTokenVersionListener($this->entityManager, $userRepository);
+        $listener = new JwtTokenVersionListener($userRepository);
 
         $event = new JWTDecodedEvent([
             'username' => 'test@example.com',
@@ -167,7 +149,7 @@ final class JwtTokenVersionListenerTest extends TestCase
             ->expects(self::never())
             ->method('findOneBy');
 
-        $listener = new JwtTokenVersionListener($this->entityManager, $userRepository);
+        $listener = new JwtTokenVersionListener($userRepository);
 
         $event = new JWTDecodedEvent([
             'tokenVersion' => 1,
@@ -190,7 +172,7 @@ final class JwtTokenVersionListenerTest extends TestCase
             ->with(['email' => 'unknown@example.com'])
             ->willReturn(null);
 
-        $listener = new JwtTokenVersionListener($this->entityManager, $userRepository);
+        $listener = new JwtTokenVersionListener($userRepository);
 
         $event = new JWTDecodedEvent([
             'tokenVersion' => 1,
@@ -217,7 +199,7 @@ final class JwtTokenVersionListenerTest extends TestCase
             ->with(['email' => 'test@example.com'])
             ->willReturn($user);
 
-        $listener = new JwtTokenVersionListener($this->entityManager, $userRepository);
+        $listener = new JwtTokenVersionListener($userRepository);
 
         // Version de l'utilisateur = 1, version dans le token = 99
         $event = new JWTDecodedEvent([
