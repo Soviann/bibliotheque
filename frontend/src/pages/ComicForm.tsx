@@ -826,8 +826,8 @@ export default function ComicForm() {
           />
         </div>
 
-        {/* Latest published issue + publication complete */}
-        <div className="space-y-2">
+        {/* Latest published issue + publication complete + default flags */}
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="latestPublishedIssue">
               Dernier tome paru
@@ -841,7 +841,7 @@ export default function ComicForm() {
               value={form.latestPublishedIssue}
             />
           </div>
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-2 pb-2">
             <input
               checked={form.latestPublishedIssueComplete}
               className="h-4 w-4 rounded border-surface-border text-primary-600"
@@ -850,15 +850,9 @@ export default function ComicForm() {
             />
             <span className="text-sm font-medium text-text-secondary">Parution terminée</span>
           </label>
-        </div>
-
-        {/* Default tome flags */}
-        <div>
-          <span className="mb-2 block text-sm font-medium text-text-secondary">
-            Flags par défaut des nouveaux tomes
-          </span>
-          <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2">
+          <div className="flex items-center gap-4 pb-2">
+            <span className="text-sm font-medium text-text-secondary">Flags par défaut :</span>
+            <label className="flex items-center gap-1.5">
               <input
                 checked={form.defaultTomeBought}
                 className="h-4 w-4 rounded border-surface-border text-primary-600"
@@ -867,7 +861,7 @@ export default function ComicForm() {
               />
               <span className="text-sm text-text-secondary">Achetés</span>
             </label>
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5">
               <input
                 checked={form.defaultTomeDownloaded}
                 className="h-4 w-4 rounded border-surface-border text-primary-600"
@@ -876,7 +870,7 @@ export default function ComicForm() {
               />
               <span className="text-sm text-text-secondary">Téléchargés</span>
             </label>
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5">
               <input
                 checked={form.defaultTomeRead}
                 className="h-4 w-4 rounded border-surface-border text-primary-600"
