@@ -54,6 +54,7 @@ export default function Trash() {
                 className="rounded-lg bg-primary-100 p-2 text-primary-700 hover:bg-primary-200 dark:bg-primary-950/30 dark:text-primary-400 dark:hover:bg-primary-900/40"
                 onClick={() => {
                   restoreComic.mutate({ id: comic.id }, {
+                    onError: () => toast.error(`Erreur lors de la restauration de ${comic.title}`),
                     onSuccess: () => toast.success(`${comic.title} restaurée`),
                   });
                 }}
@@ -82,6 +83,7 @@ export default function Trash() {
         onConfirm={() => {
           if (deleteTarget) {
             permanentDelete.mutate({ id: deleteTarget.id }, {
+              onError: () => toast.error(`Erreur lors de la suppression de ${deleteTarget.title}`),
               onSuccess: () => toast.success(`${deleteTarget.title} supprimée définitivement`),
             });
           }

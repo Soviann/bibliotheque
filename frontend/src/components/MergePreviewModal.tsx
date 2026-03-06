@@ -105,7 +105,7 @@ export default function MergePreviewModal({
           {/* Metadata (non-scrollable) */}
           <div className="shrink-0 px-6 pt-6">
             <DialogTitle className="text-lg font-semibold text-text-primary">
-              Apercu de la fusion
+              Aperçu de la fusion
             </DialogTitle>
 
             {/* Titre editable */}
@@ -162,7 +162,7 @@ export default function MergePreviewModal({
             {hasDuplicates && (
               <div className="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                Numeros de tomes en double detectes. Modifiez-les avant de confirmer.
+                Numéros de tomes en double détectés. Modifiez-les avant de confirmer.
               </div>
             )}
           </div>

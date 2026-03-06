@@ -10,11 +10,11 @@ interface ProgressLogProps {
 
 const statusConfig = {
   failed: { color: "text-red-500", icon: AlertCircle, label: "Erreur" },
-  skipped: { color: "text-text-muted", icon: SkipForward, label: "Ignore" },
+  skipped: { color: "text-text-muted", icon: SkipForward, label: "Ignoré" },
   updated: {
     color: "text-green-600",
     icon: CheckCircle,
-    label: "Mis a jour",
+    label: "Mis à jour",
   },
 } as const;
 

@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
 import { apiFetch, fetchSSE } from "../services/api";
 import type { BatchLookupProgress, BatchLookupSummary } from "../types/api";
 
@@ -74,7 +75,7 @@ export function useBatchLookup(): BatchLookupState {
           setSummary(null);
           setIsRunning(false);
           abortRef.current = null;
-          throw error;
+          toast.error(error instanceof Error ? error.message : "Erreur lors du batch lookup");
         },
         controller.signal,
       );

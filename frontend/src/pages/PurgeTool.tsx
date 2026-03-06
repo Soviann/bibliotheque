@@ -17,8 +17,9 @@ export default function PurgeTool() {
 
     const ids = purgeable.map((s) => s.id);
     executePurge.mutate(ids, {
+      onError: () => toast.error("Erreur lors de la purge"),
       onSuccess: (data) => {
-        toast.success(`${data.purged} serie(s) purgee(s)`);
+        toast.success(`${data.purged} série(s) purgée(s)`);
       },
     });
   };
@@ -31,7 +32,7 @@ export default function PurgeTool() {
 
       <div className="mt-4 flex items-center gap-3">
         <label className="text-sm text-text-secondary" htmlFor="purge-days">
-          Series supprimees depuis plus de
+          Séries supprimées depuis plus de
         </label>
         <input
           className="w-20 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
@@ -52,9 +53,9 @@ export default function PurgeTool() {
 
       {!isLoading && purgeable && purgeable.length === 0 && (
         <EmptyState
-          description={`Aucune serie dans la corbeille depuis plus de ${days} jours`}
+          description={`Aucune série dans la corbeille depuis plus de ${days} jours`}
           icon={Trash2}
-          title="Aucune serie a purger"
+          title="Aucune série à purger"
         />
       )}
 
@@ -68,7 +69,7 @@ export default function PurgeTool() {
                     Titre
                   </th>
                   <th className="px-4 py-2 text-left font-medium text-text-secondary">
-                    Supprimee le
+                    Supprimée le
                   </th>
                 </tr>
               </thead>
@@ -102,7 +103,7 @@ export default function PurgeTool() {
               ) : (
                 <Trash2 className="h-4 w-4" />
               )}
-              Purger {purgeable.length} serie(s)
+              Purger {purgeable.length} série(s)
             </button>
           </div>
         </div>
@@ -110,7 +111,7 @@ export default function PurgeTool() {
 
       <ConfirmModal
         confirmLabel="Confirmer la purge"
-        description={`${purgeable?.length ?? 0} serie(s) seront definitivement supprimees. Cette action est irreversible.`}
+        description={`${purgeable?.length ?? 0} série(s) seront définitivement supprimées. Cette action est irréversible.`}
         onClose={() => setConfirmOpen(false)}
         onConfirm={handlePurge}
         open={confirmOpen}

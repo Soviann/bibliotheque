@@ -62,7 +62,7 @@ describe("ImportTool", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText("Simulation terminee")).toBeInTheDocument();
+      expect(screen.getByText("Simulation terminée")).toBeInTheDocument();
     });
 
     expect(screen.getByText("3")).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe("ImportTool", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText("Simulation terminee")).toBeInTheDocument();
+      expect(screen.getByText("Simulation terminée")).toBeInTheDocument();
     });
 
     expect(screen.getByText("5")).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe("ImportTool", () => {
     expect(screen.getByRole("button", { name: /importer/i })).toBeInTheDocument();
   });
 
-  it("shows 'Import termine' when dry-run is off", async () => {
+  it("shows 'Import terminé' when dry-run is off", async () => {
     server.use(
       http.post(`${API_BASE}/tools/import/excel`, () =>
         HttpResponse.json({
@@ -143,7 +143,7 @@ describe("ImportTool", () => {
     fireEvent.click(screen.getByRole("button", { name: /importer/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Import termine")).toBeInTheDocument();
+      expect(screen.getByText("Import terminé")).toBeInTheDocument();
     });
   });
 
@@ -171,7 +171,7 @@ describe("ImportTool", () => {
     fireEvent.click(screen.getByRole("button", { name: /simuler/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Simulation terminee")).toBeInTheDocument();
+      expect(screen.getByText("Simulation terminée")).toBeInTheDocument();
     });
 
     // Check sheet details are displayed
@@ -201,11 +201,11 @@ describe("ImportTool", () => {
     fireEvent.click(screen.getByRole("button", { name: /simuler/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Simulation terminee")).toBeInTheDocument();
+      expect(screen.getByText("Simulation terminée")).toBeInTheDocument();
     });
 
     expect(screen.getByText("Groupes")).toBeInTheDocument();
-    expect(screen.getByText("Crees")).toBeInTheDocument();
+    expect(screen.getByText("Créés")).toBeInTheDocument();
     expect(screen.getByText("Enrichis")).toBeInTheDocument();
     expect(screen.getByText("13")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
