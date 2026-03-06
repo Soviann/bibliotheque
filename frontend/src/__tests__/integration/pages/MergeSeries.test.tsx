@@ -133,6 +133,55 @@ describe("MergeSeries", () => {
     expect(previewCalled).toBe(false);
   });
 
+  it("opens confirmation modal from auto-detect tab with correct field mapping", async () => {
+    const user = userEvent.setup();
+    let previewCalled = false;
+
+    server.use(
+      http.post("/api/merge-series/detect", () =>
+        HttpResponse.json(mockGroups),
+      ),
+      http.post("/api/merge-series/preview", async () => {
+        previewCalled = true;
+        return HttpResponse.json(mockPreview);
+      }),
+    );
+
+    renderWithProviders(<MergeSeries />);
+
+    // Select type "Manga" from listbox
+    await user.click(screen.getByText("Type"));
+    await user.click(screen.getByText("Manga"));
+
+    // Select letter "N" from listbox
+    await user.click(screen.getByText("Lettre"));
+    await user.click(screen.getByText("N"));
+
+    // Click detect
+    await user.click(screen.getByRole("button", { name: /detecter les groupes/i }));
+
+    // Wait for group card to appear
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    // Click "Apercu et fusion" on the group card
+    await user.click(screen.getByRole("button", { name: /apercu et fusion/i }));
+
+    // Confirmation modal should open with entries mapped from seriesId/originalTitle
+    await waitFor(() => {
+      expect(screen.getByText("Confirmer les series a fusionner")).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Naruto Tome 1")).toBeInTheDocument();
+    expect(within(dialog).getByText("Naruto Tome 2")).toBeInTheDocument();
+    expect(within(dialog).getByText("Naruto Tome 3")).toBeInTheDocument();
+
+    // Preview API should NOT have been called yet
+    expect(previewCalled).toBe(false);
+  });
+
   it("calls preview API only after confirming series selection", async () => {
     const user = userEvent.setup();
     let previewCalledWith: number[] = [];
@@ -169,9 +218,8 @@ describe("MergeSeries", () => {
 
     // Uncheck series 2 in the confirmation modal
     const dialog = screen.getByRole("dialog");
-    const naruto2Label = within(dialog).getByText("Naruto Tome 2").closest("label");
-    const naruto2Checkbox = naruto2Label!.querySelector('input[type="checkbox"]')!;
-    await user.click(naruto2Checkbox);
+    const dialogCheckboxes = within(dialog).getAllByRole("checkbox");
+    await user.click(dialogCheckboxes[1]);
 
     // Click "Continuer"
     await user.click(screen.getByRole("button", { name: /continuer/i }));
