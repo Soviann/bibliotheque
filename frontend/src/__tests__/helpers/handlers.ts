@@ -111,6 +111,9 @@ export const handlers = [
     }),
   ),
 
+  // Lookup covers
+  http.get(`${API_BASE}/lookup/covers`, () => HttpResponse.json([])),
+
   // Google login
   http.post(`${API_BASE}/login/google`, () =>
     HttpResponse.json({ token: "fake-jwt-token" }),

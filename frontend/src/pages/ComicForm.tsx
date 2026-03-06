@@ -8,11 +8,12 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/react";
-import { AlertTriangle, ArrowLeft, Check, ChevronDown, Layers, Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, Image, Layers, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import BarcodeScanner from "../components/BarcodeScanner";
+import CoverSearchModal from "../components/CoverSearchModal";
 import SkeletonBox from "../components/SkeletonBox";
 import { useAuthors } from "../hooks/useAuthors";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
@@ -244,6 +245,9 @@ export default function ComicForm() {
   const [lookupTitle, setLookupTitle] = useState("");
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("title");
   const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(null);
+
+  // Cover search state
+  const [coverSearchOpen, setCoverSearchOpen] = useState(false);
 
   // Batch add state
   const [batchFrom, setBatchFrom] = useState(1);
@@ -700,18 +704,39 @@ export default function ComicForm() {
           <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="coverUrl">
             URL de couverture
           </label>
-          <input
-            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
-            id="coverUrl"
-            onChange={(e) => update("coverUrl", e.target.value)}
-            placeholder="https://..."
-            type="url"
-            value={form.coverUrl}
-          />
+          <div className="flex gap-2">
+            <input
+              className="min-w-0 flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+              id="coverUrl"
+              onChange={(e) => update("coverUrl", e.target.value)}
+              placeholder="https://..."
+              type="url"
+              value={form.coverUrl}
+            />
+            <button
+              className="shrink-0 rounded-lg border border-surface-border px-3 py-2 text-sm text-text-secondary hover:bg-surface-tertiary disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!isOnline}
+              onClick={() => setCoverSearchOpen(true)}
+              title="Rechercher une couverture"
+              type="button"
+            >
+              <Image className="h-4 w-4" />
+            </button>
+          </div>
           {form.coverUrl && (
             <img alt="Aperçu" className="mt-2 h-32 rounded-lg shadow" src={form.coverUrl} />
           )}
         </div>
+        <CoverSearchModal
+          defaultQuery={form.title}
+          onClose={() => setCoverSearchOpen(false)}
+          onSelect={(url) => {
+            update("coverUrl", url);
+            setCoverSearchOpen(false);
+          }}
+          open={coverSearchOpen}
+          type={form.type}
+        />
 
         {/* Authors */}
         <div>
