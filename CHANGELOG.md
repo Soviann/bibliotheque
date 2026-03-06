@@ -11,6 +11,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **Confirmation des séries avant fusion** : Étape intermédiaire affichant la liste des séries avec cases à cocher, permettant d'exclure des séries avant la prévisualisation des tomes (#157)
 
+### Fixed
+
+- **Barres de progression** : Prise en compte des plages de numéros de tomes (`tomeEnd`) dans le calcul de progression des achats, lectures et téléchargements (#160)
+
 ## [v2.4.0] - 2026-03-06
 
 ### Added

@@ -579,9 +579,71 @@ describe("ComicDetail", () => {
 
     renderComicDetail();
 
-    // Achetés: 2/3 (tomes.length as total since latestPublishedIssue is null)
+    // Achetés: 2/3 (covered tome count as total since latestPublishedIssue is null)
     await waitFor(() => {
       expect(screen.getByText("2 / 3")).toBeInTheDocument();
+    });
+  });
+
+  it("accounts for tome ranges in progress bars", async () => {
+    const tomes = [
+      createMockTome({ bought: true, downloaded: true, id: 1, number: 1, read: true, tomeEnd: 2 }), // covers 2
+      createMockTome({ bought: true, downloaded: false, id: 2, number: 3, read: false }),            // covers 1
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            latestPublishedIssue: 5,
+            title: "Range Progress",
+            tomes,
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Achetés")).toBeInTheDocument();
+    });
+
+    // Achetés: tome 1-2 (bought) + tome 3 (bought) = 3 covered / 5 total
+    expect(screen.getByText("3 / 5")).toBeInTheDocument();
+    // Lus: only tome 1-2 (read) = 2 covered / 5 total
+    // Téléchargés: only tome 1-2 (downloaded) = 2 covered / 5 total
+    expect(screen.getAllByText("2 / 5")).toHaveLength(2);
+  });
+
+  it("uses covered tome count as fallback total when latestPublishedIssue is null", async () => {
+    const tomes = [
+      createMockTome({ bought: true, id: 1, number: 1, tomeEnd: 3 }), // covers 3
+      createMockTome({ bought: false, id: 2, number: 4 }),            // covers 1
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            latestPublishedIssue: null,
+            title: "Range Fallback",
+            tomes,
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    // Total should be 4 (covered tomes), not 2 (entries count)
+    // Achetés: 3 / 4
+    await waitFor(() => {
+      expect(screen.getByText("3 / 4")).toBeInTheDocument();
     });
   });
 

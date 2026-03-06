@@ -11,6 +11,7 @@ import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useUpdateTome } from "../hooks/useUpdateTome";
 import { ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
+import { countCoveredTomes } from "../utils/tomeUtils";
 
 export default function ComicDetail() {
   const { id } = useParams<{ id: string }>();
@@ -98,10 +99,10 @@ export default function ComicDetail() {
 
   const coverSrc = comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : null);
   const showProgress = !comic.isOneShot && optimisticTomes.length > 0;
-  const progressTotal = comic.latestPublishedIssue ?? optimisticTomes.length;
-  const boughtCount = optimisticTomes.filter((t) => t.bought).length;
-  const readCount = optimisticTomes.filter((t) => t.read).length;
-  const downloadedCount = optimisticTomes.filter((t) => t.downloaded).length;
+  const progressTotal = comic.latestPublishedIssue ?? countCoveredTomes(optimisticTomes);
+  const boughtCount = countCoveredTomes(optimisticTomes, (t) => t.bought);
+  const readCount = countCoveredTomes(optimisticTomes, (t) => t.read);
+  const downloadedCount = countCoveredTomes(optimisticTomes, (t) => t.downloaded);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
