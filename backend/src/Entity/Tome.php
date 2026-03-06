@@ -61,7 +61,7 @@ class Tome
     /**
      * Indique si le tome a été acheté.
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column]
     private bool $bought = false;
 
@@ -80,21 +80,21 @@ class Tome
     /**
      * Indique si le tome a été téléchargé.
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column]
     private bool $downloaded = false;
 
     /**
      * Numéro ISBN du tome.
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $isbn = null;
 
     /**
      * Numéro du tome dans la série.
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column]
     #[Assert\NotNull]
     #[Assert\PositiveOrZero]
@@ -103,14 +103,14 @@ class Tome
     /**
      * Indique si le tome est présent sur le NAS.
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column]
     private bool $onNas = false;
 
     /**
      * Indique si le tome a été lu.
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column(name: '`read`')]
     private bool $read = false;
 
@@ -118,7 +118,7 @@ class Tome
      * Numéro de fin pour les tomes multi-numéros (intégrales).
      * Ex : number=4, tomeEnd=6 → « Tome 4-6 ».
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column(nullable: true)]
     #[Assert\GreaterThanOrEqual(propertyPath: 'number')]
     private ?int $tomeEnd = null;
@@ -126,7 +126,7 @@ class Tome
     /**
      * Titre spécifique du tome (optionnel).
      */
-    #[Groups(['tome:read', 'tome:write', 'comic:read'])]
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
