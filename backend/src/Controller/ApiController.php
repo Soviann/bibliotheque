@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Enum\ComicType;
+use App\Service\CoverSearchService;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +22,8 @@ class ApiController
 {
     public function __construct(
         private readonly RateLimiterFactory $apiLookupLimiter,
+        #[Autowire(service: 'limiter.cover_search')]
+        private readonly RateLimiterFactory $coverSearchLimiter,
     ) {
     }
 
@@ -70,11 +74,35 @@ class ApiController
     }
 
     /**
+     * Recherche des images de couverture.
+     */
+    #[Route('/covers', name: 'api_lookup_covers', methods: ['GET'])]
+    public function coverSearch(Request $request, CoverSearchService $coverSearchService): JsonResponse
+    {
+        $rateLimitResponse = $this->checkRateLimit($request, $this->coverSearchLimiter);
+        if ($rateLimitResponse instanceof JsonResponse) {
+            return $rateLimitResponse;
+        }
+
+        $query = $request->query->get('query', '');
+        $type = $this->resolveComicType($request);
+
+        if (empty($query)) {
+            return new JsonResponse(['error' => 'Requête requise'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $results = $coverSearchService->search($query, $type);
+
+        return new JsonResponse($results);
+    }
+
+    /**
      * Vérifie le rate limit pour la requête courante.
      */
-    private function checkRateLimit(Request $request): ?JsonResponse
+    private function checkRateLimit(Request $request, ?RateLimiterFactory $limiterFactory = null): ?JsonResponse
     {
-        $limiter = $this->apiLookupLimiter->create($request->getClientIp() ?? 'unknown');
+        $factory = $limiterFactory ?? $this->apiLookupLimiter;
+        $limiter = $factory->create($request->getClientIp() ?? 'unknown');
         $limit = $limiter->consume();
 
         if (false === $limit->isAccepted()) {

@@ -113,6 +113,14 @@ export interface ImportBooksResult {
   groupCount: number;
 }
 
+export interface CoverSearchResult {
+  height: number;
+  thumbnail: string;
+  title: string;
+  url: string;
+  width: number;
+}
+
 export interface BatchLookupProgress {
   current: number;
   seriesTitle: string;

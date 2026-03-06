@@ -188,4 +188,43 @@ final class LookupApiTest extends ApiTestCase
         $statusCode = $client->getResponse()->getStatusCode();
         self::assertContains($statusCode, [200, 404], 'Doit être 200 ou 404, pas une erreur serveur');
     }
+
+    // ---------------------------------------------------------------
+    // GET /api/lookup/covers
+    // ---------------------------------------------------------------
+
+    public function testCoverSearchUnauthenticatedReturns401(): void
+    {
+        $client = $this->createUnauthenticatedClient();
+
+        $client->request('GET', '/api/lookup/covers', [
+            'query' => ['query' => 'Naruto'],
+        ]);
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testCoverSearchMissingQueryReturns400(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('GET', '/api/lookup/covers');
+
+        self::assertResponseStatusCodeSame(400);
+
+        $data = $client->getResponse()->toArray(false);
+
+        self::assertSame('Requête requise', $data['error']);
+    }
+
+    public function testCoverSearchEmptyQueryReturns400(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('GET', '/api/lookup/covers', [
+            'query' => ['query' => ''],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
 }
