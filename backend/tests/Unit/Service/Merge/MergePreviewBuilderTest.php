@@ -11,7 +11,9 @@ use App\Entity\Author;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicType;
+use App\Service\Lookup\GeminiClientPool;
 use App\Service\Merge\MergePreviewBuilder;
+use Gemini\Contracts\ClientContract as GeminiClient;
 use Gemini\Responses\GenerativeModel\GenerateContentResponse;
 use Gemini\Testing\ClientFake;
 use PHPUnit\Framework\TestCase;
@@ -268,9 +270,21 @@ class MergePreviewBuilderTest extends TestCase
         self::assertSame(2, $preview->tomes[1]->number);
     }
 
+    private function createPoolFromClient(GeminiClient $client): GeminiClientPool
+    {
+        $pool = $this->createMock(GeminiClientPool::class);
+        $pool->method('executeWithRetry')->willReturnCallback(
+            static fn (callable $callback) => $callback($client, 'gemini-2.5-flash'),
+        );
+
+        return $pool;
+    }
+
     private function createBuilder(?ClientFake $geminiClient = null): MergePreviewBuilder
     {
-        $geminiClient ??= new ClientFake([]);
+        $pool = null !== $geminiClient
+            ? $this->createPoolFromClient($geminiClient)
+            : $this->createStub(GeminiClientPool::class);
 
         $limiterFactory = new RateLimiterFactory(
             ['id' => 'test', 'policy' => 'fixed_window', 'interval' => '1 minute', 'limit' => 100],
@@ -278,9 +292,9 @@ class MergePreviewBuilderTest extends TestCase
         );
 
         return new MergePreviewBuilder(
-            geminiClient: $geminiClient,
-            logger: new NullLogger(),
+            geminiClientPool: $pool,
             limiterFactory: $limiterFactory,
+            logger: new NullLogger(),
         );
     }
 

@@ -9,7 +9,7 @@ use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
-use Gemini\Contracts\ClientContract as GeminiClient;
+use App\Service\Lookup\GeminiClientPool;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Psr\Log\LoggerInterface;
@@ -21,10 +21,8 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
  */
 class MergePreviewBuilder
 {
-    private const string MODEL = 'gemini-2.5-flash';
-
     public function __construct(
-        private readonly GeminiClient $geminiClient,
+        private readonly GeminiClientPool $geminiClientPool,
         #[Autowire(service: 'limiter.gemini_api')]
         private readonly RateLimiterFactory $limiterFactory,
         private readonly LoggerInterface $logger,
@@ -287,12 +285,14 @@ class MergePreviewBuilder
         $prompt = $this->buildManualSelectionPrompt($seriesList);
 
         try {
-            $response = $this->geminiClient
-                ->generativeModel(model: self::MODEL)
-                ->withTool(new Tool(googleSearch: GoogleSearch::from()))
-                ->generateContent($prompt);
+            $text = $this->geminiClientPool->executeWithRetry(static function ($client, $model) use ($prompt): string {
+                $response = $client
+                    ->generativeModel(model: $model)
+                    ->withTool(new Tool(googleSearch: GoogleSearch::from()))
+                    ->generateContent($prompt);
 
-            $text = $response->text();
+                return $response->text();
+            });
         } catch (\Throwable $e) {
             $this->logger->error('Erreur Gemini lors de la construction d\'aperçu de fusion : {message}', [
                 'message' => $e->getMessage(),

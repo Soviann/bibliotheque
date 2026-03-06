@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Service\Lookup\GeminiClientPool;
 use App\Service\Lookup\GeminiLookup;
 use App\Service\Lookup\LookupResult;
 use Gemini\Contracts\ClientContract as GeminiClient;
-use Gemini\Contracts\Resources\GenerativeModelContract;
 use Gemini\Exceptions\ErrorException;
 use Gemini\Responses\GenerativeModel\GenerateContentResponse;
 use Gemini\Testing\ClientFake;
@@ -204,7 +204,7 @@ final class GeminiLookupTest extends TestCase
         $cache->expects(self::once())->method('save');
         $this->cache = $cache;
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -242,7 +242,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -276,7 +276,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -317,7 +317,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -329,7 +329,7 @@ final class GeminiLookupTest extends TestCase
     }
 
     /**
-     * Teste resolveLookup en cas d'ErrorException avec code 429.
+     * Teste resolveLookup en cas d'ErrorException avec code 429 (toutes les clés épuisées).
      */
     public function testResolveLookupErrorException429(): void
     {
@@ -339,7 +339,8 @@ final class GeminiLookupTest extends TestCase
             'status' => 'RESOURCE_EXHAUSTED',
         ]);
 
-        $geminiClient = new ClientFake([$exception]);
+        $pool = $this->createMock(GeminiClientPool::class);
+        $pool->method('executeWithRetry')->willThrowException($exception);
 
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
@@ -348,7 +349,7 @@ final class GeminiLookupTest extends TestCase
         $logger->expects(self::once())->method('error');
         $this->logger = $logger;
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $pool);
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -370,7 +371,8 @@ final class GeminiLookupTest extends TestCase
             'status' => 'INTERNAL',
         ]);
 
-        $geminiClient = new ClientFake([$exception]);
+        $pool = $this->createMock(GeminiClientPool::class);
+        $pool->method('executeWithRetry')->willThrowException($exception);
 
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
@@ -379,7 +381,7 @@ final class GeminiLookupTest extends TestCase
         $logger->expects(self::once())->method('error');
         $this->logger = $logger;
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $pool);
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -395,12 +397,8 @@ final class GeminiLookupTest extends TestCase
      */
     public function testResolveLookupGenericThrowable(): void
     {
-        $geminiClient = $this->createStub(GeminiClient::class);
-        $model = $this->createStub(GenerativeModelContract::class);
-
-        $geminiClient->method('generativeModel')->willReturn($model);
-        $model->method('withTool')->willReturn($model);
-        $model->method('generateContent')->willThrowException(new \RuntimeException('Connection lost'));
+        $pool = $this->createMock(GeminiClientPool::class);
+        $pool->method('executeWithRetry')->willThrowException(new \RuntimeException('Connection lost'));
 
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
@@ -409,7 +407,7 @@ final class GeminiLookupTest extends TestCase
         $logger->expects(self::once())->method('error');
         $this->logger = $logger;
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $pool);
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -565,7 +563,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -606,7 +604,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -646,7 +644,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -685,7 +683,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -734,7 +732,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
-        $provider = $this->createProvider(geminiClient: $geminiClient);
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
 
         $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
         $result = $provider->resolveLookup($state);
@@ -786,13 +784,26 @@ final class GeminiLookupTest extends TestCase
     }
 
     /**
+     * Crée un GeminiClientPool mock qui délègue au client fourni.
+     */
+    private function createPoolFromClient(GeminiClient $client): GeminiClientPool
+    {
+        $pool = $this->createMock(GeminiClientPool::class);
+        $pool->method('executeWithRetry')->willReturnCallback(
+            static fn (callable $callback) => $callback($client, 'gemini-2.5-flash'),
+        );
+
+        return $pool;
+    }
+
+    /**
      * Cree une instance de GeminiLookup avec des dependances configurables.
      */
     private function createProvider(
-        ?GeminiClient $geminiClient = null,
+        ?GeminiClientPool $pool = null,
         ?RateLimiterFactory $limiterFactory = null,
     ): GeminiLookup {
-        $geminiClient ??= $this->createStub(GeminiClient::class);
+        $pool ??= $this->createStub(GeminiClientPool::class);
 
         $limiterFactory ??= new RateLimiterFactory(
             ['id' => 'test', 'policy' => 'fixed_window', 'interval' => '1 minute', 'limit' => 100],
@@ -801,7 +812,7 @@ final class GeminiLookupTest extends TestCase
 
         return new GeminiLookup(
             $this->cache,
-            $geminiClient,
+            $pool,
             $limiterFactory,
             $this->logger,
         );

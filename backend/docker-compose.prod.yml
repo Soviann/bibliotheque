@@ -28,6 +28,8 @@ services:
       - APP_ENV=prod
       - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_KEYS=${GEMINI_API_KEYS}
+      - GEMINI_MODELS=${GEMINI_MODELS}
       - GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
       - OAUTH_ALLOWED_EMAIL=${OAUTH_ALLOWED_EMAIL}
       - OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
