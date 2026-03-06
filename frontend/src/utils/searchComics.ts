@@ -26,10 +26,10 @@ export function searchComics(
   const q = query.trim();
   if (!q) return comics;
 
-  if (comics !== cachedComics) {
+  if (comics !== cachedComics || !cachedFuse) {
     cachedFuse = new Fuse(comics, fuseOptions);
     cachedComics = comics;
   }
 
-  return cachedFuse!.search(q).map((result) => result.item);
+  return cachedFuse.search(q).map((result) => result.item);
 }

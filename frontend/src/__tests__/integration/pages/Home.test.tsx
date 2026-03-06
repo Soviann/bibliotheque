@@ -671,6 +671,45 @@ describe("Home", () => {
     expect(screen.getByText("Naruto")).toBeInTheDocument();
   });
 
+  it("restores all results after clearing search input", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, title: "Naruto" }),
+      createMockComicSeries({ id: 2, title: "One Piece" }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
+
+    // Type to filter
+    await user.type(searchInput, "Naruto");
+    await waitFor(() => {
+      expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    });
+
+    // Clear input
+    await user.tripleClick(searchInput);
+    await user.keyboard("{Backspace}");
+    expect(searchInput).toHaveValue("");
+
+    // After debounce, all comics reappear
+    await waitFor(() => {
+      expect(screen.getByText("One Piece")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Naruto")).toBeInTheDocument();
+  });
+
   it("shows loading indicator while data is being fetched", async () => {
     server.use(
       http.get("/api/comic_series", async () => {
