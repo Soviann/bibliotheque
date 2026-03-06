@@ -1,6 +1,9 @@
-import { ArrowRight, FileSpreadsheet, Merge, Search, Trash2 } from "lucide-react";
-import type { ComponentType } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { del } from "idb-keyval";
+import { ArrowRight, DatabaseZap, FileSpreadsheet, LoaderCircle, Merge, Search, Trash2 } from "lucide-react";
+import { type ComponentType, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 interface ToolCard {
   description: string;
@@ -37,6 +40,22 @@ const tools: ToolCard[] = [
 ];
 
 export default function Tools() {
+  const queryClient = useQueryClient();
+
+  const [clearing, setClearing] = useState(false);
+
+  const handleClearCache = async () => {
+    setClearing(true);
+    try {
+      queryClient.clear();
+      await del("bibliotheque-query-cache");
+      await queryClient.refetchQueries();
+      toast.success("Cache vidé — les données ont été rechargées depuis le serveur.");
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <h1 className="mb-6 text-2xl font-bold text-text-primary">Outils</h1>
@@ -61,6 +80,23 @@ export default function Tools() {
             </div>
           </Link>
         ))}
+
+        <button
+          className="group flex cursor-pointer items-start gap-4 rounded-xl border border-surface-border bg-surface-primary p-4 text-left transition hover:border-red-400 hover:shadow-sm disabled:opacity-60"
+          disabled={clearing}
+          onClick={handleClearCache}
+          type="button"
+        >
+          <div className="rounded-lg bg-red-50 p-2.5 dark:bg-red-950/30">
+            {clearing
+              ? <LoaderCircle className="h-5 w-5 animate-spin text-red-600 dark:text-red-400" />
+              : <DatabaseZap className="h-5 w-5 text-red-600 dark:text-red-400" />}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-text-primary">{clearing ? "Vidage en cours…" : "Vider le cache"}</h2>
+            <p className="mt-1 text-sm text-text-secondary">Supprimer le cache local et recharger les données depuis le serveur.</p>
+          </div>
+        </button>
       </div>
     </div>
   );

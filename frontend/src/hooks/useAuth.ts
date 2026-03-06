@@ -1,6 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { del } from "idb-keyval";
 import {
   isAuthenticated,
   loginWithGoogle as apiLoginWithGoogle,
@@ -9,6 +10,7 @@ import {
 
 export function useAuth() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationFn: (credential: string) => apiLoginWithGoogle(credential),
@@ -18,9 +20,11 @@ export function useAuth() {
   });
 
   const logout = useCallback(() => {
+    queryClient.clear();
+    del("bibliotheque-query-cache");
     removeToken();
     navigate("/login", { viewTransition: true });
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   return {
     isAuthenticated: isAuthenticated(),
