@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Command;
 
-use App\Command\ImportExcelCommand;
 use App\DTO\ParsedIntegerValue;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
+use App\Service\Import\ImportExcelService;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -42,32 +42,32 @@ final class ImportExcelCommandTest extends KernelTestCase
 
     public function testNormalizeTitleWithArticleElided(): void
     {
-        self::assertSame("l'age d'ombre", ImportExcelCommand::normalizeTitle("age d'ombre (l')"));
+        self::assertSame("l'age d'ombre", ImportExcelService::normalizeTitle("age d'ombre (l')"));
     }
 
     public function testNormalizeTitleWithArticleLe(): void
     {
-        self::assertSame('le monde perdu', ImportExcelCommand::normalizeTitle('monde perdu (le)'));
+        self::assertSame('le monde perdu', ImportExcelService::normalizeTitle('monde perdu (le)'));
     }
 
     public function testNormalizeTitleWithArticleLa(): void
     {
-        self::assertSame('la rose ecarlate', ImportExcelCommand::normalizeTitle('rose ecarlate (la)'));
+        self::assertSame('la rose ecarlate', ImportExcelService::normalizeTitle('rose ecarlate (la)'));
     }
 
     public function testNormalizeTitleWithArticleLes(): void
     {
-        self::assertSame('les vieux fourneaux', ImportExcelCommand::normalizeTitle('vieux fourneaux (les)'));
+        self::assertSame('les vieux fourneaux', ImportExcelService::normalizeTitle('vieux fourneaux (les)'));
     }
 
     public function testNormalizeTitleWithoutArticleReturnsUnchanged(): void
     {
-        self::assertSame('Asterix', ImportExcelCommand::normalizeTitle('Asterix'));
+        self::assertSame('Asterix', ImportExcelService::normalizeTitle('Asterix'));
     }
 
     public function testNormalizeTitleCaseInsensitive(): void
     {
-        self::assertSame("L'age d'ombre", ImportExcelCommand::normalizeTitle("age d'ombre (L')"));
+        self::assertSame("L'age d'ombre", ImportExcelService::normalizeTitle("age d'ombre (L')"));
     }
 
     // ---------------------------------------------------------------
@@ -282,12 +282,11 @@ final class ImportExcelCommandTest extends KernelTestCase
     }
 
     /**
-     * Teste le warning quand un onglet attendu n'est pas trouve.
+     * Teste qu'un fichier sans onglet attendu retourne un résultat vide.
      */
-    public function testSheetNotFoundWarning(): void
+    public function testSheetNotFoundReturnsSuccess(): void
     {
         $spreadsheet = new Spreadsheet();
-        // Creer un onglet avec un nom different de ceux attendus
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Inconnu');
         $sheet->setCellValue('A1', 'Titre');
@@ -299,11 +298,8 @@ final class ImportExcelCommandTest extends KernelTestCase
         try {
             $this->commandTester->execute(['file' => $tmpFile]);
 
-            $display = $this->commandTester->getDisplay();
-
             self::assertSame(Command::SUCCESS, $this->commandTester->getStatusCode());
-            // Tous les onglets attendus (BD, Comics, Livre, Mangas) sont absents
-            self::assertStringContainsString('non trouvé', $display);
+            self::assertStringContainsString('0 séries', $this->commandTester->getDisplay());
         } finally {
             @\unlink($tmpFile);
         }
@@ -354,10 +350,10 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testDetermineStatusWithEmptyStringReturnsBuying(): void
     {
-        $command = new ImportExcelCommand($this->em);
-        $method = new \ReflectionMethod($command, 'determineStatus');
+        $service = static::getContainer()->get(ImportExcelService::class);
+        $method = new \ReflectionMethod($service, 'determineStatus');
 
-        self::assertSame(ComicStatus::BUYING, $method->invoke($command, ''));
+        self::assertSame(ComicStatus::BUYING, $method->invoke($service, ''));
     }
 
     /**
@@ -365,10 +361,10 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testDetermineStatusWithUnrecognizedValueReturnsBuying(): void
     {
-        $command = new ImportExcelCommand($this->em);
-        $method = new \ReflectionMethod($command, 'determineStatus');
+        $service = static::getContainer()->get(ImportExcelService::class);
+        $method = new \ReflectionMethod($service, 'determineStatus');
 
-        self::assertSame(ComicStatus::BUYING, $method->invoke($command, 'xyz'));
+        self::assertSame(ComicStatus::BUYING, $method->invoke($service, 'xyz'));
     }
 
     /**
@@ -376,10 +372,10 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testDetermineOnNasWithNonReturnsFalse(): void
     {
-        $command = new ImportExcelCommand($this->em);
-        $method = new \ReflectionMethod($command, 'determineOnNas');
+        $service = static::getContainer()->get(ImportExcelService::class);
+        $method = new \ReflectionMethod($service, 'determineOnNas');
 
-        self::assertFalse($method->invoke($command, 'non'));
+        self::assertFalse($method->invoke($service, 'non'));
     }
 
     /**
@@ -387,10 +383,10 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testParseIntegerValueWithZeroCommaZeroReturnsNull(): void
     {
-        $command = new ImportExcelCommand($this->em);
-        $method = new \ReflectionMethod($command, 'parseIntegerValue');
+        $service = static::getContainer()->get(ImportExcelService::class);
+        $method = new \ReflectionMethod($service, 'parseIntegerValue');
 
-        $result = $method->invoke($command, '0, 0');
+        $result = $method->invoke($service, '0, 0');
         self::assertInstanceOf(ParsedIntegerValue::class, $result);
         self::assertNull($result->value);
         self::assertFalse($result->isComplete);
@@ -401,10 +397,10 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testParseIntegerValueWithZeroReturnsNull(): void
     {
-        $command = new ImportExcelCommand($this->em);
-        $method = new \ReflectionMethod($command, 'parseIntegerValue');
+        $service = static::getContainer()->get(ImportExcelService::class);
+        $method = new \ReflectionMethod($service, 'parseIntegerValue');
 
-        $result = $method->invoke($command, 0);
+        $result = $method->invoke($service, 0);
         self::assertInstanceOf(ParsedIntegerValue::class, $result);
         self::assertNull($result->value);
         self::assertFalse($result->isComplete);

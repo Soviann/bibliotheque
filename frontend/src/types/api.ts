@@ -101,6 +101,18 @@ export interface MergePreviewTome {
   tomeEnd: number | null;
 }
 
+export interface ImportExcelResult {
+  sheetDetails: Record<string, { series: number; tomes: number }>;
+  totalSeries: number;
+  totalTomes: number;
+}
+
+export interface ImportBooksResult {
+  created: number;
+  enriched: number;
+  groupCount: number;
+}
+
 export interface LookupResult {
   apiMessages: Record<string, { message: string; status: string }>;
   authors: string | null;
