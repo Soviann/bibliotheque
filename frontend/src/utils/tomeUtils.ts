@@ -7,5 +7,5 @@ import type { Tome } from "../types/api";
  */
 export function countCoveredTomes(tomes: Tome[], predicate?: (t: Tome) => boolean): number {
   const filtered = predicate ? tomes.filter(predicate) : tomes;
-  return filtered.reduce((sum, t) => sum + ((t.tomeEnd ?? t.number) - t.number + 1), 0);
+  return filtered.reduce((sum, t) => sum + Math.max(1, (t.tomeEnd ?? t.number) - t.number + 1), 0);
 }
