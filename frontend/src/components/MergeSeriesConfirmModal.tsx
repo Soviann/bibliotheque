@@ -42,8 +42,6 @@ export default function MergeSeriesConfirmModal({
     });
   };
 
-  const selectedCount = checkedIds.size;
-
   return (
     <Dialog className="relative z-50" onClose={onClose} open={open}>
       <DialogBackdrop className="fixed inset-0 bg-black/30" />
@@ -93,8 +91,8 @@ export default function MergeSeriesConfirmModal({
             </button>
             <button
               className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-              disabled={selectedCount < 2}
-              onClick={() => onConfirm([...checkedIds])}
+              disabled={checkedIds.size < 2}
+              onClick={() => onConfirm(entries.filter((e) => checkedIds.has(e.id)).map((e) => e.id))}
               type="button"
             >
               Continuer

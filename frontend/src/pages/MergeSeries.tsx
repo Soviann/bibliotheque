@@ -11,21 +11,20 @@ import {
   TabPanels,
 } from "@headlessui/react";
 import { Check, ChevronDown, Loader2, Merge, Search as SearchIcon } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 import EmptyState from "../components/EmptyState";
 import MergeGroupCard from "../components/MergeGroupCard";
 import MergePreviewModal from "../components/MergePreviewModal";
-import MergeSeriesConfirmModal from "../components/MergeSeriesConfirmModal";
-import type { MergeSeriesEntry } from "../components/MergeSeriesConfirmModal";
+import MergeSeriesConfirmModal, { type MergeSeriesEntry } from "../components/MergeSeriesConfirmModal";
 import SeriesMultiSelect from "../components/SeriesMultiSelect";
-import { useComics } from "../hooks/useComics";
 import {
   useDetectMergeGroups,
   useExecuteMerge,
   useMergePreview,
 } from "../hooks/useMergeSeries";
-import type { MergeGroup, MergePreview } from "../types/api";
+import type { ComicSeries, HydraCollection, MergeGroup, MergePreview } from "../types/api";
 import { ComicType, ComicTypeLabel } from "../types/enums";
 
 interface SelectOption {
@@ -67,11 +66,8 @@ export default function MergeSeries() {
   // Manual select state
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  // Data
-  const { data: comicsData } = useComics();
-  const comics = comicsData?.member ?? [];
-
   // Mutations
+  const queryClient = useQueryClient();
   const detectMutation = useDetectMergeGroups();
   const previewMutation = useMergePreview();
   const executeMerge = useExecuteMerge();
@@ -105,6 +101,8 @@ export default function MergeSeries() {
   };
 
   const handleManualPreview = () => {
+    const comicsData = queryClient.getQueryData<HydraCollection<ComicSeries>>(["comics"]);
+    const comics = comicsData?.member ?? [];
     const entries = selectedIds
       .map((id) => {
         const comic = comics.find((c) => c.id === id);
@@ -128,29 +126,24 @@ export default function MergeSeries() {
     });
   };
 
-  const handleConfirmMerge = useCallback(
-    (preview: MergePreview) => {
-      executeMerge.mutate(preview, {
-        onSuccess: () => {
-          toast.success("Series fusionnees avec succes");
-          setPreviewOpen(false);
-          setPreviewData(null);
-          // Remove merged group from auto-detect list
-          setGroups((prev) =>
-            prev.filter(
-              (g) =>
-                !g.entries.every((e) =>
-                  preview.sourceSeriesIds.includes(e.seriesId),
-                ),
-            ),
-          );
-          // Clear manual selection
-          setSelectedIds([]);
-        },
-      });
-    },
-    [executeMerge],
-  );
+  const handleConfirmMerge = (preview: MergePreview) => {
+    executeMerge.mutate(preview, {
+      onSuccess: () => {
+        toast.success("Series fusionnees avec succes");
+        setPreviewOpen(false);
+        setPreviewData(null);
+        setGroups((prev) =>
+          prev.filter(
+            (g) =>
+              !g.entries.every((e) =>
+                preview.sourceSeriesIds.includes(e.seriesId),
+              ),
+          ),
+        );
+        setSelectedIds([]);
+      },
+    });
+  };
 
   const selectedTypeOption = typeOptions.find((o) => o.value === selectedType);
   const selectedLetterOption = letterOptions.find(
