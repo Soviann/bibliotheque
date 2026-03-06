@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Import;
 
 use App\DTO\ImportExcelResult;
+use App\Entity\ComicSeries;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Import\ImportExcelService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -140,6 +141,111 @@ final class ImportExcelServiceTest extends TestCase
         self::assertSame('Naruto', ImportExcelService::normalizeTitle('Naruto'));
     }
 
+    // ---------------------------------------------------------------
+    // Dérivation des flags defaultTome* et latestPublishedIssueComplete
+    // ---------------------------------------------------------------
+
+    public function testImportBuyFiniSetsDefaultTomeBoughtAndPublicationComplete(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'fini', null, null, null, null, null],
+            ],
+        ]);
+
+        self::assertCount(1, $persisted);
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertTrue($persisted[0]->isDefaultTomeBought());
+        self::assertFalse($persisted[0]->isDefaultTomeDownloaded());
+        self::assertFalse($persisted[0]->isDefaultTomeRead());
+    }
+
+    public function testImportLastBoughtFiniSetsDefaultTomeBoughtAndPublicationComplete(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'oui', 'fini', null, null, null, null],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertTrue($persisted[0]->isDefaultTomeBought());
+    }
+
+    public function testImportCurrentFiniSetsDefaultTomeReadAndPublicationComplete(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'oui', null, 'fini', null, null, null],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertTrue($persisted[0]->isDefaultTomeRead());
+        self::assertFalse($persisted[0]->isDefaultTomeBought());
+    }
+
+    public function testImportLastDledFiniSetsDefaultTomeDownloadedAndPublicationComplete(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'oui', null, null, null, 'fini', null],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertTrue($persisted[0]->isDefaultTomeDownloaded());
+    }
+
+    public function testImportOnNasFiniSetsDefaultTomeDownloadedAndPublicationComplete(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'oui', null, null, null, null, 'fini'],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertTrue($persisted[0]->isDefaultTomeDownloaded());
+    }
+
+    public function testImportMultipleFiniColumnsCombineFlags(): void
+    {
+        $persisted = $this->importAndCapture([
+            'Mangas' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Naruto', 'fini', 'fini', 'fini', 'fini', 'fini', 'fini'],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertTrue($persisted[0]->isDefaultTomeBought());
+        self::assertTrue($persisted[0]->isDefaultTomeDownloaded());
+        self::assertTrue($persisted[0]->isDefaultTomeRead());
+    }
+
+    public function testImportNoFiniKeepsDefaultsFalse(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'oui', 5, 5, 40, 5, 'oui'],
+            ],
+        ]);
+
+        self::assertFalse($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertFalse($persisted[0]->isDefaultTomeBought());
+        self::assertFalse($persisted[0]->isDefaultTomeDownloaded());
+        self::assertFalse($persisted[0]->isDefaultTomeRead());
+    }
+
+    // ---------------------------------------------------------------
+
     public function testImportExcelResultIsJsonSerializable(): void
     {
         $result = new ImportExcelResult(
@@ -157,6 +263,31 @@ final class ImportExcelServiceTest extends TestCase
         self::assertSame(20, $data['totalTomes']);
         self::assertSame(2, $data['totalUpdated']);
         self::assertSame(['created' => 5, 'tomes' => 20, 'updated' => 2], $data['sheetDetails']['BD']);
+    }
+
+    /**
+     * Importe un fichier Excel et capture les entités persistées.
+     *
+     * @param array<string, array<int, array<int, mixed>>> $sheets
+     *
+     * @return list<ComicSeries>
+     */
+    private function importAndCapture(array $sheets): array
+    {
+        $filePath = $this->createExcelFile($sheets);
+
+        /** @var list<ComicSeries> $persisted */
+        $persisted = [];
+        $this->entityManager->expects(self::atLeastOnce())->method('persist')
+            ->willReturnCallback(function (ComicSeries $entity) use (&$persisted): void {
+                $persisted[] = $entity;
+            });
+
+        $this->service->import($filePath, false);
+
+        \unlink($filePath);
+
+        return $persisted;
     }
 
     /**

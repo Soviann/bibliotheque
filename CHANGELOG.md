@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Parution terminée et flags par défaut** : Notion de parution terminée (`latestPublishedIssueComplete`) visible et éditable dans l'UI, date de dernière MAJ de la parution, flags par défaut des tomes (`defaultTomeBought`, `defaultTomeDownloaded`, `defaultTomeRead`) dérivés de l'import Excel et utilisés par le lookup pour créer les tomes manquants (#162)
 - **Confirmation des séries avant fusion** : Étape intermédiaire affichant la liste des séries avec cases à cocher, permettant d'exclure des séries avant la prévisualisation des tomes (#157)
 
 ### Fixed

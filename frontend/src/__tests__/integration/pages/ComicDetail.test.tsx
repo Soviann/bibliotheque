@@ -785,6 +785,88 @@ describe("ComicDetail", () => {
     expect(screen.getByRole("checkbox", { name: /tome 1.*lu/i })).not.toBeChecked();
   });
 
+  it("shows 'Parution terminée' badge when latestPublishedIssueComplete is true", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, latestPublishedIssueComplete: true, title: "Complete Series" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Parution terminée")).toBeInTheDocument();
+    });
+  });
+
+  it("does not show 'Parution terminée' badge when latestPublishedIssueComplete is false", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, latestPublishedIssueComplete: false, title: "Ongoing Series" }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Ongoing Series")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Parution terminée")).not.toBeInTheDocument();
+  });
+
+  it("shows default tome flags info when set", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            defaultTomeBought: true,
+            defaultTomeDownloaded: true,
+            defaultTomeRead: false,
+            id: 1,
+            title: "Flagged Series",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Nouveaux tomes :")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/achetés, téléchargés/)).toBeInTheDocument();
+  });
+
+  it("shows latestPublishedIssueUpdatedAt as relative date", async () => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString();
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            id: 1,
+            latestPublishedIssue: 10,
+            latestPublishedIssueUpdatedAt: yesterday,
+            title: "Updated Series",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText(/mis à jour/)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/hier/)).toBeInTheDocument();
+  });
+
   it("shows success toast after delete confirmation", async () => {
     const user = userEvent.setup();
 

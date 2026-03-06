@@ -23,6 +23,9 @@ readonly class ComicSeriesListItem implements \JsonSerializable
         public ?string $coverUrl,
         public ?int $currentIssue,
         public bool $currentIssueComplete,
+        public bool $defaultTomeBought,
+        public bool $defaultTomeDownloaded,
+        public bool $defaultTomeRead,
         public ?string $description,
         public bool $hasNasTome,
         public int $id,
@@ -38,6 +41,7 @@ readonly class ComicSeriesListItem implements \JsonSerializable
         public bool $lastReadComplete,
         public ?int $latestPublishedIssue,
         public bool $latestPublishedIssueComplete,
+        public ?string $latestPublishedIssueUpdatedAt,
         public array $missingTomesNumbers,
         public array $ownedTomesNumbers,
         public ?string $publishedDate,
@@ -64,6 +68,9 @@ readonly class ComicSeriesListItem implements \JsonSerializable
         $this->coverUrl = \is_string($data['coverUrl'] ?? null) ? $data['coverUrl'] : null;
         $this->currentIssue = \is_int($data['currentIssue'] ?? null) ? $data['currentIssue'] : null;
         $this->currentIssueComplete = \is_bool($data['currentIssueComplete'] ?? null) ? $data['currentIssueComplete'] : false;
+        $this->defaultTomeBought = \is_bool($data['defaultTomeBought'] ?? null) ? $data['defaultTomeBought'] : false;
+        $this->defaultTomeDownloaded = \is_bool($data['defaultTomeDownloaded'] ?? null) ? $data['defaultTomeDownloaded'] : false;
+        $this->defaultTomeRead = \is_bool($data['defaultTomeRead'] ?? null) ? $data['defaultTomeRead'] : false;
         $this->description = \is_string($data['description'] ?? null) ? $data['description'] : null;
         $this->hasNasTome = \is_bool($data['hasNasTome'] ?? null) ? $data['hasNasTome'] : false;
         $this->id = \is_int($data['id'] ?? null) ? $data['id'] : 0;
@@ -79,6 +86,7 @@ readonly class ComicSeriesListItem implements \JsonSerializable
         $this->lastReadComplete = \is_bool($data['lastReadComplete'] ?? null) ? $data['lastReadComplete'] : false;
         $this->latestPublishedIssue = \is_int($data['latestPublishedIssue'] ?? null) ? $data['latestPublishedIssue'] : null;
         $this->latestPublishedIssueComplete = \is_bool($data['latestPublishedIssueComplete'] ?? null) ? $data['latestPublishedIssueComplete'] : false;
+        $this->latestPublishedIssueUpdatedAt = \is_string($data['latestPublishedIssueUpdatedAt'] ?? null) ? $data['latestPublishedIssueUpdatedAt'] : null;
         $this->missingTomesNumbers = \is_array($data['missingTomesNumbers'] ?? null) ? \array_map('\intval', $data['missingTomesNumbers']) : [];
         $this->ownedTomesNumbers = \is_array($data['ownedTomesNumbers'] ?? null) ? \array_map('\intval', $data['ownedTomesNumbers']) : [];
         $this->publishedDate = \is_string($data['publishedDate'] ?? null) ? $data['publishedDate'] : null;
@@ -103,6 +111,9 @@ readonly class ComicSeriesListItem implements \JsonSerializable
             coverUrl: $comic->getCoverUrl(),
             currentIssue: $comic->getCurrentIssue(),
             currentIssueComplete: $comic->isCurrentIssueComplete(),
+            defaultTomeBought: $comic->isDefaultTomeBought(),
+            defaultTomeDownloaded: $comic->isDefaultTomeDownloaded(),
+            defaultTomeRead: $comic->isDefaultTomeRead(),
             description: $comic->getDescription(),
             hasNasTome: $hasNasTome,
             id: (int) $comic->getId(),
@@ -118,6 +129,7 @@ readonly class ComicSeriesListItem implements \JsonSerializable
             lastReadComplete: $comic->isLastReadComplete(),
             latestPublishedIssue: $comic->getLatestPublishedIssue(),
             latestPublishedIssueComplete: $comic->isLatestPublishedIssueComplete(),
+            latestPublishedIssueUpdatedAt: $comic->getLatestPublishedIssueUpdatedAt()?->format('c'),
             missingTomesNumbers: $comic->getMissingTomesNumbers(),
             ownedTomesNumbers: $comic->getOwnedTomesNumbers(),
             publishedDate: $comic->getPublishedDate(),
@@ -143,6 +155,9 @@ readonly class ComicSeriesListItem implements \JsonSerializable
             'coverUrl' => $this->coverUrl,
             'currentIssue' => $this->currentIssue,
             'currentIssueComplete' => $this->currentIssueComplete,
+            'defaultTomeBought' => $this->defaultTomeBought,
+            'defaultTomeDownloaded' => $this->defaultTomeDownloaded,
+            'defaultTomeRead' => $this->defaultTomeRead,
             'description' => $this->description,
             'hasNasTome' => $this->hasNasTome,
             'id' => $this->id,
@@ -158,6 +173,7 @@ readonly class ComicSeriesListItem implements \JsonSerializable
             'lastReadComplete' => $this->lastReadComplete,
             'latestPublishedIssue' => $this->latestPublishedIssue,
             'latestPublishedIssueComplete' => $this->latestPublishedIssueComplete,
+            'latestPublishedIssueUpdatedAt' => $this->latestPublishedIssueUpdatedAt,
             'missingTomesNumbers' => $this->missingTomesNumbers,
             'ownedTomesNumbers' => $this->ownedTomesNumbers,
             'publishedDate' => $this->publishedDate,
