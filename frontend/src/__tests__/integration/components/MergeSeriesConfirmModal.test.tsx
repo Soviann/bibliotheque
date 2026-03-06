@@ -87,6 +87,38 @@ describe("MergeSeriesConfirmModal", () => {
     expect(screen.queryByText("Naruto Tome 1")).not.toBeInTheDocument();
   });
 
+  it("enables confirm button when exactly 2 series are checked", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MergeSeriesConfirmModal {...defaultProps} />);
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    // Uncheck one of three → exactly 2 left
+    await user.click(checkboxes[0]);
+
+    expect(screen.getByRole("button", { name: /continuer/i })).toBeEnabled();
+  });
+
+  it("allows re-checking a previously unchecked entry", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MergeSeriesConfirmModal {...defaultProps} />);
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    await user.click(checkboxes[1]);
+    expect(checkboxes[1]).not.toBeChecked();
+
+    await user.click(checkboxes[1]);
+    expect(checkboxes[1]).toBeChecked();
+  });
+
+  it("renders without crash when entries is empty", () => {
+    renderWithProviders(
+      <MergeSeriesConfirmModal {...defaultProps} entries={[]} />,
+    );
+
+    expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
+    expect(screen.getByRole("button", { name: /continuer/i })).toBeDisabled();
+  });
+
   it("resets checkboxes when entries change", async () => {
     const user = userEvent.setup();
     const { rerender } = renderWithProviders(
