@@ -11,18 +11,20 @@ import {
   TabPanels,
 } from "@headlessui/react";
 import { Check, ChevronDown, Loader2, Merge, Search as SearchIcon } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 import EmptyState from "../components/EmptyState";
 import MergeGroupCard from "../components/MergeGroupCard";
 import MergePreviewModal from "../components/MergePreviewModal";
+import MergeSeriesConfirmModal, { type MergeSeriesEntry } from "../components/MergeSeriesConfirmModal";
 import SeriesMultiSelect from "../components/SeriesMultiSelect";
 import {
   useDetectMergeGroups,
   useExecuteMerge,
   useMergePreview,
 } from "../hooks/useMergeSeries";
-import type { MergeGroup, MergePreview } from "../types/api";
+import type { ComicSeries, HydraCollection, MergeGroup, MergePreview } from "../types/api";
 import { ComicType, ComicTypeLabel } from "../types/enums";
 
 interface SelectOption {
@@ -50,6 +52,10 @@ export default function MergeSeries() {
   const [previewData, setPreviewData] = useState<MergePreview | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  // Confirmation step state
+  const [confirmEntries, setConfirmEntries] = useState<MergeSeriesEntry[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   // Auto-detect state
   const [selectedType, setSelectedType] = useState("");
   const [selectedLetter, setSelectedLetter] = useState("");
@@ -61,6 +67,7 @@ export default function MergeSeries() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   // Mutations
+  const queryClient = useQueryClient();
   const detectMutation = useDetectMergeGroups();
   const previewMutation = useMergePreview();
   const executeMerge = useExecuteMerge();
@@ -83,16 +90,10 @@ export default function MergeSeries() {
   };
 
   const handlePreviewGroup = (group: MergeGroup) => {
-    const seriesIds = group.entries.map((e) => e.seriesId);
-    previewMutation.mutate(seriesIds, {
-      onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Erreur lors de la generation de l'apercu");
-      },
-      onSuccess: (data) => {
-        setPreviewData(data);
-        setPreviewOpen(true);
-      },
-    });
+    setConfirmEntries(
+      group.entries.map((e) => ({ id: e.seriesId, title: e.originalTitle })),
+    );
+    setConfirmOpen(true);
   };
 
   const handleSkipGroup = (group: MergeGroup) => {
@@ -100,7 +101,21 @@ export default function MergeSeries() {
   };
 
   const handleManualPreview = () => {
-    previewMutation.mutate(selectedIds, {
+    const comicsData = queryClient.getQueryData<HydraCollection<ComicSeries>>(["comics"]);
+    const comics = comicsData?.member ?? [];
+    const entries = selectedIds
+      .map((id) => {
+        const comic = comics.find((c) => c.id === id);
+        return comic ? { id: comic.id, title: comic.title } : null;
+      })
+      .filter((e): e is MergeSeriesEntry => e !== null);
+    setConfirmEntries(entries);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmSeries = (confirmedIds: number[]) => {
+    setConfirmOpen(false);
+    previewMutation.mutate(confirmedIds, {
       onError: (error) => {
         toast.error(error instanceof Error ? error.message : "Erreur lors de la generation de l'apercu");
       },
@@ -111,29 +126,24 @@ export default function MergeSeries() {
     });
   };
 
-  const handleConfirmMerge = useCallback(
-    (preview: MergePreview) => {
-      executeMerge.mutate(preview, {
-        onSuccess: () => {
-          toast.success("Series fusionnees avec succes");
-          setPreviewOpen(false);
-          setPreviewData(null);
-          // Remove merged group from auto-detect list
-          setGroups((prev) =>
-            prev.filter(
-              (g) =>
-                !g.entries.every((e) =>
-                  preview.sourceSeriesIds.includes(e.seriesId),
-                ),
-            ),
-          );
-          // Clear manual selection
-          setSelectedIds([]);
-        },
-      });
-    },
-    [executeMerge],
-  );
+  const handleConfirmMerge = (preview: MergePreview) => {
+    executeMerge.mutate(preview, {
+      onSuccess: () => {
+        toast.success("Series fusionnees avec succes");
+        setPreviewOpen(false);
+        setPreviewData(null);
+        setGroups((prev) =>
+          prev.filter(
+            (g) =>
+              !g.entries.every((e) =>
+                preview.sourceSeriesIds.includes(e.seriesId),
+              ),
+          ),
+        );
+        setSelectedIds([]);
+      },
+    });
+  };
 
   const selectedTypeOption = typeOptions.find((o) => o.value === selectedType);
   const selectedLetterOption = letterOptions.find(
@@ -317,6 +327,13 @@ export default function MergeSeries() {
           </TabPanel>
         </TabPanels>
       </TabGroup>
+
+      <MergeSeriesConfirmModal
+        entries={confirmEntries}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmSeries}
+        open={confirmOpen}
+      />
 
       <MergePreviewModal
         isExecuting={executeMerge.isPending}
