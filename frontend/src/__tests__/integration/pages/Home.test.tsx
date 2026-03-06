@@ -113,7 +113,9 @@ describe("Home", () => {
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "XYZNOTFOUND");
 
-    expect(screen.getByText(/Aucun résultat pour/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Aucun résultat pour/)).toBeInTheDocument();
+    });
     expect(screen.getByText(/XYZNOTFOUND/)).toBeInTheDocument();
   });
 
@@ -162,8 +164,10 @@ describe("Home", () => {
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Naruto");
 
+    await waitFor(() => {
+      expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    });
     expect(screen.getByText("Naruto")).toBeInTheDocument();
-    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
   });
 
   it("displays count of filtered and total comics", async () => {
@@ -477,8 +481,10 @@ describe("Home", () => {
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Urasawa");
 
+    await waitFor(() => {
+      expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    });
     expect(screen.getByText("Monster")).toBeInTheDocument();
-    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
   });
 
   it("filters comics by publisher", async () => {
@@ -502,8 +508,10 @@ describe("Home", () => {
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Kana");
 
+    await waitFor(() => {
+      expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    });
     expect(screen.getByText("Monster")).toBeInTheDocument();
-    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
   });
 
   it("filters comics with fuzzy search (typos)", async () => {
@@ -531,8 +539,10 @@ describe("Home", () => {
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Uraswa");
 
+    await waitFor(() => {
+      expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    });
     expect(screen.getByText("Monster")).toBeInTheDocument();
-    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
   });
 
   it("handles case-insensitive search with surrounding whitespace", async () => {
@@ -556,8 +566,10 @@ describe("Home", () => {
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "  naruto  ");
 
+    await waitFor(() => {
+      expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    });
     expect(screen.getByText("Naruto")).toBeInTheDocument();
-    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
   });
 
   it("pre-filters by status URL param", async () => {
@@ -623,7 +635,7 @@ describe("Home", () => {
     expect(headings[1]).toHaveTextContent("Astérix");
   });
 
-  it("debounces search URL param update", async () => {
+  it("debounces search filtering", async () => {
     const user = userEvent.setup();
     const comics = [
       createMockComicSeries({ id: 1, title: "Naruto" }),
@@ -648,9 +660,15 @@ describe("Home", () => {
     await user.type(searchInput, "Nar");
     expect(searchInput).toHaveValue("Nar");
 
-    // Filtering still happens immediately on local state
+    // Both comics still visible before debounce fires
     expect(screen.getByText("Naruto")).toBeInTheDocument();
-    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    expect(screen.getByText("One Piece")).toBeInTheDocument();
+
+    // After debounce, filtering applies
+    await waitFor(() => {
+      expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+    });
+    expect(screen.getByText("Naruto")).toBeInTheDocument();
   });
 
   it("shows loading indicator while data is being fetched", async () => {

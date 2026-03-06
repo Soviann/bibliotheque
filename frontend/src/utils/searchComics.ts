@@ -11,9 +11,13 @@ const fuseOptions: IFuseOptions<ComicSeries> = {
   threshold: 0.35,
 };
 
+let cachedComics: ComicSeries[] | null = null;
+let cachedFuse: Fuse<ComicSeries> | null = null;
+
 /**
  * Recherche floue multi-champs (titre, auteurs, éditeur) via Fuse.js.
  * Retourne tous les comics si la query est vide.
+ * L'index Fuse est mis en cache et recréé uniquement si la liste change.
  */
 export function searchComics(
   comics: ComicSeries[],
@@ -22,6 +26,10 @@ export function searchComics(
   const q = query.trim();
   if (!q) return comics;
 
-  const fuse = new Fuse(comics, fuseOptions);
-  return fuse.search(q).map((result) => result.item);
+  if (comics !== cachedComics) {
+    cachedFuse = new Fuse(comics, fuseOptions);
+    cachedComics = comics;
+  }
+
+  return cachedFuse!.search(q).map((result) => result.item);
 }
