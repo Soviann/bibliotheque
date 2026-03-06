@@ -22,6 +22,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **Tomes supprimés lors de l'édition d'une série** : Le PUT API Platform vidait silencieusement la collection de tomes. Migration vers PATCH (merge-patch+json) avec `@id` pour identifier les tomes existants. Les tomes sont maintenant correctement préservés, ajoutés et supprimés (#145)
 
+- **Doublons à l'import Excel de suivi** : L'import créait systématiquement de nouvelles séries sans vérifier l'existant. Il cherche maintenant par titre + type et met à jour la série existante (status, tomes, latestPublishedIssue) au lieu de créer un doublon
+
 ### Changed
 
 - **Tri des tomes par numéro** : Les tomes sont triés par numéro de début dans le formulaire d'édition (#145)
