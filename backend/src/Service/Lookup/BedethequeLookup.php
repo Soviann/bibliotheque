@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Lookup;
 
 use App\Enum\ComicType;
-use Gemini\Contracts\ClientContract as GeminiClient;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
@@ -39,12 +38,12 @@ class BedethequeLookup extends AbstractGeminiLookupProvider
     public function __construct(
         #[Autowire(service: 'gemini.cache')]
         AdapterInterface $cache,
-        GeminiClient $geminiClient,
+        GeminiClientPool $geminiClientPool,
         #[Autowire(service: 'limiter.gemini_api')]
         RateLimiterFactory $limiterFactory,
         LoggerInterface $logger,
     ) {
-        parent::__construct($cache, $geminiClient, $limiterFactory, $logger);
+        parent::__construct($cache, $geminiClientPool, $limiterFactory, $logger);
     }
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int
