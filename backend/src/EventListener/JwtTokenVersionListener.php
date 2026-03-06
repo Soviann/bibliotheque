@@ -6,7 +6,6 @@ namespace App\EventListener;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTDecodedEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -14,22 +13,21 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 /**
  * Ajoute et vérifie la version du token JWT pour permettre l'invalidation.
  *
- * À chaque création de token (login), la version est incrémentée,
- * ce qui invalide automatiquement tous les tokens précédents.
+ * La version est ajoutée au payload lors de la création du token,
+ * et vérifiée lors du décodage. L'incrémentation manuelle via
+ * la commande app:invalidate-tokens permet d'invalider les tokens existants.
  */
 #[AsEventListener(event: 'lexik_jwt_authentication.on_jwt_created', method: 'onJWTCreated')]
 #[AsEventListener(event: 'lexik_jwt_authentication.on_jwt_decoded', method: 'onJWTDecoded')]
 class JwtTokenVersionListener
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
     ) {
     }
 
     /**
-     * Incrémente la tokenVersion et l'ajoute au payload du JWT lors de la création.
-     * Chaque nouveau token invalide les précédents.
+     * Ajoute la tokenVersion actuelle au payload du JWT lors de la création.
      */
     public function onJWTCreated(JWTCreatedEvent $event): void
     {
@@ -38,9 +36,6 @@ class JwtTokenVersionListener
         if (!$user instanceof User) {
             return;
         }
-
-        $user->incrementTokenVersion();
-        $this->entityManager->flush();
 
         $data = $event->getData();
         $data['tokenVersion'] = $user->getTokenVersion();
