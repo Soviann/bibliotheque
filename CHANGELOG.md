@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Confirmation des séries avant fusion** : Étape intermédiaire affichant la liste des séries avec cases à cocher, permettant d'exclure des séries avant la prévisualisation des tomes (#157)
+
 ## [v2.4.0] - 2026-03-06
 
 ### Added

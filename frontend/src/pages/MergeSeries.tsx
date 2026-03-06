@@ -16,7 +16,10 @@ import { toast } from "sonner";
 import EmptyState from "../components/EmptyState";
 import MergeGroupCard from "../components/MergeGroupCard";
 import MergePreviewModal from "../components/MergePreviewModal";
+import MergeSeriesConfirmModal from "../components/MergeSeriesConfirmModal";
+import type { MergeSeriesEntry } from "../components/MergeSeriesConfirmModal";
 import SeriesMultiSelect from "../components/SeriesMultiSelect";
+import { useComics } from "../hooks/useComics";
 import {
   useDetectMergeGroups,
   useExecuteMerge,
@@ -50,6 +53,10 @@ export default function MergeSeries() {
   const [previewData, setPreviewData] = useState<MergePreview | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  // Confirmation step state
+  const [confirmEntries, setConfirmEntries] = useState<MergeSeriesEntry[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   // Auto-detect state
   const [selectedType, setSelectedType] = useState("");
   const [selectedLetter, setSelectedLetter] = useState("");
@@ -59,6 +66,10 @@ export default function MergeSeries() {
 
   // Manual select state
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  // Data
+  const { data: comicsData } = useComics();
+  const comics = comicsData?.member ?? [];
 
   // Mutations
   const detectMutation = useDetectMergeGroups();
@@ -83,16 +94,10 @@ export default function MergeSeries() {
   };
 
   const handlePreviewGroup = (group: MergeGroup) => {
-    const seriesIds = group.entries.map((e) => e.seriesId);
-    previewMutation.mutate(seriesIds, {
-      onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Erreur lors de la generation de l'apercu");
-      },
-      onSuccess: (data) => {
-        setPreviewData(data);
-        setPreviewOpen(true);
-      },
-    });
+    setConfirmEntries(
+      group.entries.map((e) => ({ id: e.seriesId, title: e.originalTitle })),
+    );
+    setConfirmOpen(true);
   };
 
   const handleSkipGroup = (group: MergeGroup) => {
@@ -100,7 +105,19 @@ export default function MergeSeries() {
   };
 
   const handleManualPreview = () => {
-    previewMutation.mutate(selectedIds, {
+    const entries = selectedIds
+      .map((id) => {
+        const comic = comics.find((c) => c.id === id);
+        return comic ? { id: comic.id, title: comic.title } : null;
+      })
+      .filter((e): e is MergeSeriesEntry => e !== null);
+    setConfirmEntries(entries);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmSeries = (confirmedIds: number[]) => {
+    setConfirmOpen(false);
+    previewMutation.mutate(confirmedIds, {
       onError: (error) => {
         toast.error(error instanceof Error ? error.message : "Erreur lors de la generation de l'apercu");
       },
@@ -317,6 +334,13 @@ export default function MergeSeries() {
           </TabPanel>
         </TabPanels>
       </TabGroup>
+
+      <MergeSeriesConfirmModal
+        entries={confirmEntries}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmSeries}
+        open={confirmOpen}
+      />
 
       <MergePreviewModal
         isExecuting={executeMerge.isPending}
