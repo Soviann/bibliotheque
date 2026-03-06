@@ -55,6 +55,7 @@ const ComicDetail = lazyWithRetry(() => import("./pages/ComicDetail"));
 const ComicForm = lazyWithRetry(() => import("./pages/ComicForm"));
 const ImportTool = lazyWithRetry(() => import("./pages/ImportTool"));
 const Login = lazyWithRetry(() => import("./pages/Login"));
+const LookupTool = lazyWithRetry(() => import("./pages/LookupTool"));
 const MergeSeries = lazyWithRetry(() => import("./pages/MergeSeries"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const PurgeTool = lazyWithRetry(() => import("./pages/PurgeTool"));
@@ -97,6 +98,7 @@ const router = createBrowserRouter(
         <Route element={<ComicForm />} path="comic/:id/edit" />
         <Route element={<Tools />} path="tools" />
         <Route element={<ImportTool />} path="tools/import" />
+        <Route element={<LookupTool />} path="tools/lookup" />
         <Route element={<MergeSeries />} path="tools/merge-series" />
         <Route element={<PurgeTool />} path="tools/purge" />
         <Route element={<Trash />} path="trash" />

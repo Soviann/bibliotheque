@@ -113,6 +113,21 @@ export interface ImportBooksResult {
   groupCount: number;
 }
 
+export interface BatchLookupProgress {
+  current: number;
+  seriesTitle: string;
+  status: "failed" | "skipped" | "updated";
+  total: number;
+  updatedFields: string[];
+}
+
+export interface BatchLookupSummary {
+  failed: number;
+  processed: number;
+  skipped: number;
+  updated: number;
+}
+
 export interface LookupResult {
   apiMessages: Record<string, { message: string; status: string }>;
   authors: string | null;
