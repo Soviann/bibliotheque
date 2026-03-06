@@ -77,14 +77,16 @@ describe("syncHandler — processSyncQueue", () => {
     });
   });
 
-  it("replays an update mutation via PUT", async () => {
+  it("replays an update mutation via PATCH", async () => {
     let capturedMethod: string | undefined;
     let capturedUrl: string | undefined;
+    let capturedContentType: string | undefined;
 
     server.use(
-      http.put("/api/comic_series/42", ({ request }) => {
+      http.patch("/api/comic_series/42", ({ request }) => {
         capturedMethod = request.method;
         capturedUrl = new URL(request.url).pathname;
+        capturedContentType = request.headers.get("Content-Type") ?? undefined;
         return HttpResponse.json({ id: 42, title: "Updated" });
       }),
     );
@@ -98,8 +100,9 @@ describe("syncHandler — processSyncQueue", () => {
 
     await processSyncQueue(fakeToken, mockPostMessage);
 
-    expect(capturedMethod).toBe("PUT");
+    expect(capturedMethod).toBe("PATCH");
     expect(capturedUrl).toBe("/api/comic_series/42");
+    expect(capturedContentType).toBe("application/merge-patch+json");
 
     const remaining = await getAll();
     expect(remaining).toHaveLength(0);
@@ -518,7 +521,7 @@ describe("syncHandler — processSyncQueue", () => {
           { status: 201 },
         ),
       ),
-      http.put(/\/api\/comic_series\/\d+/, ({ request }) => {
+      http.patch(/\/api\/comic_series\/\d+/, ({ request }) => {
         capturedUpdateUrl = new URL(request.url).pathname;
         return HttpResponse.json({ id: 42, title: "Updated" });
       }),

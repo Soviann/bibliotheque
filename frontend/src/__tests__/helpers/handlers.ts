@@ -31,8 +31,8 @@ export const handlers = [
     );
   }),
 
-  // Update comic
-  http.put(`${API_BASE}/comic_series/:id`, ({ params }) =>
+  // Update comic (PATCH)
+  http.patch(`${API_BASE}/comic_series/:id`, ({ params }) =>
     HttpResponse.json(
       createMockComicSeries({ id: Number(params.id), title: "Updated Series" }),
     ),
