@@ -280,11 +280,6 @@ class ComicSeries implements SoftDeletableInterface
         return \implode(', ', $this->authors->map(static fn (Author $a): string => $a->getName())->toArray());
     }
 
-    public function getDefaultTomeBought(): bool
-    {
-        return $this->defaultTomeBought;
-    }
-
     public function isDefaultTomeBought(): bool
     {
         return $this->defaultTomeBought;
@@ -297,11 +292,6 @@ class ComicSeries implements SoftDeletableInterface
         return $this;
     }
 
-    public function getDefaultTomeDownloaded(): bool
-    {
-        return $this->defaultTomeDownloaded;
-    }
-
     public function isDefaultTomeDownloaded(): bool
     {
         return $this->defaultTomeDownloaded;
@@ -312,11 +302,6 @@ class ComicSeries implements SoftDeletableInterface
         $this->defaultTomeDownloaded = $defaultTomeDownloaded;
 
         return $this;
-    }
-
-    public function getDefaultTomeRead(): bool
-    {
-        return $this->defaultTomeRead;
     }
 
     public function isDefaultTomeRead(): bool
