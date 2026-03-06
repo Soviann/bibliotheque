@@ -80,6 +80,104 @@ export async function apiFetch<T>(
   return response.json() as Promise<T>;
 }
 
+export async function fetchSSE<TMessage, TComplete>(
+  path: string,
+  body: Record<string, unknown>,
+  onMessage: (data: TMessage) => void,
+  onComplete: (data: TComplete) => void,
+  onError: (error: Error) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      body: JSON.stringify(body),
+      headers,
+      method: "POST",
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") return;
+    onError(err instanceof Error ? err : new Error(String(err)));
+    return;
+  }
+
+  if (response.status === 401) {
+    if (navigator.onLine) {
+      removeToken();
+      window.location.href = "/login";
+    }
+    onError(new Error("Non authentifié"));
+    return;
+  }
+
+  if (!response.ok) {
+    const errBody = (await response.json().catch(() => ({}))) as {
+      detail?: string;
+      error?: string;
+    };
+    onError(
+      new Error(
+        errBody.detail ?? errBody.error ?? `Erreur ${response.status}`,
+      ),
+    );
+    return;
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    onError(new Error("ReadableStream non supporté"));
+    return;
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      let currentEvent = "";
+
+      for (const line of lines) {
+        if (line.startsWith("event: ")) {
+          currentEvent = line.slice(7).trim();
+        } else if (line.startsWith("data: ")) {
+          const json = line.slice(6);
+          try {
+            const parsed = JSON.parse(json);
+            if (currentEvent === "complete") {
+              onComplete(parsed as TComplete);
+            } else {
+              onMessage(parsed as TMessage);
+            }
+          } catch {
+            // Ignorer les lignes JSON invalides
+          }
+          currentEvent = "";
+        }
+      }
+    }
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") return;
+    onError(err instanceof Error ? err : new Error(String(err)));
+  }
+}
+
 export async function loginWithGoogle(credential: string): Promise<string> {
   const response = await fetch(`${API_BASE}/login/google`, {
     body: JSON.stringify({ credential }),
