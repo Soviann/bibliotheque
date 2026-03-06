@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Sélecteur de couverture série** : Bouton de recherche d'images à côté du champ URL de couverture, modale avec grille d'images Google Custom Search, sélection visuelle (#137)
 - **Ajout de tomes dans la prévisualisation de fusion** : Bouton "Ajouter un tome" dans la modale de fusion, avec numérotation automatique (#146)
 
 ### Fixed
