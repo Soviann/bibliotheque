@@ -7,10 +7,10 @@ L'application est une **Progressive Web App** (PWA) accessible depuis un navigat
 ### Se connecter
 
 1. Ouvrir l'URL de l'application dans un navigateur
-2. Saisir votre adresse email et votre mot de passe
-3. Cliquer sur **Se connecter**
+2. Cliquer sur **Se connecter avec Google**
+3. S'authentifier avec le compte Google autorisé
 
-La session reste active pendant **30 jours** grâce au token JWT, ce qui permet une utilisation hors-ligne de la PWA.
+La session reste active pendant **365 jours** grâce au token JWT, ce qui permet une utilisation hors-ligne de la PWA.
 
 ### Se déconnecter
 
@@ -22,7 +22,7 @@ Cliquer sur **Déconnexion** dans la barre de navigation (header desktop ou menu
 
 L'interface s'adapte à la taille de l'écran :
 
-- **Mobile** : barre de navigation en bas de l'écran avec 5 onglets
+- **Mobile** : barre de navigation en bas de l'écran avec 4 onglets
 - **Desktop** : barre de navigation en haut avec les mêmes liens
 
 | Onglet | Description |
@@ -30,7 +30,6 @@ L'interface s'adapte à la taille de l'écran :
 | Accueil | Bibliothèque complète |
 | Wishlist | Bibliothèque filtrée sur le statut « Liste de souhaits » |
 | Ajouter | Formulaire de création |
-| Recherche | Recherche dans la collection |
 | Corbeille | Séries supprimées |
 
 ---
@@ -45,9 +44,9 @@ Chaque carte affiche :
 - La couverture (ou une illustration spécifique au type si absente)
 - Le titre
 - Le(s) auteur(s)
-- Le type (BD, Manga, Comics, Roman, Webtoon)
+- Le type (BD, Manga, Comics, Livre)
 - Le nombre de tomes (ou « One-shot »)
-- Le statut (En cours d'achat, Complet, En pause, Abandonné, Liste de souhaits)
+- Le statut (En cours d'achat, Terminé, Arrêté, Liste de souhaits)
 
 Cliquer sur une carte ouvre la page de détail de la série.
 
@@ -55,8 +54,8 @@ Cliquer sur une carte ouvre la page de détail de la série.
 
 Deux menus déroulants permettent de filtrer la bibliothèque :
 
-- **Type** : BD, Manga, Comics, Roman, Webtoon
-- **Statut** : En cours d'achat, Complet, En pause, Abandonné, Liste de souhaits
+- **Type** : BD, Manga, Comics, Livre
+- **Statut** : En cours d'achat, Terminé, Arrêté, Liste de souhaits
 
 ### Tri
 
@@ -125,8 +124,8 @@ Les champs pré-remplis peuvent être modifiés avant la sauvegarde.
 | Champ | Description | Obligatoire |
 |-------|-------------|:-----------:|
 | Titre | Nom de la série | Oui |
-| Type | BD, Manga, Comics, Roman, Webtoon | Oui |
-| Statut | En cours d'achat, Complet, etc. | Oui |
+| Type | BD, Manga, Comics, Livre | Oui |
+| Statut | En cours d'achat, Terminé, Arrêté, Liste de souhaits | Oui |
 | Auteur(s) | Un ou plusieurs auteurs (auto-complétion) | Non |
 | Éditeur | Maison d'édition | Non |
 | Description | Résumé ou notes | Non |
@@ -164,6 +163,38 @@ Cliquer sur **Restaurer** pour remettre la série dans la bibliothèque avec son
 ### Suppression définitive
 
 Cliquer sur **Supprimer définitivement** pour effacer la série de manière irréversible. Une confirmation est demandée avant la suppression.
+
+---
+
+## Outils d'administration
+
+Accessible via le menu **Outils** (`/tools`), cette section regroupe les outils d'administration de la collection.
+
+### Lookup batch
+
+Lancer une recherche automatique de métadonnées sur toutes les séries incomplètes. Filtres disponibles : type, forcer le re-lookup, limite, délai entre les requêtes. Le progrès s'affiche en temps réel via streaming SSE.
+
+### Import Excel
+
+Importer des données depuis des fichiers Excel :
+- **Onglet Suivi** : fichier de suivi avec feuilles BD/Comics/Livre/Mangas
+- **Onglet Livres** : fichier Livres.xlsx avec ISBN, auteurs, éditeur, couverture
+
+Chaque import peut être lancé en mode **simulation** (dry run) pour vérifier sans persister.
+
+### Fusion de séries
+
+Détecter automatiquement (via Gemini AI) les séries potentiellement duplicates, ou sélectionner manuellement des séries à fusionner. Aperçu complet et éditable avant exécution.
+
+### Purge
+
+Supprimer définitivement les séries dans la corbeille depuis plus de N jours. Prévisualisation de la liste avant confirmation.
+
+---
+
+## Mode sombre
+
+Un bouton dans le header permet de basculer entre le mode clair et le mode sombre. La préférence est sauvegardée dans le navigateur.
 
 ---
 

@@ -17,7 +17,7 @@ Avant de lancer ce runbook, l'utilisateur doit fournir :
 | `MYSQL_ROOT_PASSWORD` | Mot de passe root MariaDB | (généré) |
 | `OAUTH_GOOGLE_ID` | ID client OAuth Google | `xxx.apps.googleusercontent.com` |
 | `OAUTH_ALLOWED_EMAIL` | Email Gmail autorisé | `user@gmail.com` |
-| `GEMINI_API_KEY` | Clé API Gemini (optionnel) | |
+| `GEMINI_API_KEYS` | Clés API Gemini séparées par virgule (optionnel) | |
 | `GOOGLE_BOOKS_API_KEY` | Clé API Google Books (optionnel) | |
 
 La valeur de `SYMFONY_DECRYPTION_SECRET` est extraite automatiquement de la machine de dev (étape 0).
@@ -61,7 +61,7 @@ cat > /volume1/docker/bibliotheque/app/backend/.env.local << EOF
 MYSQL_PASSWORD=${MYSQL_PASSWORD}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 SYMFONY_DECRYPTION_SECRET=${DECRYPTION_SECRET}
-GEMINI_API_KEY=${GEMINI_API_KEY}
+GEMINI_API_KEYS=${GEMINI_API_KEYS}
 GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
 OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
 OAUTH_ALLOWED_EMAIL=${OAUTH_ALLOWED_EMAIL}

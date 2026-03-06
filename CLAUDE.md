@@ -221,7 +221,7 @@ Format: `- **Name**: Description`
 Full file map with all entities, hooks, components, services → `memory/patterns.md`
 
 ```
-backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,EventListener,Repository,Service,State}/
+backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,Event,EventListener,Repository,Service,State}/
 backend/tests/{Unit,Integration,Functional,Factory,Trait}/
 
 frontend/src/{components,hooks,pages,services,types,__tests__}/

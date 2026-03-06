@@ -32,5 +32,6 @@ make db-migrate    # Exécuter les migrations
 - [Guide utilisateur](docs/guide-utilisateur.md)
 - [Guide développeur](docs/guide-developpeur.md)
 - [Déploiement NAS Synology](docs/guide-deploiement-nas.md)
+- [Runbook NAS (Claude Code)](docs/guide-deploiement-nas-claude.md)
 - [Déploiement OVH](docs/guide-deploiement-ovh.md)
 - [CHANGELOG](CHANGELOG.md)
