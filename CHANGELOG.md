@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.4.0] - 2026-03-06
+
 ### Added
 
 - **Bouton vider le cache** : Bouton dans la page Outils pour purger le cache local (IndexedDB + TanStack Query) et recharger les données depuis le serveur, avec spinner et toast (#155)
