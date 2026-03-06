@@ -40,8 +40,12 @@ final class ComicSeriesTest extends TestCase
         self::assertSame('', $comic->getTitle());
         self::assertSame(ComicStatus::BUYING, $comic->getStatus());
         self::assertSame(ComicType::BD, $comic->getType());
+        self::assertFalse($comic->isDefaultTomeBought());
+        self::assertFalse($comic->isDefaultTomeDownloaded());
+        self::assertFalse($comic->isDefaultTomeRead());
         self::assertNull($comic->getLatestPublishedIssue());
         self::assertFalse($comic->isLatestPublishedIssueComplete());
+        self::assertNull($comic->getLatestPublishedIssueUpdatedAt());
         self::assertFalse($comic->isOneShot());
         self::assertNull($comic->getDescription());
         self::assertNull($comic->getPublishedDate());
@@ -88,6 +92,33 @@ final class ComicSeriesTest extends TestCase
         self::assertSame(ComicType::MANGA, $comic->getType());
     }
 
+    public function testSetDefaultTomeBoughtReturnsFluent(): void
+    {
+        $comic = new ComicSeries();
+        $result = $comic->setDefaultTomeBought(true);
+
+        self::assertSame($comic, $result);
+        self::assertTrue($comic->isDefaultTomeBought());
+    }
+
+    public function testSetDefaultTomeDownloadedReturnsFluent(): void
+    {
+        $comic = new ComicSeries();
+        $result = $comic->setDefaultTomeDownloaded(true);
+
+        self::assertSame($comic, $result);
+        self::assertTrue($comic->isDefaultTomeDownloaded());
+    }
+
+    public function testSetDefaultTomeReadReturnsFluent(): void
+    {
+        $comic = new ComicSeries();
+        $result = $comic->setDefaultTomeRead(true);
+
+        self::assertSame($comic, $result);
+        self::assertTrue($comic->isDefaultTomeRead());
+    }
+
     public function testSetLatestPublishedIssueReturnsFluent(): void
     {
         $comic = new ComicSeries();
@@ -113,6 +144,25 @@ final class ComicSeriesTest extends TestCase
 
         self::assertSame($comic, $result);
         self::assertTrue($comic->isLatestPublishedIssueComplete());
+    }
+
+    public function testSetLatestPublishedIssueUpdatedAtReturnsFluent(): void
+    {
+        $comic = new ComicSeries();
+        $date = new \DateTimeImmutable('2025-06-01');
+        $result = $comic->setLatestPublishedIssueUpdatedAt($date);
+
+        self::assertSame($comic, $result);
+        self::assertSame($date, $comic->getLatestPublishedIssueUpdatedAt());
+    }
+
+    public function testSetLatestPublishedIssueUpdatedAtNull(): void
+    {
+        $comic = new ComicSeries();
+        $comic->setLatestPublishedIssueUpdatedAt(new \DateTimeImmutable());
+        $comic->setLatestPublishedIssueUpdatedAt(null);
+
+        self::assertNull($comic->getLatestPublishedIssueUpdatedAt());
     }
 
     public function testSetIsOneShotReturnsFluent(): void

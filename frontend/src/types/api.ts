@@ -45,11 +45,15 @@ export interface ComicSeries {
   coverImage: string | null;
   coverUrl: string | null;
   createdAt: string;
+  defaultTomeBought: boolean;
+  defaultTomeDownloaded: boolean;
+  defaultTomeRead: boolean;
   description: string | null;
   id: number;
   isOneShot: boolean;
   latestPublishedIssue: number | null;
   latestPublishedIssueComplete: boolean;
+  latestPublishedIssueUpdatedAt: string | null;
   publishedDate: string | null;
   publisher: string | null;
   status: ComicStatus;

@@ -155,6 +155,122 @@ final class LookupApplierTest extends TestCase
         self::assertNotContains('latestPublishedIssue', $updatedFields);
     }
 
+    public function testApplySetsLatestPublishedIssueUpdatedAtWhenLatestPublishedIssueUpdated(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        self::assertNull($series->getLatestPublishedIssueUpdatedAt());
+
+        $result = new LookupResult(
+            latestPublishedIssue: 10,
+            source: 'test',
+        );
+
+        $this->applier->apply($series, $result);
+
+        self::assertNotNull($series->getLatestPublishedIssueUpdatedAt());
+        self::assertEqualsWithDelta(new \DateTimeImmutable(), $series->getLatestPublishedIssueUpdatedAt(), 5);
+    }
+
+    public function testApplyDoesNotSetLatestPublishedIssueUpdatedAtWhenFieldNotUpdated(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $series->setLatestPublishedIssue(10);
+
+        $result = new LookupResult(
+            latestPublishedIssue: 15,
+            source: 'test',
+        );
+
+        $this->applier->apply($series, $result);
+
+        // latestPublishedIssue was already set → not updated → no date
+        self::assertNull($series->getLatestPublishedIssueUpdatedAt());
+    }
+
+    public function testApplyCreatesMissingTomesWhenLatestPublishedIssueSet(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+
+        $result = new LookupResult(
+            latestPublishedIssue: 3,
+            source: 'test',
+        );
+
+        $this->applier->apply($series, $result);
+
+        self::assertCount(3, $series->getTomes());
+
+        foreach ($series->getTomes() as $tome) {
+            self::assertFalse($tome->isBought());
+            self::assertFalse($tome->isDownloaded());
+            self::assertFalse($tome->isRead());
+        }
+    }
+
+    public function testApplyCreatesTomesWithDefaultFlags(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $series->setDefaultTomeBought(true);
+        $series->setDefaultTomeDownloaded(true);
+        $series->setDefaultTomeRead(true);
+
+        $result = new LookupResult(
+            latestPublishedIssue: 2,
+            source: 'test',
+        );
+
+        $this->applier->apply($series, $result);
+
+        self::assertCount(2, $series->getTomes());
+
+        foreach ($series->getTomes() as $tome) {
+            self::assertTrue($tome->isBought());
+            self::assertTrue($tome->isDownloaded());
+            self::assertTrue($tome->isRead());
+        }
+    }
+
+    public function testApplyDoesNotDuplicateExistingTomes(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $series->addTome(EntityFactory::createTome(1, bought: true));
+        $series->addTome(EntityFactory::createTome(2));
+
+        $result = new LookupResult(
+            latestPublishedIssue: 4,
+            source: 'test',
+        );
+
+        $this->applier->apply($series, $result);
+
+        // Tomes 1 et 2 existaient, tomes 3 et 4 sont créés
+        self::assertCount(4, $series->getTomes());
+
+        // Le tome 1 existant conserve ses flags
+        $tomeNumbers = [];
+        foreach ($series->getTomes() as $tome) {
+            $tomeNumbers[$tome->getNumber()] = $tome;
+        }
+        self::assertTrue($tomeNumbers[1]->isBought());
+        self::assertFalse($tomeNumbers[3]->isBought());
+    }
+
+    public function testApplyDoesNotCreateTomesWhenLatestPublishedIssueNotUpdated(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $series->setLatestPublishedIssue(5);
+
+        $result = new LookupResult(
+            latestPublishedIssue: 10,
+            source: 'test',
+        );
+
+        $this->applier->apply($series, $result);
+
+        // latestPublishedIssue was already set → not updated → no tomes created
+        self::assertCount(0, $series->getTomes());
+    }
+
     public function testApplySkipsIsOneShotWhenAlreadyTrue(): void
     {
         $series = EntityFactory::createComicSeries('Test');
