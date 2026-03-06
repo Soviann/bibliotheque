@@ -99,4 +99,113 @@ describe("ImportTool", () => {
     expect(screen.getByText("5")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
   });
+
+  it("changes button label when dry-run is unchecked", () => {
+    renderWithProviders(<ImportTool />);
+
+    const file = new File(["data"], "test.xlsx");
+    const input = screen.getByTestId("file-input");
+    fireEvent.change(input, { target: { files: [file] } });
+
+    // Initially dry-run is checked → "Simuler"
+    expect(screen.getByRole("button", { name: /simuler/i })).toBeInTheDocument();
+
+    // Uncheck dry-run
+    const checkbox = screen.getByRole("checkbox");
+    fireEvent.click(checkbox);
+
+    // Now button says "Importer"
+    expect(screen.getByRole("button", { name: /importer/i })).toBeInTheDocument();
+  });
+
+  it("shows 'Import termine' when dry-run is off", async () => {
+    server.use(
+      http.post(`${API_BASE}/tools/import/excel`, () =>
+        HttpResponse.json({
+          sheetDetails: { BD: { series: 1, tomes: 5 } },
+          totalSeries: 1,
+          totalTomes: 5,
+        }),
+      ),
+    );
+
+    renderWithProviders(<ImportTool />);
+
+    const file = new File(["data"], "test.xlsx");
+    const input = screen.getByTestId("file-input");
+    fireEvent.change(input, { target: { files: [file] } });
+
+    // Uncheck dry-run
+    fireEvent.click(screen.getByRole("checkbox"));
+
+    fireEvent.click(screen.getByRole("button", { name: /importer/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Import termine")).toBeInTheDocument();
+    });
+  });
+
+  it("shows sheet details in Excel results", async () => {
+    server.use(
+      http.post(`${API_BASE}/tools/import/excel`, () =>
+        HttpResponse.json({
+          sheetDetails: {
+            BD: { series: 2, tomes: 8 },
+            Mangas: { series: 4, tomes: 20 },
+          },
+          totalSeries: 6,
+          totalTomes: 28,
+        }),
+      ),
+    );
+
+    renderWithProviders(<ImportTool />);
+
+    const file = new File(["data"], "test.xlsx");
+    fireEvent.change(screen.getByTestId("file-input"), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /simuler/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Simulation terminee")).toBeInTheDocument();
+    });
+
+    // Check sheet details are displayed
+    expect(screen.getByText(/BD:/)).toBeInTheDocument();
+    expect(screen.getByText(/Mangas:/)).toBeInTheDocument();
+  });
+
+  it("shows books-specific fields (groupes, crees, enrichis)", async () => {
+    server.use(
+      http.post(`${API_BASE}/tools/import/books`, () =>
+        HttpResponse.json({
+          created: 10,
+          enriched: 3,
+          groupCount: 13,
+        }),
+      ),
+    );
+
+    renderWithProviders(<ImportTool />);
+
+    fireEvent.click(screen.getByText("Livres"));
+
+    const file = new File(["data"], "livres.xlsx");
+    fireEvent.change(screen.getByTestId("file-input"), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /simuler/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Simulation terminee")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Groupes")).toBeInTheDocument();
+    expect(screen.getByText("Crees")).toBeInTheDocument();
+    expect(screen.getByText("Enrichis")).toBeInTheDocument();
+    expect(screen.getByText("13")).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+  });
 });
