@@ -34,11 +34,13 @@ export default function Home() {
 
   const navigate = useNavigate();
   const [search, setSearch] = useState(searchParam);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParam);
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
   const [menuComic, setMenuComic] = useState<ComicSeries | null>(null);
 
   useEffect(() => {
     setSearch(searchParam);
+    setDebouncedSearch(searchParam);
   }, [searchParam]);
 
   const updateParam = useCallback(
@@ -71,6 +73,7 @@ export default function Home() {
       setSearch(v);
       clearTimeout(searchTimerRef.current);
       searchTimerRef.current = setTimeout(() => {
+        setDebouncedSearch(v);
         updateParam("search", v.trim());
       }, 300);
     },
@@ -87,8 +90,8 @@ export default function Home() {
       if (status && c.status !== status) return false;
       return true;
     });
-    return sortComics(searchComics(preFiltered, search), sort);
-  }, [allComics, search, sort, status, type]);
+    return sortComics(searchComics(preFiltered, debouncedSearch), sort);
+  }, [allComics, debouncedSearch, sort, status, type]);
 
   return (
     <div className="space-y-4">
@@ -137,10 +140,10 @@ export default function Home() {
             icon={BookOpen}
             title="Votre bibliothèque est vide"
           />
-        ) : search ? (
+        ) : debouncedSearch ? (
           <EmptyState
             icon={Search}
-            title={`Aucun résultat pour « ${search} »`}
+            title={`Aucun résultat pour « ${debouncedSearch} »`}
           />
         ) : status === "wishlist" ? (
           <EmptyState
