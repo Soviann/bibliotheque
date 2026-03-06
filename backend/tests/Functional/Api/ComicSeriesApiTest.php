@@ -236,6 +236,160 @@ final class ComicSeriesApiTest extends ApiTestCase
         self::assertSame('finished', $data['status']);
     }
 
+    public function testPatchWithoutTomesPreservesExisting(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Série avec tomes');
+        for ($i = 1; $i <= 5; $i++) {
+            $tome = EntityFactory::createTome($i, bought: true);
+            $series->addTome($tome);
+            $this->em->persist($tome);
+        }
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $id = $series->getId();
+
+        // PATCH sans tomes — les tomes existants doivent rester intacts
+        $client->request('PATCH', '/api/comic_series/'.$id, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'title' => 'Série avec tomes modifiée',
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertSame('Série avec tomes modifiée', $data['title']);
+        self::assertCount(5, $data['tomes']);
+    }
+
+    public function testPatchPreservesExistingTomes(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Série avec tomes');
+        for ($i = 1; $i <= 5; $i++) {
+            $tome = EntityFactory::createTome($i, bought: true);
+            $series->addTome($tome);
+            $this->em->persist($tome);
+        }
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $id = $series->getId();
+        $tomeIds = $series->getTomes()->map(static fn ($t) => $t->getId())->toArray();
+
+        // PATCH avec @id (IRI) pour identifier les tomes existants
+        $tomesPayload = [];
+        foreach ($series->getTomes() as $tome) {
+            $tomesPayload[] = [
+                '@id' => '/api/tomes/'.$tome->getId(),
+                'bought' => $tome->isBought(),
+                'downloaded' => $tome->isDownloaded(),
+                'isbn' => null,
+                'number' => $tome->getNumber(),
+                'onNas' => $tome->isOnNas(),
+                'read' => $tome->isRead(),
+                'title' => null,
+                'tomeEnd' => null,
+            ];
+        }
+
+        $client->request('PATCH', '/api/comic_series/'.$id, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'tomes' => $tomesPayload,
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertCount(5, $data['tomes']);
+        // Vérifier que les données des tomes sont préservées
+        $numbers = \array_map(static fn ($t) => $t['number'], $data['tomes']);
+        self::assertSame([1, 2, 3, 4, 5], $numbers);
+        // Tous les tomes doivent être achetés (comme les originaux)
+        self::assertTrue(\array_reduce($data['tomes'], static fn ($carry, $t) => $carry && $t['bought'], true));
+    }
+
+    public function testPatchAddsNewTomesToExisting(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Série existante');
+        for ($i = 1; $i <= 3; $i++) {
+            $tome = EntityFactory::createTome($i, bought: true);
+            $series->addTome($tome);
+            $this->em->persist($tome);
+        }
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $id = $series->getId();
+
+        // Tomes existants (@id) + 2 nouveaux (sans @id)
+        $tomesPayload = [];
+        foreach ($series->getTomes() as $tome) {
+            $tomesPayload[] = [
+                '@id' => '/api/tomes/'.$tome->getId(),
+                'bought' => true,
+                'downloaded' => false,
+                'isbn' => null,
+                'number' => $tome->getNumber(),
+                'onNas' => false,
+                'read' => false,
+                'title' => null,
+                'tomeEnd' => null,
+            ];
+        }
+        $tomesPayload[] = ['bought' => false, 'downloaded' => false, 'isbn' => null, 'number' => 4, 'onNas' => false, 'read' => false, 'title' => null, 'tomeEnd' => null];
+        $tomesPayload[] = ['bought' => false, 'downloaded' => false, 'isbn' => null, 'number' => 5, 'onNas' => false, 'read' => false, 'title' => null, 'tomeEnd' => null];
+
+        $client->request('PATCH', '/api/comic_series/'.$id, [
+            'headers' => ['Content-Type' => 'application/merge-patch+json'],
+            'json' => [
+                'tomes' => $tomesPayload,
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertCount(5, $data['tomes']);
+        $numbers = \array_map(static fn ($t) => $t['number'], $data['tomes']);
+        self::assertSame([1, 2, 3, 4, 5], $numbers);
+    }
+
+    public function testTomesReturnedSortedByNumber(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $series = EntityFactory::createComicSeries('Série triée');
+        foreach ([5, 1, 3] as $num) {
+            $tome = EntityFactory::createTome($num);
+            $series->addTome($tome);
+            $this->em->persist($tome);
+        }
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $client->request('GET', '/api/comic_series/'.$series->getId());
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        $numbers = \array_map(static fn ($t) => $t['number'], $data['tomes']);
+        self::assertSame([1, 3, 5], $numbers);
+    }
+
     public function testPutUpdateUnauthenticatedReturns401(): void
     {
         $client = $this->createUnauthenticatedClient();

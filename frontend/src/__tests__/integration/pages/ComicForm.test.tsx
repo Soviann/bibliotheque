@@ -261,7 +261,7 @@ describe("ComicForm", () => {
         http.get("/api/comic_series/1", () =>
           HttpResponse.json(createMockComicSeries({ id: 1, title: "Test" })),
         ),
-        http.put("/api/comic_series/1", () => {
+        http.patch("/api/comic_series/1", () => {
           updateCalled = true;
           return HttpResponse.json(
             createMockComicSeries({ id: 1, title: "Updated" }),
@@ -1510,7 +1510,7 @@ describe("ComicForm", () => {
         http.get("/api/comic_series/1", () =>
           HttpResponse.json(createMockComicSeries({ id: 1, title: "Edit Me" })),
         ),
-        http.put("/api/comic_series/1", () =>
+        http.patch("/api/comic_series/1", () =>
           HttpResponse.json({ detail: "Erreur de mise à jour" }, { status: 500 }),
         ),
       );

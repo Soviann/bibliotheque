@@ -20,7 +20,8 @@ export function useUpdateComic() {
     mutationFn: ({ id, ...data }) =>
       apiFetch<ComicSeries>(`/comic_series/${id}`, {
         body: JSON.stringify(data),
-        method: "PUT",
+        headers: { "Content-Type": "application/merge-patch+json" },
+        method: "PATCH",
       }),
     offlineOperation: "update",
     offlineResourceId: (v) => String(v.id),

@@ -7,6 +7,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Tomes supprimés lors de l'édition d'une série** : Le PUT API Platform vidait silencieusement la collection de tomes. Migration vers PATCH (merge-patch+json) avec `@id` pour identifier les tomes existants. Les tomes sont maintenant correctement préservés, ajoutés et supprimés (#145)
+
+### Changed
+
+- **Tri des tomes par numéro** : Les tomes sont triés par numéro de début dans le formulaire d'édition (#145)
+- **Indicateur visuel pour les tomes non sauvegardés** : Les tomes ajoutés via "Ajouter" ou "Générer" sont mis en surbrillance verte avec un badge "Nouveau" (#145)
+
 ## [v2.3.0] - 2026-03-06
 
 ### Added

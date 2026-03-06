@@ -470,17 +470,19 @@ export default function ComicForm() {
     };
 
     if (!form.isOneShot) {
-      payload.tomes = form.tomes.map((t) => ({
-        ...(t.id ? { id: t.id } : {}),
-        bought: t.bought,
-        downloaded: t.downloaded,
-        isbn: t.isbn || null,
-        number: t.number,
-        onNas: t.onNas,
-        read: t.read,
-        title: t.title || null,
-        tomeEnd: t.tomeEnd ? Number(t.tomeEnd) : null,
-      }));
+      payload.tomes = [...form.tomes]
+        .sort((a, b) => a.number - b.number)
+        .map((t) => ({
+          ...(t.id ? { "@id": `/api/tomes/${t.id}` } : {}),
+          bought: t.bought,
+          downloaded: t.downloaded,
+          isbn: t.isbn || null,
+          number: t.number,
+          onNas: t.onNas,
+          read: t.read,
+          title: t.title || null,
+          tomeEnd: t.tomeEnd ? Number(t.tomeEnd) : null,
+        }));
     }
 
     if (isEdit && id) {
@@ -850,9 +852,13 @@ export default function ComicForm() {
             </div>
             {/* Mobile: card layout */}
             <div className="space-y-3 sm:hidden" data-testid="tomes-cards">
-              {form.tomes.map((tome, i) => (
-                <div className="rounded-lg border border-surface-border bg-surface-primary p-3 space-y-2" key={i}>
+              {form.tomes
+                .map((tome, i) => ({ tome, originalIndex: i }))
+                .sort((a, b) => a.tome.number - b.tome.number)
+                .map(({ tome, originalIndex: i }) => (
+                <div className={`rounded-lg border p-3 space-y-2 ${tome.id ? "border-surface-border bg-surface-primary" : "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30"}`} key={i}>
                   <div className="flex items-center gap-2">
+                    {!tome.id && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Nouveau</span>}
                     <input
                       className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm font-medium text-text-primary"
                       min="0"
@@ -961,16 +967,22 @@ export default function ComicForm() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-border">
-                  {form.tomes.map((tome, i) => (
-                    <tr key={i}>
+                  {form.tomes
+                    .map((tome, i) => ({ tome, originalIndex: i }))
+                    .sort((a, b) => a.tome.number - b.tome.number)
+                    .map(({ tome, originalIndex: i }) => (
+                    <tr className={tome.id ? "" : "bg-emerald-50 dark:bg-emerald-950/20"} key={i}>
                       <td className="px-3 py-1.5">
-                        <input
-                          className="w-14 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
-                          min="0"
-                          onChange={(e) => updateTome(i, "number", Number(e.target.value))}
-                          type="number"
-                          value={tome.number}
-                        />
+                        <div className="flex items-center gap-1">
+                          <input
+                            className="w-14 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
+                            min="0"
+                            onChange={(e) => updateTome(i, "number", Number(e.target.value))}
+                            type="number"
+                            value={tome.number}
+                          />
+                          {!tome.id && <span className="rounded bg-emerald-100 px-1 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Nouveau</span>}
+                        </div>
                       </td>
                       <td className="px-3 py-1.5">
                         <input

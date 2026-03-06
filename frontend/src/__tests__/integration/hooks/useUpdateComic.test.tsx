@@ -41,7 +41,7 @@ describe("useUpdateComic", () => {
     const updated = createMockComicSeries({ id: 3, title: "Updated Title" });
 
     server.use(
-      http.put("/api/comic_series/3", () => HttpResponse.json(updated)),
+      http.patch("/api/comic_series/3", () => HttpResponse.json(updated)),
     );
 
     const { result } = renderHook(() => useUpdateComic(), {
@@ -67,7 +67,7 @@ describe("useUpdateComic", () => {
     );
 
     server.use(
-      http.put("/api/comic_series/3", () =>
+      http.patch("/api/comic_series/3", () =>
         HttpResponse.json(
           createMockComicSeries({ id: 3, title: "New" }),
         ),
@@ -90,7 +90,7 @@ describe("useUpdateComic", () => {
 
   it("handles API error", async () => {
     server.use(
-      http.put("/api/comic_series/3", () =>
+      http.patch("/api/comic_series/3", () =>
         HttpResponse.json({ detail: "Not Found" }, { status: 404 }),
       ),
     );

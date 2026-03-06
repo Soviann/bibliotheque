@@ -28,12 +28,13 @@ function buildMethod(item: QueueItem): string {
   switch (item.operation) {
     case "create": return "POST";
     case "delete": return "DELETE";
-    case "update": return "PUT";
+    case "update": return "PATCH";
   }
 }
 
 function buildContentType(item: QueueItem): string {
-  return item.contentType ?? "application/ld+json";
+  if (item.contentType) return item.contentType;
+  return item.operation === "update" ? "application/merge-patch+json" : "application/ld+json";
 }
 
 export async function processSyncQueue(

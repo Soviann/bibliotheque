@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Enum\ComicStatus;
@@ -44,6 +45,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
             provider: TrashCollectionProvider::class,
         ),
         new Get(),
+        new Patch(denormalizationContext: ['groups' => ['comic:write']]),
         new Post(denormalizationContext: ['groups' => ['comic:write']]),
         new Put(denormalizationContext: ['groups' => ['comic:write']]),
         new Delete(processor: ComicSeriesDeleteProcessor::class),
@@ -196,7 +198,7 @@ class ComicSeries implements SoftDeletableInterface
      *
      * @var Collection<int, Tome>
      */
-    #[Groups(['comic:read'])]
+    #[Groups(['comic:read', 'comic:write'])]
     #[ORM\OneToMany(targetEntity: Tome::class, mappedBy: 'comicSeries', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['number' => 'ASC'])]
     private Collection $tomes;
