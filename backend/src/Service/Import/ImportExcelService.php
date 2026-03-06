@@ -142,11 +142,22 @@ class ImportExcelService
         $publishedCount = $this->parseIntegerValue($row[4] ?? null);
         $lastDownloaded = $this->parseIntegerValue($row[5] ?? null);
         $onNas = $this->determineOnNas($row[6] ?? null);
+        $onNasFini = $this->isFiniValue($row[6] ?? null);
+        $statusFini = $this->isFiniValue($row[1] ?? null);
 
         $latestPublishedIssue = $publishedCount->value;
-        $latestPublishedIssueComplete = $publishedCount->isComplete;
+        $latestPublishedIssueComplete = $publishedCount->isComplete
+            || $lastBought->isComplete
+            || $currentIssue->isComplete
+            || $lastDownloaded->isComplete
+            || $onNasFini
+            || $statusFini;
 
-        if ($publishedCount->isComplete && null === $publishedCount->value) {
+        $defaultTomeBought = $lastBought->isComplete || $statusFini;
+        $defaultTomeDownloaded = $lastDownloaded->isComplete || $onNasFini;
+        $defaultTomeRead = $currentIssue->isComplete;
+
+        if ($latestPublishedIssueComplete && null === $publishedCount->value) {
             $latestPublishedIssue = \max(
                 $currentIssue->value ?? 0,
                 $lastBought->value ?? 0,
@@ -166,6 +177,9 @@ class ImportExcelService
             $comic->setType($comicType);
         }
 
+        $comic->setDefaultTomeBought($defaultTomeBought);
+        $comic->setDefaultTomeDownloaded($defaultTomeDownloaded);
+        $comic->setDefaultTomeRead($defaultTomeRead);
         $comic->setLatestPublishedIssue($latestPublishedIssue);
         $comic->setLatestPublishedIssueComplete($latestPublishedIssueComplete);
         $comic->setStatus($this->determineStatus($statusValue));
@@ -294,6 +308,20 @@ class ImportExcelService
             'oui', '' => ComicStatus::BUYING,
             default => ComicStatus::BUYING,
         };
+    }
+
+    /**
+     * Vérifie si une valeur est "fini".
+     */
+    private function isFiniValue(mixed $value): bool
+    {
+        if (null === $value) {
+            return false;
+        }
+
+        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
+
+        return 'fini' === $value;
     }
 
     private function determineOnNas(mixed $value): bool

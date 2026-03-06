@@ -47,9 +47,13 @@ interface TomeFormData {
 interface FormData {
   authors: Author[];
   coverUrl: string;
+  defaultTomeBought: boolean;
+  defaultTomeDownloaded: boolean;
+  defaultTomeRead: boolean;
   description: string;
   isOneShot: boolean;
   latestPublishedIssue: string;
+  latestPublishedIssueComplete: boolean;
   publisher: string;
   status: string;
   title: string;
@@ -66,9 +70,13 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     return {
       authors: comic.authors,
       coverUrl: comic.coverUrl ?? "",
+      defaultTomeBought: comic.defaultTomeBought,
+      defaultTomeDownloaded: comic.defaultTomeDownloaded,
+      defaultTomeRead: comic.defaultTomeRead,
       description: comic.description ?? "",
       isOneShot: comic.isOneShot,
       latestPublishedIssue: comic.latestPublishedIssue?.toString() ?? "",
+      latestPublishedIssueComplete: comic.latestPublishedIssueComplete,
       publisher: comic.publisher ?? "",
       status: comic.status,
       title: comic.title,
@@ -89,9 +97,13 @@ function buildInitialForm(comic?: ComicSeries): FormData {
   return {
     authors: [],
     coverUrl: "",
+    defaultTomeBought: false,
+    defaultTomeDownloaded: false,
+    defaultTomeRead: false,
     description: "",
     isOneShot: false,
     latestPublishedIssue: "",
+    latestPublishedIssueComplete: false,
     publisher: "",
     status: ComicStatus.BUYING,
     title: "",
@@ -464,9 +476,13 @@ export default function ComicForm() {
       ...(pendingAuthors.length > 0 ? { _pendingAuthors: pendingAuthors } : {}),
       authors: authorIris,
       coverUrl: form.coverUrl || null,
+      defaultTomeBought: form.defaultTomeBought,
+      defaultTomeDownloaded: form.defaultTomeDownloaded,
+      defaultTomeRead: form.defaultTomeRead,
       description: form.description || null,
       isOneShot: form.isOneShot,
       latestPublishedIssue: form.latestPublishedIssue ? Number(form.latestPublishedIssue) : null,
+      latestPublishedIssueComplete: form.latestPublishedIssueComplete,
       publisher: form.publisher || null,
       status: form.status,
       title: form.title,
@@ -810,19 +826,66 @@ export default function ComicForm() {
           />
         </div>
 
-        {/* Latest published issue */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="latestPublishedIssue">
-            Dernier tome paru
+        {/* Latest published issue + publication complete */}
+        <div className="space-y-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="latestPublishedIssue">
+              Dernier tome paru
+            </label>
+            <input
+              className="w-32 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+              id="latestPublishedIssue"
+              min="0"
+              onChange={(e) => update("latestPublishedIssue", e.target.value)}
+              type="number"
+              value={form.latestPublishedIssue}
+            />
+          </div>
+          <label className="flex items-center gap-2">
+            <input
+              checked={form.latestPublishedIssueComplete}
+              className="h-4 w-4 rounded border-surface-border text-primary-600"
+              onChange={(e) => update("latestPublishedIssueComplete", e.target.checked)}
+              type="checkbox"
+            />
+            <span className="text-sm font-medium text-text-secondary">Parution terminée</span>
           </label>
-          <input
-            className="w-32 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
-            id="latestPublishedIssue"
-            min="0"
-            onChange={(e) => update("latestPublishedIssue", e.target.value)}
-            type="number"
-            value={form.latestPublishedIssue}
-          />
+        </div>
+
+        {/* Default tome flags */}
+        <div>
+          <span className="mb-2 block text-sm font-medium text-text-secondary">
+            Flags par défaut des nouveaux tomes
+          </span>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                checked={form.defaultTomeBought}
+                className="h-4 w-4 rounded border-surface-border text-primary-600"
+                onChange={(e) => update("defaultTomeBought", e.target.checked)}
+                type="checkbox"
+              />
+              <span className="text-sm text-text-secondary">Achetés</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                checked={form.defaultTomeDownloaded}
+                className="h-4 w-4 rounded border-surface-border text-primary-600"
+                onChange={(e) => update("defaultTomeDownloaded", e.target.checked)}
+                type="checkbox"
+              />
+              <span className="text-sm text-text-secondary">Téléchargés</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                checked={form.defaultTomeRead}
+                className="h-4 w-4 rounded border-surface-border text-primary-600"
+                onChange={(e) => update("defaultTomeRead", e.target.checked)}
+                type="checkbox"
+              />
+              <span className="text-sm text-text-secondary">Lus</span>
+            </label>
+          </div>
         </div>
 
         {/* Tomes */}

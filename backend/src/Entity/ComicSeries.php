@@ -99,6 +99,27 @@ class ComicSeries implements SoftDeletableInterface
     private ComicType $type = ComicType::BD;
 
     /**
+     * Les nouveaux tomes créés par le lookup doivent être marqués achetés.
+     */
+    #[Groups(['comic:read', 'comic:write'])]
+    #[ORM\Column]
+    private bool $defaultTomeBought = false;
+
+    /**
+     * Les nouveaux tomes créés par le lookup doivent être marqués téléchargés.
+     */
+    #[Groups(['comic:read', 'comic:write'])]
+    #[ORM\Column]
+    private bool $defaultTomeDownloaded = false;
+
+    /**
+     * Les nouveaux tomes créés par le lookup doivent être marqués lus.
+     */
+    #[Groups(['comic:read', 'comic:write'])]
+    #[ORM\Column]
+    private bool $defaultTomeRead = false;
+
+    /**
      * Dernier tome paru (numéro du dernier tome publié).
      */
     #[Groups(['comic:read', 'comic:write'])]
@@ -165,6 +186,13 @@ class ComicSeries implements SoftDeletableInterface
     #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
+
+    /**
+     * Date de dernière mise à jour du nombre de tomes parus ou du statut de parution.
+     */
+    #[Groups(['comic:read'])]
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $latestPublishedIssueUpdatedAt = null;
 
     /**
      * Date du dernier lookup automatique effectué.
@@ -250,6 +278,42 @@ class ComicSeries implements SoftDeletableInterface
     public function getAuthorsAsString(): string
     {
         return \implode(', ', $this->authors->map(static fn (Author $a): string => $a->getName())->toArray());
+    }
+
+    public function isDefaultTomeBought(): bool
+    {
+        return $this->defaultTomeBought;
+    }
+
+    public function setDefaultTomeBought(bool $defaultTomeBought): static
+    {
+        $this->defaultTomeBought = $defaultTomeBought;
+
+        return $this;
+    }
+
+    public function isDefaultTomeDownloaded(): bool
+    {
+        return $this->defaultTomeDownloaded;
+    }
+
+    public function setDefaultTomeDownloaded(bool $defaultTomeDownloaded): static
+    {
+        $this->defaultTomeDownloaded = $defaultTomeDownloaded;
+
+        return $this;
+    }
+
+    public function isDefaultTomeRead(): bool
+    {
+        return $this->defaultTomeRead;
+    }
+
+    public function setDefaultTomeRead(bool $defaultTomeRead): static
+    {
+        $this->defaultTomeRead = $defaultTomeRead;
+
+        return $this;
     }
 
     public function getCoverFile(): ?File
@@ -386,6 +450,18 @@ class ComicSeries implements SoftDeletableInterface
     public function setMergeCheckedAt(?\DateTimeImmutable $mergeCheckedAt): static
     {
         $this->mergeCheckedAt = $mergeCheckedAt;
+
+        return $this;
+    }
+
+    public function getLatestPublishedIssueUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->latestPublishedIssueUpdatedAt;
+    }
+
+    public function setLatestPublishedIssueUpdatedAt(?\DateTimeImmutable $latestPublishedIssueUpdatedAt): static
+    {
+        $this->latestPublishedIssueUpdatedAt = $latestPublishedIssueUpdatedAt;
 
         return $this;
     }

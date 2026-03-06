@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Lookup;
 
 use App\Entity\ComicSeries;
+use App\Entity\Tome;
 use App\Repository\AuthorRepository;
 
 /**
@@ -43,7 +44,10 @@ class LookupApplier
 
         if (null === $series->getLatestPublishedIssue() && null !== $result->latestPublishedIssue) {
             $series->setLatestPublishedIssue($result->latestPublishedIssue);
+            $series->setLatestPublishedIssueUpdatedAt(new \DateTimeImmutable());
             $updatedFields[] = 'latestPublishedIssue';
+
+            $this->createMissingTomes($series, $result->latestPublishedIssue);
         }
 
         if (null === $series->getPublishedDate() && null !== $result->publishedDate) {
@@ -70,5 +74,29 @@ class LookupApplier
         }
 
         return $updatedFields;
+    }
+
+    /**
+     * Crée les tomes manquants (1 → latestPublishedIssue) avec les flags par défaut de la série.
+     */
+    private function createMissingTomes(ComicSeries $series, int $latestPublishedIssue): void
+    {
+        $existingNumbers = [];
+        foreach ($series->getTomes() as $tome) {
+            $existingNumbers[$tome->getNumber()] = true;
+        }
+
+        for ($number = 1; $number <= $latestPublishedIssue; ++$number) {
+            if (isset($existingNumbers[$number])) {
+                continue;
+            }
+
+            $tome = new Tome();
+            $tome->setBought($series->isDefaultTomeBought());
+            $tome->setDownloaded($series->isDefaultTomeDownloaded());
+            $tome->setNumber($number);
+            $tome->setRead($series->isDefaultTomeRead());
+            $series->addTome($tome);
+        }
     }
 }

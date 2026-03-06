@@ -13,6 +13,23 @@ import { useUpdateTome } from "../hooks/useUpdateTome";
 import { ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { countCoveredTomes } from "../utils/tomeUtils";
 
+function formatRelativeDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "aujourd'hui";
+  if (diffDays === 1) return "hier";
+  if (diffDays < 30) return `il y a ${diffDays} jours`;
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `il y a ${months} mois`;
+  }
+  const years = Math.floor(diffDays / 365);
+  return `il y a ${years} an${years > 1 ? "s" : ""}`;
+}
+
 export default function ComicDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -142,6 +159,11 @@ export default function ComicDetail() {
                 One-shot
               </span>
             )}
+            {comic.latestPublishedIssueComplete && (
+              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-950/30 dark:text-green-400">
+                Parution terminée
+              </span>
+            )}
           </div>
 
           {comic.authors.length > 0 && (
@@ -159,6 +181,27 @@ export default function ComicDetail() {
             <p className="text-sm text-text-secondary">
               <span className="font-medium">Parution :</span>{" "}
               {new Date(comic.publishedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+          )}
+          {comic.latestPublishedIssue != null && (
+            <p className="text-sm text-text-secondary">
+              <span className="font-medium">Tomes parus :</span> {comic.latestPublishedIssue}
+              {comic.latestPublishedIssueComplete && " (terminée)"}
+              {comic.latestPublishedIssueUpdatedAt && (
+                <span className="ml-2 text-text-muted">
+                  (mis à jour {formatRelativeDate(comic.latestPublishedIssueUpdatedAt)})
+                </span>
+              )}
+            </p>
+          )}
+          {(comic.defaultTomeBought || comic.defaultTomeDownloaded || comic.defaultTomeRead) && (
+            <p className="text-sm text-text-secondary">
+              <span className="font-medium">Nouveaux tomes :</span>{" "}
+              {[
+                comic.defaultTomeBought && "achetés",
+                comic.defaultTomeDownloaded && "téléchargés",
+                comic.defaultTomeRead && "lus",
+              ].filter(Boolean).join(", ")}
             </p>
           )}
           {comic.description && (
