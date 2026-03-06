@@ -41,7 +41,7 @@ cat > backend/.env.local << 'EOF'
 MYSQL_PASSWORD=mot_de_passe_securise
 MYSQL_ROOT_PASSWORD=mot_de_passe_root_securise
 SYMFONY_DECRYPTION_SECRET=valeur_de_la_cle
-GEMINI_API_KEY=votre_cle_gemini
+GEMINI_API_KEYS=cle1,cle2,cle3
 GOOGLE_BOOKS_API_KEY=votre_cle_google_books
 OAUTH_GOOGLE_ID=votre_google_client_id.apps.googleusercontent.com
 OAUTH_ALLOWED_EMAIL=votre_email@gmail.com

@@ -4,7 +4,7 @@
 
 - **DDEV** >= 1.24 (inclut PHP, MariaDB, nginx, Node.js)
 - **Git**
-- Ou bien : PHP 8.3+, MariaDB 10.11+, Composer 2, Node.js 20+, nginx (voir le [guide de déploiement](guide-deploiement.md))
+- Ou bien : PHP 8.3+, MariaDB 10.11+, Composer 2, Node.js 20+, nginx (voir les guides de déploiement [NAS](guide-deploiement-nas.md) / [OVH](guide-deploiement-ovh.md))
 
 ---
 
@@ -20,15 +20,19 @@ bibliotheque/
 │   ├── public/              # Point d'entrée web (index.php)
 │   ├── src/
 │   │   ├── Command/         # Commandes console
-│   │   ├── Controller/      # Contrôleurs API (lookup)
+│   │   ├── Controller/      # Contrôleurs API (lookup, import, purge, merge, batch-lookup)
 │   │   ├── DataFixtures/    # Fixtures de test
 │   │   ├── Doctrine/Filter/ # Filtre soft-delete
-│   │   ├── Dto/             # Data Transfer Objects
+│   │   ├── DTO/             # Data Transfer Objects
 │   │   ├── Entity/          # Entités Doctrine + attributs API Platform
-│   │   ├── Enum/            # Enums PHP (ComicStatus, ComicType)
+│   │   ├── Enum/            # Enums PHP (ComicStatus, ComicType, ApiLookupStatus)
+│   │   ├── Event/           # Domain events
+│   │   ├── EventListener/   # Doctrine listeners, JWT listeners
 │   │   ├── Repository/      # Repositories Doctrine
 │   │   ├── Service/         # Services métier
-│   │   │   └── Lookup/      # Providers de recherche (ISBN, titre)
+│   │   │   ├── Import/      # Import Excel (suivi + livres)
+│   │   │   ├── Lookup/      # Providers de recherche (ISBN, titre)
+│   │   │   └── Merge/       # Fusion de séries via Gemini AI
 │   │   └── State/           # Processeurs API Platform
 │   ├── tests/               # Tests PHPUnit
 │   ├── composer.json
@@ -40,8 +44,9 @@ bibliotheque/
 │   │   ├── components/      # Composants React réutilisables
 │   │   ├── hooks/           # Hooks custom (API, auth)
 │   │   ├── pages/           # Pages de l'application
-│   │   ├── services/        # Service API (apiFetch, JWT)
-│   │   └── types/           # Types TypeScript et enums
+│   │   ├── services/        # Service API (apiFetch, JWT), offline queue, sync handler
+│   │   ├── types/           # Types TypeScript et enums
+│   │   └── utils/           # Utilitaires (recherche fuzzy, tri)
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.ts
@@ -176,9 +181,23 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | GET | `/api/lookup/isbn?isbn=...&type=...` | Recherche par ISBN |
 | GET | `/api/lookup/title?title=...&type=...` | Recherche par titre |
 
+**Outils (JWT protégés) :**
+
+| Méthode | URL | Description |
+|---------|-----|-------------|
+| GET | `/api/tools/batch-lookup/preview?type=...&force=...` | Prévisualiser le batch lookup |
+| POST | `/api/tools/batch-lookup/run` | Lancer le batch lookup (SSE streaming) |
+| POST | `/api/tools/import/books` | Importer des livres (multipart file) |
+| POST | `/api/tools/import/excel` | Importer le suivi Excel (multipart file) |
+| GET | `/api/tools/purge/preview?days=30` | Prévisualiser les séries à purger |
+| POST | `/api/tools/purge/execute` | Exécuter la purge (`{seriesIds}`) |
+| POST | `/api/merge-series/detect` | Détecter les séries à fusionner |
+| POST | `/api/merge-series/preview` | Aperçu de fusion (`{seriesIds}`) |
+| POST | `/api/merge-series/execute` | Exécuter la fusion |
+
 Les endpoints lookup sont protégés par rate limiting (30 requêtes/min par IP). En cas de dépassement, l'API renvoie un code `429 Too Many Requests`.
 
-Tous les endpoints (sauf `/api/login` et `/api/docs`) nécessitent un header `Authorization: Bearer <token>`.
+Tous les endpoints (sauf `/api/login/google` et `/api/docs`) nécessitent un header `Authorization: Bearer <token>`.
 
 ### Processeurs d'état (State Processors)
 
@@ -208,10 +227,11 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 
 | Commande | Description |
 |----------|-------------|
-| `app:import-excel <fichier>` | Importer une collection depuis un fichier Excel |
+| `app:import-books <fichier> [--dry-run]` | Importer des livres depuis un fichier Excel (Livres.xlsx) |
+| `app:import-excel <fichier> [--dry-run]` | Importer une collection depuis un fichier Excel de suivi |
 | `app:invalidate-tokens [--email=...]` | Invalider les tokens JWT (tous ou par utilisateur) |
-| `app:lookup-missing` | Rechercher les métadonnées manquantes des séries |
-| `app:purge-deleted` | Supprimer définitivement les séries dans la corbeille |
+| `app:lookup-missing [--type=...] [--limit=...] [--force]` | Rechercher les métadonnées manquantes des séries |
+| `app:purge-deleted [--days=30] [--dry-run]` | Supprimer définitivement les séries dans la corbeille |
 
 ---
 
@@ -230,6 +250,8 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 | Headless UI | 2 | Composants accessibles (Dialog, Combobox) |
 | Lucide React | - | Icônes |
 | Sonner | 2 | Notifications toast |
+| @react-oauth/google | 1 | Authentification Google OAuth |
+| Fuse.js | 7 | Recherche fuzzy client-side |
 | vite-plugin-pwa | 1 | Service worker et manifest PWA |
 | html5-qrcode | 2 | Scanner de codes-barres |
 
@@ -285,7 +307,7 @@ ddev exec "cd frontend && npx vitest run src/__tests__/services/api.test.ts"  # 
 ddev exec "cd frontend && npx vitest"              # Mode watch
 ```
 
-Convention : `frontend/src/X/Foo.tsx` → `frontend/src/__tests__/X/Foo.test.tsx`
+Convention : `frontend/src/X/Foo.tsx` → `frontend/src/__tests__/{unit,integration}/X/Foo.test.tsx`
 
 Helpers :
 - `test-utils.tsx` — `renderWithProviders()` (QueryClient + MemoryRouter)
@@ -352,7 +374,9 @@ Exemples :
 | `JWT_SECRET_KEY` | Chemin vers la clé privée JWT | `config/jwt/private.pem` |
 | `JWT_PUBLIC_KEY` | Chemin vers la clé publique JWT | `config/jwt/public.pem` |
 | `JWT_PASSPHRASE` | Passphrase des clés JWT (vault Secrets en prod) | À définir dans `.env.local` |
-| `GEMINI_API_KEY` | Clé API Google Gemini (optionnel) | vide |
+| `GEMINI_API_KEY` | Clé API Google Gemini unique (optionnel) | vide |
+| `GEMINI_API_KEYS` | Clés API Gemini multiples, séparées par virgule (rotation sur 429) | vide |
+| `GEMINI_MODELS` | Modèles Gemini par ordre de priorité (dégradation progressive) | `gemini-2.5-flash,...` |
 | `GOOGLE_BOOKS_API_KEY` | Clé API Google Books (optionnel) | vide |
 | `OAUTH_GOOGLE_ID` | ID client OAuth Google | À définir dans `.env.local` |
 | `OAUTH_ALLOWED_EMAIL` | Email Gmail autorisé pour le login | À définir dans `.env.local` |
