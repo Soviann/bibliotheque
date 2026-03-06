@@ -3,6 +3,7 @@ import { Edit, EllipsisVertical, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
+import { countCoveredTomes } from "../utils/tomeUtils";
 import ProgressBar from "./ProgressBar";
 import SyncPendingIndicator from "./SyncPendingIndicator";
 
@@ -15,10 +16,11 @@ interface ComicCardProps {
 export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
   const navigate = useNavigate();
   const coverSrc = comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : null);
-  const tomeCount = comic.tomes?.length ?? 0;
-  const boughtCount = comic.tomes?.filter((t) => t.bought).length ?? 0;
-  const total = comic.latestPublishedIssue ?? tomeCount;
-  const showProgress = !comic.isOneShot && tomeCount > 0;
+  const tomes = comic.tomes ?? [];
+  const coveredCount = countCoveredTomes(tomes);
+  const boughtCount = countCoveredTomes(tomes, (t) => t.bought);
+  const total = comic.latestPublishedIssue ?? coveredCount;
+  const showProgress = !comic.isOneShot && tomes.length > 0;
   const hasActions = !!onDelete;
 
   // Bloquer la navigation uniquement pour les créations offline (ID temporaire négatif)
@@ -44,7 +46,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
               </h3>
               <p className="truncate text-xs text-text-muted">
                 {ComicTypeLabel[comic.type]}
-                {!comic.isOneShot && ` · ${tomeCount} t.`}
+                {!comic.isOneShot && ` · ${tomes.length} t.`}
               </p>
             </div>
           </div>
@@ -79,7 +81,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
             </h3>
             <p className="truncate text-xs text-text-muted">
               {ComicTypeLabel[comic.type]}
-              {!comic.isOneShot && ` · ${tomeCount} t.`}
+              {!comic.isOneShot && ` · ${tomes.length} t.`}
             </p>
           </div>
 
