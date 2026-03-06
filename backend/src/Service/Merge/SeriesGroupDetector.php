@@ -133,7 +133,11 @@ class SeriesGroupDetector
                 'message' => $e->getMessage(),
             ]);
 
-            if (\str_contains($e->getMessage(), 'quota') || \str_contains($e->getMessage(), '429') || 429 === ($e instanceof \Gemini\Exceptions\ErrorException ? $e->getErrorCode() : 0)) {
+            $isQuotaError = $e instanceof \Gemini\Exceptions\ErrorException
+                ? 429 === $e->getErrorCode()
+                : \str_contains($e->getMessage(), 'quota') || \str_contains($e->getMessage(), '429');
+
+            if ($isQuotaError) {
                 throw new \RuntimeException('Quota Gemini épuisé (toutes les clés). Réessayez dans quelques minutes.');
             }
 

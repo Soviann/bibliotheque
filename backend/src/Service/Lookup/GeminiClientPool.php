@@ -30,14 +30,18 @@ class GeminiClientPool
      */
     public function __construct(
         string $apiKeys,
-        string $models,
         private readonly LoggerInterface $logger,
+        string $models,
     ) {
         $this->apiKeys = \array_values(\array_filter(\array_map(\trim(...), \explode(',', $apiKeys))));
         $this->models = \array_values(\array_filter(\array_map(\trim(...), \explode(',', $models))));
 
         if ([] === $this->apiKeys) {
             throw new \RuntimeException('GEMINI_API_KEYS ne doit pas être vide.');
+        }
+
+        if ([] === $this->models) {
+            throw new \RuntimeException('GEMINI_MODELS ne doit pas être vide.');
         }
     }
 

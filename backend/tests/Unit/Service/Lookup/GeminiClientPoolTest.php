@@ -26,7 +26,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testSingleKeyAndModelSuccess(): void
     {
-        $pool = new GeminiClientPool('key1', 'gemini-2.5-flash', $this->logger);
+        $pool = new GeminiClientPool('key1', $this->logger, 'gemini-2.5-flash');
 
         $result = $pool->executeWithRetry(static function ($client, $model): string {
             self::assertSame('gemini-2.5-flash', $model);
@@ -42,7 +42,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testRotatesToSecondKeyOn429(): void
     {
-        $pool = new GeminiClientPool('key1,key2', 'gemini-2.5-flash', $this->logger);
+        $pool = new GeminiClientPool('key1,key2', $this->logger, 'gemini-2.5-flash');
 
         $callCount = 0;
         $result = $pool->executeWithRetry(static function ($client, $model) use (&$callCount): string {
@@ -63,7 +63,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testFallsToNextModelWhenAllKeysExhausted(): void
     {
-        $pool = new GeminiClientPool('key1', 'gemini-2.5-flash,gemini-3-flash', $this->logger);
+        $pool = new GeminiClientPool('key1', $this->logger, 'gemini-2.5-flash,gemini-3-flash');
 
         $callCount = 0;
         $modelsUsed = [];
@@ -86,7 +86,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testAllCombosExhaustedThrows429(): void
     {
-        $pool = new GeminiClientPool('key1,key2', 'model1,model2', $this->logger);
+        $pool = new GeminiClientPool('key1,key2', $this->logger, 'model1,model2');
 
         $this->expectException(ErrorException::class);
 
@@ -100,7 +100,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testNon429ErrorRethrowsImmediately(): void
     {
-        $pool = new GeminiClientPool('key1,key2', 'model1,model2', $this->logger);
+        $pool = new GeminiClientPool('key1,key2', $this->logger, 'model1,model2');
 
         $callCount = 0;
 
@@ -123,7 +123,17 @@ final class GeminiClientPoolTest extends TestCase
     {
         $this->expectException(\RuntimeException::class);
 
-        new GeminiClientPool('', 'gemini-2.5-flash', $this->logger);
+        new GeminiClientPool('', $this->logger, 'gemini-2.5-flash');
+    }
+
+    /**
+     * Teste qu'une liste de modèles vide lance une RuntimeException.
+     */
+    public function testEmptyModelsThrowsRuntimeException(): void
+    {
+        $this->expectException(\RuntimeException::class);
+
+        new GeminiClientPool('key1', $this->logger, '');
     }
 
     /**
@@ -131,7 +141,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testTrimsKeysAndModels(): void
     {
-        $pool = new GeminiClientPool(' key1 , key2 ', ' model1 , model2 ', $this->logger);
+        $pool = new GeminiClientPool(' key1 , key2 ', $this->logger, ' model1 , model2 ');
 
         $modelsUsed = [];
         $pool->executeWithRetry(static function ($client, $model) use (&$modelsUsed): string {
@@ -148,7 +158,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testExhaustionPersistsAcrossCalls(): void
     {
-        $pool = new GeminiClientPool('key1,key2', 'gemini-2.5-flash', $this->logger);
+        $pool = new GeminiClientPool('key1,key2', $this->logger, 'gemini-2.5-flash');
 
         $callCount = 0;
 
