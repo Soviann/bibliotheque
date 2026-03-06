@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.3.0] - 2026-03-06
+
 ### Added
 
 - **Rotation des clés API Gemini** : Nouveau service `GeminiClientPool` qui itère modèles × clés API sur erreur 429, avec dégradation progressive vers des modèles plus légers. Variables `GEMINI_API_KEYS` (multi-clés) et `GEMINI_MODELS` (ordre de priorité) (#138)
