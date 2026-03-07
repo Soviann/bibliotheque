@@ -16,6 +16,7 @@ RUN npm run build
 FROM nginx:alpine
 
 COPY backend/docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY backend/docker/nginx/security-headers.conf /etc/nginx/conf.d/security-headers.conf
 COPY --from=frontend-build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
