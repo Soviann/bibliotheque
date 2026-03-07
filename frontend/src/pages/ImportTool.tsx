@@ -28,7 +28,7 @@ function ExcelTab() {
           setResult(data);
           if (!dryRun) {
             toast.success(
-              `${data.totalCreated} creee(s), ${data.totalUpdated} mise(s) a jour, ${data.totalTomes} nouveau(x) tome(s)`,
+              `${data.totalCreated} créée(s), ${data.totalUpdated} mise(s) à jour, ${data.totalTomes} nouveau(x) tome(s)`,
             );
           }
         },
@@ -73,12 +73,12 @@ function ExcelTab() {
         <div className="rounded-lg border border-surface-border bg-surface-secondary p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            {dryRun ? "Simulation terminee" : "Import termine"}
+            {dryRun ? "Simulation terminée" : "Import terminé"}
           </div>
           <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-text-secondary">Creees</dt>
+            <dt className="text-text-secondary">Créées</dt>
             <dd className="text-text-primary">{result.totalCreated}</dd>
-            <dt className="text-text-secondary">Mises a jour</dt>
+            <dt className="text-text-secondary">Mises à jour</dt>
             <dd className="text-text-primary">{result.totalUpdated}</dd>
             <dt className="text-text-secondary">Nouveaux tomes</dt>
             <dd className="text-text-primary">{result.totalTomes}</dd>
@@ -86,11 +86,11 @@ function ExcelTab() {
           {Object.keys(result.sheetDetails).length > 0 && (
             <div className="mt-3 space-y-1">
               <p className="text-xs font-medium text-text-secondary">
-                Detail par onglet
+                Détail par onglet
               </p>
               {Object.entries(result.sheetDetails).map(([sheet, details]) => (
                 <p className="text-xs text-text-secondary" key={sheet}>
-                  {sheet}: {details.created} creee(s), {details.updated}{" "}
+                  {sheet}: {details.created} créée(s), {details.updated}{" "}
                   maj, {details.tomes} nouveau(x) tome(s)
                 </p>
               ))}
@@ -118,7 +118,7 @@ function BooksTab() {
           setResult(data);
           if (!dryRun) {
             toast.success(
-              `${data.created} cree(s), ${data.enriched} enrichi(s)`,
+              `${data.created} créé(s), ${data.enriched} enrichi(s)`,
             );
           }
         },
@@ -163,12 +163,12 @@ function BooksTab() {
         <div className="rounded-lg border border-surface-border bg-surface-secondary p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            {dryRun ? "Simulation terminee" : "Import termine"}
+            {dryRun ? "Simulation terminée" : "Import terminé"}
           </div>
           <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
             <dt className="text-text-secondary">Groupes</dt>
             <dd className="text-text-primary">{result.groupCount}</dd>
-            <dt className="text-text-secondary">Crees</dt>
+            <dt className="text-text-secondary">Créés</dt>
             <dd className="text-text-primary">{result.created}</dd>
             <dt className="text-text-secondary">Enrichis</dt>
             <dd className="text-text-primary">{result.enriched}</dd>

@@ -49,10 +49,10 @@ export default function MergeSeriesConfirmModal({
         <DialogPanel className="w-full max-w-lg rounded-xl bg-surface-primary shadow-lg">
           <div className="px-6 pt-6">
             <DialogTitle className="text-lg font-semibold text-text-primary">
-              Confirmer les series a fusionner
+              Confirmer les séries à fusionner
             </DialogTitle>
             <p className="mt-1 text-sm text-text-secondary">
-              Decochez les series a exclure de la fusion.
+              Décochez les séries à exclure de la fusion.
             </p>
           </div>
 

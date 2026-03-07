@@ -62,9 +62,9 @@ describe("MergeSeries", () => {
   it("renders with two tabs", () => {
     renderWithProviders(<MergeSeries />);
 
-    expect(screen.getByText("Fusion de series")).toBeInTheDocument();
-    expect(screen.getByText("Detection automatique")).toBeInTheDocument();
-    expect(screen.getByText("Selection manuelle")).toBeInTheDocument();
+    expect(screen.getByText("Fusion de séries")).toBeInTheDocument();
+    expect(screen.getByText("Détection automatique")).toBeInTheDocument();
+    expect(screen.getByText("Sélection manuelle")).toBeInTheDocument();
   });
 
   it("auto detect tab has filters and detect button", () => {
@@ -73,7 +73,7 @@ describe("MergeSeries", () => {
     expect(screen.getByText("Type")).toBeInTheDocument();
     expect(screen.getByText("Lettre")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Detecter les groupes/ }),
+      screen.getByRole("button", { name: /Détecter les groupes/ }),
     ).toBeInTheDocument();
   });
 
@@ -81,10 +81,10 @@ describe("MergeSeries", () => {
     const user = userEvent.setup();
     renderWithProviders(<MergeSeries />);
 
-    await user.click(screen.getByText("Selection manuelle"));
+    await user.click(screen.getByText("Sélection manuelle"));
 
     expect(
-      screen.getByPlaceholderText("Rechercher une serie..."),
+      screen.getByPlaceholderText("Rechercher une série..."),
     ).toBeInTheDocument();
   });
 
@@ -108,7 +108,7 @@ describe("MergeSeries", () => {
     // We need to click detect — but it requires type + letter selected
     // Let's test from the manual tab which is easier to control
 
-    await user.click(screen.getByText("Selection manuelle"));
+    await user.click(screen.getByText("Sélection manuelle"));
 
     // Wait for comics to load
     await waitFor(() => {
@@ -122,11 +122,11 @@ describe("MergeSeries", () => {
     await user.click(checkboxes[2]);
 
     // Click preview button
-    await user.click(screen.getByRole("button", { name: /apercu de la fusion/i }));
+    await user.click(screen.getByRole("button", { name: /aperçu de la fusion/i }));
 
     // Confirmation modal should appear (not the tome preview directly)
     await waitFor(() => {
-      expect(screen.getByText("Confirmer les series a fusionner")).toBeInTheDocument();
+      expect(screen.getByText("Confirmer les séries à fusionner")).toBeInTheDocument();
     });
 
     // Preview API should NOT have been called yet
@@ -158,7 +158,7 @@ describe("MergeSeries", () => {
     await user.click(screen.getByText("N"));
 
     // Click detect
-    await user.click(screen.getByRole("button", { name: /detecter les groupes/i }));
+    await user.click(screen.getByRole("button", { name: /détecter les groupes/i }));
 
     // Wait for group card to appear
     await waitFor(() => {
@@ -166,11 +166,11 @@ describe("MergeSeries", () => {
     });
 
     // Click "Apercu et fusion" on the group card
-    await user.click(screen.getByRole("button", { name: /apercu et fusion/i }));
+    await user.click(screen.getByRole("button", { name: /aperçu et fusion/i }));
 
     // Confirmation modal should open with entries mapped from seriesId/originalTitle
     await waitFor(() => {
-      expect(screen.getByText("Confirmer les series a fusionner")).toBeInTheDocument();
+      expect(screen.getByText("Confirmer les séries à fusionner")).toBeInTheDocument();
     });
 
     const dialog = screen.getByRole("dialog");
@@ -196,7 +196,7 @@ describe("MergeSeries", () => {
 
     renderWithProviders(<MergeSeries />);
 
-    await user.click(screen.getByText("Selection manuelle"));
+    await user.click(screen.getByText("Sélection manuelle"));
 
     // Wait for comics to load
     await waitFor(() => {
@@ -210,10 +210,10 @@ describe("MergeSeries", () => {
     await user.click(seriesCheckboxes[2]);
 
     // Click preview button → opens confirmation modal
-    await user.click(screen.getByRole("button", { name: /apercu de la fusion/i }));
+    await user.click(screen.getByRole("button", { name: /aperçu de la fusion/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Confirmer les series a fusionner")).toBeInTheDocument();
+      expect(screen.getByText("Confirmer les séries à fusionner")).toBeInTheDocument();
     });
 
     // Uncheck series 2 in the confirmation modal

@@ -33,7 +33,7 @@ export default function LookupTool() {
       limit: limit > 0 ? limit : undefined,
       type: type || undefined,
     });
-    toast.info("Lookup batch demarre");
+    toast.info("Lookup batch démarré");
   };
 
   const total = preview?.count ?? 0;
@@ -41,7 +41,7 @@ export default function LookupTool() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <h1 className="text-xl font-bold text-text-primary">
-        Lookup metadonnees
+        Lookup métadonnées
       </h1>
 
       <div className="mt-4 space-y-3">
@@ -75,7 +75,7 @@ export default function LookupTool() {
             type="number"
             value={limit}
           />
-          <span className="text-xs text-text-muted">(0 = illimite)</span>
+          <span className="text-xs text-text-muted">(0 = illimité)</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
@@ -91,7 +91,7 @@ export default function LookupTool() {
           </label>
 
           <label className="flex items-center gap-2 text-sm text-text-secondary" htmlFor="lookup-delay">
-            Delai (s)
+            Délai (s)
           </label>
           <input
             className="w-16 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
@@ -110,7 +110,7 @@ export default function LookupTool() {
           ) : (
             <p className="text-sm text-text-secondary">
               <span className="font-semibold text-text-primary">{total}</span>{" "}
-              serie(s) a traiter
+              série(s) à traiter
             </p>
           )}
         </div>
@@ -133,7 +133,7 @@ export default function LookupTool() {
               type="button"
             >
               <Square className="h-4 w-4" />
-              Arreter
+              Arrêter
             </button>
           )}
         </div>
@@ -152,14 +152,14 @@ export default function LookupTool() {
         <div className="mt-4 rounded-lg border border-surface-border bg-surface-secondary p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            Lookup termine
+            Lookup terminé
           </div>
           <dl className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-            <dt className="text-text-secondary">Traitees</dt>
+            <dt className="text-text-secondary">Traitées</dt>
             <dd className="text-text-primary">{summary.processed}</dd>
-            <dt className="text-text-secondary">Mises a jour</dt>
+            <dt className="text-text-secondary">Mises à jour</dt>
             <dd className="text-text-primary">{summary.updated}</dd>
-            <dt className="text-text-secondary">Ignorees</dt>
+            <dt className="text-text-secondary">Ignorées</dt>
             <dd className="text-text-primary">{summary.skipped}</dd>
             <dt className="text-text-secondary">Erreurs</dt>
             <dd className="text-text-primary">{summary.failed}</dd>
