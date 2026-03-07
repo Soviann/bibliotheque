@@ -9,8 +9,22 @@ Guide pas-à-pas pour déployer l'application sur un NAS Synology DS920+ via Doc
 - Synology DSM 7.2+
 - Docker (Container Manager) installé depuis le Centre de paquets
 - Accès SSH activé (DSM > Panneau de configuration > Terminal & SNMP > Activer SSH)
-- Git installé (via `opkg` ou SynoCommunity)
+- Git installé (voir ci-dessous) ou accès à une machine avec Git pour cloner et transférer via `scp`/`rsync`
 - Le dépôt contient les clés de chiffrement du vault Symfony (fichiers `config/secrets/prod/`)
+- Un nom de domaine pointant vers l'IP publique du NAS (ou DDNS Synology)
+- Ports 80 et 443 redirigés (NAT/port forwarding) depuis le routeur vers le NAS
+
+### Installer Git sur le NAS (optionnel)
+
+**Option A — SynoCommunity** : ajouter `https://packages.synocommunity.com` dans Centre de paquets > Paramètres > Sources, puis installer le paquet **Git**.
+
+**Option B — sans Git** : cloner le dépôt sur une autre machine et transférer :
+
+```bash
+# Sur votre machine locale
+git clone https://github.com/Soviann/bibliotheque.git
+scp -r bibliotheque admin@nas-ip:/volume1/docker/bibliotheque/app
+```
 
 ---
 
@@ -38,13 +52,25 @@ Créer `backend/.env.local` avec les vraies valeurs :
 
 ```bash
 cat > backend/.env.local << 'EOF'
+# Base de données
 MYSQL_PASSWORD=mot_de_passe_securise
 MYSQL_ROOT_PASSWORD=mot_de_passe_root_securise
+
+# Symfony vault (secrets chiffrés)
 SYMFONY_DECRYPTION_SECRET=valeur_de_la_cle
-GEMINI_API_KEYS=cle1,cle2,cle3
-GOOGLE_BOOKS_API_KEY=votre_cle_google_books
+
+# Google OAuth
 OAUTH_GOOGLE_ID=votre_google_client_id.apps.googleusercontent.com
 OAUTH_ALLOWED_EMAIL=votre_email@gmail.com
+
+# CORS et URL de production (adapter le domaine)
+CORS_ALLOW_ORIGIN='^https://bibliotheque\.votre-domaine\.fr$'
+DEFAULT_URI=https://bibliotheque.votre-domaine.fr
+
+# Clés API (optionnel — lookup ISBN/titre et recherche de couvertures)
+GEMINI_API_KEYS=cle1,cle2,cle3
+GOOGLE_BOOKS_API_KEY=votre_cle_google_books
+SERPER_API_KEY=votre_cle_serper
 EOF
 ```
 
@@ -59,6 +85,10 @@ Dans la [Google Cloud Console](https://console.cloud.google.com/) :
 6. Mettre l'email Gmail autorisé dans `OAUTH_ALLOWED_EMAIL`
 
 > **Note** : un seul ID client suffit pour dev et prod, il faut juste que les origines JS contiennent les deux URLs. Pour supprimer l'écran d'avertissement "App non validée", publier l'app (pas de vérification Google requise pour les scopes `email`/`profile`).
+
+### Obtenir SERPER_API_KEY (recherche de couvertures)
+
+Créer un compte sur [serper.dev](https://serper.dev/), copier la clé API dans `SERPER_API_KEY`. Le plan gratuit offre 2 500 requêtes. Optionnel : sans cette clé, la recherche de couvertures se limite à Google Books.
 
 ### Obtenir SYMFONY_DECRYPTION_SECRET
 
@@ -123,7 +153,14 @@ L'application est accessible sur `http://nas-ip:8080`.
 
 ---
 
-## 6. Configurer le reverse proxy Synology (HTTPS)
+## 6. Configurer le réseau et le reverse proxy (HTTPS)
+
+### DNS et port forwarding
+
+1. **DNS** : créer un enregistrement A pointant `bibliotheque.votre-domaine.fr` vers l'IP publique du NAS, ou activer le **DDNS Synology** (DSM > Panneau de configuration > Accès externe > DDNS)
+2. **Port forwarding** : sur le routeur, rediriger les ports **80** et **443** (TCP) vers l'IP locale du NAS. Le port 80 est nécessaire pour le challenge Let's Encrypt.
+
+### Reverse proxy
 
 Dans DSM > **Panneau de configuration > Portail de connexion > Avancé > Proxy inversé** :
 
@@ -140,8 +177,14 @@ Dans DSM > **Panneau de configuration > Portail de connexion > Avancé > Proxy i
 | Destination nom d'hôte | localhost |
 | Destination port | 8080 |
 
-3. Onglet **En-tête personnalisé** : activer **WebSocket** (optionnel)
-4. Configurer un certificat Let's Encrypt dans **Sécurité > Certificat** si nécessaire
+3. Onglet **En-tête personnalisé** : activer **WebSocket** (optionnel, non requis par l'app)
+
+### Certificat HTTPS (Let's Encrypt)
+
+1. DSM > **Panneau de configuration > Sécurité > Certificat** > **Ajouter**
+2. Choisir **Ajouter un nouveau certificat** > **Obtenir un certificat de Let's Encrypt**
+3. Remplir le nom de domaine (`bibliotheque.votre-domaine.fr`) et l'email
+4. Dans l'onglet **Paramètres**, associer ce certificat au service **Bibliotheque** (le reverse proxy créé ci-dessus)
 
 L'application est maintenant accessible sur `https://bibliotheque.votre-domaine.fr`.
 
@@ -175,6 +218,9 @@ git pull origin main
 cd backend
 docker compose -f docker-compose.prod.yml up --build -d
 
+# Vider le cache (le volume app_var persiste entre les rebuilds)
+docker compose -f docker-compose.prod.yml exec php php bin/console cache:clear --env=prod
+
 # Exécuter les migrations si nécessaire
 docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
 ```
@@ -192,14 +238,16 @@ Configurer Hyper Backup pour sauvegarder :
 
 ```bash
 cd /volume1/docker/bibliotheque/app/backend
-docker compose -f docker-compose.prod.yml exec -T db mysqldump -u biblio -p"$(grep MYSQL_PASSWORD .env.local | head -1 | cut -d= -f2)" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
+docker compose -f docker-compose.prod.yml exec -T db mysqldump -u biblio -p"${MYSQL_PASSWORD}" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
+# Note : exporter MYSQL_PASSWORD au préalable, ou le lire depuis .env.local :
+#   export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env.local | sed 's/^MYSQL_PASSWORD=//')
 ```
 
 ### Restauration
 
 ```bash
 cd /volume1/docker/bibliotheque/app/backend
-gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | docker compose -f docker-compose.prod.yml exec -T db mysql -u biblio -p"$(grep MYSQL_PASSWORD .env.local | head -1 | cut -d= -f2)" bibliotheque
+gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | docker compose -f docker-compose.prod.yml exec -T db mysql -u biblio -p"${MYSQL_PASSWORD}" bibliotheque
 ```
 
 ---
