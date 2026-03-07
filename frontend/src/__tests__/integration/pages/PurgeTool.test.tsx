@@ -44,7 +44,7 @@ describe("PurgeTool", () => {
     renderWithProviders(<PurgeTool />);
 
     await waitFor(() => {
-      expect(screen.getByText("Aucune serie a purger")).toBeInTheDocument();
+      expect(screen.getByText("Aucune série à purger")).toBeInTheDocument();
     });
   });
 

@@ -190,6 +190,7 @@ export default function Home() {
         onConfirm={() => {
           if (deleteTarget) {
             deleteComic.mutate({ id: deleteTarget.id }, {
+              onError: () => toast.error(`Erreur lors de la suppression de ${deleteTarget.title}`),
               onSuccess: () => toast.success(`${deleteTarget.title} supprimée`),
             });
           }

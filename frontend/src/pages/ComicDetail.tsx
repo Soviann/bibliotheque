@@ -292,6 +292,7 @@ export default function ComicDetail() {
         onClose={() => setShowDelete(false)}
         onConfirm={() => {
           deleteComic.mutate({ id: comic.id }, {
+            onError: () => toast.error("Erreur lors de la suppression"),
             onSuccess: () => {
               toast.success("Série supprimée");
               navigate("/", { viewTransition: true });

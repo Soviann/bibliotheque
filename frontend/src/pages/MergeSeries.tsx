@@ -80,7 +80,7 @@ export default function MergeSeries() {
 
     detectMutation.mutate(params, {
       onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Erreur lors de la detection");
+        toast.error(error instanceof Error ? error.message : "Erreur lors de la détection");
       },
       onSuccess: (data) => {
         setGroups(data);
@@ -117,7 +117,7 @@ export default function MergeSeries() {
     setConfirmOpen(false);
     previewMutation.mutate(confirmedIds, {
       onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Erreur lors de la generation de l'apercu");
+        toast.error(error instanceof Error ? error.message : "Erreur lors de la génération de l'aperçu");
       },
       onSuccess: (data) => {
         setPreviewData(data);
@@ -128,8 +128,11 @@ export default function MergeSeries() {
 
   const handleConfirmMerge = (preview: MergePreview) => {
     executeMerge.mutate(preview, {
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Erreur lors de la fusion");
+      },
       onSuccess: () => {
-        toast.success("Series fusionnees avec succes");
+        toast.success("Séries fusionnées avec succès");
         setPreviewOpen(false);
         setPreviewData(null);
         setGroups((prev) =>
@@ -153,16 +156,16 @@ export default function MergeSeries() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <h1 className="text-xl font-bold text-text-primary">
-        Fusion de series
+        Fusion de séries
       </h1>
 
       <TabGroup className="mt-4">
         <TabList className="flex gap-1 rounded-lg bg-surface-secondary p-1">
           <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
-            Detection automatique
+            Détection automatique
           </Tab>
           <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
-            Selection manuelle
+            Sélection manuelle
           </Tab>
         </TabList>
 
@@ -242,7 +245,7 @@ export default function MergeSeries() {
                   >
                     <span className="pointer-events-none inline-block h-4 w-4 translate-x-0 rounded-full bg-white shadow-sm transition-transform group-data-[checked]:translate-x-4" />
                   </Switch>
-                  Inclure les deja verifiees
+                  Inclure les déjà vérifiées
                 </label>
               </div>
 
@@ -258,7 +261,7 @@ export default function MergeSeries() {
                 ) : (
                   <SearchIcon className="h-4 w-4" />
                 )}
-                Detecter les groupes
+                Détecter les groupes
               </button>
 
               {/* Loading state for preview */}
@@ -266,7 +269,7 @@ export default function MergeSeries() {
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
                   <span className="ml-2 text-sm text-text-secondary">
-                    Generation de l'apercu...
+                    Génération de l'aperçu...
                   </span>
                 </div>
               )}
@@ -274,9 +277,9 @@ export default function MergeSeries() {
               {/* Results */}
               {hasDetected && groups.length === 0 && (
                 <EmptyState
-                  description="Aucun groupe de series a fusionner n'a ete detecte"
+                  description="Aucun groupe de séries à fusionner n'a été détecté"
                   icon={Merge}
-                  title="Aucun groupe detecte"
+                  title="Aucun groupe détecté"
                 />
               )}
 
@@ -315,11 +318,11 @@ export default function MergeSeries() {
                   ) : (
                     <Merge className="h-4 w-4" />
                   )}
-                  Apercu de la fusion
+                  Aperçu de la fusion
                 </button>
                 {selectedIds.length > 0 && selectedIds.length < 2 && (
                   <span className="text-sm text-text-muted">
-                    Selectionnez au moins 2 series
+                    Sélectionnez au moins 2 séries
                   </span>
                 )}
               </div>

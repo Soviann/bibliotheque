@@ -15,7 +15,7 @@ describe("LookupTool", () => {
 
     renderWithProviders(<LookupTool />);
 
-    expect(screen.getByText("Lookup metadonnees")).toBeInTheDocument();
+    expect(screen.getByText("Lookup métadonnées")).toBeInTheDocument();
   });
 
   it("displays the preview count", async () => {
@@ -72,6 +72,6 @@ describe("LookupTool", () => {
     renderWithProviders(<LookupTool />);
 
     expect(screen.getByLabelText(/forcer/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/delai/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/délai/i)).toBeInTheDocument();
   });
 });
