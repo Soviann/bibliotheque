@@ -4,11 +4,17 @@
 APP_DIR="/volume1/docker/bibliotheque"
 BACKEND_DIR="${APP_DIR}/backend"
 ENV_FILE="${BACKEND_DIR}/.env.nas"
-LOG_FILE="/var/log/bibliotheque-update.log"
+LOG_DIR="/var/log/bibliotheque"
+LOG_FILE="${LOG_DIR}/update-$(date '+%Y-%m-%d').log"
+
+mkdir -p "$LOG_DIR"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
 }
+
+# Supprime les logs de plus de 7 jours
+find "$LOG_DIR" -name "update-*.log" -mtime +7 -delete
 
 log "=== Début de la mise à jour ==="
 
