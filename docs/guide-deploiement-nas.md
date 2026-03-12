@@ -27,7 +27,7 @@ Guide pas-à-pas pour déployer l'application sur un NAS Synology DS920+ via Doc
 ```bash
 # Sur votre machine locale
 git clone https://github.com/Soviann/bibliotheque.git
-scp -r bibliotheque admin@nas-ip:/volume1/docker/bibliotheque/
+scp -r bibliotheque/* admin@nas-ip:/volume1/docker/bibliotheque/
 ```
 
 ### Mettre à jour Docker Compose (si nécessaire)
@@ -59,9 +59,8 @@ sudo mkdir -p /volume1/docker/bibliotheque
 sudo chown $(whoami):users /volume1/docker/bibliotheque
 cd /volume1/docker/bibliotheque
 
-# Cloner le dépôt (SSH — nécessite une clé SSH configurée sur GitHub)
-git clone git@github.com:Soviann/bibliotheque.git
-cd bibliotheque
+# Cloner le dépôt dans le dossier courant (SSH — nécessite une clé SSH configurée sur GitHub)
+git clone git@github.com:Soviann/bibliotheque.git .
 ```
 
 ---
@@ -130,7 +129,7 @@ Copier la sortie dans `SYMFONY_DECRYPTION_SECRET` du fichier `.env` ci-dessus.
 ## 3. Construire et démarrer
 
 ```bash
-cd /volume1/docker/bibliotheque/bibliotheque/backend
+cd /volume1/docker/bibliotheque/backend
 sudo docker compose -f docker-compose.prod.yml up --build -d
 ```
 
@@ -147,7 +146,7 @@ Les 3 conteneurs (`nginx`, `php`, `db`) doivent être `Up`. Le conteneur `db` do
 ## 4. Initialiser l'application
 
 ```bash
-cd /volume1/docker/bibliotheque/bibliotheque/backend
+cd /volume1/docker/bibliotheque/backend
 
 # Générer les clés JWT
 sudo docker compose -f docker-compose.prod.yml exec php php bin/console lexik:jwt:generate-keypair --env=prod
@@ -227,7 +226,7 @@ Dans DSM > **Panneau de configuration > Planificateur de tâches** :
 - Commande :
 
 ```bash
-cd /volume1/docker/bibliotheque/bibliotheque/backend && sudo docker compose -f docker-compose.prod.yml exec -T php php bin/console app:purge-deleted --env=prod
+cd /volume1/docker/bibliotheque/backend && sudo docker compose -f docker-compose.prod.yml exec -T php php bin/console app:purge-deleted --env=prod
 ```
 
 ---
@@ -235,7 +234,7 @@ cd /volume1/docker/bibliotheque/bibliotheque/backend && sudo docker compose -f d
 ## 8. Mise à jour de l'application
 
 ```bash
-cd /volume1/docker/bibliotheque/bibliotheque && git pull
+cd /volume1/docker/bibliotheque && git pull
 cd backend && sudo docker compose -f docker-compose.prod.yml up --build -d
 
 # Migrations si nécessaire
@@ -254,7 +253,7 @@ Configurer Hyper Backup pour sauvegarder :
 ### Sauvegarde manuelle de la base de données
 
 ```bash
-cd /volume1/docker/bibliotheque/bibliotheque/backend
+cd /volume1/docker/bibliotheque/backend
 export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env | sed 's/^MYSQL_PASSWORD=//')
 sudo docker compose -f docker-compose.prod.yml exec -T db mysqldump -u biblio -p"${MYSQL_PASSWORD}" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
 ```
@@ -262,7 +261,7 @@ sudo docker compose -f docker-compose.prod.yml exec -T db mysqldump -u biblio -p
 ### Restauration
 
 ```bash
-cd /volume1/docker/bibliotheque/bibliotheque/backend
+cd /volume1/docker/bibliotheque/backend
 export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env | sed 's/^MYSQL_PASSWORD=//')
 gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | sudo docker compose -f docker-compose.prod.yml exec -T db mysql -u biblio -p"${MYSQL_PASSWORD}" bibliotheque
 ```
@@ -274,7 +273,7 @@ gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | sudo docker comp
 ### Voir les logs
 
 ```bash
-cd /volume1/docker/bibliotheque/bibliotheque/backend
+cd /volume1/docker/bibliotheque/backend
 
 # Logs récents d'un service
 sudo docker compose -f docker-compose.prod.yml logs php --tail=50
