@@ -4,6 +4,10 @@ framework:
             interval: '1 minute'
             limit: 30
             policy: sliding_window
+        batch_lookup:
+            interval: '1 minute'
+            limit: 2
+            policy: sliding_window
         cover_search:
             interval: '1 minute'
             limit: 20
@@ -15,4 +19,16 @@ framework:
         google_login:
             interval: '1 minute'
             limit: 10
+            policy: sliding_window
+        import:
+            interval: '1 minute'
+            limit: 5
+            policy: sliding_window
+        merge_series:
+            interval: '1 minute'
+            limit: 5
+            policy: sliding_window
+        purge:
+            interval: '1 minute'
+            limit: 5
             policy: sliding_window

@@ -24,6 +24,9 @@ final class BatchLookupControllerTest extends ApiTestCase
         $container = static::getContainer();
         $em = $container->get(EntityManagerInterface::class);
 
+        // Réinitialiser le rate limiter pour éviter les 429 entre tests
+        $container->get('cache.rate_limiter')->clear();
+
         /** @var UserRepository $userRepo */
         $userRepo = $container->get(UserRepository::class);
 

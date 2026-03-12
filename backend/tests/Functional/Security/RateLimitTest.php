@@ -87,4 +87,90 @@ final class RateLimitTest extends ApiTestCase
         // 400 (credential manquant), pas 429
         self::assertResponseStatusCodeSame(400);
     }
+
+    // ---------------------------------------------------------------
+    // Import : première requête réussit
+    // ---------------------------------------------------------------
+
+    public function testImportExcelEndpointRespondsNormally(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // Sans fichier = 400 (validation), pas 429
+        $client->request('POST', '/api/tools/import/excel');
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testImportBooksEndpointRespondsNormally(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('POST', '/api/tools/import/books');
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    // ---------------------------------------------------------------
+    // Purge execute : première requête réussit
+    // ---------------------------------------------------------------
+
+    public function testPurgeExecuteEndpointRespondsNormally(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // Sans seriesIds = 400 (validation), pas 429
+        $client->request('POST', '/api/tools/purge/execute', [
+            'json' => [],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    // ---------------------------------------------------------------
+    // Batch lookup run : première requête réussit
+    // ---------------------------------------------------------------
+
+    public function testBatchLookupRunEndpointRespondsNormally(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('POST', '/api/tools/batch-lookup/run', [
+            'json' => ['limit' => 0],
+        ]);
+
+        // 200 (SSE, 0 items), pas 429
+        self::assertResponseIsSuccessful();
+    }
+
+    // ---------------------------------------------------------------
+    // Merge : première requête réussit
+    // ---------------------------------------------------------------
+
+    public function testMergeDetectEndpointRespondsNormally(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('POST', '/api/merge-series/detect', [
+            'json' => [],
+        ]);
+
+        // Peut être 200 ou 429 (Gemini), mais pas notre rate limiter
+        self::assertContains(
+            $client->getResponse()->getStatusCode(),
+            [200, 429],
+        );
+    }
+
+    public function testMergeExecuteEndpointRespondsNormally(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        // Sans données = 400 (validation), pas 429
+        $client->request('POST', '/api/merge-series/execute', [
+            'json' => [],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
 }

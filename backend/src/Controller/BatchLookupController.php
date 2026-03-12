@@ -9,7 +9,9 @@ use App\Enum\ComicType;
 use App\Service\BatchLookupService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -22,6 +24,7 @@ class BatchLookupController
 {
     public function __construct(
         private readonly BatchLookupService $batchLookupService,
+        private readonly RateLimiterFactory $batchLookupLimiter,
     ) {
     }
 
@@ -44,8 +47,17 @@ class BatchLookupController
      * Lance le lookup batch avec streaming SSE.
      */
     #[Route('/run', name: 'api_tools_batch_lookup_run', methods: ['POST'])]
-    public function run(Request $request): StreamedResponse
+    public function run(Request $request): JsonResponse|StreamedResponse
     {
+        $limiter = $this->batchLookupLimiter->create($request->getClientIp() ?? 'unknown');
+
+        if (false === $limiter->consume()->isAccepted()) {
+            return new JsonResponse(
+                ['error' => 'Trop de requêtes. Réessayez plus tard.'],
+                Response::HTTP_TOO_MANY_REQUESTS,
+            );
+        }
+
         /** @var array<string, mixed> $data */
         $data = \json_decode($request->getContent(), true) ?? [];
 

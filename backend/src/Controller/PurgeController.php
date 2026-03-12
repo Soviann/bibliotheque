@@ -8,6 +8,7 @@ use App\Service\PurgeService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -20,6 +21,7 @@ class PurgeController
 {
     public function __construct(
         private readonly PurgeService $purgeService,
+        private readonly RateLimiterFactory $purgeLimiter,
     ) {
     }
 
@@ -29,6 +31,15 @@ class PurgeController
     #[Route('/execute', name: 'api_tools_purge_execute', methods: ['POST'])]
     public function execute(Request $request): JsonResponse
     {
+        $limiter = $this->purgeLimiter->create($request->getClientIp() ?? 'unknown');
+
+        if (false === $limiter->consume()->isAccepted()) {
+            return new JsonResponse(
+                ['error' => 'Trop de requêtes. Réessayez plus tard.'],
+                Response::HTTP_TOO_MANY_REQUESTS,
+            );
+        }
+
         /** @var array<string, mixed> $data */
         $data = \json_decode($request->getContent(), true) ?? [];
 
