@@ -1,171 +1,129 @@
 # Runbook : Déploiement NAS Synology par Claude Code (SSH)
 
-Ce document est un runbook destiné à Claude Code pour effectuer le déploiement complet de l'application sur un NAS Synology via SSH. Chaque étape est une commande exacte à exécuter. Aucune interprétation nécessaire.
+Runbook pour Claude Code. Commandes exactes, aucune interprétation nécessaire. Toutes les commandes Docker nécessitent `sudo`.
 
 ---
 
-## Prérequis
+## Prérequis utilisateur
 
-Avant de lancer ce runbook, l'utilisateur doit fournir :
+| Variable | Description |
+|----------|-------------|
+| `NAS_HOST` | IP ou hostname du NAS |
+| `NAS_USER` | Utilisateur SSH |
+| `NAS_PORT` | Port SSH (défaut 22) |
+| `MYSQL_PASSWORD` | Générer avec `openssl rand -hex 24` |
+| `MYSQL_ROOT_PASSWORD` | Générer avec `openssl rand -hex 24` |
+| `OAUTH_GOOGLE_ID` | Google Cloud Console > ID client OAuth 2.0 |
+| `OAUTH_ALLOWED_EMAIL` | Email Gmail autorisé |
+| `GEMINI_API_KEYS` | Clés API Gemini (optionnel) |
+| `GOOGLE_BOOKS_API_KEY` | Clé Google Books (optionnel) |
+| `SERPER_API_KEY` | Clé Serper (optionnel) |
 
-| Variable | Description | Exemple |
-|----------|-------------|---------|
-| `NAS_HOST` | IP ou hostname du NAS | `192.168.1.100` |
-| `NAS_USER` | Utilisateur SSH (admin ou sudo) | `admin` |
-| `NAS_PORT` | Port SSH (défaut 22) | `22` |
-| `MYSQL_PASSWORD` | Mot de passe MariaDB pour l'app | (généré) |
-| `MYSQL_ROOT_PASSWORD` | Mot de passe root MariaDB | (généré) |
-| `OAUTH_GOOGLE_ID` | ID client OAuth Google | `xxx.apps.googleusercontent.com` |
-| `OAUTH_ALLOWED_EMAIL` | Email Gmail autorisé | `user@gmail.com` |
-| `GEMINI_API_KEYS` | Clés API Gemini séparées par virgule (optionnel) | |
-| `GOOGLE_BOOKS_API_KEY` | Clé API Google Books (optionnel) | |
-
-La valeur de `SYMFONY_DECRYPTION_SECRET` est extraite automatiquement de la machine de dev (étape 0).
+`SYMFONY_DECRYPTION_SECRET` est extrait automatiquement (étape 0).
 
 ---
 
-## Étape 0 : Extraire SYMFONY_DECRYPTION_SECRET (sur machine de dev)
+## Étape 0 : Extraire SYMFONY_DECRYPTION_SECRET (machine de dev)
 
 ```bash
 ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/prod/prod.decrypt.private.php\");'"
 ```
 
-Stocker la sortie dans la variable `DECRYPTION_SECRET`.
+Stocker la sortie dans `DECRYPTION_SECRET`.
 
 ---
 
-## Étape 1 : Connexion SSH au NAS
+## Étape 1 : Connexion SSH
 
 ```bash
 ssh -p ${NAS_PORT:-22} ${NAS_USER}@${NAS_HOST}
 ```
 
-Toutes les commandes suivantes sont exécutées sur le NAS via SSH.
-
 ---
 
-## Étape 2 : Créer le dossier et cloner le dépôt
+## Étape 2 : Cloner le dépôt
 
 ```bash
-sudo mkdir -p /volume1/docker/bibliotheque && sudo chown $(whoami):users /volume1/docker/bibliotheque && cd /volume1/docker/bibliotheque && git clone https://github.com/Soviann/bibliotheque.git app
+sudo mkdir -p /volume1/docker/bibliotheque && sudo chown $(whoami):users /volume1/docker/bibliotheque && cd /volume1/docker/bibliotheque && git clone git@github.com:Soviann/bibliotheque.git .
 ```
 
-**Vérification** : `ls /volume1/docker/bibliotheque/app/backend/docker-compose.prod.yml` doit exister.
+**Vérification** : `ls backend/docker-compose.prod.yml` doit exister.
 
 ---
 
-## Étape 3 : Créer .env.local
+## Étape 3 : Configurer Git pour root
 
 ```bash
-cat > /volume1/docker/bibliotheque/app/backend/.env.local << EOF
-MYSQL_PASSWORD=${MYSQL_PASSWORD}
-MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-SYMFONY_DECRYPTION_SECRET=${DECRYPTION_SECRET}
+sudo git config --global --add safe.directory /volume1/docker/bibliotheque
+```
+
+---
+
+## Étape 4 : Créer .env.nas
+
+```bash
+cat > /volume1/docker/bibliotheque/backend/.env.nas << EOF
+APP_PORT=8082
+CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN}
+DEFAULT_URI=${DEFAULT_URI}
 GEMINI_API_KEYS=${GEMINI_API_KEYS}
 GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
-OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
+MYSQL_PASSWORD=${MYSQL_PASSWORD}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 OAUTH_ALLOWED_EMAIL=${OAUTH_ALLOWED_EMAIL}
+OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
+SERPER_API_KEY=${SERPER_API_KEY}
+SYMFONY_DECRYPTION_SECRET=${DECRYPTION_SECRET}
 EOF
 ```
 
-**Vérification** : `cat /volume1/docker/bibliotheque/app/backend/.env.local` doit afficher les vraies valeurs, pas les variables.
+**Vérification** : `cat backend/.env.nas` doit afficher les vraies valeurs.
 
 ---
 
-## Étape 4 : Construire et démarrer les conteneurs
+## Étape 5 : Construire et démarrer
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml up --build -d
+cd /volume1/docker/bibliotheque/backend && sudo docker compose --env-file .env.nas -f docker-compose.prod.yml up --build -d
 ```
 
-**Vérification** : attendre 30 secondes puis vérifier :
-
-```bash
-docker compose -f docker-compose.prod.yml ps
-```
-
-Les 3 conteneurs (`nginx`, `php`, `db`) doivent être `Up`. Le conteneur `db` doit être `healthy`.
-
-Si `db` n'est pas encore `healthy`, attendre 15 secondes et revérifier.
+**Vérification** : `sudo docker compose --env-file .env.nas -f docker-compose.prod.yml ps` — 3 conteneurs `Up`, `db` = `healthy`.
 
 ---
 
-## Étape 5 : Générer les clés JWT
+## Étape 6 : Initialiser
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml exec php php bin/console lexik:jwt:generate-keypair --env=prod
+cd /volume1/docker/bibliotheque/backend
+sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec php php bin/console lexik:jwt:generate-keypair --env=prod
+sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
 ```
-
-**Vérification** : la sortie doit indiquer que les clés ont été générées. Si les clés existent déjà, ajouter `--overwrite`.
 
 ---
 
-## Étape 6 : Exécuter les migrations
+## Étape 7 : Vérifier
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8082
+# Attendu : 200
+
+curl -s -X POST http://localhost:8082/api/login/google -H "Content-Type: application/json" -d '{}' | head -c 100
+# Attendu : {"error":"Paramètre \"credential\" manquant."}
 ```
-
-**Vérification** : pas d'erreur. La sortie indique les migrations exécutées ou "Already at the latest version".
-
----
-
-## Étape 7 : Vérifier le fonctionnement
-
-> **Note** : pas de création d'utilisateur manuelle. Le premier login Google crée le compte automatiquement.
-
-### Test 1 : Page d'accueil
-
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
-```
-
-**Attendu** : `200`
-
-### Test 2 : Endpoint Google login
-
-```bash
-curl -s -X POST http://localhost:8080/api/login/google -H "Content-Type: application/json" -d '{}' | head -c 100
-```
-
-**Attendu** : `{"error":"Paramètre \"credential\" manquant."}` (confirme que l'endpoint répond)
 
 ---
 
 ## Résultat
 
-Si les 3 tests passent, le déploiement est terminé. L'application est accessible sur `http://${NAS_HOST}:8080`.
-
 Informer l'utilisateur :
-1. L'application fonctionne sur le port 8080
-2. Pour HTTPS : configurer le reverse proxy dans DSM > Panneau de configuration > Portail de connexion > Avancé > Proxy inversé
-3. Les données persistent dans des volumes Docker (survivent aux rebuilds)
-4. Pour mettre à jour : `git pull` + `docker compose up --build -d` + migrations
-
----
+1. App accessible sur `http://${NAS_HOST}:8082`
+2. Configurer le reverse proxy dans DSM (HTTPS 443 → localhost:8082) + certificat Let's Encrypt
+3. Configurer les tâches planifiées DSM (root) : mise à jour auto (04:00) + purge séries (03:00)
+4. Les données persistent dans des volumes Docker
 
 ## Dépannage
 
-### Les conteneurs ne démarrent pas
-
-```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml logs --tail=50
-```
-
-### Erreur "secret" ou "placeholder" au démarrage PHP
-
-Le `PlaceholderSecretChecker` bloque si les secrets ne sont pas déchiffrés. Vérifier que `SYMFONY_DECRYPTION_SECRET` est correct dans `.env.local`.
-
-### Erreur de build frontend (npm)
-
-```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml logs nginx --tail=50
-```
-
-Si erreur mémoire sur le NAS, vérifier la RAM disponible : `free -h`. Le build Node.js nécessite ~1 Go de RAM.
-
-### Base de données inaccessible
-
-```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml exec db mysql -u biblio -p"${MYSQL_PASSWORD}" -e "SELECT 1"
-```
+- **"dubious ownership"** : `sudo git config --global --add safe.directory /volume1/docker/bibliotheque`
+- **"PlaceholderSecretChecker"** : `SYMFONY_DECRYPTION_SECRET` incorrect dans `.env.nas`
+- **"Malformed parameter url"** : caractère spécial dans `MYSQL_PASSWORD` — regénérer avec `openssl rand -hex 24`
+- **"directory is not writable"** : `sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec php chown -R www-data:www-data /var/www/html/var`
