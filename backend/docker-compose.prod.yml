@@ -1,7 +1,6 @@
 env_file:
   - .env.prod
-  - path: .env.local
-    required: false
+  - .env.local
 
 services:
   nginx:
