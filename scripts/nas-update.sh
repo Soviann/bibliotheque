@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-APP_DIR="/volume1/docker/bibliotheque/bibliotheque"
+APP_DIR="/volume1/docker/bibliotheque"
 BACKEND_DIR="${APP_DIR}/backend"
 LOG_FILE="/var/log/bibliotheque-update.log"
 
