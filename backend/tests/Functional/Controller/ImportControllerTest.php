@@ -27,6 +27,9 @@ final class ImportControllerTest extends ApiTestCase
         $container = static::getContainer();
         $em = $container->get(EntityManagerInterface::class);
 
+        // Réinitialiser le rate limiter pour éviter les 429 entre tests
+        $container->get('cache.rate_limiter')->clear();
+
         /** @var UserRepository $userRepo */
         $userRepo = $container->get(UserRepository::class);
 
@@ -57,6 +60,52 @@ final class ImportControllerTest extends ApiTestCase
         $client->request('POST', '/api/tools/import/books');
 
         self::assertResponseStatusCodeSame(401);
+    }
+
+    // ---------------------------------------------------------------
+    // Validation MIME type
+    // ---------------------------------------------------------------
+
+    public function testExcelRejectsNonXlsxFile(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $filePath = \tempnam(\sys_get_temp_dir(), 'test_') ?: \sys_get_temp_dir().'/test_invalid.txt';
+        \file_put_contents($filePath, 'not an excel file');
+
+        $client->request('POST', '/api/tools/import/excel', [
+            'extra' => [
+                'files' => [
+                    'file' => new UploadedFile($filePath, 'test.txt', 'text/plain', null, true),
+                ],
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $data = $client->getResponse()->toArray(false);
+        self::assertArrayHasKey('error', $data);
+
+        \unlink($filePath);
+    }
+
+    public function testBooksRejectsNonXlsxFile(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $filePath = \tempnam(\sys_get_temp_dir(), 'test_') ?: \sys_get_temp_dir().'/test_invalid.txt';
+        \file_put_contents($filePath, 'not an excel file');
+
+        $client->request('POST', '/api/tools/import/books', [
+            'extra' => [
+                'files' => [
+                    'file' => new UploadedFile($filePath, 'test.txt', 'text/plain', null, true),
+                ],
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $data = $client->getResponse()->toArray(false);
+        self::assertArrayHasKey('error', $data);
+
+        \unlink($filePath);
     }
 
     // ---------------------------------------------------------------

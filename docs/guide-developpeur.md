@@ -195,7 +195,18 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | POST | `/api/merge-series/preview` | Aperçu de fusion (`{seriesIds}`) |
 | POST | `/api/merge-series/execute` | Exécuter la fusion |
 
-Les endpoints lookup sont protégés par rate limiting (30 requêtes/min par IP). En cas de dépassement, l'API renvoie un code `429 Too Many Requests`.
+Les endpoints sont protégés par rate limiting par IP. En cas de dépassement, l'API renvoie un code `429 Too Many Requests`.
+
+| Endpoint | Limite |
+|----------|--------|
+| Lookup (ISBN/titre/covers) | 30 req/min |
+| Import (books/excel) | 5 req/min |
+| Purge execute | 5 req/min |
+| Batch lookup run | 2 req/min |
+| Merge (detect/execute) | 5 req/min |
+| Google login | 10 req/min |
+
+Les endpoints d'import acceptent uniquement les fichiers Excel `.xlsx` (MIME `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`) de 10 Mo maximum.
 
 Tous les endpoints (sauf `/api/login/google` et `/api/docs`) nécessitent un header `Authorization: Bearer <token>`.
 
