@@ -33,11 +33,12 @@ COPY . .
 RUN composer dump-autoload --optimize \
     && composer dump-env prod
 
-RUN mkdir -p public/uploads public/media var/cache var/log \
-    && chown -R www-data:www-data public/uploads public/media var
+RUN mkdir -p public/uploads public/media var/cache var/log
 
 RUN php bin/console cache:clear --env=prod --no-debug \
     && php bin/console cache:warmup --env=prod --no-debug
+
+RUN chown -R www-data:www-data public/uploads public/media var
 
 EXPOSE 9000
 
