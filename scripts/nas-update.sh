@@ -3,6 +3,7 @@
 
 APP_DIR="/volume1/docker/bibliotheque"
 BACKEND_DIR="${APP_DIR}/backend"
+ENV_FILE="${BACKEND_DIR}/.env.nas"
 LOG_FILE="/var/log/bibliotheque-update.log"
 
 log() {
@@ -24,14 +25,14 @@ fi
 
 # Rebuild et redémarrage
 cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; exit 1; }
-docker compose -f docker-compose.prod.yml up --build -d >> "$LOG_FILE" 2>&1
+docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml up --build -d >> "$LOG_FILE" 2>&1
 log "Conteneurs reconstruits."
 
 # Attendre que la DB soit healthy
 sleep 15
 
 # Migrations
-docker compose -f docker-compose.prod.yml exec -T php php bin/console doctrine:migrations:migrate -n --env=prod >> "$LOG_FILE" 2>&1
+docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml exec -T php php bin/console doctrine:migrations:migrate -n --env=prod >> "$LOG_FILE" 2>&1
 log "Migrations exécutées."
 
 log "=== Mise à jour terminée ==="
