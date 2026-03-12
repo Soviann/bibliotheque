@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Trait\RateLimitTrait;
 use App\Service\Import\ImportBooksService;
 use App\Service\Import\ImportExcelService;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
@@ -22,6 +23,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/tools/import')]
 class ImportController
 {
+    use RateLimitTrait;
+
     private const array ALLOWED_MIME_TYPES = [
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
@@ -41,7 +44,7 @@ class ImportController
     #[Route('/books', name: 'api_tools_import_books', methods: ['POST'])]
     public function books(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request);
+        $rateLimitResponse = $this->checkRateLimit($request, $this->importLimiter);
         if ($rateLimitResponse instanceof JsonResponse) {
             return $rateLimitResponse;
         }
@@ -80,7 +83,7 @@ class ImportController
     #[Route('/excel', name: 'api_tools_import_excel', methods: ['POST'])]
     public function excel(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request);
+        $rateLimitResponse = $this->checkRateLimit($request, $this->importLimiter);
         if ($rateLimitResponse instanceof JsonResponse) {
             return $rateLimitResponse;
         }
@@ -111,23 +114,6 @@ class ImportController
         }
 
         return new JsonResponse($result);
-    }
-
-    /**
-     * Vérifie le rate limit pour la requête courante.
-     */
-    private function checkRateLimit(Request $request): ?JsonResponse
-    {
-        $limiter = $this->importLimiter->create($request->getClientIp() ?? 'unknown');
-
-        if (false === $limiter->consume()->isAccepted()) {
-            return new JsonResponse(
-                ['error' => 'Trop de requêtes. Réessayez plus tard.'],
-                Response::HTTP_TOO_MANY_REQUESTS,
-            );
-        }
-
-        return null;
     }
 
     /**

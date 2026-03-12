@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Trait\RateLimitTrait;
 use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
 use App\Enum\ComicType;
@@ -25,6 +26,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/merge-series')]
 class MergeSeriesController
 {
+    use RateLimitTrait;
+
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
         private readonly MergePreviewBuilder $mergePreviewBuilder,
@@ -40,7 +43,7 @@ class MergeSeriesController
     #[Route('/detect', name: 'api_merge_series_detect', methods: ['POST'])]
     public function detect(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request);
+        $rateLimitResponse = $this->checkRateLimit($request, $this->mergeSeriesLimiter);
         if ($rateLimitResponse instanceof JsonResponse) {
             return $rateLimitResponse;
         }
@@ -116,7 +119,7 @@ class MergeSeriesController
     #[Route('/execute', name: 'api_merge_series_execute', methods: ['POST'])]
     public function execute(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request);
+        $rateLimitResponse = $this->checkRateLimit($request, $this->mergeSeriesLimiter);
         if ($rateLimitResponse instanceof JsonResponse) {
             return $rateLimitResponse;
         }
@@ -147,23 +150,6 @@ class MergeSeriesController
             'title' => $mergedSeries->getTitle(),
             'type' => $mergedSeries->getType()->value,
         ]);
-    }
-
-    /**
-     * Vérifie le rate limit pour la requête courante.
-     */
-    private function checkRateLimit(Request $request): ?JsonResponse
-    {
-        $limiter = $this->mergeSeriesLimiter->create($request->getClientIp() ?? 'unknown');
-
-        if (false === $limiter->consume()->isAccepted()) {
-            return new JsonResponse(
-                ['error' => 'Trop de requêtes. Réessayez plus tard.'],
-                Response::HTTP_TOO_MANY_REQUESTS,
-            );
-        }
-
-        return null;
     }
 
     /**

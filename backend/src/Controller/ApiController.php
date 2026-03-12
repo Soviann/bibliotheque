@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Trait\RateLimitTrait;
 use App\Enum\ComicType;
 use App\Service\CoverSearchService;
 use App\Service\Lookup\LookupOrchestrator;
@@ -20,6 +21,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/lookup')]
 class ApiController
 {
+    use RateLimitTrait;
+
     public function __construct(
         private readonly RateLimiterFactory $apiLookupLimiter,
         #[Autowire(service: 'limiter.cover_search')]
@@ -33,7 +36,7 @@ class ApiController
     #[Route('/isbn', name: 'api_lookup_isbn', methods: ['GET'])]
     public function isbnLookup(Request $request, LookupOrchestrator $lookupOrchestrator): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request);
+        $rateLimitResponse = $this->checkRateLimit($request, $this->apiLookupLimiter);
         if ($rateLimitResponse instanceof JsonResponse) {
             return $rateLimitResponse;
         }
@@ -56,7 +59,7 @@ class ApiController
     #[Route('/title', name: 'api_lookup_title', methods: ['GET'])]
     public function titleLookup(Request $request, LookupOrchestrator $lookupOrchestrator): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request);
+        $rateLimitResponse = $this->checkRateLimit($request, $this->apiLookupLimiter);
         if ($rateLimitResponse instanceof JsonResponse) {
             return $rateLimitResponse;
         }
@@ -94,30 +97,6 @@ class ApiController
         $results = $coverSearchService->search($query, $type);
 
         return new JsonResponse($results);
-    }
-
-    /**
-     * Vérifie le rate limit pour la requête courante.
-     */
-    private function checkRateLimit(Request $request, ?RateLimiterFactory $limiterFactory = null): ?JsonResponse
-    {
-        $factory = $limiterFactory ?? $this->apiLookupLimiter;
-        $limiter = $factory->create($request->getClientIp() ?? 'unknown');
-        $limit = $limiter->consume();
-
-        if (false === $limit->isAccepted()) {
-            $retryAfter = $limit->getRetryAfter()->getTimestamp() - \time();
-
-            $response = new JsonResponse(
-                ['error' => 'Trop de requêtes. Réessayez plus tard.'],
-                Response::HTTP_TOO_MANY_REQUESTS,
-            );
-            $response->headers->set('Retry-After', (string) \max(1, $retryAfter));
-
-            return $response;
-        }
-
-        return null;
     }
 
     /**

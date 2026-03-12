@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Trait\RateLimitTrait;
 use App\DTO\BatchLookupSummary;
 use App\Enum\ComicType;
 use App\Service\BatchLookupService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,6 +22,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/tools/batch-lookup')]
 class BatchLookupController
 {
+    use RateLimitTrait;
+
     public function __construct(
         private readonly BatchLookupService $batchLookupService,
         private readonly RateLimiterFactory $batchLookupLimiter,
@@ -49,13 +51,9 @@ class BatchLookupController
     #[Route('/run', name: 'api_tools_batch_lookup_run', methods: ['POST'])]
     public function run(Request $request): JsonResponse|StreamedResponse
     {
-        $limiter = $this->batchLookupLimiter->create($request->getClientIp() ?? 'unknown');
-
-        if (false === $limiter->consume()->isAccepted()) {
-            return new JsonResponse(
-                ['error' => 'Trop de requêtes. Réessayez plus tard.'],
-                Response::HTTP_TOO_MANY_REQUESTS,
-            );
+        $rateLimitResponse = $this->checkRateLimit($request, $this->batchLookupLimiter);
+        if ($rateLimitResponse instanceof JsonResponse) {
+            return $rateLimitResponse;
         }
 
         /** @var array<string, mixed> $data */
