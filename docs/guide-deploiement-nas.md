@@ -54,8 +54,8 @@ Créer `backend/.env.nas` (gitignored) — fichier de secrets pour Docker Compos
 ```bash
 cat > backend/.env.nas << 'EOF'
 APP_PORT=8082
-CORS_ALLOW_ORIGIN='^https://bibliotheque\.votre-domaine\.fr$'
-DEFAULT_URI=https://bibliotheque.votre-domaine.fr
+CORS_ALLOW_ORIGIN='^https://bibliotheque\.nasgits.synology\.fr$'
+DEFAULT_URI=https://bibliotheque.nasgits.synology.me
 GEMINI_API_KEYS=cle1,cle2,cle3
 GOOGLE_BOOKS_API_KEY=votre_cle
 MYSQL_PASSWORD=mot_de_passe_hex
@@ -113,7 +113,7 @@ DSM > **Panneau de configuration > Portail de connexion > Avancé > Proxy invers
 |-----------|--------|
 | Nom | Bibliotheque |
 | Source protocole | HTTPS |
-| Source nom d'hôte | bibliotheque.votre-domaine.fr |
+| Source nom d'hôte | bibliotheque.nasgits.synology.me |
 | Source port | 443 |
 | Destination protocole | HTTP |
 | Destination nom d'hôte | localhost |
