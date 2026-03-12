@@ -1,8 +1,6 @@
 #!/bin/bash
 # Script de mise à jour automatique — lancé par le planificateur DSM (root)
 
-set -euo pipefail
-
 APP_DIR="/volume1/docker/bibliotheque"
 BACKEND_DIR="${APP_DIR}/backend"
 LOG_FILE="/var/log/bibliotheque-update.log"
@@ -14,7 +12,7 @@ log() {
 log "=== Début de la mise à jour ==="
 
 # Pull les dernières modifications
-cd "$APP_DIR"
+cd "$APP_DIR" || { log "ERREUR: impossible d'accéder à ${APP_DIR}"; exit 1; }
 GIT_OUTPUT=$(git pull origin main 2>&1)
 log "git pull: ${GIT_OUTPUT}"
 
@@ -25,7 +23,7 @@ if echo "$GIT_OUTPUT" | grep -q "Already up to date"; then
 fi
 
 # Rebuild et redémarrage
-cd "$BACKEND_DIR"
+cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; exit 1; }
 docker compose -f docker-compose.prod.yml up --build -d >> "$LOG_FILE" 2>&1
 log "Conteneurs reconstruits."
 
