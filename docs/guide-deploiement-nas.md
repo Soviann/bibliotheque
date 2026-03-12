@@ -1,6 +1,8 @@
-# Déploiement NAS Synology (Docker Compose)
+# Déploiement NAS Synology (Docker Compose via SSH)
 
-Guide pas-à-pas pour déployer l'application sur un NAS Synology DS920+ via Docker Compose. Conçu pour être exécuté par un agent (Claude Code via SSH) ou manuellement.
+Guide pas-à-pas pour déployer l'application sur un NAS Synology DS920+ via Docker Compose en SSH.
+
+> **Note** : Container Manager (l'interface graphique DSM) ne supporte pas la syntaxe du fichier docker-compose utilisé (Docker Engine trop ancien). Le déploiement se fait en ligne de commande via SSH.
 
 ---
 
@@ -14,16 +16,34 @@ Guide pas-à-pas pour déployer l'application sur un NAS Synology DS920+ via Doc
 - Un nom de domaine pointant vers l'IP publique du NAS (ou DDNS Synology)
 - Ports 80 et 443 redirigés (NAT/port forwarding) depuis le routeur vers le NAS
 
-### Installer Git sur le NAS (optionnel)
+### Installer le client Git sur le NAS (optionnel)
 
-**Option A — SynoCommunity** : ajouter `https://packages.synocommunity.com` dans Centre de paquets > Paramètres > Sources, puis installer le paquet **Git**.
+> **Attention** : le paquet **Git Server** (Centre de paquets Synology) sert à héberger des dépôts, ce n'est pas ce qu'il faut ici. On a besoin uniquement du **client git** (la commande `git`).
+
+**Option A — SynoCommunity** : ajouter `https://packages.synocommunity.com` dans Centre de paquets > Paramètres > Sources, puis installer le paquet **Git** (pas "Git Server").
 
 **Option B — sans Git** : cloner le dépôt sur une autre machine et transférer :
 
 ```bash
 # Sur votre machine locale
 git clone https://github.com/Soviann/bibliotheque.git
-scp -r bibliotheque admin@nas-ip:/volume1/docker/bibliotheque/app
+scp -r bibliotheque admin@nas-ip:/volume1/docker/bibliotheque/
+```
+
+### Mettre à jour Docker Compose (si nécessaire)
+
+Le Docker Compose embarqué dans DSM peut être trop ancien. Vérifier la version :
+
+```bash
+docker compose version
+```
+
+Si la version est inférieure à v2.24, mettre à jour :
+
+```bash
+sudo cp /usr/local/bin/docker-compose /usr/local/bin/docker-compose.bak
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 ```
 
 ---
@@ -31,28 +51,31 @@ scp -r bibliotheque admin@nas-ip:/volume1/docker/bibliotheque/app
 ## 1. Cloner le dépôt
 
 ```bash
-# Se connecter en SSH au NAS (utilisateur admin)
-ssh admin@nas-ip
+# Se connecter en SSH au NAS
+ssh utilisateur@nas-ip
 
 # Créer le dossier de travail
 sudo mkdir -p /volume1/docker/bibliotheque
 sudo chown $(whoami):users /volume1/docker/bibliotheque
 cd /volume1/docker/bibliotheque
 
-# Cloner le dépôt
-git clone https://github.com/Soviann/bibliotheque.git app
-cd app
+# Cloner le dépôt (SSH — nécessite une clé SSH configurée sur GitHub)
+git clone git@github.com:Soviann/bibliotheque.git
+cd bibliotheque
 ```
 
 ---
 
 ## 2. Configurer les variables d'environnement
 
-Créer `backend/.env.local` avec les vraies valeurs :
+Docker Compose charge automatiquement le fichier `backend/.env` pour l'interpolation des variables. Créer ce fichier avec les vraies valeurs :
 
 ```bash
-cat > backend/.env.local << 'EOF'
-# Base de données
+cat > backend/.env << 'EOF'
+# Port exposé par nginx
+APP_PORT=8082
+
+# Base de données (pas de caractères spéciaux : / @ # + %)
 MYSQL_PASSWORD=mot_de_passe_securise
 MYSQL_ROOT_PASSWORD=mot_de_passe_root_securise
 
@@ -73,6 +96,8 @@ GOOGLE_BOOKS_API_KEY=votre_cle_google_books
 SERPER_API_KEY=votre_cle_serper
 EOF
 ```
+
+> **Important** : les mots de passe MySQL ne doivent pas contenir de caractères spéciaux (`/`, `@`, `#`, `+`, `%`) car ils sont interpolés dans l'URL de connexion. Utiliser `openssl rand -hex 24` pour générer des mots de passe sûrs.
 
 ### Obtenir OAUTH_GOOGLE_ID
 
@@ -98,58 +123,61 @@ Sur la **machine de développement** (pas le NAS) :
 ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/prod/prod.decrypt.private.php\");'"
 ```
 
-Copier la sortie dans `SYMFONY_DECRYPTION_SECRET` du fichier `.env.local` ci-dessus.
+Copier la sortie dans `SYMFONY_DECRYPTION_SECRET` du fichier `.env` ci-dessus.
 
 ---
 
 ## 3. Construire et démarrer
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
-
-# Construire les images et démarrer les conteneurs
-docker compose -f docker-compose.prod.yml up --build -d
-
-# Vérifier que les 3 conteneurs tournent (nginx, php, db)
-docker compose -f docker-compose.prod.yml ps
+cd /volume1/docker/bibliotheque/bibliotheque/backend
+sudo docker compose -f docker-compose.prod.yml up --build -d
 ```
 
-Attendre que la colonne `STATUS` affiche `healthy` pour le conteneur `db` (environ 30 secondes).
+Vérifier que les 3 conteneurs tournent :
+
+```bash
+sudo docker compose -f docker-compose.prod.yml ps
+```
+
+Les 3 conteneurs (`nginx`, `php`, `db`) doivent être `Up`. Le conteneur `db` doit afficher `healthy` (environ 30 secondes).
 
 ---
 
 ## 4. Initialiser l'application
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
+cd /volume1/docker/bibliotheque/bibliotheque/backend
 
 # Générer les clés JWT
-docker compose -f docker-compose.prod.yml exec php php bin/console lexik:jwt:generate-keypair --env=prod
+sudo docker compose -f docker-compose.prod.yml exec php php bin/console lexik:jwt:generate-keypair --env=prod
 
 # Exécuter les migrations
-docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
-
-# Pas de création d'utilisateur manuelle : le premier login Google crée le compte automatiquement
+sudo docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
 ```
+
+> Pas de création d'utilisateur manuelle : le premier login Google crée le compte automatiquement.
 
 ---
 
 ## 5. Vérifier le fonctionnement
 
+Depuis un navigateur sur le réseau local, accéder à `http://nas-ip:8082`. La page de login doit s'afficher.
+
+**Vérification API** (optionnel, via SSH) :
+
 ```bash
-# Test rapide : la page d'accueil répond
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+# La page d'accueil répond
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8082
 # Attendu : 200
 
-# Test API : l'endpoint Google login répond (sans token valide, retourne 400)
-curl -s -X POST http://localhost:8080/api/login/google \
+# L'endpoint Google login répond
+curl -s -X POST http://localhost:8082/api/login/google \
   -H "Content-Type: application/json" \
   -d '{}' \
   | head -c 100
-# Attendu : {"error":"Param\u00e8tre \"credential\" manquant."}
+# Attendu : {"error":"Paramètre \"credential\" manquant."}
 ```
-
-L'application est accessible sur `http://nas-ip:8080`.
 
 ---
 
@@ -175,9 +203,7 @@ Dans DSM > **Panneau de configuration > Portail de connexion > Avancé > Proxy i
 | Source port | 443 |
 | Destination protocole | HTTP |
 | Destination nom d'hôte | localhost |
-| Destination port | 8080 |
-
-3. Onglet **En-tête personnalisé** : activer **WebSocket** (optionnel, non requis par l'app)
+| Destination port | 8082 |
 
 ### Certificat HTTPS (Let's Encrypt)
 
@@ -201,7 +227,7 @@ Dans DSM > **Panneau de configuration > Planificateur de tâches** :
 - Commande :
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.prod.yml exec -T php php bin/console app:purge-deleted --env=prod
+cd /volume1/docker/bibliotheque/bibliotheque/backend && sudo docker compose -f docker-compose.prod.yml exec -T php php bin/console app:purge-deleted --env=prod
 ```
 
 ---
@@ -209,20 +235,11 @@ cd /volume1/docker/bibliotheque/app/backend && docker compose -f docker-compose.
 ## 8. Mise à jour de l'application
 
 ```bash
-cd /volume1/docker/bibliotheque/app
+cd /volume1/docker/bibliotheque/bibliotheque && git pull
+cd backend && sudo docker compose -f docker-compose.prod.yml up --build -d
 
-# Récupérer les dernières modifications
-git pull origin main
-
-# Reconstruire et redémarrer
-cd backend
-docker compose -f docker-compose.prod.yml up --build -d
-
-# Vider le cache (le volume app_var persiste entre les rebuilds)
-docker compose -f docker-compose.prod.yml exec php php bin/console cache:clear --env=prod
-
-# Exécuter les migrations si nécessaire
-docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
+# Migrations si nécessaire
+sudo docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
 ```
 
 ---
@@ -232,22 +249,22 @@ docker compose -f docker-compose.prod.yml exec php php bin/console doctrine:migr
 ### Hyper Backup (recommandé)
 
 Configurer Hyper Backup pour sauvegarder :
-- `/volume1/docker/bibliotheque/` (code source + .env.local)
+- `/volume1/docker/bibliotheque/` (code source + .env)
 
 ### Sauvegarde manuelle de la base de données
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
-docker compose -f docker-compose.prod.yml exec -T db mysqldump -u biblio -p"${MYSQL_PASSWORD}" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
-# Note : exporter MYSQL_PASSWORD au préalable, ou le lire depuis .env.local :
-#   export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env.local | sed 's/^MYSQL_PASSWORD=//')
+cd /volume1/docker/bibliotheque/bibliotheque/backend
+export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env | sed 's/^MYSQL_PASSWORD=//')
+sudo docker compose -f docker-compose.prod.yml exec -T db mysqldump -u biblio -p"${MYSQL_PASSWORD}" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
 ```
 
 ### Restauration
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
-gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | docker compose -f docker-compose.prod.yml exec -T db mysql -u biblio -p"${MYSQL_PASSWORD}" bibliotheque
+cd /volume1/docker/bibliotheque/bibliotheque/backend
+export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env | sed 's/^MYSQL_PASSWORD=//')
+gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | sudo docker compose -f docker-compose.prod.yml exec -T db mysql -u biblio -p"${MYSQL_PASSWORD}" bibliotheque
 ```
 
 ---
@@ -257,41 +274,32 @@ gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | docker compose -
 ### Voir les logs
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
+cd /volume1/docker/bibliotheque/bibliotheque/backend
 
-# Logs de tous les conteneurs
-docker compose -f docker-compose.prod.yml logs
-
-# Logs d'un service spécifique
-docker compose -f docker-compose.prod.yml logs nginx
-docker compose -f docker-compose.prod.yml logs php
-docker compose -f docker-compose.prod.yml logs db
-
-# Logs Symfony
-docker compose -f docker-compose.prod.yml exec php cat var/log/prod.log
+# Logs récents d'un service
+sudo docker compose -f docker-compose.prod.yml logs php --tail=50
+sudo docker compose -f docker-compose.prod.yml logs nginx --tail=50
+sudo docker compose -f docker-compose.prod.yml logs db --tail=50
 ```
 
 ### Redémarrer les conteneurs
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
-docker compose -f docker-compose.prod.yml restart
+sudo docker compose -f docker-compose.prod.yml restart
 ```
 
 ### Recréer complètement (sans perdre les données)
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
-docker compose -f docker-compose.prod.yml down
-docker compose -f docker-compose.prod.yml up --build -d
+sudo docker compose -f docker-compose.prod.yml down
+sudo docker compose -f docker-compose.prod.yml up --build -d
 ```
 
 ### Réinitialiser la base de données (DESTRUCTIF)
 
 ```bash
-cd /volume1/docker/bibliotheque/app/backend
-docker compose -f docker-compose.prod.yml down -v  # Supprime les volumes
-docker compose -f docker-compose.prod.yml up --build -d
+sudo docker compose -f docker-compose.prod.yml down -v  # Supprime les volumes
+sudo docker compose -f docker-compose.prod.yml up --build -d
 # Puis refaire l'étape 4 (initialisation)
 ```
 
