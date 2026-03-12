@@ -56,6 +56,10 @@ node_modules/
 .vscode/
 ###< ide ###
 
+###> nas ###
+backend/.env.nas
+###< nas ###
+
 ###> local ###
 .DS_Store
 .claude/
