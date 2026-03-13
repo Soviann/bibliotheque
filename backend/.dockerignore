@@ -1,6 +1,7 @@
 .ddev/
 .env.local
 .env.*.local
+.env.prod
 .git/
 .gitignore
 .idea/

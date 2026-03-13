@@ -30,8 +30,7 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
 COPY . .
 
-RUN composer dump-autoload --optimize \
-    && composer dump-env prod
+RUN composer dump-autoload --optimize
 
 RUN mkdir -p public/uploads public/media var/cache var/log
 
