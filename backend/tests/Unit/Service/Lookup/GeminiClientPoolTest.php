@@ -96,7 +96,49 @@ final class GeminiClientPoolTest extends TestCase
     }
 
     /**
-     * Teste qu'une erreur non-429 est relancée immédiatement sans rotation.
+     * Teste la rotation vers la deuxième clé sur 403 (clé invalide) de la première.
+     */
+    public function testRotatesToSecondKeyOn403(): void
+    {
+        $pool = new GeminiClientPool('key1,key2', $this->logger, 'gemini-2.5-flash');
+
+        $callCount = 0;
+        $result = $pool->executeWithRetry(static function ($client, $model) use (&$callCount): string {
+            ++$callCount;
+            if (1 === $callCount) {
+                throw new ErrorException(['code' => 403, 'message' => 'API key invalid', 'status' => 'PERMISSION_DENIED']);
+            }
+
+            return 'ok_key2';
+        });
+
+        self::assertSame('ok_key2', $result);
+        self::assertSame(2, $callCount);
+    }
+
+    /**
+     * Teste la rotation vers la deuxième clé sur 401 (non authentifié) de la première.
+     */
+    public function testRotatesToSecondKeyOn401(): void
+    {
+        $pool = new GeminiClientPool('key1,key2', $this->logger, 'gemini-2.5-flash');
+
+        $callCount = 0;
+        $result = $pool->executeWithRetry(static function ($client, $model) use (&$callCount): string {
+            ++$callCount;
+            if (1 === $callCount) {
+                throw new ErrorException(['code' => 401, 'message' => 'Unauthenticated', 'status' => 'UNAUTHENTICATED']);
+            }
+
+            return 'ok_key2';
+        });
+
+        self::assertSame('ok_key2', $result);
+        self::assertSame(2, $callCount);
+    }
+
+    /**
+     * Teste qu'une erreur non retryable est relancée immédiatement sans rotation.
      */
     public function testNon429ErrorRethrowsImmediately(): void
     {
