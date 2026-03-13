@@ -14,6 +14,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Cache HTTP (ETag)** : Les endpoints `GET /api/comic_series` et `GET /api/comic_series/{id}` retournent un ETag basé sur le hash du contenu et répondent `304 Not Modified` si le client envoie un `If-None-Match` valide (#193)
 - **Page « À acheter »** : Nouvelle page `/to-buy` listant les séries en cours d'achat avec tomes manquants, remplacement du tab Wishlist par « À acheter » dans la navigation (#191)
 - **CI GitHub Actions** : Workflow lint (PHPStan, CS Fixer, TypeScript) + tests (PHPUnit, Vitest) sur chaque PR, avec protection de la branche `main` (#166)
 - **Couvertures locales** : Téléchargement automatique des couvertures externes en WebP local via `CoverDownloader`, intégré au lookup et commande batch `app:download-covers` (#180)
