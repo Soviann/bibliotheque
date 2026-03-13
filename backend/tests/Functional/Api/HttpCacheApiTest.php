@@ -53,7 +53,7 @@ final class HttpCacheApiTest extends ApiTestCase
         $this->em->persist($series);
         $this->em->flush();
 
-        $client->request('GET', '/api/comic_series/' . $series->getId());
+        $client->request('GET', '/api/comic_series/'.$series->getId());
 
         self::assertResponseIsSuccessful();
         self::assertResponseHasHeader('etag');
@@ -82,7 +82,7 @@ final class HttpCacheApiTest extends ApiTestCase
         $this->em->persist($series);
         $this->em->flush();
 
-        $url = '/api/comic_series/' . $series->getId();
+        $url = '/api/comic_series/'.$series->getId();
 
         $client->request('GET', $url);
         $response = $client->getResponse();
