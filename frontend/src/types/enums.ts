@@ -36,3 +36,32 @@ export const ComicTypePlaceholder: Record<ComicType, string> = {
   [ComicType.LIVRE]: "/placeholder-livre.jpg",
   [ComicType.MANGA]: "/placeholder-manga.jpg",
 };
+
+export interface SelectOption {
+  label: string;
+  value: string;
+}
+
+export const typeOptions: SelectOption[] = Object.entries(ComicType).map(
+  ([, value]) => ({
+    label: ComicTypeLabel[value],
+    value,
+  }),
+);
+
+export const typeOptionsAll: SelectOption[] = [
+  { label: "Tous les types", value: "" },
+  ...typeOptions,
+];
+
+export const statusOptions: SelectOption[] = Object.entries(ComicStatus)
+  .map(([, value]) => ({
+    label: ComicStatusLabel[value],
+    value,
+  }))
+  .sort((a, b) => a.label.localeCompare(b.label));
+
+export const statusOptionsAll: SelectOption[] = [
+  { label: "Tous les statuts", value: "" },
+  ...statusOptions,
+];

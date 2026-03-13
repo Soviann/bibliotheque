@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Frontend : extraction composants partagés** : `typeOptions`/`statusOptions` centralisés dans `enums.ts`, `getCoverSrc` dans `coverUtils.ts`, labels de sync dans `syncLabels.ts`, `SelectListbox` réutilisable, et `ComicForm.tsx` découpé en `useComicForm`, `TomeTable`, `LookupSection`, `AuthorAutocomplete` (1180 → 398 lignes) (#169)
+
 ### Added
 
 - **CI GitHub Actions** : Workflow lint (PHPStan, CS Fixer, TypeScript) + tests (PHPUnit, Vitest) sur chaque PR, avec protection de la branche `main` (#166)

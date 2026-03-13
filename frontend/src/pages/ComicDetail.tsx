@@ -11,6 +11,7 @@ import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useUpdateTome } from "../hooks/useUpdateTome";
 import { ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
+import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
 
 function formatRelativeDate(isoDate: string): string {
@@ -114,7 +115,7 @@ export default function ComicDetail() {
     return <div className="py-12 text-center text-text-muted">Série introuvable</div>;
   }
 
-  const coverSrc = comic.coverImage ? `/uploads/covers/${comic.coverImage}` : comic.coverUrl;
+  const coverSrc = getCoverSrc(comic);
   const showProgress = !comic.isOneShot && optimisticTomes.length > 0;
   const progressTotal = comic.latestPublishedIssue ?? countCoveredTomes(optimisticTomes);
   const boughtCount = countCoveredTomes(optimisticTomes, (t) => t.bought);

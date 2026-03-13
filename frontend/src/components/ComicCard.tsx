@@ -3,6 +3,7 @@ import { Edit, EllipsisVertical, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
+import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
 import ProgressBar from "./ProgressBar";
 import SyncPendingIndicator from "./SyncPendingIndicator";
@@ -15,7 +16,7 @@ interface ComicCardProps {
 
 export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
   const navigate = useNavigate();
-  const coverSrc = comic.coverImage ? `/uploads/covers/${comic.coverImage}` : comic.coverUrl;
+  const coverSrc = getCoverSrc(comic);
   const tomes = comic.tomes ?? [];
   const coveredCount = countCoveredTomes(tomes);
   const boughtCount = countCoveredTomes(tomes, (t) => t.bought);

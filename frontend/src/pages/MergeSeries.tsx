@@ -1,8 +1,4 @@
 import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
   Switch,
   Tab,
   TabGroup,
@@ -10,11 +6,12 @@ import {
   TabPanel,
   TabPanels,
 } from "@headlessui/react";
-import { Check, ChevronDown, Loader2, Merge, Search as SearchIcon } from "lucide-react";
+import { Loader2, Merge, Search as SearchIcon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import EmptyState from "../components/EmptyState";
+import SelectListbox from "../components/SelectListbox";
 import MergeGroupCard from "../components/MergeGroupCard";
 import MergePreviewModal from "../components/MergePreviewModal";
 import MergeSeriesConfirmModal, { type MergeSeriesEntry } from "../components/MergeSeriesConfirmModal";
@@ -25,19 +22,7 @@ import {
   useMergePreview,
 } from "../hooks/useMergeSeries";
 import type { ComicSeries, HydraCollection, MergeGroup, MergePreview } from "../types/api";
-import { ComicType, ComicTypeLabel } from "../types/enums";
-
-interface SelectOption {
-  label: string;
-  value: string;
-}
-
-const typeOptions: SelectOption[] = Object.entries(ComicType).map(
-  ([, value]) => ({
-    label: ComicTypeLabel[value],
-    value,
-  }),
-);
+import { type SelectOption, typeOptions } from "../types/enums";
 
 const letterOptions: SelectOption[] = [
   { label: "0-9", value: "0-9" },
@@ -148,11 +133,6 @@ export default function MergeSeries() {
     });
   };
 
-  const selectedTypeOption = typeOptions.find((o) => o.value === selectedType);
-  const selectedLetterOption = letterOptions.find(
-    (o) => o.value === selectedLetter,
-  );
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <h1 className="text-xl font-bold text-text-primary">
@@ -176,65 +156,21 @@ export default function MergeSeries() {
               {/* Filters row */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="min-w-0 flex-1">
-                  <Listbox onChange={setSelectedType} value={selectedType}>
-                    <div className="relative">
-                      <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
-                        <span className={`truncate ${!selectedTypeOption ? "text-text-muted" : ""}`}>
-                          {selectedTypeOption?.label ?? "Type"}
-                        </span>
-                        <ChevronDown className="h-4 w-4 text-text-muted" />
-                      </ListboxButton>
-                      <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary py-1 shadow-lg transition focus:outline-none">
-                        {typeOptions.map((option) => (
-                          <ListboxOption
-                            className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
-                            key={option.value}
-                            value={option.value}
-                          >
-                            <Check
-                              className={`h-4 w-4 shrink-0 ${
-                                option.value === selectedType
-                                  ? "text-primary-600"
-                                  : "invisible"
-                              }`}
-                            />
-                            {option.label}
-                          </ListboxOption>
-                        ))}
-                      </ListboxOptions>
-                    </div>
-                  </Listbox>
+                  <SelectListbox
+                    onChange={setSelectedType}
+                    options={typeOptions}
+                    placeholder="Type"
+                    value={selectedType}
+                  />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <Listbox onChange={setSelectedLetter} value={selectedLetter}>
-                    <div className="relative">
-                      <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
-                        <span className={`truncate ${!selectedLetterOption ? "text-text-muted" : ""}`}>
-                          {selectedLetterOption?.label ?? "Lettre"}
-                        </span>
-                        <ChevronDown className="h-4 w-4 text-text-muted" />
-                      </ListboxButton>
-                      <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary py-1 shadow-lg transition focus:outline-none">
-                        {letterOptions.map((option) => (
-                          <ListboxOption
-                            className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
-                            key={option.value}
-                            value={option.value}
-                          >
-                            <Check
-                              className={`h-4 w-4 shrink-0 ${
-                                option.value === selectedLetter
-                                  ? "text-primary-600"
-                                  : "invisible"
-                              }`}
-                            />
-                            {option.label}
-                          </ListboxOption>
-                        ))}
-                      </ListboxOptions>
-                    </div>
-                  </Listbox>
+                  <SelectListbox
+                    onChange={setSelectedLetter}
+                    options={letterOptions}
+                    placeholder="Lettre"
+                    value={selectedLetter}
+                  />
                 </div>
 
                 <label className="flex items-center gap-2 text-sm text-text-secondary">
