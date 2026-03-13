@@ -51,7 +51,7 @@ final class HttpCacheListenerTest extends TestCase
     public function testReturns304WhenEtagMatches(): void
     {
         $content = '{"member":[]}';
-        $etag = '"' . \md5($content) . '"';
+        $etag = '"'.\md5($content).'"';
 
         $request = Request::create('/api/comic_series', 'GET', server: ['HTTP_IF_NONE_MATCH' => $etag]);
         $response = new Response($content, 200, ['Content-Type' => 'application/ld+json']);
