@@ -10,6 +10,7 @@ import EmptyState from "../components/EmptyState";
 import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
 import { useDeleteComic } from "../hooks/useDeleteComic";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import type { ComicSeries } from "../types/api";
 import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
@@ -80,6 +81,7 @@ export default function Home() {
     [updateParam],
   );
 
+  const isMobile = useMediaQuery("(max-width: 639px)");
   const { data, isFetching, isLoading } = useComics();
   const deleteComic = useDeleteComic();
   const allComics = data?.member ?? [];
@@ -95,28 +97,28 @@ export default function Home() {
 
   return (
     <div className="space-y-4">
-      {/* Search bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-        <input
-          className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Rechercher par titre, auteur, éditeur…"
-          type="search"
-          value={search}
-        />
-      </div>
-
-      {/* Filters + count */}
-      <div className="flex items-center gap-3">
-        <Filters
-          onSortChange={handleSortChange}
-          onStatusChange={handleStatusChange}
-          onTypeChange={handleTypeChange}
-          sort={sort}
-          status={status}
-          type={type}
-        />
+      {/* Search bar + filter button (mobile) + count */}
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+          <input
+            className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Rechercher par titre, auteur, éditeur…"
+            type="search"
+            value={search}
+          />
+        </div>
+        {isMobile && (
+          <Filters
+            onSortChange={handleSortChange}
+            onStatusChange={handleStatusChange}
+            onTypeChange={handleTypeChange}
+            sort={sort}
+            status={status}
+            type={type}
+          />
+        )}
         <span className="flex shrink-0 items-center gap-1.5 text-sm text-text-muted">
           {isFetching && !isLoading && (
             <Loader2 className="h-3.5 w-3.5 animate-spin" data-testid="search-loading" />
@@ -124,6 +126,20 @@ export default function Home() {
           {filtered.length}/{allComics.length}
         </span>
       </div>
+
+      {/* Desktop filters */}
+      {!isMobile && (
+        <div className="flex min-w-0 items-center gap-3">
+          <Filters
+            onSortChange={handleSortChange}
+            onStatusChange={handleStatusChange}
+            onTypeChange={handleTypeChange}
+            sort={sort}
+            status={status}
+            type={type}
+          />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">

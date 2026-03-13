@@ -15,6 +15,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Fixed
 
 - **Vignettes en production** : CSP `connect-src` autorise désormais `https:` pour les couvertures externes, et priorité aux fichiers locaux dans le frontend (#180)
+- **Filtres mobile** : Remplacement des dropdowns tronqués par un bouton icône ouvrant un bottom sheet avec des `<select>` natifs, suppression du scroll horizontal (#181, #183)
 
 ### Changed
 
