@@ -117,7 +117,7 @@ export default function ComicDetail() {
 
   const coverSrc = getCoverSrc(comic);
   const showProgress = !comic.isOneShot && optimisticTomes.length > 0;
-  const progressTotal = comic.latestPublishedIssue ?? countCoveredTomes(optimisticTomes);
+  const progressTotal = Math.max(comic.latestPublishedIssue ?? 0, countCoveredTomes(optimisticTomes));
   const boughtCount = countCoveredTomes(optimisticTomes, (t) => t.bought);
   const readCount = countCoveredTomes(optimisticTomes, (t) => t.read);
   const downloadedCount = countCoveredTomes(optimisticTomes, (t) => t.downloaded);

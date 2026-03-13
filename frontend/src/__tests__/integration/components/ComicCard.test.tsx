@@ -176,23 +176,23 @@ describe("ComicCard", () => {
     expect(screen.getByText(/2\s*\/\s*24/)).toBeInTheDocument();
   });
 
-  it("shows progress bar when latestPublishedIssue is set", () => {
+  it("shows all three stat counters", () => {
     const comic = createMockComicSeries({
       isOneShot: false,
       latestPublishedIssue: 10,
       title: "One Piece",
       tomes: [
-        createMockTome({ bought: true }),
-        createMockTome({ bought: true }),
-        createMockTome({ bought: true }),
+        createMockTome({ bought: true, downloaded: true, read: true }),
+        createMockTome({ bought: true, downloaded: false, read: false }),
+        createMockTome({ bought: false, downloaded: false, read: false }),
       ],
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
 
-    const progressBar = screen.getByRole("progressbar");
-    expect(progressBar).toHaveAttribute("aria-valuenow", "3");
-    expect(progressBar).toHaveAttribute("aria-valuemax", "10");
+    expect(screen.getByTitle("Achetés")).toHaveTextContent("2/10");
+    expect(screen.getByTitle("Lus")).toHaveTextContent("1/10");
+    expect(screen.getByTitle("Téléchargés")).toHaveTextContent("1/10");
   });
 
   it("uses tome count as total when latestPublishedIssue is null", () => {
@@ -208,10 +208,27 @@ describe("ComicCard", () => {
 
     renderWithProviders(<ComicCard comic={comic} />);
 
-    expect(screen.getByText(/1\s*\/\s*2/)).toBeInTheDocument();
+    expect(screen.getByTitle("Achetés")).toHaveTextContent("1/2");
   });
 
-  it("does not show progress for oneshot series", () => {
+  it("uses coveredCount when it exceeds latestPublishedIssue", () => {
+    const comic = createMockComicSeries({
+      isOneShot: false,
+      latestPublishedIssue: 2,
+      title: "Overflow",
+      tomes: [
+        createMockTome({ bought: true }),
+        createMockTome({ bought: true }),
+        createMockTome({ bought: true }),
+      ],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.getByTitle("Achetés")).toHaveTextContent("3/3");
+  });
+
+  it("does not show stats for oneshot series", () => {
     const comic = createMockComicSeries({
       isOneShot: true,
       latestPublishedIssue: 1,
@@ -221,10 +238,10 @@ describe("ComicCard", () => {
 
     renderWithProviders(<ComicCard comic={comic} />);
 
-    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Achetés")).not.toBeInTheDocument();
   });
 
-  it("does not show progress when no tomes", () => {
+  it("does not show stats when no tomes", () => {
     const comic = createMockComicSeries({
       isOneShot: false,
       latestPublishedIssue: null,
@@ -234,6 +251,6 @@ describe("ComicCard", () => {
 
     renderWithProviders(<ComicCard comic={comic} />);
 
-    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Achetés")).not.toBeInTheDocument();
   });
 });
