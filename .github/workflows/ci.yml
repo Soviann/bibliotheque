@@ -77,7 +77,7 @@ jobs:
           --health-timeout=5s
           --health-retries=5
     env:
-      DATABASE_URL: mysql://app:app@127.0.0.1:3306/db_test?serverVersion=10.11.0-MariaDB&charset=utf8mb4
+      DATABASE_URL: mysql://app:app@127.0.0.1:3306/db?serverVersion=10.11.0-MariaDB&charset=utf8mb4
     steps:
       - uses: actions/checkout@v4
 
