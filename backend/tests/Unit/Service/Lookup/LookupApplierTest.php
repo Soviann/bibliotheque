@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Repository\AuthorRepository;
-use App\Service\CoverDownloader;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupResult;
 use App\Tests\Factory\EntityFactory;
@@ -18,13 +17,11 @@ final class LookupApplierTest extends TestCase
 {
     private AuthorRepository $authorRepository;
     private LookupApplier $applier;
-    private CoverDownloader $coverDownloader;
 
     protected function setUp(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepository::class);
-        $this->coverDownloader = $this->createMock(CoverDownloader::class);
-        $this->applier = new LookupApplier($this->authorRepository, $this->coverDownloader);
+        $this->applier = new LookupApplier($this->authorRepository);
     }
 
     public function testApplyFillsAllNullFields(): void
@@ -289,49 +286,4 @@ final class LookupApplierTest extends TestCase
         self::assertNotContains('isOneShot', $updatedFields);
     }
 
-    public function testApplyCallsCoverDownloaderWhenThumbnailSet(): void
-    {
-        $series = EntityFactory::createComicSeries('Test');
-        $url = 'https://example.com/cover.jpg';
-
-        $this->coverDownloader->expects(self::once())
-            ->method('downloadAndStore')
-            ->with($series, $url)
-            ->willReturn(true);
-
-        $result = new LookupResult(
-            source: 'test',
-            thumbnail: $url,
-        );
-
-        $this->applier->apply($series, $result);
-    }
-
-    public function testApplyDoesNotCallCoverDownloaderWhenNoThumbnail(): void
-    {
-        $series = EntityFactory::createComicSeries('Test');
-
-        $this->coverDownloader->expects(self::never())
-            ->method('downloadAndStore');
-
-        $result = new LookupResult(source: 'test');
-
-        $this->applier->apply($series, $result);
-    }
-
-    public function testApplyDoesNotCallCoverDownloaderWhenCoverUrlAlreadySet(): void
-    {
-        $series = EntityFactory::createComicSeries('Test');
-        $series->setCoverUrl('https://existing.com/cover.jpg');
-
-        $this->coverDownloader->expects(self::never())
-            ->method('downloadAndStore');
-
-        $result = new LookupResult(
-            source: 'test',
-            thumbnail: 'https://example.com/new-cover.jpg',
-        );
-
-        $this->applier->apply($series, $result);
-    }
 }
