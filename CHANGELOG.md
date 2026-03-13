@@ -7,6 +7,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Backup automatique BDD** : Script `scripts/nas-backup.sh` pour dump quotidien de la base MariaDB avec compression gzip et rotation à 7 jours (#175)
+- **Nettoyage centralisé des logs** : Script `scripts/nas-cleanup-logs.sh` pour la rotation des logs `/var/log/bibliotheque/` (7 jours), remplace la logique dupliquée dans chaque script
+
 ## [v2.5.0] - 2026-03-13
 
 ### Added
