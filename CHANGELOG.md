@@ -11,6 +11,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **Backup automatique BDD** : Script `scripts/nas-backup.sh` pour dump quotidien de la base MariaDB avec compression gzip et rotation à 7 jours (#175)
 - **Nettoyage centralisé des logs** : Script `scripts/nas-cleanup-logs.sh` pour la rotation des logs `/var/log/bibliotheque/` (7 jours), remplace la logique dupliquée dans chaque script
+- **Rollback automatique NAS** : Si le build Docker échoue après un `git pull`, le script `nas-update.sh` revient automatiquement aux commits précédents (par merge commit, max 5 tentatives) jusqu'à retrouver un build fonctionnel (#176)
 
 ## [v2.5.0] - 2026-03-13
 
