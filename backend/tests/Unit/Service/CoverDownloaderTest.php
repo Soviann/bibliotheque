@@ -120,6 +120,7 @@ final class CoverDownloaderTest extends TestCase
 
     private function createTestImage(int $width, int $height): string
     {
+        \assert($width > 0 && $height > 0);
         $image = \imagecreatetruecolor($width, $height);
         \assert(false !== $image);
         \ob_start();

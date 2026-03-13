@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\UnitOfWork;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,9 +20,9 @@ use PHPUnit\Framework\TestCase;
  */
 final class CoverUrlChangeListenerTest extends TestCase
 {
-    private CoverDownloader $coverDownloader;
+    private CoverDownloader&MockObject $coverDownloader;
     private CoverUrlChangeListener $listener;
-    private EntityManagerInterface $entityManager;
+    private EntityManagerInterface&MockObject $entityManager;
 
     protected function setUp(): void
     {
