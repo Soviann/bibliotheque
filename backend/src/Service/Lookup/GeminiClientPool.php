@@ -8,7 +8,7 @@ use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Pool de clients Gemini avec rotation clés × modèles sur erreur 429.
+ * Pool de clients Gemini avec rotation clés × modèles sur erreur 401/403/429.
  *
  * Itère modèles (outer) × clés (inner) : épuise toutes les clés sur le meilleur modèle d'abord.
  * Le suivi d'épuisement est en mémoire (suffisant pour les batchs et réinitialisé par requête web).
@@ -73,13 +73,16 @@ class GeminiClientPool
 
                     return $callback($client, $model);
                 } catch (ErrorException $e) {
-                    if (429 !== $e->getErrorCode()) {
+                    $code = $e->getErrorCode();
+
+                    if (!\in_array($code, [401, 403, 429], true)) {
                         throw $e;
                     }
 
                     $this->exhausted[$comboKey] = true;
                     $lastException = $e;
-                    $this->logger->warning('Gemini 429 sur clé {keyIndex} / modèle {model}, rotation…', [
+                    $this->logger->warning('Gemini {code} sur clé {keyIndex} / modèle {model}, rotation…', [
+                        'code' => $code,
                         'keyIndex' => $keyIndex,
                         'model' => $model,
                     ]);
