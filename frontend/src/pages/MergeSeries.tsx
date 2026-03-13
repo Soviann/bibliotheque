@@ -249,20 +249,25 @@ export default function MergeSeries() {
                 </label>
               </div>
 
-              {/* Detect button */}
-              <button
-                className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-                disabled={detectMutation.isPending || !selectedType || !selectedLetter}
-                onClick={handleDetect}
-                type="button"
+              {/* Detect button — sticky */}
+              <div
+                className="sticky bottom-[var(--bottom-nav-h)] z-40 -mx-4 border-t border-surface-border bg-surface-primary px-4 py-3"
+                data-testid="sticky-action-bar"
               >
-                {detectMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <SearchIcon className="h-4 w-4" />
-                )}
-                Détecter les groupes
-              </button>
+                <button
+                  className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                  disabled={detectMutation.isPending || !selectedType || !selectedLetter}
+                  onClick={handleDetect}
+                  type="button"
+                >
+                  {detectMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <SearchIcon className="h-4 w-4" />
+                  )}
+                  Détecter les groupes
+                </button>
+              </div>
 
               {/* Loading state for preview */}
               {previewMutation.isPending && (
@@ -306,25 +311,30 @@ export default function MergeSeries() {
                 selectedIds={selectedIds}
               />
 
-              <div className="flex items-center gap-3">
-                <button
-                  className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-                  disabled={selectedIds.length < 2 || previewMutation.isPending}
-                  onClick={handleManualPreview}
-                  type="button"
-                >
-                  {previewMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Merge className="h-4 w-4" />
+              <div
+                className="sticky bottom-[var(--bottom-nav-h)] z-40 -mx-4 border-t border-surface-border bg-surface-primary px-4 py-3"
+                data-testid="sticky-action-bar"
+              >
+                <div className="flex items-center gap-3">
+                  <button
+                    className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                    disabled={selectedIds.length < 2 || previewMutation.isPending}
+                    onClick={handleManualPreview}
+                    type="button"
+                  >
+                    {previewMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Merge className="h-4 w-4" />
+                    )}
+                    Aperçu de la fusion
+                  </button>
+                  {selectedIds.length > 0 && selectedIds.length < 2 && (
+                    <span className="text-sm text-text-muted">
+                      Sélectionnez au moins 2 séries
+                    </span>
                   )}
-                  Aperçu de la fusion
-                </button>
-                {selectedIds.length > 0 && selectedIds.length < 2 && (
-                  <span className="text-sm text-text-muted">
-                    Sélectionnez au moins 2 séries
-                  </span>
-                )}
+                </div>
               </div>
             </div>
           </TabPanel>
