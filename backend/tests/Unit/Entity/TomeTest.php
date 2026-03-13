@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Entity;
 
 use App\Entity\Tome;
 use App\Tests\Factory\EntityFactory;
+use Doctrine\ORM\Mapping as ORM;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -239,6 +240,27 @@ final class TomeTest extends TestCase
 
         self::assertInstanceOf(\DateTimeImmutable::class, $tome->getUpdatedAt());
         self::assertGreaterThan($originalUpdatedAt, $tome->getUpdatedAt());
+    }
+
+    // ---------------------------------------------------------------
+    // EntityFactory
+    // ---------------------------------------------------------------
+
+    // ---------------------------------------------------------------
+    // Mapping Doctrine
+    // ---------------------------------------------------------------
+
+    public function testHasCompositeIndexOnSeriesAndNumber(): void
+    {
+        $reflection = new \ReflectionClass(Tome::class);
+        $indexes = $reflection->getAttributes(ORM\Index::class);
+
+        $indexNames = \array_map(
+            static fn (\ReflectionAttribute $attr): ?string => $attr->newInstance()->name,
+            $indexes,
+        );
+
+        self::assertContains('idx_tome_series_number', $indexNames);
     }
 
     // ---------------------------------------------------------------
