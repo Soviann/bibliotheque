@@ -251,7 +251,7 @@ export default function MergeSeries() {
 
               {/* Detect button — sticky */}
               <div
-                className="sticky bottom-[var(--bottom-nav-h)] z-10 -mx-4 border-t border-surface-border bg-surface-primary/95 px-4 py-3 backdrop-blur-sm"
+                className="sticky bottom-[var(--bottom-nav-h)] z-40 -mx-4 border-t border-surface-border bg-surface-primary px-4 py-3"
                 data-testid="sticky-action-bar"
               >
                 <button
@@ -312,7 +312,7 @@ export default function MergeSeries() {
               />
 
               <div
-                className="sticky bottom-[var(--bottom-nav-h)] z-10 -mx-4 border-t border-surface-border bg-surface-primary/95 px-4 py-3 backdrop-blur-sm"
+                className="sticky bottom-[var(--bottom-nav-h)] z-40 -mx-4 border-t border-surface-border bg-surface-primary px-4 py-3"
                 data-testid="sticky-action-bar"
               >
                 <div className="flex items-center gap-3">
