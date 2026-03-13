@@ -10,7 +10,6 @@ use App\EventListener\TomeLatestIssueListener;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -120,8 +119,7 @@ final class TomeLatestIssueListenerTest extends TestCase
         $tome->setComicSeries($series);
 
         $changeSet = ['number' => [5, 12]];
-        $classMetadata = $this->createMock(ClassMetadata::class);
-        $args = new PreUpdateEventArgs($tome, $this->entityManager, $changeSet, $classMetadata);
+        $args = new PreUpdateEventArgs($tome, $this->entityManager, $changeSet);
         $this->listener->preUpdate($args);
 
         self::assertSame(12, $series->getLatestPublishedIssue());
