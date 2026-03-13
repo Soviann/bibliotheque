@@ -137,11 +137,27 @@ bash /volume1/docker/bibliotheque/scripts/nas-update.sh
 
 Le script (`scripts/nas-update.sh`) : pull, rebuild si changements, migrations. Logs dans `/var/log/bibliotheque/update-YYYY-MM-DD.log` (rétention 7 jours).
 
+### Backup de la BDD (quotidien, 02:00)
+
+```bash
+bash /volume1/docker/bibliotheque/scripts/nas-backup.sh
+```
+
+Le script (`scripts/nas-backup.sh`) : dump MariaDB compressé gzip dans `/volume1/google drive/Backup/Bibliotheque/`, rotation à 7 jours. Logs dans `/var/log/bibliotheque/backup-YYYY-MM-DD.log`.
+
 ### Purge des séries supprimées (quotidien, 03:00)
 
 ```bash
 cd /volume1/docker/bibliotheque/backend && docker compose --env-file .env.nas exec -T php php bin/console app:purge-deleted --env=prod
 ```
+
+### Nettoyage des logs (quotidien, 05:00)
+
+```bash
+bash /volume1/docker/bibliotheque/scripts/nas-cleanup-logs.sh
+```
+
+Le script (`scripts/nas-cleanup-logs.sh`) : supprime les fichiers `.log` de plus de 7 jours dans `/var/log/bibliotheque/`.
 
 ---
 
@@ -161,20 +177,22 @@ sudo docker compose --env-file .env.nas exec php php bin/console doctrine:migrat
 
 Sauvegarder `/volume1/docker/bibliotheque/` (code + `.env.nas` + volumes Docker).
 
+### Backup automatique de la BDD
+
+Le script `scripts/nas-backup.sh` est exécuté quotidiennement à 02:00 par le planificateur DSM (voir section 6). Les dumps sont stockés dans `/volume1/google drive/Backup/Bibliotheque/` avec rotation à 7 jours.
+
 ### Dump manuel de la BDD
 
 ```bash
-cd /volume1/docker/bibliotheque/backend
-export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env.nas | sed 's/^MYSQL_PASSWORD=//')
-sudo docker compose --env-file .env.nas exec -T db mysqldump -u biblio -p"${MYSQL_PASSWORD}" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
+bash /volume1/docker/bibliotheque/scripts/nas-backup.sh
 ```
 
 ### Restauration
 
 ```bash
 cd /volume1/docker/bibliotheque/backend
-export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env.nas | sed 's/^MYSQL_PASSWORD=//')
-gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | sudo docker compose --env-file .env.nas exec -T db mysql -u biblio -p"${MYSQL_PASSWORD}" bibliotheque
+export MYSQL_ROOT_PASSWORD=$(grep '^MYSQL_ROOT_PASSWORD=' .env.nas | cut -d'=' -f2-)
+gunzip -c "/volume1/google drive/Backup/Bibliotheque/bibliotheque-YYYYMMDD_HHMMSS.sql.gz" | sudo docker compose --env-file .env.nas exec -T db mariadb -u root -p"${MYSQL_ROOT_PASSWORD}" bibliotheque
 ```
 
 ---
