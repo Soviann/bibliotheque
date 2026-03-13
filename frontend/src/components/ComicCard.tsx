@@ -1,11 +1,10 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { Edit, EllipsisVertical, Trash2 } from "lucide-react";
+import { Edit, EllipsisVertical, Euro, Eye, HardDrive, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
-import ProgressBar from "./ProgressBar";
 import SyncPendingIndicator from "./SyncPendingIndicator";
 
 interface ComicCardProps {
@@ -20,8 +19,10 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
   const tomes = comic.tomes ?? [];
   const coveredCount = countCoveredTomes(tomes);
   const boughtCount = countCoveredTomes(tomes, (t) => t.bought);
-  const total = comic.latestPublishedIssue ?? coveredCount;
-  const showProgress = !comic.isOneShot && tomes.length > 0;
+  const readCount = countCoveredTomes(tomes, (t) => t.read);
+  const downloadedCount = countCoveredTomes(tomes, (t) => t.downloaded);
+  const total = Math.max(comic.latestPublishedIssue ?? 0, coveredCount);
+  const showStats = !comic.isOneShot && tomes.length > 0;
   const hasActions = !!onDelete;
 
   // Bloquer la navigation uniquement pour les créations offline (ID temporaire négatif)
@@ -149,9 +150,20 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
           )}
         </div>
 
-        {showProgress && (
-          <div className="mt-1.5">
-            <ProgressBar compact current={boughtCount} label="Progression d'achat" total={total} />
+        {showStats && (
+          <div className="mt-1.5 flex items-center justify-between text-xs text-text-muted">
+            <span className="flex items-center gap-0.5" title="Achetés">
+              <Euro className="h-3 w-3" />
+              {boughtCount}/{total}
+            </span>
+            <span className="flex items-center gap-0.5" title="Lus">
+              <Eye className="h-3 w-3" />
+              {readCount}/{total}
+            </span>
+            <span className="flex items-center gap-0.5" title="Téléchargés">
+              <HardDrive className="h-3 w-3" />
+              {downloadedCount}/{total}
+            </span>
           </div>
         )}
       </div>

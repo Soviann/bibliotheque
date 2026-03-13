@@ -10,6 +10,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Changed
 
 - **Frontend : extraction composants partagés** : `typeOptions`/`statusOptions` centralisés dans `enums.ts`, `getCoverSrc` dans `coverUtils.ts`, labels de sync dans `syncLabels.ts`, `SelectListbox` réutilisable, et `ComicForm.tsx` découpé en `useComicForm`, `TomeTable`, `LookupSection`, `AuthorAutocomplete` (1180 → 398 lignes) (#169)
+- **Cards listing** : remplace la barre de progression par 3 compteurs icônes (€ achetés, 👁 lus, 💾 téléchargés) répartis sur la largeur
 
 ### Added
 
@@ -18,6 +19,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Dernier tome paru** : Mise à jour automatique de `latestPublishedIssue` quand un tome ajouté/modifié dépasse la valeur actuelle, et calcul du total corrigé côté frontend
 - **Index composite Tome** : Ajout d'un index `(comic_series_id, number)` pour accélérer les requêtes par série + tri par numéro (#168)
 - **Vignettes en production** : CSP `connect-src` autorise désormais `https:` pour les couvertures externes, et priorité aux fichiers locaux dans le frontend (#180)
 - **Filtres mobile** : Remplacement des dropdowns tronqués par un bouton icône ouvrant un bottom sheet avec des `<select>` natifs, suppression du scroll horizontal (#181, #183)
