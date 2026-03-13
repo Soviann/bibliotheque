@@ -64,7 +64,9 @@ final class HttpCacheApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
 
         $client->request('GET', '/api/comic_series');
-        $etag = $client->getResponse()->getHeaders()['etag'][0] ?? null;
+        $response = $client->getResponse();
+        self::assertNotNull($response);
+        $etag = $response->getHeaders()['etag'][0] ?? null;
         self::assertNotNull($etag);
 
         $client->request('GET', '/api/comic_series', ['headers' => ['If-None-Match' => $etag]]);
@@ -83,7 +85,9 @@ final class HttpCacheApiTest extends ApiTestCase
         $url = '/api/comic_series/' . $series->getId();
 
         $client->request('GET', $url);
-        $etag = $client->getResponse()->getHeaders()['etag'][0] ?? null;
+        $response = $client->getResponse();
+        self::assertNotNull($response);
+        $etag = $response->getHeaders()['etag'][0] ?? null;
         self::assertNotNull($etag);
 
         $client->request('GET', $url, ['headers' => ['If-None-Match' => $etag]]);
