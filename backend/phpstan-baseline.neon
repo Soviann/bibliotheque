@@ -37,6 +37,12 @@ parameters:
 			path: src/Entity/User.php
 
 		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findForMergeDetection\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
 			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findWithFilters\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
 			identifier: return.type
 			count: 1
@@ -49,52 +55,508 @@ parameters:
 			path: src/Repository/ComicSeriesRepository.php
 
 		-
-			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Api/AuthorApiTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 12
+			path: tests/Functional/Api/ComicSeriesApiTest.php
+
+		-
+			message: '#^Cannot call method getHeaders\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/LookupApiTest.php
+
+		-
+			message: '#^Cannot call method getStatusCode\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Api/LookupApiTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Api/LookupApiTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Api/MergeSeriesApiTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 8
+			path: tests/Functional/Api/TomeApiTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Functional/Api/TrashApiTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Auth/GoogleLoginTest.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Lexik\\Bundle\\JWTAuthenticationBundle\\Services\\JWTTokenManagerInterface\:\:create\(\) expects Symfony\\Component\\Security\\Core\\User\\UserInterface, App\\Entity\\User\|null given\.$#'
 			identifier: argument.type
-			count: 15
+			count: 1
+			path: tests/Functional/Auth/JwtAuthTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Functional/Controller/BatchLookupControllerTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 6
+			path: tests/Functional/Controller/ImportControllerTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Functional/Controller/PurgeControllerTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Controller/PurgeControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Lexik\\Bundle\\JWTAuthenticationBundle\\Services\\JWTTokenManagerInterface\:\:create\(\) expects Symfony\\Component\\Security\\Core\\User\\UserInterface, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Functional/Security/AuthenticationTest.php
+
+		-
+			message: '#^Cannot call method getStatusCode\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Security/RateLimitTest.php
+
+		-
+			message: '#^Cannot call method getStatus\(\) on App\\Entity\\ComicSeries\|null\.$#'
+			identifier: method.nonObject
+			count: 4
 			path: tests/Integration/Command/ImportExcelCommandTest.php
 
 		-
 			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
 			identifier: argument.type
-			count: 3
+			count: 1
+			path: tests/Integration/Command/ImportExcelCommandTest.php
+
+		-
+			message: '#^Cannot call method getTokenVersion\(\) on App\\Entity\\User\|null\.$#'
+			identifier: method.nonObject
+			count: 5
 			path: tests/Integration/Command/InvalidateTokensCommandTest.php
 
 		-
 			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
 			identifier: argument.type
-			count: 4
+			count: 1
+			path: tests/Integration/Command/InvalidateTokensCommandTest.php
+
+		-
+			message: '#^Cannot call method getLookupCompletedAt\(\) on App\\Entity\\ComicSeries\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Integration/Command/LookupMissingCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Command/LookupMissingCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
 			path: tests/Integration/Command/PurgeDeletedCommandTest.php
 
 		-
-			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: staticMethod.alreadyNarrowedType
+			message: '#^Cannot access offset 0 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
-			path: tests/Unit/Entity/UserTest.php
+			path: tests/Integration/Repository/TomeRepositoryTest.php
+
+		-
+			message: '#^Cannot access offset 1 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Integration/Repository/TomeRepositoryTest.php
+
+		-
+			message: '#^Cannot access offset 2 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Integration/Repository/TomeRepositoryTest.php
+
+		-
+			message: '#^Cannot call method getNumber\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Integration/Repository/TomeRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Repository/TomeRepositoryTest.php
+
+		-
+			message: '#^Parameter \$sourceSeriesIds of class App\\DTO\\MergePreview constructor expects list\<int\>, array\{int\|null, int\|null, int\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Service/Merge/SeriesMergerTest.php
+
+		-
+			message: '#^Cannot access offset ''error'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Controller/GoogleLoginControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''token'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Unit/Controller/GoogleLoginControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 3
+			path: tests/Unit/Controller/GoogleLoginControllerTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/Unit/Controller/GoogleLoginControllerTest.php
 
 		-
 			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
 			identifier: staticMethod.alreadyNarrowedType
-			count: 2
+			count: 1
+			path: tests/Unit/Enum/ApiLookupStatusTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
 			path: tests/Unit/Enum/ComicStatusTest.php
 
 		-
 			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertNull\(\) with null will always evaluate to true\.$#'
 			identifier: staticMethod.alreadyNarrowedType
-			count: 3
+			count: 1
 			path: tests/Unit/Enum/ComicTypeTest.php
 
 		-
-			message: '#^Property App\\Tests\\Integration\\Repository\\AuthorRepositoryTest\:\:\$repository \(App\\Repository\\AuthorRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\Author\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: tests/Integration/Repository/AuthorRepositoryTest.php
+			message: '#^Call to an undefined method Symfony\\Contracts\\HttpClient\\HttpClientInterface\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: tests/Unit/Service/CoverSearchServiceTest.php
 
 		-
-			message: '#^Property App\\Tests\\Integration\\Repository\\ComicSeriesRepositoryTest\:\:\$repository \(App\\Repository\\ComicSeriesRepository\) does not accept Doctrine\\ORM\\EntityRepository\<App\\Entity\\ComicSeries\>\.$#'
-			identifier: assign.propertyType
+			message: '#^Cannot access offset ''created'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
-			path: tests/Integration/Repository/ComicSeriesRepositoryTest.php
+			path: tests/Unit/Service/Import/ImportBooksServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''enriched'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/Import/ImportBooksServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''groupCount'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/Import/ImportBooksServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''BD'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/Import/ImportExcelServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''sheetDetails'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/Import/ImportExcelServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''totalCreated'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/Import/ImportExcelServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''totalTomes'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/Import/ImportExcelServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''totalUpdated'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/Import/ImportExcelServiceTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Service/Lookup/AbstractLookupProviderTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Service/Lookup/AbstractLookupProviderTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 5
+			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringNotContainsString\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Cache\\Adapter\\AdapterInterface\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 12
+			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 8
+			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 6
+			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Service/Lookup/BnfLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 4
+			path: tests/Unit/Service/Lookup/BnfLookupTest.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Cache\\Adapter\\AdapterInterface\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 19
+			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 10
+			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 5
+			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 5
+			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringNotContainsString\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+
+		-
+			message: '#^Parameter \#2 \$string of static method PHPUnit\\Framework\\Assert\:\:assertStringStartsWith\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Repository\\AuthorRepository\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Unit/Service/Lookup/LookupApplierTest.php
+
+		-
+			message: '#^Method App\\Service\\Lookup\\AbstractLookupProvider@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:299\:\:resolveLookup\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
+
+		-
+			message: '#^Method App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:574\:\:resolveLookup\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
+
+		-
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:574\:\:\$calledSupportsType is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
+
+		-
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:574\:\:\$calledWithType is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: tests/Unit/Service/Lookup/OpenLibraryLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 8
+			path: tests/Unit/Service/Lookup/OpenLibraryLookupTest.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Cache\\Adapter\\AdapterInterface\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 24
+			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Contracts\\HttpClient\\HttpClientInterface\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 19
+			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 8
+			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
+
+		-
+			message: '#^Cannot access offset ''deletedAt'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/PurgeServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/PurgeServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/PurgeServiceTest.php
+
+		-
+			message: '#^Call to function is_subclass_of\(\) with ''App\\\\Service\\\\VichUploadHandlerAdapter'' and ''App\\\\Service\\\\UploadHandlerInterface'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/VichUploadHandlerAdapterTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''L\\''appel remove\(\)…'' will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/VichUploadHandlerAdapterTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/VichUploadHandlerAdapterTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Repository\\ComicSeriesRepository\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Unit/State/TrashCollectionProviderTest.php
 
 		-
 			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'

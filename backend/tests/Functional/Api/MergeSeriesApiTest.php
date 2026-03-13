@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use App\Entity\ComicSeries;
 use App\Repository\UserRepository;
 use App\Tests\Factory\EntityFactory;
 use App\Tests\Trait\AuthenticatedTestTrait;

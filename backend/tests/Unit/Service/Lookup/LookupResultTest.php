@@ -21,7 +21,7 @@ final class LookupResultTest extends TestCase
         $result = new LookupResult(
             authors: 'Eiichiro Oda',
             description: 'Un manga de pirates',
-            isbn: '978-2723489', // @phpstan-ignore argument.type
+            isbn: '978-2723489',
             isOneShot: false,
             latestPublishedIssue: 107,
             publishedDate: '1997-07-22',

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service\Lookup;
 
-use App\Entity\Author;
-use App\Entity\ComicSeries;
 use App\Repository\AuthorRepository;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupResult;

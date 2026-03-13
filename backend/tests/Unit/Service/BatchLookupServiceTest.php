@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\DTO\BatchLookupProgress;
-use App\Entity\ComicSeries;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\BatchLookupService;

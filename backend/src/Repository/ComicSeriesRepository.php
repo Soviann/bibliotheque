@@ -174,7 +174,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 ->setParameter('type', $type);
         }
 
-        /** @var ComicSeries[] */
+        /* @var ComicSeries[] */
         return $qb->getQuery()->getResult();
     }
 

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Entity;
 
-use App\Entity\Author;
 use App\Entity\ComicSeries;
-use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Tests\Factory\EntityFactory;

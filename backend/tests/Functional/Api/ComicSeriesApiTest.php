@@ -231,7 +231,7 @@ final class ComicSeriesApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
 
         $series = EntityFactory::createComicSeries('Série avec tomes');
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 5; ++$i) {
             $tome = EntityFactory::createTome($i, bought: true);
             $series->addTome($tome);
             $this->em->persist($tome);
@@ -262,7 +262,7 @@ final class ComicSeriesApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
 
         $series = EntityFactory::createComicSeries('Série avec tomes');
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 5; ++$i) {
             $tome = EntityFactory::createTome($i, bought: true);
             $series->addTome($tome);
             $this->em->persist($tome);
@@ -313,7 +313,7 @@ final class ComicSeriesApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
 
         $series = EntityFactory::createComicSeries('Série existante');
-        for ($i = 1; $i <= 3; $i++) {
+        for ($i = 1; $i <= 3; ++$i) {
             $tome = EntityFactory::createTome($i, bought: true);
             $series->addTome($tome);
             $this->em->persist($tome);

@@ -6,7 +6,6 @@ namespace App\Tests\Integration\Service\Merge;
 
 use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
-use App\Entity\ComicSeries;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Merge\SeriesMerger;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service;
 
-use App\DTO\CoverSearchResult;
 use App\Enum\ComicType;
 use App\Service\CoverSearchService;
 use PHPUnit\Framework\TestCase;
@@ -24,16 +23,6 @@ final class CoverSearchServiceTest extends TestCase
     {
         $this->httpClient = $this->createStub(HttpClientInterface::class);
         $this->logger = $this->createStub(LoggerInterface::class);
-    }
-
-    private function createService(string $googleBooksApiKey = 'test-books-key', string $serperApiKey = 'test-serper-key'): CoverSearchService
-    {
-        return new CoverSearchService(
-            $googleBooksApiKey,
-            $this->httpClient,
-            $this->logger,
-            $serperApiKey,
-        );
     }
 
     public function testSearchCombinesGoogleBooksAndSerperResults(): void
@@ -193,5 +182,15 @@ final class CoverSearchServiceTest extends TestCase
         self::assertStringStartsWith('https://', $results[0]->url);
         self::assertStringContainsString('zoom=0', $results[0]->url);
         self::assertStringNotContainsString('edge=curl', $results[0]->url);
+    }
+
+    private function createService(string $googleBooksApiKey = 'test-books-key', string $serperApiKey = 'test-serper-key'): CoverSearchService
+    {
+        return new CoverSearchService(
+            $googleBooksApiKey,
+            $this->httpClient,
+            $this->logger,
+            $serperApiKey,
+        );
     }
 }

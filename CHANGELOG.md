@@ -9,6 +9,16 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **CI GitHub Actions** : Workflow lint (PHPStan, CS Fixer, TypeScript) + tests (PHPUnit, Vitest) sur chaque PR, avec protection de la branche `main` (#166)
+
+### Fixed
+
+- **PHPStan** : Baseline régénérée, imports inutilisés nettoyés, tolérance des différences DDEV/CI
+- **Vich Uploader** : Migration des annotations dépréciées vers les attributs PHP 8
+- **ImportControllerTest** : Assertions corrigées après refactoring du DTO
+
+### Added
+
 - **Backup automatique BDD** : Script `scripts/nas-backup.sh` pour dump quotidien de la base MariaDB avec compression gzip et rotation à 7 jours (#175)
 - **Nettoyage centralisé des logs** : Script `scripts/nas-cleanup-logs.sh` pour la rotation des logs `/var/log/bibliotheque/` (7 jours), remplace la logique dupliquée dans chaque script
 - **Rollback automatique NAS** : Si le build Docker échoue après un `git pull`, le script `nas-update.sh` revient automatiquement aux commits précédents (par merge commit, max 5 tentatives) jusqu'à retrouver un build fonctionnel (#176)
