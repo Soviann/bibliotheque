@@ -77,6 +77,27 @@ describe("MergeSeries", () => {
     ).toBeInTheDocument();
   });
 
+  it("detect button is in a sticky action bar", () => {
+    renderWithProviders(<MergeSeries />);
+
+    const detectButton = screen.getByRole("button", { name: /Détecter les groupes/ });
+    const stickyBar = detectButton.closest("[data-testid='sticky-action-bar']");
+    expect(stickyBar).toBeInTheDocument();
+    expect(stickyBar).toHaveClass("sticky");
+  });
+
+  it("manual preview button is in a sticky action bar", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MergeSeries />);
+
+    await user.click(screen.getByText("Sélection manuelle"));
+
+    const previewButton = screen.getByRole("button", { name: /Aperçu de la fusion/ });
+    const stickyBar = previewButton.closest("[data-testid='sticky-action-bar']");
+    expect(stickyBar).toBeInTheDocument();
+    expect(stickyBar).toHaveClass("sticky");
+  });
+
   it("manual tab has search input", async () => {
     const user = userEvent.setup();
     renderWithProviders(<MergeSeries />);
