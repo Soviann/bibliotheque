@@ -49,7 +49,14 @@ log "=== Début de la mise à jour ==="
 # Pull les dernières modifications
 cd "$APP_DIR" || { log "ERREUR: impossible d'accéder à ${APP_DIR}"; exit 1; }
 GIT_OUTPUT=$(git pull origin main 2>&1)
+GIT_EXIT_CODE=$?
 log "git pull: ${GIT_OUTPUT}"
+
+# Si git pull a échoué, on s'arrête et on notifie
+if [ "$GIT_EXIT_CODE" -ne 0 ]; then
+    log "ERREUR: git pull a échoué (exit code ${GIT_EXIT_CODE})."
+    exit 1
+fi
 
 # Si rien n'a changé, on s'arrête
 if echo "$GIT_OUTPUT" | grep -q "Already up to date"; then
