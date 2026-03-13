@@ -285,5 +285,4 @@ final class LookupApplierTest extends TestCase
         self::assertTrue($series->isOneShot());
         self::assertNotContains('isOneShot', $updatedFields);
     }
-
 }

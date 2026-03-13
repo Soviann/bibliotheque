@@ -124,7 +124,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        /** @var ComicSeries[] */
+        /* @var ComicSeries[] */
         return $qb->getQuery()->getResult();
     }
 

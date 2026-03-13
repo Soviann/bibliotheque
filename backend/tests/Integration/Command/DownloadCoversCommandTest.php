@@ -6,9 +6,9 @@ namespace App\Tests\Integration\Command;
 
 use App\Entity\ComicSeries;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
 
 /**
  * Tests d'intégration pour la commande app:download-covers.
