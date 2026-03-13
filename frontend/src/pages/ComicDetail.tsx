@@ -114,7 +114,7 @@ export default function ComicDetail() {
     return <div className="py-12 text-center text-text-muted">Série introuvable</div>;
   }
 
-  const coverSrc = comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : null);
+  const coverSrc = comic.coverImage ? `/uploads/covers/${comic.coverImage}` : comic.coverUrl;
   const showProgress = !comic.isOneShot && optimisticTomes.length > 0;
   const progressTotal = comic.latestPublishedIssue ?? countCoveredTomes(optimisticTomes);
   const boughtCount = countCoveredTomes(optimisticTomes, (t) => t.bought);

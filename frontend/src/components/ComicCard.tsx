@@ -15,7 +15,7 @@ interface ComicCardProps {
 
 export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
   const navigate = useNavigate();
-  const coverSrc = comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : null);
+  const coverSrc = comic.coverImage ? `/uploads/covers/${comic.coverImage}` : comic.coverUrl;
   const tomes = comic.tomes ?? [];
   const coveredCount = countCoveredTomes(tomes);
   const boughtCount = countCoveredTomes(tomes, (t) => t.bought);
