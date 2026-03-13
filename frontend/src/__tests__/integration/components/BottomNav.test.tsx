@@ -7,7 +7,7 @@ describe("BottomNav", () => {
     renderWithProviders(<BottomNav />);
 
     expect(screen.getByText("Accueil")).toBeInTheDocument();
-    expect(screen.getByText("Wishlist")).toBeInTheDocument();
+    expect(screen.getByText("À acheter")).toBeInTheDocument();
     expect(screen.getByText("Ajouter")).toBeInTheDocument();
     expect(screen.getByText("Corbeille")).toBeInTheDocument();
   });
@@ -16,38 +16,30 @@ describe("BottomNav", () => {
     renderWithProviders(<BottomNav />);
 
     expect(screen.getByText("Accueil").closest("a")).toHaveAttribute("href", "/");
-    expect(screen.getByText("Wishlist").closest("a")).toHaveAttribute("href", "/?status=wishlist");
+    expect(screen.getByText("À acheter").closest("a")).toHaveAttribute("href", "/to-buy");
     expect(screen.getByText("Ajouter").closest("a")).toHaveAttribute("href", "/comic/new");
     expect(screen.getByText("Corbeille").closest("a")).toHaveAttribute("href", "/trash");
   });
 
-  it("highlights Wishlist tab when status=wishlist in URL", () => {
-    renderWithProviders(<BottomNav />, { initialEntries: ["/?status=wishlist"] });
+  it("highlights À acheter tab on /to-buy", () => {
+    renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
 
-    const wishlistLink = screen.getByText("Wishlist").closest("a");
-    expect(wishlistLink?.className).toContain("border-pink-500");
+    const toBuyLink = screen.getByText("À acheter").closest("a");
+    expect(toBuyLink?.className).toContain("border-emerald-500");
   });
 
-  it("does not highlight Home tab when status=wishlist", () => {
-    renderWithProviders(<BottomNav />, { initialEntries: ["/?status=wishlist"] });
-
-    const homeLink = screen.getByText("Accueil").closest("a");
-    expect(homeLink?.className).toContain("text-text-secondary");
-    expect(homeLink?.className).not.toContain("border-primary-500");
-  });
-
-  it("highlights Home tab on root without status param", () => {
+  it("highlights Home tab on root", () => {
     renderWithProviders(<BottomNav />, { initialEntries: ["/"] });
 
     const homeLink = screen.getByText("Accueil").closest("a");
     expect(homeLink?.className).toContain("border-primary-500");
   });
 
-  it("does not highlight Wishlist tab on root without status param", () => {
-    renderWithProviders(<BottomNav />, { initialEntries: ["/"] });
+  it("does not highlight Home tab on /to-buy", () => {
+    renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
 
-    const wishlistLink = screen.getByText("Wishlist").closest("a");
-    expect(wishlistLink?.className).toContain("text-text-secondary");
-    expect(wishlistLink?.className).not.toContain("border-pink-500");
+    const homeLink = screen.getByText("Accueil").closest("a");
+    expect(homeLink?.className).toContain("text-text-secondary");
+    expect(homeLink?.className).not.toContain("border-primary-500");
   });
 });
