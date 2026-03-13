@@ -47,7 +47,7 @@ export default function Trash() {
               <img
                 alt={comic.title}
                 className="h-12 w-9 rounded object-cover"
-                src={comic.coverUrl ?? (comic.coverImage ? `/uploads/covers/${comic.coverImage}` : ComicTypePlaceholder[comic.type])}
+                src={comic.coverImage ? `/uploads/covers/${comic.coverImage}` : (comic.coverUrl ?? ComicTypePlaceholder[comic.type])}
               />
               <span className="flex-1 font-medium text-text-primary">{comic.title}</span>
               <button

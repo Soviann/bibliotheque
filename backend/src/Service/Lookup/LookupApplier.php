@@ -7,6 +7,7 @@ namespace App\Service\Lookup;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Repository\AuthorRepository;
+use App\Service\CoverDownloader;
 
 /**
  * Applique un LookupResult sur une ComicSeries (uniquement les champs null).
@@ -15,6 +16,7 @@ class LookupApplier
 {
     public function __construct(
         private readonly AuthorRepository $authorRepository,
+        private readonly CoverDownloader $coverDownloader,
     ) {
     }
 
@@ -35,6 +37,7 @@ class LookupApplier
         if (null === $series->getCoverUrl() && null !== $result->thumbnail) {
             $series->setCoverUrl($result->thumbnail);
             $updatedFields[] = 'coverUrl';
+            $this->coverDownloader->downloadAndStore($series, $result->thumbnail);
         }
 
         if (!$series->isOneShot() && true === $result->isOneShot) {

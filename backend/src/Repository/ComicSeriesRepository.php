@@ -109,6 +109,26 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries avec une URL de couverture externe mais sans fichier local.
+     *
+     * @return ComicSeries[]
+     */
+    public function findWithExternalCoverOnly(?int $limit = null): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->where('c.coverUrl IS NOT NULL')
+            ->andWhere('c.coverImage IS NULL')
+            ->orderBy('c.title', 'ASC');
+
+        if (null !== $limit && $limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        /** @var ComicSeries[] */
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
      * Retourne les séries dont au moins un champ remplissable par lookup est vide.
      *
      * @return ComicSeries[]

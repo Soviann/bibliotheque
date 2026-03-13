@@ -22,8 +22,22 @@ describe("ComicCard", () => {
     expect(screen.getByText(/Manga/)).toBeInTheDocument();
   });
 
-  it("renders cover image when coverUrl is available", () => {
+  it("renders cover from coverImage when available (local first)", () => {
     const comic = createMockComicSeries({
+      coverImage: "naruto.webp",
+      coverUrl: "https://example.com/cover.jpg",
+      title: "Naruto",
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    const img = screen.getByAltText("Naruto");
+    expect(img).toHaveAttribute("src", "/uploads/covers/naruto.webp");
+  });
+
+  it("falls back to coverUrl when coverImage is null", () => {
+    const comic = createMockComicSeries({
+      coverImage: null,
       coverUrl: "https://example.com/cover.jpg",
       title: "One Piece",
     });
@@ -32,19 +46,6 @@ describe("ComicCard", () => {
 
     const img = screen.getByAltText("One Piece");
     expect(img).toHaveAttribute("src", "https://example.com/cover.jpg");
-  });
-
-  it("renders cover from coverImage when coverUrl is null", () => {
-    const comic = createMockComicSeries({
-      coverImage: "naruto.jpg",
-      coverUrl: null,
-      title: "Naruto",
-    });
-
-    renderWithProviders(<ComicCard comic={comic} />);
-
-    const img = screen.getByAltText("Naruto");
-    expect(img).toHaveAttribute("src", "/uploads/covers/naruto.jpg");
   });
 
   it("shows type-specific placeholder when no cover", () => {

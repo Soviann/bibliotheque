@@ -260,9 +260,28 @@ describe("Trash", () => {
     });
   });
 
-  it("renders correct cover source for coverUrl", async () => {
+  it("renders coverImage with priority over coverUrl (local first)", async () => {
     const comics = [
-      createMockComicSeries({ coverUrl: "https://example.com/cover.jpg", id: 1, title: "URL Cover" }),
+      createMockComicSeries({ coverImage: "local.webp", coverUrl: "https://example.com/cover.jpg", id: 1, title: "Local Cover" }),
+    ];
+
+    server.use(
+      http.get("/api/trash", () =>
+        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
+      ),
+    );
+
+    renderWithProviders(<Trash />);
+
+    await waitFor(() => {
+      const img = screen.getByAltText("Local Cover");
+      expect(img).toHaveAttribute("src", "/uploads/covers/local.webp");
+    });
+  });
+
+  it("falls back to coverUrl when coverImage is null", async () => {
+    const comics = [
+      createMockComicSeries({ coverImage: null, coverUrl: "https://example.com/cover.jpg", id: 1, title: "URL Cover" }),
     ];
 
     server.use(
@@ -276,25 +295,6 @@ describe("Trash", () => {
     await waitFor(() => {
       const img = screen.getByAltText("URL Cover");
       expect(img).toHaveAttribute("src", "https://example.com/cover.jpg");
-    });
-  });
-
-  it("renders correct cover source for coverImage fallback", async () => {
-    const comics = [
-      createMockComicSeries({ coverImage: "local.jpg", coverUrl: null, id: 1, title: "Local Cover" }),
-    ];
-
-    server.use(
-      http.get("/api/trash", () =>
-        HttpResponse.json(createMockHydraCollection(comics, "/api/trash")),
-      ),
-    );
-
-    renderWithProviders(<Trash />);
-
-    await waitFor(() => {
-      const img = screen.getByAltText("Local Cover");
-      expect(img).toHaveAttribute("src", "/uploads/covers/local.jpg");
     });
   });
 

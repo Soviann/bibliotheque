@@ -20,6 +20,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
      */
     public function __construct(
         public string $authors,
+        public ?string $coverImage,
         public ?string $coverUrl,
         public ?int $currentIssue,
         public bool $currentIssueComplete,
@@ -65,6 +66,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
     public function __unserialize(array $data): void
     {
         $this->authors = \is_string($data['authors'] ?? null) ? $data['authors'] : '';
+        $this->coverImage = \is_string($data['coverImage'] ?? null) ? $data['coverImage'] : null;
         $this->coverUrl = \is_string($data['coverUrl'] ?? null) ? $data['coverUrl'] : null;
         $this->currentIssue = \is_int($data['currentIssue'] ?? null) ? $data['currentIssue'] : null;
         $this->currentIssueComplete = \is_bool($data['currentIssueComplete'] ?? null) ? $data['currentIssueComplete'] : false;
@@ -108,6 +110,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
     {
         return new self(
             authors: $comic->getAuthorsAsString(),
+            coverImage: $comic->getCoverImage(),
             coverUrl: $comic->getCoverUrl(),
             currentIssue: $comic->getCurrentIssue(),
             currentIssueComplete: $comic->isCurrentIssueComplete(),
@@ -152,6 +155,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
     {
         return [
             'authors' => $this->authors,
+            'coverImage' => $this->coverImage,
             'coverUrl' => $this->coverUrl,
             'currentIssue' => $this->currentIssue,
             'currentIssueComplete' => $this->currentIssueComplete,

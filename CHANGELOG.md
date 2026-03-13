@@ -10,6 +10,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Added
 
 - **CI GitHub Actions** : Workflow lint (PHPStan, CS Fixer, TypeScript) + tests (PHPUnit, Vitest) sur chaque PR, avec protection de la branche `main` (#166)
+- **Couvertures locales** : Téléchargement automatique des couvertures externes en WebP local via `CoverDownloader`, intégré au lookup et commande batch `app:download-covers` (#180)
+
+### Fixed
+
+- **Vignettes en production** : CSP `connect-src` autorise désormais `https:` pour les couvertures externes, et priorité aux fichiers locaux dans le frontend (#180)
 
 ### Changed
 

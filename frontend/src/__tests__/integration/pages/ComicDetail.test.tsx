@@ -350,13 +350,13 @@ describe("ComicDetail", () => {
     });
   });
 
-  it("renders coverImage fallback when coverUrl is null", async () => {
+  it("renders coverImage with priority over coverUrl (local first)", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
           createMockComicSeries({
-            coverImage: "my-cover.jpg",
-            coverUrl: null,
+            coverImage: "my-cover.webp",
+            coverUrl: "https://example.com/cover.jpg",
             id: 1,
             title: "Cover Test",
           }),
@@ -368,7 +368,7 @@ describe("ComicDetail", () => {
 
     await waitFor(() => {
       const img = screen.getByAltText("Cover Test");
-      expect(img).toHaveAttribute("src", "/uploads/covers/my-cover.jpg");
+      expect(img).toHaveAttribute("src", "/uploads/covers/my-cover.webp");
     });
   });
 
