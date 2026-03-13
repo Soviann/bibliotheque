@@ -1,4 +1,5 @@
 #!/bin/bash
+set -o pipefail
 # Script de backup automatique de la BDD — lancé par le planificateur DSM (root)
 
 APP_DIR="/volume1/docker/bibliotheque"
