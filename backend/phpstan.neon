@@ -9,3 +9,5 @@ parameters:
         - tests
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    # Tolerate baseline count differences between environments (DDEV vs CI)
+    reportUnmatchedIgnoredErrors: false

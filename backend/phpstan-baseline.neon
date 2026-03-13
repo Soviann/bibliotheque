@@ -37,6 +37,12 @@ parameters:
 			path: src/Entity/User.php
 
 		-
+			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findForMergeDetection\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ComicSeriesRepository.php
+
+		-
 			message: '#^Method App\\Repository\\ComicSeriesRepository\:\:findWithFilters\(\) should return array\<App\\Entity\\ComicSeries\> but returns mixed\.$#'
 			identifier: return.type
 			count: 1

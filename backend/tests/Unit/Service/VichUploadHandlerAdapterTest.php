@@ -51,7 +51,7 @@ final class VichUploadHandlerAdapterTest extends TestCase
     public function testRemoveDelegatesToUploadHandler(): void
     {
         $uploadHandlerClass = \Vich\UploaderBundle\Handler\UploadHandler::class;
-        $serialized = 'O:' . \strlen($uploadHandlerClass) . ':"' . $uploadHandlerClass . '":0:{}';
+        $serialized = 'O:'.\strlen($uploadHandlerClass).':"'.$uploadHandlerClass.'":0:{}';
 
         /** @var \Vich\UploaderBundle\Handler\UploadHandler $ghost */
         $ghost = \unserialize($serialized);

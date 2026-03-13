@@ -56,7 +56,7 @@ final class PurgeServiceTest extends TestCase
 
         $this->comicSeriesService->expects(self::exactly(2))
             ->method('permanentDelete')
-            ->willReturnCallback(function (int $id, ComicSeries $series) use ($series1, $series2): void {
+            ->willReturnCallback(static function (int $id, ComicSeries $series) use ($series1, $series2): void {
                 match ($id) {
                     1 => self::assertSame($series1, $series),
                     2 => self::assertSame($series2, $series),

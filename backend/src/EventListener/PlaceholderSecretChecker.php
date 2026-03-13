@@ -53,11 +53,7 @@ class PlaceholderSecretChecker
         }
 
         if ([] !== $detected) {
-            throw new \RuntimeException(\sprintf(
-                'Secret(s) placeholder détecté(s) en production : %s. '
-                . 'Configurez le vault Symfony Secrets ou définissez ces variables d\'environnement.',
-                \implode(', ', $detected),
-            ));
+            throw new \RuntimeException(\sprintf('Secret(s) placeholder détecté(s) en production : %s. Configurez le vault Symfony Secrets ou définissez ces variables d\'environnement.', \implode(', ', $detected)));
         }
     }
 }

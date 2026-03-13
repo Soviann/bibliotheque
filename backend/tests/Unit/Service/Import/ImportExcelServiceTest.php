@@ -279,7 +279,7 @@ final class ImportExcelServiceTest extends TestCase
         /** @var list<ComicSeries> $persisted */
         $persisted = [];
         $this->entityManager->expects(self::atLeastOnce())->method('persist')
-            ->willReturnCallback(function (ComicSeries $entity) use (&$persisted): void {
+            ->willReturnCallback(static function (ComicSeries $entity) use (&$persisted): void {
                 $persisted[] = $entity;
             });
 

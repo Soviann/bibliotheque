@@ -9,7 +9,6 @@ use App\Repository\UserRepository;
 use App\Tests\Factory\EntityFactory;
 use App\Tests\Trait\AuthenticatedTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Tests fonctionnels pour les endpoints de lookup.

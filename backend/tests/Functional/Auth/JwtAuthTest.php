@@ -86,8 +86,8 @@ final class JwtAuthTest extends ApiTestCase
 
         // Extraire un vrai token puis le corrompre
         $container = static::getContainer();
-        /** @var \App\Repository\UserRepository $userRepo */
-        $userRepo = $container->get(\App\Repository\UserRepository::class);
+        /** @var UserRepository $userRepo */
+        $userRepo = $container->get(UserRepository::class);
         $user = $userRepo->findOneBy(['email' => 'test@example.com']);
 
         /** @var \Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface $jwtManager */
