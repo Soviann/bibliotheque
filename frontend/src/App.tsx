@@ -58,6 +58,7 @@ const Login = lazyWithRetry(() => import("./pages/Login"));
 const LookupTool = lazyWithRetry(() => import("./pages/LookupTool"));
 const MergeSeries = lazyWithRetry(() => import("./pages/MergeSeries"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const ToBuy = lazyWithRetry(() => import("./pages/ToBuy"));
 const PurgeTool = lazyWithRetry(() => import("./pages/PurgeTool"));
 const Tools = lazyWithRetry(() => import("./pages/Tools"));
 const Trash = lazyWithRetry(() => import("./pages/Trash"));
@@ -101,6 +102,7 @@ const router = createBrowserRouter(
         <Route element={<LookupTool />} path="tools/lookup" />
         <Route element={<MergeSeries />} path="tools/merge-series" />
         <Route element={<PurgeTool />} path="tools/purge" />
+        <Route element={<ToBuy />} path="to-buy" />
         <Route element={<Trash />} path="trash" />
         <Route element={<NotFound />} path="*" />
       </Route>
