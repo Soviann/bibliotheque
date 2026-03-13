@@ -200,7 +200,7 @@ frontend/src/{components,hooks,pages,services,types,__tests__}/
 3 containers: **nginx** (static + reverse proxy) + **php** (php-fpm 8.3) + **db** (MariaDB 10.11). Frontend built in multi-stage nginx Dockerfile.
 
 ```bash
-cd backend && docker compose -f docker-compose.prod.yml up --build -d
+cd backend && docker compose up --build -d
 ```
 
 Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude via SSH), `docs/guide-deploiement-ovh.md` (OVH bare metal)

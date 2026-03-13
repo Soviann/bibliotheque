@@ -163,7 +163,7 @@ jwt: ## Générer les clés JWT
 .PHONY: deploy
 
 deploy: ## Déploie en production (docker-compose)
-	cd $(BACK) && docker compose -f docker-compose.prod.yml up --build -d
+	cd $(BACK) && docker compose up --build -d
 
 # ── Aide ──────────────────────────────────────────
 
