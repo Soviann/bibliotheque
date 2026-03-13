@@ -12,4 +12,6 @@ namespace App\Service;
 interface UploadHandlerInterface
 {
     public function remove(object $obj, string $fieldName): void;
+
+    public function upload(object $obj, string $fieldName): void;
 }

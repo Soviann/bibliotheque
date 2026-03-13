@@ -20,4 +20,9 @@ final readonly class VichUploadHandlerAdapter implements UploadHandlerInterface
     {
         $this->uploadHandler->remove($obj, $fieldName);
     }
+
+    public function upload(object $obj, string $fieldName): void
+    {
+        $this->uploadHandler->upload($obj, $fieldName);
+    }
 }

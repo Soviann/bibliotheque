@@ -6,8 +6,8 @@ namespace App\Service;
 
 use App\Entity\ComicSeries;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Vich\UploaderBundle\FileAbstraction\ReplacingFile;
 
 /**
  * Télécharge une image de couverture, la redimensionne en WebP et l'associe à une série.
@@ -21,6 +21,7 @@ readonly class CoverDownloader
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
+        private UploadHandlerInterface $uploadHandler,
     ) {
     }
 
@@ -78,7 +79,8 @@ readonly class CoverDownloader
             }
             \imagedestroy($source);
 
-            $series->setCoverFile(new File($tempPath));
+            $series->setCoverFile(new ReplacingFile($tempPath));
+            $this->uploadHandler->upload($series, 'coverFile');
 
             return true;
         } catch (\Throwable $e) {
