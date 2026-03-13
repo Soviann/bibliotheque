@@ -141,10 +141,10 @@ final class ImportControllerTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         $data = $client->getResponse()->toArray();
-        self::assertArrayHasKey('totalSeries', $data);
+        self::assertArrayHasKey('totalCreated', $data);
         self::assertArrayHasKey('totalTomes', $data);
         self::assertArrayHasKey('sheetDetails', $data);
-        self::assertSame(1, $data['totalSeries']);
+        self::assertSame(1, $data['totalCreated']);
 
         \unlink($filePath);
     }
