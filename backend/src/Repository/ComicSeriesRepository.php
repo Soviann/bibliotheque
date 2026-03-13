@@ -124,8 +124,10 @@ class ComicSeriesRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        /* @var ComicSeries[] */
-        return $qb->getQuery()->getResult();
+        /** @var ComicSeries[] $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -161,8 +163,10 @@ class ComicSeriesRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        /* @var ComicSeries[] */
-        return $qb->getQuery()->getResult();
+        /** @var ComicSeries[] $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -194,8 +198,10 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 ->setParameter('type', $type);
         }
 
-        /* @var ComicSeries[] */
-        return $qb->getQuery()->getResult();
+        /** @var ComicSeries[] $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
