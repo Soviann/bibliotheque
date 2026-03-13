@@ -135,7 +135,7 @@ DSM > **Panneau de configuration > Planificateur de tâches**, utilisateur **roo
 bash /volume1/docker/bibliotheque/scripts/nas-update.sh
 ```
 
-Le script (`scripts/nas-update.sh`) : pull, rebuild si changements, migrations. Logs dans `/var/log/bibliotheque/update-YYYY-MM-DD.log` (rétention 7 jours).
+Le script (`scripts/nas-update.sh`) : pull, rebuild si changements, migrations. Si le build échoue, rollback automatique par merge commit (`--first-parent`, max 5 tentatives) jusqu'à retrouver un build fonctionnel. Logs dans `/var/log/bibliotheque/update-YYYY-MM-DD.log` (rétention 7 jours).
 
 ### Backup de la BDD (quotidien, 02:00)
 
