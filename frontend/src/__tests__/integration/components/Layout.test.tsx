@@ -77,7 +77,7 @@ describe("Layout", () => {
     );
 
     expect(screen.getByText("Accueil")).toBeInTheDocument();
-    expect(screen.getByText("Wishlist")).toBeInTheDocument();
+    expect(screen.getByText("À acheter")).toBeInTheDocument();
     expect(screen.getByText("Corbeille")).toBeInTheDocument();
   });
 
