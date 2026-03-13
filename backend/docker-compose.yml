@@ -21,6 +21,7 @@ services:
         condition: service_healthy
     environment:
       - APP_ENV=prod
+      - APP_SECRET=${APP_SECRET}
       - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN}
       - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
       - DEFAULT_URI=${DEFAULT_URI}
