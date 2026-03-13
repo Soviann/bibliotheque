@@ -10,7 +10,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Changed
 
 - **Frontend : extraction composants partagés** : `typeOptions`/`statusOptions` centralisés dans `enums.ts`, `getCoverSrc` dans `coverUtils.ts`, labels de sync dans `syncLabels.ts`, `SelectListbox` réutilisable, et `ComicForm.tsx` découpé en `useComicForm`, `TomeTable`, `LookupSection`, `AuthorAutocomplete` (1180 → 398 lignes) (#169)
-- **Cards listing** : remplace la barre de progression par 3 compteurs icônes (€ achetés, 👁 lus, 💾 téléchargés) répartis sur la largeur
+- **Cards listing** : remplace la barre de progression par 3 compteurs (achetés, lus, téléchargés) répartis sur la largeur
 
 ### Added
 
