@@ -179,6 +179,57 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries soft-deleted depuis plus de N jours.
+     *
+     * Désactive temporairement le filtre soft-delete pour accéder aux séries supprimées.
+     *
+     * @return ComicSeries[]
+     */
+    public function findPurgeable(int $days): array
+    {
+        $cutoffDate = new \DateTime(\sprintf('-%d days', $days));
+
+        $this->getEntityManager()->getFilters()->disable('soft_delete');
+
+        try {
+            /** @var ComicSeries[] $series */
+            $series = $this->createQueryBuilder('c')
+                ->where('c.deletedAt IS NOT NULL')
+                ->andWhere('c.deletedAt <= :cutoff')
+                ->setParameter('cutoff', $cutoffDate)
+                ->getQuery()
+                ->getResult();
+        } finally {
+            $this->getEntityManager()->getFilters()->enable('soft_delete');
+        }
+
+        return $series;
+    }
+
+    /**
+     * Retourne les séries en corbeille (soft-deleted), triées par date de suppression décroissante.
+     *
+     * @return ComicSeries[]
+     */
+    public function findTrashed(): array
+    {
+        $this->getEntityManager()->getFilters()->disable('soft_delete');
+
+        try {
+            /** @var ComicSeries[] $series */
+            $series = $this->createQueryBuilder('c')
+                ->where('c.deletedAt IS NOT NULL')
+                ->orderBy('c.deletedAt', 'DESC')
+                ->getQuery()
+                ->getResult();
+        } finally {
+            $this->getEntityManager()->getFilters()->enable('soft_delete');
+        }
+
+        return $series;
+    }
+
+    /**
      * Retourne toutes les séries avec leurs relations pour l'API PWA.
      *
      * Utilise un cache applicatif (15 min) pour éviter de requêter la base

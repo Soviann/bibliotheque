@@ -20,7 +20,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  * Provider de recherche via l'API AniList (manga uniquement, par titre).
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 60])]
-class AniListLookup extends AbstractLookupProvider
+final class AniListLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://graphql.anilist.co';
 

@@ -25,7 +25,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  * Extraction des métadonnées depuis les claims Wikidata, synopsis depuis Wikipedia FR.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 120])]
-class WikipediaLookup extends AbstractLookupProvider implements EnrichableLookupProviderInterface
+final class WikipediaLookup extends AbstractLookupProvider implements EnrichableLookupProviderInterface
 {
     private const int CACHE_TTL = 604800; // 7 jours
 

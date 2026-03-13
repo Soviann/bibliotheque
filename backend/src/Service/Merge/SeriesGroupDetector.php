@@ -8,6 +8,7 @@ use App\DTO\MergeGroup;
 use App\DTO\MergeGroupEntry;
 use App\Entity\ComicSeries;
 use App\Service\Lookup\GeminiClientPool;
+use App\Service\Lookup\GeminiJsonParser;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Psr\Log\LoggerInterface;
@@ -17,7 +18,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 /**
  * Détecte les groupes de séries qui devraient être fusionnées via Gemini.
  */
-class SeriesGroupDetector
+final class SeriesGroupDetector
 {
     private const int MAX_BATCH_SIZE = 50;
 
@@ -144,7 +145,7 @@ class SeriesGroupDetector
             return [];
         }
 
-        $data = $this->parseJsonFromText($text);
+        $data = GeminiJsonParser::parseJsonFromText($text);
         if (null === $data) {
             $this->logger->warning('Réponse Gemini non parseable pour la détection de groupes.', [
                 'response' => $text,
@@ -186,23 +187,6 @@ class SeriesGroupDetector
             Titres :
             {$titlesList}
             PROMPT;
-    }
-
-    /**
-     * Parse une réponse JSON potentiellement enveloppée dans un bloc markdown.
-     *
-     * @return array<mixed>|null
-     */
-    private function parseJsonFromText(string $text): ?array
-    {
-        $cleaned = \preg_replace('/^```(?:json)?\s*\n?(.*?)\n?```$/s', '$1', \trim($text));
-        $data = \json_decode($cleaned ?? $text, true);
-
-        if (!\is_array($data)) {
-            return null;
-        }
-
-        return $data;
     }
 
     /**

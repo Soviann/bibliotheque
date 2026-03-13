@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'app:purge-deleted',
     description: 'Purge les séries supprimées depuis plus de N jours',
 )]
-class PurgeDeletedCommand extends Command
+final class PurgeDeletedCommand extends Command
 {
     public function __construct(
         private readonly PurgeService $purgeService,

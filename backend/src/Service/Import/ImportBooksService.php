@@ -20,7 +20,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 /**
  * Service d'import des livres depuis un fichier Excel (format Livres.xlsx).
  */
-class ImportBooksService
+final class ImportBooksService
 {
     /**
      * Correspondance catégorie → ComicType (par ordre de priorité).

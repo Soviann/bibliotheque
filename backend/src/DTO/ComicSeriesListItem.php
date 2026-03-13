@@ -12,7 +12,7 @@ use App\Entity\ComicSeries;
  * Utilisé pour le cache applicatif : la méthode __unserialize() gère
  * la compatibilité avec les entrées de cache précédentes.
  */
-readonly class ComicSeriesListItem implements \JsonSerializable
+final readonly class ComicSeriesListItem implements \JsonSerializable
 {
     /**
      * @param int[] $missingTomesNumbers

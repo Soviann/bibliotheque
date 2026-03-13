@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Groupe de séries détectées comme tomes d'une même série.
  */
-readonly class MergeGroup implements \JsonSerializable
+final readonly class MergeGroup implements \JsonSerializable
 {
     /**
      * @param list<MergeGroupEntry> $entries

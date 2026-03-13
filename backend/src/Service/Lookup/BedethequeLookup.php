@@ -19,7 +19,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
  * les données structurées depuis site:bedetheque.com.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 45])]
-class BedethequeLookup extends AbstractGeminiLookupProvider
+final class BedethequeLookup extends AbstractGeminiLookupProvider
 {
     private const string JSON_INSTRUCTIONS = <<<'TEXT'
         Réponds UNIQUEMENT avec un objet JSON (sans bloc markdown) contenant ces champs :

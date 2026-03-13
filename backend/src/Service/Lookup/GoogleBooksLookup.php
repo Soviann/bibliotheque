@@ -21,7 +21,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  * Provider de recherche via l'API Google Books.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 100])]
-class GoogleBooksLookup extends AbstractLookupProvider
+final class GoogleBooksLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://www.googleapis.com/books/v1/volumes';
 
@@ -189,7 +189,7 @@ class GoogleBooksLookup extends AbstractLookupProvider
                     : null;
 
                 if (\is_string($rawThumbnail)) {
-                    $thumbnail = $this->optimizeThumbnailUrl($rawThumbnail);
+                    $thumbnail = GoogleBooksUrlHelper::optimizeThumbnailUrl($rawThumbnail);
                 }
             }
 
@@ -221,25 +221,5 @@ class GoogleBooksLookup extends AbstractLookupProvider
             thumbnail: $thumbnail,
             title: $title,
         );
-    }
-
-    /**
-     * Optimise l'URL d'une couverture Google Books pour obtenir une meilleure résolution.
-     *
-     * - Remplace zoom=1 par zoom=0 (plus grande image disponible)
-     * - Supprime edge=curl (effet de page cornée)
-     * - Force HTTPS
-     */
-    private function optimizeThumbnailUrl(string $url): string
-    {
-        if (!\str_contains($url, 'books.google.com/')) {
-            return $url;
-        }
-
-        $url = (string) \preg_replace('#^http://#', 'https://', $url);
-        $url = \str_replace('zoom=1', 'zoom=0', $url);
-        $url = (string) \preg_replace('/&?edge=curl&?/', '&', $url);
-
-        return \rtrim($url, '&');
     }
 }

@@ -20,7 +20,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  * Provider de recherche via l'API Open Library (ISBN uniquement).
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 80])]
-class OpenLibraryLookup extends AbstractLookupProvider
+final class OpenLibraryLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://openlibrary.org/isbn/';
 

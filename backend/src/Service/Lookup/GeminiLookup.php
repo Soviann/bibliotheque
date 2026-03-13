@@ -15,7 +15,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
  * Provider de recherche via l'API Google Gemini avec Google Search grounding.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 40])]
-class GeminiLookup extends AbstractGeminiLookupProvider implements EnrichableLookupProviderInterface
+final class GeminiLookup extends AbstractGeminiLookupProvider implements EnrichableLookupProviderInterface
 {
     private const string JSON_INSTRUCTIONS = <<<'TEXT'
         Réponds UNIQUEMENT avec un objet JSON (sans bloc markdown) contenant ces champs :

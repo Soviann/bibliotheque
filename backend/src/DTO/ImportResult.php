@@ -9,7 +9,7 @@ use App\Entity\ComicSeries;
 /**
  * Resultat de l'import d'une ligne Excel.
  */
-readonly class ImportResult
+final readonly class ImportResult
 {
     public function __construct(
         public bool $isUpdate,

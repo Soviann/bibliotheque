@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Controller\Trait\RateLimitTrait;
 use App\DTO\BatchLookupSummary;
+use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Service\BatchLookupService;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/tools/batch-lookup')]
-class BatchLookupController
+final class BatchLookupController
 {
     use RateLimitTrait;
 
@@ -91,10 +92,9 @@ class BatchLookupController
                 ++$processed;
 
                 match ($progress->status) {
-                    'failed' => ++$failed,
-                    'skipped' => ++$skipped,
-                    'updated' => ++$updated,
-                    default => null,
+                    BatchLookupStatus::FAILED => ++$failed,
+                    BatchLookupStatus::SKIPPED => ++$skipped,
+                    BatchLookupStatus::UPDATED => ++$updated,
                 };
             }
 

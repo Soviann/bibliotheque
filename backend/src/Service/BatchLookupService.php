@@ -7,6 +7,7 @@ namespace App\Service;
 use App\DTO\BatchLookupProgress;
 use App\Entity\ComicSeries;
 use App\Enum\ApiLookupStatus;
+use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\LookupApplier;
@@ -18,7 +19,7 @@ use Doctrine\ORM\EntityManagerInterface;
  *
  * Utilise un générateur pour permettre le streaming (SSE) ou l'affichage CLI.
  */
-class BatchLookupService
+final class BatchLookupService
 {
     private const int BATCH_SIZE = 10;
     private const int MAX_DELAY = 60;
@@ -115,7 +116,7 @@ class BatchLookupService
                     'progress' => new BatchLookupProgress(
                         current: $index + 1,
                         seriesTitle: $title,
-                        status: 'failed',
+                        status: BatchLookupStatus::FAILED,
                         total: $total,
                     ),
                 ];
@@ -132,7 +133,7 @@ class BatchLookupService
                 'progress' => new BatchLookupProgress(
                     current: $index + 1,
                     seriesTitle: $title,
-                    status: 'skipped',
+                    status: BatchLookupStatus::SKIPPED,
                     total: $total,
                 ),
             ];
@@ -151,7 +152,7 @@ class BatchLookupService
                 'progress' => new BatchLookupProgress(
                     current: $index + 1,
                     seriesTitle: $title,
-                    status: 'updated',
+                    status: BatchLookupStatus::UPDATED,
                     total: $total,
                     updatedFields: $updatedFields,
                 ),
@@ -163,7 +164,7 @@ class BatchLookupService
             'progress' => new BatchLookupProgress(
                 current: $index + 1,
                 seriesTitle: $title,
-                status: 'skipped',
+                status: BatchLookupStatus::SKIPPED,
                 total: $total,
             ),
         ];

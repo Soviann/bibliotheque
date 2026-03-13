@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Ligne d'import : titre original, données brutes et numéro de tome.
  */
-readonly class BookRow
+final readonly class BookRow
 {
     /**
      * @param array<int, mixed> $row

@@ -7,7 +7,7 @@ namespace App\Service\Lookup;
 /**
  * DTO representant un message de statut d'appel API.
  */
-readonly class ApiMessage implements \JsonSerializable
+final readonly class ApiMessage implements \JsonSerializable
 {
     public function __construct(
         public string $message,

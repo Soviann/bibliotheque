@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Résumé final d'un lookup batch.
  */
-readonly class BatchLookupSummary implements \JsonSerializable
+final readonly class BatchLookupSummary implements \JsonSerializable
 {
     public function __construct(
         public int $failed,

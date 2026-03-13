@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/tools/purge')]
-class PurgeController
+final class PurgeController
 {
     use RateLimitTrait;
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\ComicSeries;
+use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\BatchLookupService;
@@ -24,7 +25,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'app:lookup-missing',
     description: 'Recherche les métadonnées manquantes pour les séries sans données',
 )]
-class LookupMissingCommand extends Command
+final class LookupMissingCommand extends Command
 {
     public function __construct(
         private readonly BatchLookupService $batchLookupService,
@@ -106,17 +107,16 @@ class LookupMissingCommand extends Command
                 $progress->current,
                 $progress->total,
                 $progress->seriesTitle,
-                $progress->status,
+                $progress->status->value,
                 [] !== $progress->updatedFields ? ' ('.\implode(', ', $progress->updatedFields).')' : '',
             ));
 
             ++$processed;
 
             match ($progress->status) {
-                'failed' => ++$failed,
-                'skipped' => ++$skipped,
-                'updated' => ++$updated,
-                default => null,
+                BatchLookupStatus::FAILED => ++$failed,
+                BatchLookupStatus::SKIPPED => ++$skipped,
+                BatchLookupStatus::UPDATED => ++$updated,
             };
         }
 

@@ -790,6 +790,85 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame('Asterix', $result[0]->getTitle());
     }
 
+    // ---------------------------------------------------------------
+    // findPurgeable
+    // ---------------------------------------------------------------
+
+    public function testFindPurgeableReturnsSeriesDeletedBeforeCutoff(): void
+    {
+        $old = EntityFactory::createComicSeries('Old Deleted');
+        $old->delete();
+        // Simuler une suppression il y a 60 jours
+        $reflection = new \ReflectionProperty($old, 'deletedAt');
+        $reflection->setValue($old, new \DateTime('-60 days'));
+
+        $recent = EntityFactory::createComicSeries('Recent Deleted');
+        $recent->delete();
+
+        $active = EntityFactory::createComicSeries('Active');
+
+        $this->em->persist($old);
+        $this->em->persist($recent);
+        $this->em->persist($active);
+        $this->em->flush();
+
+        $result = $this->repository->findPurgeable(30);
+
+        self::assertCount(1, $result);
+        self::assertSame('Old Deleted', $result[0]->getTitle());
+    }
+
+    public function testFindPurgeableReturnsEmptyWhenNoPurgeableSeries(): void
+    {
+        $active = EntityFactory::createComicSeries('Active');
+        $this->em->persist($active);
+        $this->em->flush();
+
+        $result = $this->repository->findPurgeable(30);
+
+        self::assertSame([], $result);
+    }
+
+    // ---------------------------------------------------------------
+    // findTrashed
+    // ---------------------------------------------------------------
+
+    public function testFindTrashedReturnsSoftDeletedOrderedByDeletedAtDesc(): void
+    {
+        $deleted1 = EntityFactory::createComicSeries('First Deleted');
+        $deleted1->delete();
+        $reflection = new \ReflectionProperty($deleted1, 'deletedAt');
+        $reflection->setValue($deleted1, new \DateTime('-2 days'));
+
+        $deleted2 = EntityFactory::createComicSeries('Second Deleted');
+        $deleted2->delete();
+
+        $active = EntityFactory::createComicSeries('Active');
+
+        $this->em->persist($deleted1);
+        $this->em->persist($deleted2);
+        $this->em->persist($active);
+        $this->em->flush();
+
+        $result = $this->repository->findTrashed();
+
+        self::assertCount(2, $result);
+        // Le plus récemment supprimé en premier
+        self::assertSame('Second Deleted', $result[0]->getTitle());
+        self::assertSame('First Deleted', $result[1]->getTitle());
+    }
+
+    public function testFindTrashedReturnsEmptyWhenNoDeletedSeries(): void
+    {
+        $active = EntityFactory::createComicSeries('Active');
+        $this->em->persist($active);
+        $this->em->flush();
+
+        $result = $this->repository->findTrashed();
+
+        self::assertSame([], $result);
+    }
+
     public function testFindWithMissingLookupDataForceIgnoresLookupCompletedAt(): void
     {
         $alreadyLooked = EntityFactory::createComicSeries('Already Looked');

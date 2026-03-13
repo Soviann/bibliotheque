@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  *
  * @extends ServiceEntityRepository<Tome>
  */
-class TomeRepository extends ServiceEntityRepository
+final class TomeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

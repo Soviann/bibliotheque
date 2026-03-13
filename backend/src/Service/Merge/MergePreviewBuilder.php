@@ -19,7 +19,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 /**
  * Construit un aperçu de fusion à partir d'un groupe détecté ou d'une sélection manuelle.
  */
-class MergePreviewBuilder
+final class MergePreviewBuilder
 {
     public function __construct(
         private readonly GeminiClientPool $geminiClientPool,

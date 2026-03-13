@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/tools/import')]
-class ImportController
+final class ImportController
 {
     use RateLimitTrait;
 

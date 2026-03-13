@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Résultat d'une recherche de couverture via Google Custom Search.
  */
-readonly class CoverSearchResult implements \JsonSerializable
+final readonly class CoverSearchResult implements \JsonSerializable
 {
     public function __construct(
         public int $height,

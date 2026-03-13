@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * Service de purge des séries soft-deleted.
  */
-class PurgeService
+final class PurgeService
 {
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
@@ -59,19 +59,7 @@ class PurgeService
      */
     public function findPurgeable(int $days): array
     {
-        $cutoffDate = new \DateTime(\sprintf('-%d days', $days));
-
-        $this->entityManager->getFilters()->disable('soft_delete');
-
-        /** @var ComicSeries[] $series */
-        $series = $this->comicSeriesRepository->createQueryBuilder('c')
-            ->where('c.deletedAt IS NOT NULL')
-            ->andWhere('c.deletedAt <= :cutoff')
-            ->setParameter('cutoff', $cutoffDate)
-            ->getQuery()
-            ->getResult();
-
-        $this->entityManager->getFilters()->enable('soft_delete');
+        $series = $this->comicSeriesRepository->findPurgeable($days);
 
         return \array_map(
             static function (ComicSeries $s): PurgeableSeries {
