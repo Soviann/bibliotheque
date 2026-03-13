@@ -13,9 +13,6 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
 }
 
-# Supprime les logs de plus de 7 jours
-find "$LOG_DIR" -name "update-*.log" -mtime +7 -delete
-
 log "=== Début de la mise à jour ==="
 
 # Pull les dernières modifications
