@@ -29,8 +29,12 @@ if echo "$GIT_OUTPUT" | grep -q "Already up to date"; then
     exit 0
 fi
 
-# Rebuild et redémarrage
+# Arrêt propre des conteneurs avant rebuild (évite l'alerte DSM "arrêt inattendu")
 cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; exit 1; }
+docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml down >> "$LOG_FILE" 2>&1
+log "Conteneurs arrêtés."
+
+# Rebuild et redémarrage
 docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml up --build -d >> "$LOG_FILE" 2>&1
 log "Conteneurs reconstruits."
 
