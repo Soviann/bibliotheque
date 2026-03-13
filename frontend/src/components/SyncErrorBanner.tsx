@@ -3,44 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSyncFailures } from "../hooks/useSyncFailures";
 import type { SyncFailure } from "../services/offlineQueue";
-
-const operationLabels: Record<string, string> = {
-  create: "Création",
-  delete: "Suppression",
-  update: "Mise à jour",
-};
-
-const resourceLabels: Record<string, string> = {
-  comic_series: "série",
-  tome: "tome",
-};
-
-const fieldLabels: Record<string, string> = {
-  authors: "Auteurs",
-  bought: "Acheté",
-  coverUrl: "Couverture",
-  description: "Description",
-  downloaded: "Téléchargé",
-  isbn: "ISBN",
-  isOneShot: "One-shot",
-  latestPublishedIssue: "Dernier tome paru",
-  number: "Numéro",
-  onNas: "NAS",
-  publisher: "Éditeur",
-  read: "Lu",
-  status: "Statut",
-  title: "Titre",
-  tomeEnd: "Fin",
-  tomes: "Tomes",
-  type: "Type",
-};
-
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return "—";
-  if (typeof value === "boolean") return value ? "Oui" : "Non";
-  if (Array.isArray(value)) return `${value.length} élément(s)`;
-  return String(value);
-}
+import { fieldLabels, formatSyncValue, operationLabels, resourceLabels } from "../utils/syncLabels";
 
 function getEditLink(failure: SyncFailure): string | null {
   if (failure.operation === "delete") return null;
@@ -68,7 +31,7 @@ function PayloadDetails({ payload }: { payload: Record<string, unknown> }) {
             {fieldLabels[key] ?? key}
           </dt>
           <dd className="truncate text-red-600 dark:text-red-400">
-            {formatValue(value)}
+            {formatSyncValue(value)}
           </dd>
         </div>
       ))}

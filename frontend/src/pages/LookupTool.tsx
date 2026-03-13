@@ -6,15 +6,7 @@ import {
   useBatchLookup,
   useBatchLookupPreview,
 } from "../hooks/useBatchLookup";
-import { ComicTypeLabel } from "../types/enums";
-
-const typeOptions = [
-  { label: "Tous les types", value: "" },
-  ...Object.entries(ComicTypeLabel).map(([value, label]) => ({
-    label,
-    value,
-  })),
-];
+import { typeOptionsAll } from "../types/enums";
 
 export default function LookupTool() {
   const [type, setType] = useState("");
@@ -56,7 +48,7 @@ export default function LookupTool() {
             onChange={(e) => setType(e.target.value)}
             value={type}
           >
-            {typeOptions.map((opt) => (
+            {typeOptionsAll.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
