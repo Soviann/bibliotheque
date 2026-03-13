@@ -31,7 +31,6 @@
 
     <source ignoreSuppressionOfDeprecations="true"
             ignoreIndirectDeprecations="true"
-            restrictDeprecations="true"
             restrictNotices="true"
             restrictWarnings="true"
     >
