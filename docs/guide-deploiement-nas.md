@@ -83,8 +83,8 @@ ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/pro
 
 ```bash
 cd /volume1/docker/bibliotheque/backend
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml up --build -d
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml ps
+sudo docker compose --env-file .env.nas up --build -d
+sudo docker compose --env-file .env.nas ps
 ```
 
 Attendre que `db` affiche `healthy` (~30 secondes).
@@ -95,8 +95,8 @@ Attendre que `db` affiche `healthy` (~30 secondes).
 
 ```bash
 cd /volume1/docker/bibliotheque/backend
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec php php bin/console lexik:jwt:generate-keypair --env=prod
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
+sudo docker compose --env-file .env.nas exec php php bin/console lexik:jwt:generate-keypair --env=prod
+sudo docker compose --env-file .env.nas exec php php bin/console doctrine:migrations:migrate -n --env=prod
 ```
 
 Pas de création d'utilisateur — le premier login Google crée le compte.
@@ -140,7 +140,7 @@ Le script (`scripts/nas-update.sh`) : pull, rebuild si changements, migrations. 
 ### Purge des séries supprimées (quotidien, 03:00)
 
 ```bash
-cd /volume1/docker/bibliotheque/backend && docker compose --env-file .env.nas -f docker-compose.prod.yml exec -T php php bin/console app:purge-deleted --env=prod
+cd /volume1/docker/bibliotheque/backend && docker compose --env-file .env.nas exec -T php php bin/console app:purge-deleted --env=prod
 ```
 
 ---
@@ -149,8 +149,8 @@ cd /volume1/docker/bibliotheque/backend && docker compose --env-file .env.nas -f
 
 ```bash
 cd /volume1/docker/bibliotheque && git pull
-cd backend && sudo docker compose --env-file .env.nas -f docker-compose.prod.yml up --build -d
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec php php bin/console doctrine:migrations:migrate -n --env=prod
+cd backend && sudo docker compose --env-file .env.nas up --build -d
+sudo docker compose --env-file .env.nas exec php php bin/console doctrine:migrations:migrate -n --env=prod
 ```
 
 ---
@@ -166,7 +166,7 @@ Sauvegarder `/volume1/docker/bibliotheque/` (code + `.env.nas` + volumes Docker)
 ```bash
 cd /volume1/docker/bibliotheque/backend
 export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env.nas | sed 's/^MYSQL_PASSWORD=//')
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec -T db mysqldump -u biblio -p"${MYSQL_PASSWORD}" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
+sudo docker compose --env-file .env.nas exec -T db mysqldump -u biblio -p"${MYSQL_PASSWORD}" bibliotheque | gzip > /volume1/docker/bibliotheque/backup_$(date +%Y%m%d).sql.gz
 ```
 
 ### Restauration
@@ -174,7 +174,7 @@ sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec -T db my
 ```bash
 cd /volume1/docker/bibliotheque/backend
 export MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env.nas | sed 's/^MYSQL_PASSWORD=//')
-gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec -T db mysql -u biblio -p"${MYSQL_PASSWORD}" bibliotheque
+gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | sudo docker compose --env-file .env.nas exec -T db mysql -u biblio -p"${MYSQL_PASSWORD}" bibliotheque
 ```
 
 ---
@@ -185,19 +185,19 @@ gunzip -c /volume1/docker/bibliotheque/backup_YYYYMMDD.sql.gz | sudo docker comp
 cd /volume1/docker/bibliotheque/backend
 
 # Logs d'un service
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml logs php --tail=50
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml logs nginx --tail=50
+sudo docker compose --env-file .env.nas logs php --tail=50
+sudo docker compose --env-file .env.nas logs nginx --tail=50
 
 # Redémarrer
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml restart
+sudo docker compose --env-file .env.nas restart
 
 # Recréer (sans perdre les données)
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml down
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml up --build -d
+sudo docker compose --env-file .env.nas down
+sudo docker compose --env-file .env.nas up --build -d
 
 # Réinitialiser la BDD (DESTRUCTIF)
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml down -v
-sudo docker compose --env-file .env.nas -f docker-compose.prod.yml up --build -d
+sudo docker compose --env-file .env.nas down -v
+sudo docker compose --env-file .env.nas up --build -d
 # Puis refaire l'étape 4
 ```
 
@@ -206,7 +206,7 @@ sudo docker compose --env-file .env.nas -f docker-compose.prod.yml up --build -d
 - **"dubious ownership"** sur git : `sudo git config --global --add safe.directory /volume1/docker/bibliotheque`
 - **"PlaceholderSecretChecker"** : `SYMFONY_DECRYPTION_SECRET` manquant ou incorrect dans `.env.nas`
 - **"Malformed parameter url"** : caractère spécial dans `MYSQL_PASSWORD`
-- **"directory is not writable"** : `sudo docker compose --env-file .env.nas -f docker-compose.prod.yml exec php chown -R www-data:www-data /var/www/html/var`
+- **"directory is not writable"** : `sudo docker compose --env-file .env.nas exec php chown -R www-data:www-data /var/www/html/var`
 
 ---
 

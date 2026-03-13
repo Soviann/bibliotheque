@@ -150,10 +150,10 @@ ddev exec vendor/bin/phpstan analyse src/
 
 ```bash
 # Build et lancement
-docker compose -f docker-compose.prod.yml up --build -d
+docker compose up --build -d
 
 # Migrations
-docker compose -f docker-compose.prod.yml exec app bin/console doctrine:migrations:migrate -n
+docker compose exec app bin/console doctrine:migrations:migrate -n
 ```
 
 Voir le [guide de deploiement complet](docs/deploiement/README.md).
