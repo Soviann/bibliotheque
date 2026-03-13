@@ -39,6 +39,9 @@ RUN php bin/console cache:clear --env=prod --no-debug \
 
 RUN chown -R www-data:www-data public/uploads public/media var
 
+COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 9000
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]
