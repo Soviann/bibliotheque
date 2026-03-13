@@ -24,9 +24,8 @@ try_build() {
     cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; return 1; }
 
     docker compose --env-file "$ENV_FILE" down >> "$LOG_FILE" 2>&1
-    docker compose --env-file "$ENV_FILE" up --build -d >> "$LOG_FILE" 2>&1
 
-    if [ $? -ne 0 ]; then
+    if ! docker compose --env-file "$ENV_FILE" up --build -d >> "$LOG_FILE" 2>&1; then
         log "ERREUR: docker compose up --build a échoué pour le commit ${commit_sha}."
         return 1
     fi
@@ -34,7 +33,7 @@ try_build() {
     # Vérifier que tous les conteneurs sont running après un court délai
     sleep 10
     local not_running
-    not_running=$(docker compose --env-file "$ENV_FILE" ps --format '{{.State}}' 2>/dev/null | grep -cv "running")
+    not_running=$(docker compose --env-file "$ENV_FILE" ps --format '{{.State}}' 2>/dev/null | grep -civ "running")
 
     if [ "$not_running" -gt 0 ]; then
         log "ERREUR: des conteneurs ne sont pas running pour le commit ${commit_sha}."
@@ -58,11 +57,6 @@ if echo "$GIT_OUTPUT" | grep -q "Already up to date"; then
     exit 0
 fi
 
-# Arrêt propre des conteneurs avant rebuild (évite l'alerte DSM "arrêt inattendu")
-cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; exit 1; }
-docker compose --env-file "$ENV_FILE" down >> "$LOG_FILE" 2>&1
-log "Conteneurs arrêtés."
-
 # Tentative de build avec le dernier code
 if try_build; then
     # Attendre que la DB soit healthy
@@ -85,18 +79,21 @@ while [ "$rollback_count" -lt "$MAX_ROLLBACKS" ]; do
 
     # Remonter au merge commit précédent (first-parent)
     cd "$APP_DIR" || { log "ERREUR: impossible d'accéder à ${APP_DIR}"; exit 1; }
-    PREVIOUS_COMMIT=$(git log --first-parent --format='%H' -n 2 | tail -1)
+    previous_commit=$(git log --first-parent --format='%H' -n 2 | tail -1)
 
-    if [ -z "$PREVIOUS_COMMIT" ]; then
+    if [ -z "$previous_commit" ]; then
         log "ERREUR: impossible de trouver un commit précédent pour le rollback."
         break
     fi
 
-    git checkout "$PREVIOUS_COMMIT" >> "$LOG_FILE" 2>&1
-    log "Rollback vers ${PREVIOUS_COMMIT}."
+    git reset --hard "$previous_commit" >> "$LOG_FILE" 2>&1
+    log "Rollback vers ${previous_commit}."
 
     if try_build; then
         sleep 15
+        # Les migrations du commit rollbacké peuvent diverger du schéma actuel.
+        # doctrine:migrations:migrate applique l'état attendu par ce commit.
+        log "ATTENTION: rollback effectué — vérifier manuellement la cohérence des migrations si le commit annulé contenait des changements de schéma."
         docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod >> "$LOG_FILE" 2>&1
         log "Migrations exécutées après rollback."
         log "=== Mise à jour terminée (rollback vers $(git -C "$APP_DIR" rev-parse --short HEAD)) ==="
