@@ -20,6 +20,8 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
  */
 abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
 {
+    private const int CACHE_TTL = 2592000; // 30 jours
+
     public function __construct(
         protected readonly AdapterInterface $cache,
         protected readonly GeminiClientPool $geminiClientPool,
@@ -44,7 +46,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         if ($result instanceof LookupResult) {
             $item = $this->cache->getItem($state['cacheKey']);
             $item->set($result);
-            $item->expiresAfter(2592000); // 30 jours
+            $item->expiresAfter(self::CACHE_TTL);
             $this->cache->save($item);
         }
 
@@ -116,24 +118,6 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         return true;
     }
 
-    /**
-     * Parse le JSON depuis la réponse texte de Gemini (avec ou sans bloc markdown).
-     *
-     * @return array<string, mixed>|null
-     */
-    protected function parseJsonFromText(string $text): ?array
-    {
-        $cleaned = \preg_replace('/^```(?:json)?\s*\n?(.*?)\n?```$/s', '$1', \trim($text));
-
-        $data = \json_decode($cleaned ?? $text, true);
-
-        if (!\is_array($data)) {
-            return null;
-        }
-
-        return $data; // @phpstan-ignore return.type
-    }
-
     private function callGemini(string $prompt): ?LookupResult
     {
         $logName = $this->getLogName();
@@ -146,7 +130,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
                     ->generateContent($prompt);
 
                 $text = $response->text();
-                $data = $this->parseJsonFromText($text);
+                $data = GeminiJsonParser::parseJsonFromText($text);
 
                 if (null === $data) {
                     $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse JSON invalide');

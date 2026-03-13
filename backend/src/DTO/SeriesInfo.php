@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Informations extraites d'un titre : nom de série et numéro de tome.
  */
-readonly class SeriesInfo
+final readonly class SeriesInfo
 {
     public function __construct(
         public string $name,

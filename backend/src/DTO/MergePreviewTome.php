@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Tome dans l'aperçu de fusion.
  */
-readonly class MergePreviewTome implements \JsonSerializable
+final readonly class MergePreviewTome implements \JsonSerializable
 {
     public function __construct(
         public bool $bought,

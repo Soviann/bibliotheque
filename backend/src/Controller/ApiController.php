@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
 #[Route('/api/lookup')]
-class ApiController
+final class ApiController
 {
     use RateLimitTrait;
 

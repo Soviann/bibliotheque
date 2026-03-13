@@ -7,7 +7,7 @@ namespace App\Service\Lookup;
 /**
  * Résultat d'un lookup depuis un provider.
  */
-class LookupResult implements \JsonSerializable
+final class LookupResult implements \JsonSerializable
 {
     public function __construct(
         public readonly ?string $authors = null,

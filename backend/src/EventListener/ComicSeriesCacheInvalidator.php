@@ -24,7 +24,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 #[AsDoctrineListener(event: Events::postPersist)]
 #[AsDoctrineListener(event: Events::postRemove)]
 #[AsDoctrineListener(event: Events::postUpdate)]
-class ComicSeriesCacheInvalidator
+final class ComicSeriesCacheInvalidator
 {
     private const array WATCHED_ENTITIES = [
         Author::class,

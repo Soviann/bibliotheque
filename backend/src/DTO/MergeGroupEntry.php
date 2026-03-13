@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Entrée d'un groupe de fusion : une série avec son numéro de tome suggéré.
  */
-readonly class MergeGroupEntry implements \JsonSerializable
+final readonly class MergeGroupEntry implements \JsonSerializable
 {
     public function __construct(
         public string $originalTitle,

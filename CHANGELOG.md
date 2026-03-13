@@ -11,6 +11,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **CI GitHub Actions** : Workflow lint (PHPStan, CS Fixer, TypeScript) + tests (PHPUnit, Vitest) sur chaque PR, avec protection de la branche `main` (#166)
 
+### Changed
+
+- **Backend qualité du code** : Ajout `final` sur ~45 classes feuilles, extraction `GoogleBooksUrlHelper`/`GeminiJsonParser`/`MergePreviewHydrator`, déplacement des requêtes dans les repositories, enum `BatchLookupStatus`, constante `CACHE_TTL` (#167)
+
 ### Fixed
 
 - **PHPStan** : Baseline régénérée, imports inutilisés nettoyés, tolérance des différences DDEV/CI

@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\DTO\CoverSearchResult;
 use App\Enum\ComicType;
+use App\Service\Lookup\GoogleBooksUrlHelper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -14,7 +15,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 /**
  * Recherche de couvertures via Google Books + Serper Images.
  */
-class CoverSearchService
+final class CoverSearchService
 {
     private const string GOOGLE_BOOKS_URL = 'https://www.googleapis.com/books/v1/volumes';
     private const string SERPER_URL = 'https://google.serper.dev/images';
@@ -62,22 +63,6 @@ class CoverSearchService
     }
 
     /**
-     * Optimise l'URL d'une couverture Google Books.
-     */
-    private function optimizeThumbnailUrl(string $url): string
-    {
-        if (!\str_contains($url, 'books.google.com/')) {
-            return $url;
-        }
-
-        $url = (string) \preg_replace('#^http://#', 'https://', $url);
-        $url = \str_replace('zoom=1', 'zoom=0', $url);
-        $url = (string) \preg_replace('/&?edge=curl&?/', '&', $url);
-
-        return \rtrim($url, '&');
-    }
-
-    /**
      * @return CoverSearchResult[]
      */
     private function parseGoogleBooksResponse(?ResponseInterface $response): array
@@ -114,7 +99,7 @@ class CoverSearchService
                 continue;
             }
 
-            $url = $this->optimizeThumbnailUrl($rawThumbnail);
+            $url = GoogleBooksUrlHelper::optimizeThumbnailUrl($rawThumbnail);
             $title = \is_string($volumeInfo['title'] ?? null) ? $volumeInfo['title'] : '';
 
             $results[] = new CoverSearchResult(

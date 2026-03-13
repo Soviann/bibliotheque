@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Aperçu complet du résultat d'une fusion de séries.
  */
-readonly class MergePreview implements \JsonSerializable
+final readonly class MergePreview implements \JsonSerializable
 {
     /**
      * @param list<string>           $authors

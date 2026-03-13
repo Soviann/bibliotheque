@@ -21,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'app:import-books',
     description: 'Importe des livres depuis un fichier Excel (format Livres.xlsx)',
 )]
-class ImportBooksCommand extends Command
+final class ImportBooksCommand extends Command
 {
     public function __construct(
         private readonly ImportBooksService $importBooksService,

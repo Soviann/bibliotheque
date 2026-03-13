@@ -19,7 +19,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 /**
  * Service d'import des données depuis un fichier Excel de suivi.
  */
-class ImportExcelService
+final class ImportExcelService
 {
     private const array SHEET_TYPE_MAP = [
         'BD' => ComicType::BD,

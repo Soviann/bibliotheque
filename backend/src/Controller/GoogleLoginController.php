@@ -18,7 +18,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class GoogleLoginController
+final class GoogleLoginController
 {
     public function __construct(
         #[Autowire('%env(OAUTH_ALLOWED_EMAIL)%')]

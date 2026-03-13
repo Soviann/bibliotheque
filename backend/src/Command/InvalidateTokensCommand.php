@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -20,10 +20,11 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'app:invalidate-tokens',
     description: 'Invalide tous les tokens JWT (ou ceux d\'un utilisateur spécifique)',
 )]
-class InvalidateTokensCommand extends Command
+final class InvalidateTokensCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly UserRepository $userRepository,
     ) {
         parent::__construct();
     }
@@ -49,7 +50,7 @@ class InvalidateTokensCommand extends Command
 
     private function invalidateAll(SymfonyStyle $io): int
     {
-        $users = $this->entityManager->getRepository(User::class)->findAll();
+        $users = $this->userRepository->findAll();
 
         foreach ($users as $user) {
             $user->incrementTokenVersion();
@@ -64,7 +65,7 @@ class InvalidateTokensCommand extends Command
 
     private function invalidateForUser(SymfonyStyle $io, string $email): int
     {
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+        $user = $this->userRepository->findOneBy(['email' => $email]);
 
         if (null === $user) {
             $io->error(\sprintf('Utilisateur "%s" introuvable.', $email));

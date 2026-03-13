@@ -21,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'app:import-excel',
     description: 'Importe les données depuis un fichier Excel',
 )]
-class ImportExcelCommand extends Command
+final class ImportExcelCommand extends Command
 {
     public function __construct(
         private readonly ImportExcelService $importExcelService,

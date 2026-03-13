@@ -19,7 +19,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  * Réponses au format Dublin Core (XML).
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 90])]
-class BnfLookup extends AbstractLookupProvider
+final class BnfLookup extends AbstractLookupProvider
 {
     private const string API_URL = 'https://catalogue.bnf.fr/api/SRU';
 

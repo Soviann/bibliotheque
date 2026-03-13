@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\DTO\BatchLookupProgress;
+use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\BatchLookupService;
@@ -94,7 +95,7 @@ final class BatchLookupServiceTest extends TestCase
         self::assertSame(1, $progress->current);
         self::assertSame(1, $progress->total);
         self::assertSame('Naruto', $progress->seriesTitle);
-        self::assertSame('updated', $progress->status);
+        self::assertSame(BatchLookupStatus::UPDATED, $progress->status);
         self::assertSame(['description', 'publisher'], $progress->updatedFields);
     }
 
@@ -118,7 +119,7 @@ final class BatchLookupServiceTest extends TestCase
         $progressItems = \iterator_to_array($this->service->run(delay: 0));
 
         self::assertCount(1, $progressItems);
-        self::assertSame('skipped', $progressItems[0]->status);
+        self::assertSame(BatchLookupStatus::SKIPPED, $progressItems[0]->status);
     }
 
     #[Test]
@@ -147,7 +148,7 @@ final class BatchLookupServiceTest extends TestCase
         $progressItems = \iterator_to_array($this->service->run(delay: 0));
 
         self::assertCount(1, $progressItems);
-        self::assertSame('skipped', $progressItems[0]->status);
+        self::assertSame(BatchLookupStatus::SKIPPED, $progressItems[0]->status);
     }
 
     #[Test]
@@ -175,7 +176,7 @@ final class BatchLookupServiceTest extends TestCase
         $progressItems = \iterator_to_array($this->service->run(delay: 0));
 
         self::assertCount(1, $progressItems);
-        self::assertSame('failed', $progressItems[0]->status);
+        self::assertSame(BatchLookupStatus::FAILED, $progressItems[0]->status);
     }
 
     #[Test]

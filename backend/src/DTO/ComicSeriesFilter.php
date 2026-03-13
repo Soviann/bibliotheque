@@ -10,7 +10,7 @@ use App\Enum\ComicType;
 /**
  * Filtres pour la recherche de series.
  */
-readonly class ComicSeriesFilter
+final readonly class ComicSeriesFilter
 {
     public function __construct(
         public ?bool $isWishlist = null,

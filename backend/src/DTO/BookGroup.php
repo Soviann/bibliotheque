@@ -7,7 +7,7 @@ namespace App\DTO;
 /**
  * Groupe de lignes d'import partageant la même série.
  */
-readonly class BookGroup
+final readonly class BookGroup
 {
     /**
      * @param list<BookRow> $rows

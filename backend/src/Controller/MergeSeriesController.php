@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Trait\RateLimitTrait;
-use App\DTO\MergePreview;
-use App\DTO\MergePreviewTome;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Merge\MergePreviewBuilder;
+use App\Service\Merge\MergePreviewHydrator;
 use App\Service\Merge\SeriesGroupDetector;
 use App\Service\Merge\SeriesMerger;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,13 +23,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/merge-series')]
-class MergeSeriesController
+final class MergeSeriesController
 {
     use RateLimitTrait;
 
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
         private readonly MergePreviewBuilder $mergePreviewBuilder,
+        private readonly MergePreviewHydrator $mergePreviewHydrator,
         private readonly RateLimiterFactory $mergeSeriesLimiter,
         private readonly SeriesGroupDetector $seriesGroupDetector,
         private readonly SeriesMerger $seriesMerger,
@@ -128,7 +128,7 @@ class MergeSeriesController
         $data = \json_decode($request->getContent(), true) ?? [];
 
         try {
-            $preview = $this->hydrateMergePreview($data);
+            $preview = $this->mergePreviewHydrator->hydrate($data);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(
                 ['error' => $e->getMessage()],
@@ -150,72 +150,5 @@ class MergeSeriesController
             'title' => $mergedSeries->getTitle(),
             'type' => $mergedSeries->getType()->value,
         ]);
-    }
-
-    /**
-     * Hydrate un MergePreview depuis les données JSON.
-     *
-     * @param array<string, mixed> $data
-     *
-     * @throws \InvalidArgumentException si les données sont invalides
-     */
-    private function hydrateMergePreview(array $data): MergePreview
-    {
-        if (!isset($data['title']) || !\is_string($data['title'])) {
-            throw new \InvalidArgumentException('Le champ "title" est requis.');
-        }
-
-        if (!isset($data['type']) || !\is_string($data['type'])) {
-            throw new \InvalidArgumentException('Le champ "type" est requis.');
-        }
-
-        if (!isset($data['sourceSeriesIds']) || !\is_array($data['sourceSeriesIds'])) {
-            throw new \InvalidArgumentException('Le champ "sourceSeriesIds" est requis.');
-        }
-
-        if (!isset($data['tomes']) || !\is_array($data['tomes'])) {
-            throw new \InvalidArgumentException('Le champ "tomes" est requis.');
-        }
-
-        /** @var list<MergePreviewTome> $tomes */
-        $tomes = \array_values(\array_map(
-            static function (mixed $tomeData): MergePreviewTome {
-                if (!\is_array($tomeData)) {
-                    throw new \InvalidArgumentException('Chaque tome doit être un objet.');
-                }
-
-                return new MergePreviewTome(
-                    bought: (bool) ($tomeData['bought'] ?? false),
-                    downloaded: (bool) ($tomeData['downloaded'] ?? false),
-                    isbn: isset($tomeData['isbn']) && \is_string($tomeData['isbn']) ? $tomeData['isbn'] : null,
-                    number: (int) ($tomeData['number'] ?? 0),
-                    onNas: (bool) ($tomeData['onNas'] ?? false),
-                    read: (bool) ($tomeData['read'] ?? false),
-                    title: isset($tomeData['title']) && \is_string($tomeData['title']) ? $tomeData['title'] : null,
-                    tomeEnd: isset($tomeData['tomeEnd']) && \is_numeric($tomeData['tomeEnd']) ? (int) $tomeData['tomeEnd'] : null,
-                );
-            },
-            $data['tomes'],
-        ));
-
-        /** @var list<string> $authors */
-        $authors = \is_array($data['authors'] ?? null) ? \array_values($data['authors']) : [];
-
-        /** @var list<int> $sourceSeriesIds */
-        $sourceSeriesIds = \array_values(\array_map('\intval', $data['sourceSeriesIds']));
-
-        return new MergePreview(
-            authors: $authors,
-            coverUrl: isset($data['coverUrl']) && \is_string($data['coverUrl']) ? $data['coverUrl'] : null,
-            description: isset($data['description']) && \is_string($data['description']) ? $data['description'] : null,
-            isOneShot: (bool) ($data['isOneShot'] ?? false),
-            latestPublishedIssue: isset($data['latestPublishedIssue']) && \is_numeric($data['latestPublishedIssue']) ? (int) $data['latestPublishedIssue'] : null,
-            latestPublishedIssueComplete: (bool) ($data['latestPublishedIssueComplete'] ?? false),
-            publisher: isset($data['publisher']) && \is_string($data['publisher']) ? $data['publisher'] : null,
-            sourceSeriesIds: $sourceSeriesIds,
-            title: $data['title'],
-            tomes: $tomes,
-            type: $data['type'],
-        );
     }
 }
