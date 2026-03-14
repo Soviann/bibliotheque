@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.9] - 2026-03-14
+
+### Fixed
+
+- **Docker** : Corrige la commande healthcheck php-fpm (variables FastCGI manquantes). Cause root du déploiement cassé depuis v2.7.0
+
 ## [v2.8.8] - 2026-03-14
 
 ### Fixed
