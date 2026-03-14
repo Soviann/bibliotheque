@@ -21,6 +21,7 @@ Location: `docs/plans/` (gitignored). Concise only: what to do (files, logic, or
 
 ## Workflow
 
+- **GitHub issues → `/implement` skill**: ALL work on a GitHub issue (bug, feature, chore) MUST go through the `/implement` skill. No exceptions.
 - **Complex tasks**: Plan mode → approval → implementation
 - **Splitting**: divide large changes into verifiable chunks
 
