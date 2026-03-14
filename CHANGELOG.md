@@ -7,43 +7,36 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
-### Changed
-
-- **Frontend : extraction composants partagés** : `typeOptions`/`statusOptions` centralisés dans `enums.ts`, `getCoverSrc` dans `coverUtils.ts`, labels de sync dans `syncLabels.ts`, `SelectListbox` réutilisable, et `ComicForm.tsx` découpé en `useComicForm`, `TomeTable`, `LookupSection`, `AuthorAutocomplete` (1180 → 398 lignes) (#169)
-- **Cards listing** : remplace la barre de progression par 3 compteurs (achetés, lus, téléchargés) répartis sur la largeur
+## [v2.6.0] - 2026-03-14
 
 ### Added
 
+- **Backup automatique BDD** : Script `scripts/nas-backup.sh` pour dump quotidien de la base MariaDB avec compression gzip et rotation à 7 jours (#175)
 - **Cache HTTP (ETag)** : Les endpoints `GET /api/comic_series` et `GET /api/comic_series/{id}` retournent un ETag basé sur le hash du contenu et répondent `304 Not Modified` si le client envoie un `If-None-Match` valide (#193)
-- **Page « À acheter »** : Nouvelle page `/to-buy` listant les séries en cours d'achat avec tomes manquants, remplacement du tab Wishlist par « À acheter » dans la navigation (#191)
 - **CI GitHub Actions** : Workflow lint (PHPStan, CS Fixer, TypeScript) + tests (PHPUnit, Vitest) sur chaque PR, avec protection de la branche `main` (#166)
 - **Couvertures locales** : Téléchargement automatique des couvertures externes en WebP local via `CoverDownloader`, intégré au lookup et commande batch `app:download-covers` (#180)
+- **Nettoyage centralisé des logs** : Script `scripts/nas-cleanup-logs.sh` pour la rotation des logs `/var/log/bibliotheque/` (7 jours), remplace la logique dupliquée dans chaque script
+- **Page « À acheter »** : Nouvelle page `/to-buy` listant les séries en cours d'achat avec tomes manquants, remplacement du tab Wishlist par « À acheter » dans la navigation (#191)
+- **Rollback automatique NAS** : Si le build Docker échoue après un `git pull`, le script `nas-update.sh` revient automatiquement aux commits précédents (par merge commit, max 5 tentatives) jusqu'à retrouver un build fonctionnel (#176)
+
+### Changed
+
+- **Backend qualité du code** : Ajout `final` sur ~45 classes feuilles, extraction `GoogleBooksUrlHelper`/`GeminiJsonParser`/`MergePreviewHydrator`, déplacement des requêtes dans les repositories, enum `BatchLookupStatus`, constante `CACHE_TTL` (#167)
+- **Cards listing** : remplace la barre de progression par 3 compteurs (achetés, lus, téléchargés) répartis sur la largeur
+- **Frontend : extraction composants partagés** : `typeOptions`/`statusOptions` centralisés dans `enums.ts`, `getCoverSrc` dans `coverUtils.ts`, labels de sync dans `syncLabels.ts`, `SelectListbox` réutilisable, et `ComicForm.tsx` découpé en `useComicForm`, `TomeTable`, `LookupSection`, `AuthorAutocomplete` (1180 → 398 lignes) (#169)
 
 ### Fixed
 
 - **Bedetheque lookup** : Ajout de safety settings Gemini (`BLOCK_ONLY_HIGH`) pour éviter les faux blocages sur des titres légitimes (ex. « Arawn »), et vérification préventive des candidats avant appel à `text()` avec diagnostic détaillé de la raison du blocage (#199)
 - **Dernier tome paru** : Mise à jour automatique de `latestPublishedIssue` quand un tome ajouté/modifié dépasse la valeur actuelle, et calcul du total corrigé côté frontend
-- **Index composite Tome** : Ajout d'un index `(comic_series_id, number)` pour accélérer les requêtes par série + tri par numéro (#168)
-- **Vignettes en production** : CSP `connect-src` autorise désormais `https:` pour les couvertures externes, et priorité aux fichiers locaux dans le frontend (#180)
 - **Filtres mobile** : Remplacement des dropdowns tronqués par un bouton icône ouvrant un bottom sheet avec des `<select>` natifs, suppression du scroll horizontal (#181, #183)
 - **Fusion de séries** : Bouton de détection et d'aperçu de fusion en sticky pour rester visibles au scroll (#182)
-- **Rotation clés Gemini** : Les erreurs 401/403 (clé invalide) déclenchent maintenant la rotation vers la clé suivante, au lieu de stopper le lookup (#190)
-
-### Changed
-
-- **Backend qualité du code** : Ajout `final` sur ~45 classes feuilles, extraction `GoogleBooksUrlHelper`/`GeminiJsonParser`/`MergePreviewHydrator`, déplacement des requêtes dans les repositories, enum `BatchLookupStatus`, constante `CACHE_TTL` (#167)
-
-### Fixed
-
-- **PHPStan** : Baseline régénérée, imports inutilisés nettoyés, tolérance des différences DDEV/CI
-- **Vich Uploader** : Migration des annotations dépréciées vers les attributs PHP 8
 - **ImportControllerTest** : Assertions corrigées après refactoring du DTO
-
-### Added
-
-- **Backup automatique BDD** : Script `scripts/nas-backup.sh` pour dump quotidien de la base MariaDB avec compression gzip et rotation à 7 jours (#175)
-- **Nettoyage centralisé des logs** : Script `scripts/nas-cleanup-logs.sh` pour la rotation des logs `/var/log/bibliotheque/` (7 jours), remplace la logique dupliquée dans chaque script
-- **Rollback automatique NAS** : Si le build Docker échoue après un `git pull`, le script `nas-update.sh` revient automatiquement aux commits précédents (par merge commit, max 5 tentatives) jusqu'à retrouver un build fonctionnel (#176)
+- **Index composite Tome** : Ajout d'un index `(comic_series_id, number)` pour accélérer les requêtes par série + tri par numéro (#168)
+- **PHPStan** : Baseline régénérée, imports inutilisés nettoyés, tolérance des différences DDEV/CI
+- **Rotation clés Gemini** : Les erreurs 401/403 (clé invalide) déclenchent maintenant la rotation vers la clé suivante, au lieu de stopper le lookup (#190)
+- **Vich Uploader** : Migration des annotations dépréciées vers les attributs PHP 8
+- **Vignettes en production** : CSP `connect-src` autorise désormais `https:` pour les couvertures externes, et priorité aux fichiers locaux dans le frontend (#180)
 
 ## [v2.5.0] - 2026-03-13
 
