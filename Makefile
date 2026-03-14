@@ -2,7 +2,11 @@
 # Bibliothèque — Makefile
 # ──────────────────────────────────────────────────
 # Raccourcis pour les commandes courantes.
-# Usage : make <cible>   (ex. make test, make lint)
+# Usage : ddev exec make <cible>   (ex. ddev exec make test)
+#
+# Ce Makefile est conçu pour être exécuté à l'intérieur
+# du conteneur DDEV (via `ddev exec make ...` ou `ddev ssh`).
+# Ne pas exécuter directement sur la machine hôte.
 # ──────────────────────────────────────────────────
 
 include backend/.env

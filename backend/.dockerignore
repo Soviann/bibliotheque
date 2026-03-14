@@ -5,11 +5,16 @@
 .git/
 .gitignore
 .idea/
+.php-cs-fixer.cache
+docker/nginx/
 docker-compose*.yml
 Dockerfile
 node_modules/
+phpstan-baseline-new.neon
+phpunit.xml
 public/bundles/
 README.md
+rector.php
 tests/
 var/
 vendor/
