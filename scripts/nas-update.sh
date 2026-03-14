@@ -87,6 +87,10 @@ if try_build; then
     # Attendre que la DB soit healthy
     sleep 15
 
+    # Vider le cache Symfony en tant que www-data (le volume app_var persiste entre les rebuilds)
+    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod >> "$LOG_FILE" 2>&1
+    log "Cache Symfony vidé."
+
     # Migrations
     docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod >> "$LOG_FILE" 2>&1
     log "Migrations exécutées."
@@ -106,6 +110,9 @@ for tag in $PREVIOUS_TAGS; do
 
     if try_build; then
         sleep 15
+        # Vider le cache Symfony après rollback (en tant que www-data pour les permissions)
+        docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod >> "$LOG_FILE" 2>&1
+        log "Cache Symfony vidé après rollback."
         log "ATTENTION: rollback effectué — vérifier manuellement la cohérence des migrations si le tag annulé contenait des changements de schéma."
         docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod >> "$LOG_FILE" 2>&1
         log "Migrations exécutées après rollback."

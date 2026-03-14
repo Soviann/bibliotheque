@@ -6,7 +6,10 @@ namespace App\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use Gemini\Data\GoogleSearch;
+use Gemini\Data\SafetySetting;
 use Gemini\Data\Tool;
+use Gemini\Enums\HarmBlockThreshold;
+use Gemini\Enums\HarmCategory;
 use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -123,11 +126,40 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         $logName = $this->getLogName();
 
         try {
-            return $this->geminiClientPool->executeWithRetry(function ($client, $model) use ($prompt): ?LookupResult {
+            return $this->geminiClientPool->executeWithRetry(function ($client, $model) use ($prompt, $logName): ?LookupResult {
                 $response = $client
                     ->generativeModel(model: $model)
                     ->withTool(new Tool(googleSearch: GoogleSearch::from()))
+                    ->withSafetySetting(new SafetySetting(
+                        category: HarmCategory::HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold: HarmBlockThreshold::BLOCK_ONLY_HIGH,
+                    ))
+                    ->withSafetySetting(new SafetySetting(
+                        category: HarmCategory::HARM_CATEGORY_HARASSMENT,
+                        threshold: HarmBlockThreshold::BLOCK_ONLY_HIGH,
+                    ))
+                    ->withSafetySetting(new SafetySetting(
+                        category: HarmCategory::HARM_CATEGORY_HATE_SPEECH,
+                        threshold: HarmBlockThreshold::BLOCK_ONLY_HIGH,
+                    ))
+                    ->withSafetySetting(new SafetySetting(
+                        category: HarmCategory::HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold: HarmBlockThreshold::BLOCK_ONLY_HIGH,
+                    ))
                     ->generateContent($prompt);
+
+                if (empty($response->candidates)) {
+                    $blockReason = $response->promptFeedback?->blockReason?->value;
+                    $this->logger->warning("Gemini ({$logName}) : aucun candidat retourné", [
+                        'blockReason' => $blockReason,
+                    ]);
+                    $message = $blockReason
+                        ? "Prompt bloqué par Gemini ({$blockReason})"
+                        : 'Aucun résultat (réponse vide)';
+                    $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, $message);
+
+                    return null;
+                }
 
                 $text = $response->text();
                 $data = GeminiJsonParser::parseJsonFromText($text);
@@ -165,11 +197,6 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
             } else {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, $e->getErrorMessage());
             }
-
-            return null;
-        } catch (\ValueError $e) { // @phpstan-ignore catch.neverThrown (ValueError thrown inside executeWithRetry callback)
-            $this->logger->warning("Gemini ({$logName}) : aucun candidat retourné", ['error' => $e->getMessage()]);
-            $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat (prompt bloqué ou vide)');
 
             return null;
         } catch (\Throwable $e) {

@@ -21,6 +21,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Fixed
 
+- **Bedetheque lookup** : Ajout de safety settings Gemini (`BLOCK_ONLY_HIGH`) pour éviter les faux blocages sur des titres légitimes (ex. « Arawn »), et vérification préventive des candidats avant appel à `text()` avec diagnostic détaillé de la raison du blocage (#199)
 - **Dernier tome paru** : Mise à jour automatique de `latestPublishedIssue` quand un tome ajouté/modifié dépasse la valeur actuelle, et calcul du total corrigé côté frontend
 - **Index composite Tome** : Ajout d'un index `(comic_series_id, number)` pour accélérer les requêtes par série + tri par numéro (#168)
 - **Vignettes en production** : CSP `connect-src` autorise désormais `https:` pour les couvertures externes, et priorité aux fichiers locaux dans le frontend (#180)
