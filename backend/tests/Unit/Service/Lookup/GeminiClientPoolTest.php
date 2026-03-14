@@ -63,7 +63,7 @@ final class GeminiClientPoolTest extends TestCase
      */
     public function testFallsToNextModelWhenAllKeysExhausted(): void
     {
-        $pool = new GeminiClientPool('key1', $this->logger, 'gemini-2.5-flash,gemini-3-flash');
+        $pool = new GeminiClientPool('key1', $this->logger, 'gemini-2.5-flash,gemini-2.5-flash-lite');
 
         $callCount = 0;
         $modelsUsed = [];
@@ -78,7 +78,7 @@ final class GeminiClientPoolTest extends TestCase
         });
 
         self::assertSame('ok_model2', $result);
-        self::assertSame(['gemini-2.5-flash', 'gemini-3-flash'], $modelsUsed);
+        self::assertSame(['gemini-2.5-flash', 'gemini-2.5-flash-lite'], $modelsUsed);
     }
 
     /**
@@ -156,6 +156,29 @@ final class GeminiClientPoolTest extends TestCase
 
         self::assertSame('ok_key2', $result);
         self::assertSame(2, $callCount);
+    }
+
+    /**
+     * Teste la rotation vers le modèle suivant sur 404 (modèle non trouvé).
+     */
+    public function testRotatesToNextModelOn404(): void
+    {
+        $pool = new GeminiClientPool('key1', $this->logger, 'invalid-model,gemini-2.5-flash');
+
+        $callCount = 0;
+        $modelsUsed = [];
+        $result = $pool->executeWithRetry(static function ($client, $model) use (&$callCount, &$modelsUsed): string {
+            ++$callCount;
+            $modelsUsed[] = $model;
+            if (1 === $callCount) {
+                throw new ErrorException(['code' => 404, 'message' => 'Model not found', 'status' => 'NOT_FOUND']);
+            }
+
+            return 'ok_fallback';
+        });
+
+        self::assertSame('ok_fallback', $result);
+        self::assertSame(['invalid-model', 'gemini-2.5-flash'], $modelsUsed);
     }
 
     /**

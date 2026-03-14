@@ -31,6 +31,7 @@ services:
     environment:
       - APP_ENV=prod
       - APP_SECRET=${APP_SECRET}
+      - COMICVINE_API_KEY=${COMICVINE_API_KEY}
       - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN}
       - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
       - DEFAULT_URI=${DEFAULT_URI}

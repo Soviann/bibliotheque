@@ -8,7 +8,7 @@ use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Pool de clients Gemini avec rotation clés × modèles sur erreur 400/401/403/429.
+ * Pool de clients Gemini avec rotation clés × modèles sur erreur 400/401/403/404/429.
  *
  * Itère modèles (outer) × clés (inner) : épuise toutes les clés sur le meilleur modèle d'abord.
  * Le suivi d'épuisement est en mémoire (suffisant pour les batchs et réinitialisé par requête web).
@@ -54,7 +54,7 @@ class GeminiClientPool
      *
      * @return T
      *
-     * @throws ErrorException si toutes les combinaisons sont épuisées (dernière 429)
+     * @throws ErrorException si toutes les combinaisons sont épuisées (dernière erreur retryable)
      */
     public function executeWithRetry(callable $callback): mixed
     {
@@ -75,7 +75,7 @@ class GeminiClientPool
                 } catch (ErrorException $e) {
                     $code = $e->getErrorCode();
 
-                    if (!\in_array($code, [400, 401, 403, 429], true)) {
+                    if (!\in_array($code, [400, 401, 403, 404, 429], true)) {
                         throw $e;
                     }
 
