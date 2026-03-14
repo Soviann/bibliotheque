@@ -34,19 +34,3 @@ jobs:
           TAG: ${{ github.ref_name }}
           NOTES: ${{ steps.changelog.outputs.notes }}
 
-      - name: Deploy to NAS
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.NAS_HOST }}
-          username: ${{ secrets.NAS_SSH_USER }}
-          key: ${{ secrets.NAS_SSH_KEY }}
-          port: ${{ secrets.NAS_SSH_PORT }}
-          envs: DEPLOY_TAG
-          script: |
-            export PATH="/usr/local/bin:$PATH"
-            cd /volume1/docker/bibliotheque
-            git fetch --tags origin
-            git checkout "$DEPLOY_TAG"
-            scripts/nas-update.sh
-        env:
-          DEPLOY_TAG: ${{ github.ref_name }}
