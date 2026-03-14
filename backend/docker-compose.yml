@@ -21,7 +21,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "cgi-fcgi -bind -connect 127.0.0.1:9000 /ping 2>/dev/null | grep -q pong"]
+      test: ["CMD-SHELL", "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 2>/dev/null | grep -q pong"]
       interval: 10s
       retries: 10
       start_period: 60s
