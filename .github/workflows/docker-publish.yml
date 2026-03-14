@@ -29,6 +29,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/soviann/bibliotheque-php
+          labels: |
+            org.opencontainers.image.description=PHP-FPM 8.3 — Symfony 7 + API Platform 4
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest
@@ -49,6 +51,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/soviann/bibliotheque-nginx
+          labels: |
+            org.opencontainers.image.description=Nginx — reverse proxy + frontend React (Vite)
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest

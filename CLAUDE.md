@@ -207,7 +207,7 @@ cd backend && docker compose up --build -d
 TAG=2.9.0 docker compose pull && docker compose up -d
 ```
 
-Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude via SSH), `docs/guide-deploiement-ovh.md` (OVH bare metal)
+Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude via SSH)
 
 ### Symfony Secrets (vault prod)
 
