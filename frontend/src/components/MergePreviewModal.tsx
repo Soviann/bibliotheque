@@ -233,6 +233,7 @@ export default function MergePreviewModal({
                         </td>
                         <td className="px-2 py-1.5 text-center">
                           <input
+                            aria-label={`Tome ${tome.number} acheté`}
                             checked={tome.bought}
                             className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
                             onChange={(e) => updateTome(index, { bought: e.target.checked })}
@@ -241,6 +242,7 @@ export default function MergePreviewModal({
                         </td>
                         <td className="px-2 py-1.5 text-center">
                           <input
+                            aria-label={`Tome ${tome.number} téléchargé`}
                             checked={tome.downloaded}
                             className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
                             onChange={(e) => updateTome(index, { downloaded: e.target.checked })}
@@ -249,6 +251,7 @@ export default function MergePreviewModal({
                         </td>
                         <td className="px-2 py-1.5 text-center">
                           <input
+                            aria-label={`Tome ${tome.number} lu`}
                             checked={tome.read}
                             className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
                             onChange={(e) => updateTome(index, { read: e.target.checked })}
@@ -257,6 +260,7 @@ export default function MergePreviewModal({
                         </td>
                         <td className="px-2 py-1.5 text-center">
                           <input
+                            aria-label={`Tome ${tome.number} sur NAS`}
                             checked={tome.onNas}
                             className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
                             onChange={(e) => updateTome(index, { onNas: e.target.checked })}

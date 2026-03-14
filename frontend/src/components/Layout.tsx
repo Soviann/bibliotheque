@@ -46,6 +46,7 @@ export default function Layout() {
         </Link>
         <div className="flex items-center gap-1">
           <Link
+            aria-label="Outils"
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
             title="Outils"
             to="/tools"
@@ -54,6 +55,7 @@ export default function Layout() {
             <Wrench className="h-5 w-5" />
           </Link>
           <button
+            aria-label={isDark ? "Mode clair" : "Mode sombre"}
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
             onClick={toggle}
             title={isDark ? "Mode clair" : "Mode sombre"}
@@ -62,6 +64,7 @@ export default function Layout() {
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
           <button
+            aria-label="Déconnexion"
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
             onClick={logout}
             title="Déconnexion"

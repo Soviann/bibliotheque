@@ -67,6 +67,7 @@ export default function SeriesMultiSelect({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
         <input
+          aria-label="Rechercher une série"
           className="w-full rounded-lg border border-surface-border bg-surface-secondary py-2 pl-9 pr-3 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher une série..."

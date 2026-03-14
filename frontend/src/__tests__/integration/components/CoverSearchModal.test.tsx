@@ -115,7 +115,7 @@ describe("CoverSearchModal", () => {
     const user = userEvent.setup();
     renderWithProviders(<CoverSearchModal {...defaultProps} />);
 
-    const closeButton = screen.getByRole("button", { name: "" });
+    const closeButton = screen.getByRole("button", { name: "Fermer" });
     await user.click(closeButton);
 
     expect(defaultProps.onClose).toHaveBeenCalledOnce();
