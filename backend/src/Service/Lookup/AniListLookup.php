@@ -123,7 +123,7 @@ final class AniListLookup extends AbstractLookupProvider implements MultiResultL
     {
         $this->resetApiMessage();
 
-        $searchTitle = $this->cleanTitle($query);
+        $searchTitle = LookupTitleCleaner::clean($query);
 
         return $this->httpClient->request('POST', self::API_URL, [
             'headers' => [
@@ -142,7 +142,7 @@ final class AniListLookup extends AbstractLookupProvider implements MultiResultL
     {
         $this->resetApiMessage();
 
-        $searchTitle = $this->cleanTitle($query);
+        $searchTitle = LookupTitleCleaner::clean($query);
 
         return $this->httpClient->request('POST', self::API_URL, [
             'headers' => [
@@ -306,28 +306,6 @@ final class AniListLookup extends AbstractLookupProvider implements MultiResultL
             thumbnail: \is_string($thumbnail) ? $thumbnail : null,
             title: \is_string($title) ? $title : null,
         );
-    }
-
-    /**
-     * Nettoie le titre pour la recherche AniList.
-     * Supprime les suffixes de volume/tome courants.
-     */
-    private function cleanTitle(string $title): string
-    {
-        $patterns = [
-            '/\s*[-–—]\s*(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
-            '/\s+(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
-            '/\s*#\d+.*$/u',
-            '/\s*\(\d+\)\s*$/u',
-            '/\s+\d+\s*$/u',
-        ];
-
-        $cleaned = $title;
-        foreach ($patterns as $pattern) {
-            $cleaned = \preg_replace($pattern, '', $cleaned) ?? $cleaned;
-        }
-
-        return \trim($cleaned);
     }
 
     /**
