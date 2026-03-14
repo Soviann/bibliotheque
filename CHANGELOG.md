@@ -7,9 +7,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.9.2] - 2026-03-14
+
 ### Changed
 
 - **Deploy** : Les logs de déploiement NAS sont maintenant visibles dans les logs GitHub Actions en plus du fichier local
+
+### Removed
+
+- **Rate limiting** : Supprime les rate limiters inutiles sur les endpoints authentifiés (garde uniquement google_login et gemini_api)
 
 ## [v2.9.1] - 2026-03-14
 
