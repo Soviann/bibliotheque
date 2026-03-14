@@ -869,6 +869,81 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame([], $result);
     }
 
+    // ---------------------------------------------------------------
+    // findBuyingForReleaseCheck
+    // ---------------------------------------------------------------
+
+    public function testFindBuyingForReleaseCheckReturnsBuyingNonOneShotNonComplete(): void
+    {
+        $buying = EntityFactory::createComicSeries('Buying Series');
+        // status=BUYING, isOneShot=false, latestPublishedIssueComplete=false (defaults)
+
+        $finished = EntityFactory::createComicSeries('Finished Series', ComicStatus::FINISHED);
+
+        $oneShot = EntityFactory::createComicSeries('One Shot');
+        $oneShot->setIsOneShot(true);
+
+        $complete = EntityFactory::createComicSeries('Complete Series');
+        $complete->setLatestPublishedIssueComplete(true);
+
+        $this->em->persist($buying);
+        $this->em->persist($complete);
+        $this->em->persist($finished);
+        $this->em->persist($oneShot);
+        $this->em->flush();
+
+        $result = $this->repository->findBuyingForReleaseCheck();
+
+        self::assertCount(1, $result);
+        self::assertSame('Buying Series', $result[0]->getTitle());
+    }
+
+    public function testFindBuyingForReleaseCheckOrdersByNewReleasesCheckedAtNullFirst(): void
+    {
+        $neverChecked = EntityFactory::createComicSeries('Never Checked');
+
+        $checkedOld = EntityFactory::createComicSeries('Checked Old');
+        $checkedOld->setNewReleasesCheckedAt(new \DateTimeImmutable('-7 days'));
+
+        $checkedRecent = EntityFactory::createComicSeries('Checked Recent');
+        $checkedRecent->setNewReleasesCheckedAt(new \DateTimeImmutable('-1 day'));
+
+        $this->em->persist($checkedOld);
+        $this->em->persist($checkedRecent);
+        $this->em->persist($neverChecked);
+        $this->em->flush();
+
+        $result = $this->repository->findBuyingForReleaseCheck();
+
+        self::assertCount(3, $result);
+        self::assertSame('Never Checked', $result[0]->getTitle());
+        self::assertSame('Checked Old', $result[1]->getTitle());
+        self::assertSame('Checked Recent', $result[2]->getTitle());
+    }
+
+    public function testFindBuyingForReleaseCheckRespectsLimit(): void
+    {
+        $this->em->persist(EntityFactory::createComicSeries('Alpha'));
+        $this->em->persist(EntityFactory::createComicSeries('Bravo'));
+        $this->em->persist(EntityFactory::createComicSeries('Charlie'));
+        $this->em->flush();
+
+        $result = $this->repository->findBuyingForReleaseCheck(limit: 2);
+
+        self::assertCount(2, $result);
+    }
+
+    public function testFindBuyingForReleaseCheckNullLimitReturnsAll(): void
+    {
+        $this->em->persist(EntityFactory::createComicSeries('Alpha'));
+        $this->em->persist(EntityFactory::createComicSeries('Bravo'));
+        $this->em->flush();
+
+        $result = $this->repository->findBuyingForReleaseCheck();
+
+        self::assertCount(2, $result);
+    }
+
     public function testFindWithMissingLookupDataForceIgnoresLookupCompletedAt(): void
     {
         $alreadyLooked = EntityFactory::createComicSeries('Already Looked');

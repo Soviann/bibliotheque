@@ -109,6 +109,31 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries en cours d'achat éligibles à la vérification de nouvelles parutions.
+     *
+     * @return ComicSeries[]
+     */
+    public function findBuyingForReleaseCheck(?int $limit = null): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->where('c.status = :status')
+            ->andWhere('c.latestPublishedIssueComplete = false')
+            ->andWhere('c.isOneShot = false')
+            ->setParameter('status', ComicStatus::BUYING)
+            ->addOrderBy('c.newReleasesCheckedAt', 'ASC') // NULL values first in MariaDB
+            ->addOrderBy('c.title', 'ASC');
+
+        if (null !== $limit && $limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        /** @var ComicSeries[] $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
+    }
+
+    /**
      * Retourne les séries avec une URL de couverture externe mais sans fichier local.
      *
      * @return ComicSeries[]
