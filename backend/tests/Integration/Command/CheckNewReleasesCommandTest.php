@@ -37,6 +37,7 @@ final class CheckNewReleasesCommandTest extends KernelTestCase
 
         static::getContainer()->set(LookupOrchestrator::class, $orchestrator);
 
+        self::assertNotNull(self::$kernel);
         $application = new Application(self::$kernel);
         $command = $application->find('app:check-new-releases');
         $this->commandTester = new CommandTester($command);
@@ -86,6 +87,7 @@ final class CheckNewReleasesCommandTest extends KernelTestCase
         // Vérifier que newReleasesCheckedAt n'a pas été mis à jour
         $this->em->clear();
         $refreshed = $this->em->getRepository(\App\Entity\ComicSeries::class)->find($series->getId());
+        self::assertNotNull($refreshed);
         self::assertNull($refreshed->getNewReleasesCheckedAt());
     }
 
