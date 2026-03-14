@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.7.0] - 2026-03-14
+
 ### Added
 
 - **Nouveaux providers de lookup** : Jikan, Kitsu, MangaDex (manga) et ComicVine (BD/Comics) pour enrichir les métadonnées. Refactoring LookupTitleCleaner (DRY) (#211)
@@ -17,9 +19,6 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Changed
 
 - **PurgeService** : Corrige le problème N+1 en utilisant `findBy()` au lieu de `find()` en boucle (#172)
-
-### Changed
-
 - **Docker hardening** : Conteneurs PHP et nginx exécutés en non-root, Node.js 22, Composer pinné à v2, healthcheck php-fpm, `.dockerignore` enrichi (#171)
 
 ### Fixed
