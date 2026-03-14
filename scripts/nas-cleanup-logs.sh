@@ -2,7 +2,7 @@
 # Nettoyage des logs Bibliotheque — lancé par le planificateur DSM (root)
 # Supprime les fichiers .log de plus de 7 jours dans /var/log/bibliotheque/
 
-LOG_DIR="/var/log/bibliotheque"
+LOG_DIR="/volume1/docker/bibliotheque/logs"
 RETENTION_DAYS=7
 
 if [ ! -d "$LOG_DIR" ]; then

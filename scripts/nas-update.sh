@@ -5,7 +5,7 @@
 APP_DIR="/volume1/docker/bibliotheque"
 BACKEND_DIR="${APP_DIR}/backend"
 ENV_FILE="${BACKEND_DIR}/.env.nas"
-LOG_DIR="/var/log/bibliotheque"
+LOG_DIR="${APP_DIR}/logs"
 LOG_FILE="${LOG_DIR}/update-$(date '+%Y-%m-%d').log"
 
 mkdir -p "$LOG_DIR"
