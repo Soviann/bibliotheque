@@ -192,7 +192,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
             $this->logger->error("Erreur Gemini API ({$logName}) : {error}", ['code' => $e->getErrorCode(), 'error' => $e->getMessage()]);
 
             $code = $e->getErrorCode();
-            if (\in_array($code, [401, 403, 429], true)) {
+            if (\in_array($code, [400, 401, 403, 429], true)) {
                 $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Toutes les clés API épuisées (dernière erreur : '.$code.')');
             } else {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, $e->getErrorMessage());

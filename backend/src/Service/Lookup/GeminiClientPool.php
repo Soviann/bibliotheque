@@ -8,7 +8,7 @@ use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Pool de clients Gemini avec rotation clés × modèles sur erreur 401/403/429.
+ * Pool de clients Gemini avec rotation clés × modèles sur erreur 400/401/403/429.
  *
  * Itère modèles (outer) × clés (inner) : épuise toutes les clés sur le meilleur modèle d'abord.
  * Le suivi d'épuisement est en mémoire (suffisant pour les batchs et réinitialisé par requête web).
@@ -46,7 +46,7 @@ class GeminiClientPool
     }
 
     /**
-     * Exécute le callable avec rotation clés × modèles sur 429.
+     * Exécute le callable avec rotation clés × modèles sur 400/401/403/429.
      *
      * @template T
      *
@@ -75,7 +75,7 @@ class GeminiClientPool
                 } catch (ErrorException $e) {
                     $code = $e->getErrorCode();
 
-                    if (!\in_array($code, [401, 403, 429], true)) {
+                    if (!\in_array($code, [400, 401, 403, 429], true)) {
                         throw $e;
                     }
 
