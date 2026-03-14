@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.4] - 2026-03-14
+
+### Fixed
+
+- **Scripts NAS** : Correction du commentaire obsolète dans `nas-cleanup-logs.sh`
+
 ## [v2.8.3] - 2026-03-14
 
 ### Fixed
