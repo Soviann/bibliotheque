@@ -134,11 +134,10 @@ Run CS-Fixer and tests afterwards.
 
 ### Tags/Releases (SemVer)
 
-Format: `vMAJOR.MINOR.PATCH`. Tags on `main` only.
+Format: `vMAJOR.MINOR.PATCH`. Tags on `main` only. **Pushing a tag triggers production deployment** (NAS pulls latest tag nightly via `nas-update.sh`).
 1. CHANGELOG: `[Unreleased]` → `[vX.Y.Z] - YYYY-MM-DD`
 2. Commit: `chore(release): vX.Y.Z`
-3. `git tag -a vX.Y.Z -m "vX.Y.Z"` + push
-4. `gh release create vX.Y.Z`
+3. `git tag -a vX.Y.Z -m "vX.Y.Z"` + push tag + push commit
 
 ## Issue Workflow
 
