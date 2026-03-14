@@ -26,19 +26,26 @@ current_tag() {
     git -C "$APP_DIR" describe --tags --exact-match HEAD 2>/dev/null
 }
 
-# Tente un build et vérifie que les conteneurs démarrent correctement.
+# Tente un déploiement (pull des images pré-buildées) et vérifie que les conteneurs démarrent correctement.
 # Retourne 0 si succès, 1 si échec.
-try_build() {
+try_deploy() {
     local tag
     tag=$(current_tag)
-    log "Tentative de build pour le tag ${tag:-$(git -C "$APP_DIR" rev-parse --short HEAD)}..."
+    log "Tentative de déploiement pour le tag ${tag:-$(git -C "$APP_DIR" rev-parse --short HEAD)}..."
 
     cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; return 1; }
 
+    export TAG="${tag#v}"
+
     docker compose --env-file "$ENV_FILE" down >> "$LOG_FILE" 2>&1
 
-    if ! docker compose --env-file "$ENV_FILE" up --build -d >> "$LOG_FILE" 2>&1; then
-        log "ERREUR: docker compose up --build a échoué."
+    if ! docker compose --env-file "$ENV_FILE" pull >> "$LOG_FILE" 2>&1; then
+        log "ERREUR: docker compose pull a échoué."
+        return 1
+    fi
+
+    if ! docker compose --env-file "$ENV_FILE" up -d >> "$LOG_FILE" 2>&1; then
+        log "ERREUR: docker compose up a échoué."
         return 1
     fi
 
@@ -52,7 +59,7 @@ try_build() {
         return 1
     fi
 
-    log "Build réussi."
+    log "Déploiement réussi."
     return 0
 }
 
@@ -82,7 +89,7 @@ if [ "$TARGET_TAG" = "$CURRENT_TAG" ]; then
         log "Déjà sur le tag ${TARGET_TAG}, conteneurs OK."
         exit 0
     fi
-    log "Tag ${TARGET_TAG} déjà déployé mais conteneurs non running (${RUNNING}/3). Rebuild..."
+    log "Tag ${TARGET_TAG} déjà déployé mais conteneurs non running (${RUNNING}/3). Redéploiement..."
 fi
 
 log "Mise à jour : ${CURRENT_TAG:-aucun tag} → ${TARGET_TAG}"
@@ -90,8 +97,8 @@ log "Mise à jour : ${CURRENT_TAG:-aucun tag} → ${TARGET_TAG}"
 # Checkout du tag cible
 git checkout "$TARGET_TAG" >> "$LOG_FILE" 2>&1
 
-# Tentative de build avec le nouveau tag
-if try_build; then
+# Tentative de déploiement avec le nouveau tag
+if try_deploy; then
     # Attendre que la DB soit healthy
     sleep 15
 
@@ -106,8 +113,8 @@ if try_build; then
     exit 0
 fi
 
-# Échec du build : rollback vers les tags précédents
-log "Le build a échoué pour ${TARGET_TAG}, début du rollback..."
+# Échec du déploiement : rollback vers les tags précédents
+log "Le déploiement a échoué pour ${TARGET_TAG}, début du rollback..."
 
 # Lister les tags SemVer par version décroissante, en excluant le tag qui vient d'échouer
 PREVIOUS_TAGS=$(git -C "$APP_DIR" tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -v "^${TARGET_TAG}$" | head -5)
@@ -116,7 +123,7 @@ for tag in $PREVIOUS_TAGS; do
     log "Rollback vers ${tag}..."
     git checkout "$tag" >> "$LOG_FILE" 2>&1
 
-    if try_build; then
+    if try_deploy; then
         sleep 15
         # Vider le cache Symfony après rollback (en tant que www-data pour les permissions)
         docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod >> "$LOG_FILE" 2>&1
@@ -129,6 +136,6 @@ for tag in $PREVIOUS_TAGS; do
     fi
 done
 
-log "ERREUR CRITIQUE: rollback échoué après avoir essayé les tags précédents. Intervention manuelle requise."
+log "ERREUR CRITIQUE: rollback échoué après avoir essayé les tags précédents. Intervention manuelle requise. Fallback: docker compose up --build -d"
 log "=== Mise à jour échouée ==="
 exit 1

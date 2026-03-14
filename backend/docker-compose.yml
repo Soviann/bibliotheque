@@ -1,5 +1,6 @@
 services:
   nginx:
+    image: ghcr.io/soviann/bibliotheque-nginx:${TAG:-latest}
     build:
       args:
         - VITE_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_ID}
@@ -16,6 +17,7 @@ services:
       - uploads:/var/www/html/public/uploads:ro
 
   php:
+    image: ghcr.io/soviann/bibliotheque-php:${TAG:-latest}
     build: .
     depends_on:
       db:
