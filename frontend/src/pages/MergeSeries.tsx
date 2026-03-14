@@ -20,8 +20,9 @@ import {
   useDetectMergeGroups,
   useExecuteMerge,
   useMergePreview,
+  useMergeSuggest,
 } from "../hooks/useMergeSeries";
-import type { ComicSeries, HydraCollection, MergeGroup, MergePreview } from "../types/api";
+import type { ComicSeries, HydraCollection, MergeGroup, MergePreview, MergeSuggestion } from "../types/api";
 import { type SelectOption, typeOptions } from "../types/enums";
 
 const letterOptions: SelectOption[] = [
@@ -36,6 +37,7 @@ export default function MergeSeries() {
   // Shared state
   const [previewData, setPreviewData] = useState<MergePreview | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [suggestion, setSuggestion] = useState<MergeSuggestion | null>(null);
 
   // Confirmation step state
   const [confirmEntries, setConfirmEntries] = useState<MergeSeriesEntry[]>([]);
@@ -55,6 +57,7 @@ export default function MergeSeries() {
   const queryClient = useQueryClient();
   const detectMutation = useDetectMergeGroups();
   const previewMutation = useMergePreview();
+  const suggestMutation = useMergeSuggest();
   const executeMerge = useExecuteMerge();
 
   const handleDetect = () => {
@@ -100,6 +103,8 @@ export default function MergeSeries() {
 
   const handleConfirmSeries = (confirmedIds: number[]) => {
     setConfirmOpen(false);
+    setSuggestion(null);
+
     previewMutation.mutate(confirmedIds, {
       onError: (error) => {
         toast.error(error instanceof Error ? error.message : "Erreur lors de la génération de l'aperçu");
@@ -107,6 +112,13 @@ export default function MergeSeries() {
       onSuccess: (data) => {
         setPreviewData(data);
         setPreviewOpen(true);
+      },
+    });
+
+    // Lancer les suggestions IA en parallèle
+    suggestMutation.mutate(confirmedIds, {
+      onSuccess: (data) => {
+        setSuggestion(data);
       },
     });
   };
@@ -286,13 +298,16 @@ export default function MergeSeries() {
 
       <MergePreviewModal
         isExecuting={executeMerge.isPending}
+        isSuggesting={suggestMutation.isPending}
         onClose={() => {
           setPreviewOpen(false);
           setPreviewData(null);
+          setSuggestion(null);
         }}
         onConfirm={handleConfirmMerge}
         open={previewOpen}
         preview={previewData}
+        suggestion={suggestion}
       />
     </div>
   );

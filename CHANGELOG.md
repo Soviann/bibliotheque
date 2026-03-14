@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Merge** : Corrige le timeout 504 sur `/api/merge-series/preview` en rendant l'appel Gemini asynchrone via un nouvel endpoint `/api/merge-series/suggest`
+
 ## [v2.9.0] - 2026-03-14
 
 ### Added

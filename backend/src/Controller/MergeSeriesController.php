@@ -114,6 +114,58 @@ final class MergeSeriesController
     }
 
     /**
+     * Suggère un titre canonique et des numéros de tomes via Gemini.
+     */
+    #[Route('/suggest', name: 'api_merge_series_suggest', methods: ['POST'])]
+    public function suggest(Request $request): JsonResponse
+    {
+        $rateLimitResponse = $this->checkRateLimit($request, $this->mergeSeriesLimiter);
+        if ($rateLimitResponse instanceof JsonResponse) {
+            return $rateLimitResponse;
+        }
+
+        /** @var array<string, mixed> $data */
+        $data = \json_decode($request->getContent(), true) ?? [];
+
+        $seriesIds = $data['seriesIds'] ?? [];
+        if (!\is_array($seriesIds) || \count($seriesIds) < 2) {
+            return new JsonResponse(
+                ['error' => 'Au moins 2 séries sont requises.'],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+        $seriesList = [];
+        foreach ($seriesIds as $id) {
+            if (!\is_int($id) && !\is_string($id)) {
+                return new JsonResponse(
+                    ['error' => 'Les identifiants de séries doivent être des entiers.'],
+                    Response::HTTP_BAD_REQUEST,
+                );
+            }
+            $series = $this->comicSeriesRepository->find((int) $id);
+            if (null === $series) {
+                return new JsonResponse(
+                    ['error' => \sprintf('Série introuvable : %d', (int) $id)],
+                    Response::HTTP_NOT_FOUND,
+                );
+            }
+            $seriesList[] = $series;
+        }
+
+        $suggestion = $this->mergePreviewBuilder->suggestFromGemini($seriesList);
+
+        if (null === $suggestion) {
+            return new JsonResponse(
+                ['error' => 'Impossible d\'obtenir des suggestions.'],
+                Response::HTTP_SERVICE_UNAVAILABLE,
+            );
+        }
+
+        return new JsonResponse($suggestion);
+    }
+
+    /**
      * Exécute la fusion selon un aperçu validé.
      */
     #[Route('/execute', name: 'api_merge_series_execute', methods: ['POST'])]

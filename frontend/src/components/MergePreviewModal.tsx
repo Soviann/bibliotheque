@@ -4,28 +4,38 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import { AlertTriangle, Loader2, Plus, X } from "lucide-react";
+import { AlertTriangle, Loader2, Plus, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { MergePreview, MergePreviewTome } from "../types/api";
+import type {
+  MergePreview,
+  MergePreviewTome,
+  MergeSuggestion,
+} from "../types/api";
 
 interface MergePreviewModalProps {
   isExecuting: boolean;
+  isSuggesting?: boolean;
   onClose: () => void;
   onConfirm: (preview: MergePreview) => void;
   open: boolean;
   preview: MergePreview | null;
+  suggestion?: MergeSuggestion | null;
 }
 
 export default function MergePreviewModal({
   isExecuting,
+  isSuggesting = false,
   onClose,
   onConfirm,
   open,
   preview,
+  suggestion,
 }: MergePreviewModalProps) {
   const [editedTitle, setEditedTitle] = useState("");
   const [editedTomes, setEditedTomes] = useState<MergePreviewTome[]>([]);
   const [descExpanded, setDescExpanded] = useState(false);
+
+  const [suggestionApplied, setSuggestionApplied] = useState(false);
 
   // Sync local state when preview changes
   useEffect(() => {
@@ -33,8 +43,38 @@ export default function MergePreviewModal({
       setEditedTitle(preview.title);
       setEditedTomes(preview.tomes.map((t) => ({ ...t })));
       setDescExpanded(false);
+      setSuggestionApplied(false);
     }
   }, [preview]);
+
+  // Appliquer les suggestions Gemini quand elles arrivent
+  useEffect(() => {
+    if (!suggestion || suggestionApplied) return;
+
+    setEditedTitle(suggestion.title);
+
+    // Construire une map ID → tomeNumber pour les suggestions
+    const tomeNumberMap = new Map(
+      suggestion.entries.map((e) => [e.id, e.tomeNumber]),
+    );
+
+    // Mettre à jour les numéros de tomes en se basant sur sourceSeriesIds
+    if (preview) {
+      const newTomes = preview.tomes.map((tome, index) => {
+        const seriesId = preview.sourceSeriesIds[index];
+        const suggestedNumber = seriesId !== undefined ? tomeNumberMap.get(seriesId) : undefined;
+        return {
+          ...tome,
+          number: suggestedNumber ?? tome.number,
+        };
+      });
+      // Trier par numéro
+      newTomes.sort((a, b) => a.number - b.number);
+      setEditedTomes(newTomes);
+    }
+
+    setSuggestionApplied(true);
+  }, [suggestion, suggestionApplied, preview]);
 
   const duplicateNumbers = useMemo(() => {
     const counts = new Map<number, number>();
@@ -124,6 +164,13 @@ export default function MergePreviewModal({
                 value={editedTitle}
               />
             </div>
+
+            {isSuggesting && (
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-text-muted">
+                <Sparkles className="h-3.5 w-3.5 animate-pulse text-amber-500" />
+                Suggestions IA en cours...
+              </div>
+            )}
 
             {/* Metadata */}
             <div className="mt-4 flex flex-wrap items-center gap-2">

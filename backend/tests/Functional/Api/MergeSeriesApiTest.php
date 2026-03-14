@@ -74,6 +74,49 @@ final class MergeSeriesApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
+    public function testSuggestRequiresAuthentication(): void
+    {
+        $client = $this->createUnauthenticatedClient();
+
+        $client->request('POST', '/api/merge-series/suggest', [
+            'json' => ['seriesIds' => [1, 2]],
+        ]);
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    // ---------------------------------------------------------------
+    // POST /api/merge-series/suggest — validation
+    // ---------------------------------------------------------------
+
+    public function testSuggestRequiresAtLeastTwoSeriesIds(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('POST', '/api/merge-series/suggest', [
+            'json' => ['seriesIds' => [1]],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+
+        $data = $client->getResponse()->toArray(false);
+        self::assertSame('Au moins 2 séries sont requises.', $data['error']);
+    }
+
+    public function testSuggestReturns404ForNonexistentSeries(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('POST', '/api/merge-series/suggest', [
+            'json' => ['seriesIds' => [99999, 99998]],
+        ]);
+
+        self::assertResponseStatusCodeSame(404);
+
+        $data = $client->getResponse()->toArray(false);
+        self::assertStringContainsString('introuvable', $data['error']);
+    }
+
     // ---------------------------------------------------------------
     // POST /api/merge-series/preview — validation
     // ---------------------------------------------------------------

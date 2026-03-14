@@ -7,6 +7,7 @@ import {
   useDetectMergeGroups,
   useExecuteMerge,
   useMergePreview,
+  useMergeSuggest,
 } from "../../../hooks/useMergeSeries";
 import type { MergePreview } from "../../../types/api";
 import { createMockHydraCollection } from "../../helpers/factories";
@@ -125,6 +126,36 @@ describe("useMergeSeries", () => {
       expect(result.current.data!.authors).toEqual(["Goscinny", "Uderzo"]);
       expect(result.current.data!.tomes).toHaveLength(2);
       expect(result.current.data!.sourceSeriesIds).toEqual([1, 2]);
+    });
+  });
+
+  describe("useMergeSuggest", () => {
+    it("returns AI suggestions for series IDs", async () => {
+      server.use(
+        http.post("/api/merge-series/suggest", () => {
+          return HttpResponse.json({
+            entries: [
+              { id: 1, tomeNumber: 8 },
+              { id: 2, tomeNumber: 1 },
+            ],
+            title: "Astérix",
+          });
+        }),
+      );
+
+      const { result } = renderHook(() => useMergeSuggest(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate([1, 2]);
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(result.current.data!.title).toBe("Astérix");
+      expect(result.current.data!.entries).toHaveLength(2);
+      expect(result.current.data!.entries[0].tomeNumber).toBe(8);
     });
   });
 

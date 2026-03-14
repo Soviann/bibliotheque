@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "../services/api";
-import type { MergeGroup, MergePreview } from "../types/api";
+import type {
+  MergeGroup,
+  MergePreview,
+  MergeSuggestion,
+} from "../types/api";
 
 interface DetectParams {
   all?: boolean;
@@ -22,6 +26,16 @@ export function useMergePreview() {
   return useMutation({
     mutationFn: (seriesIds: number[]) =>
       apiFetch<MergePreview>("/merge-series/preview", {
+        body: JSON.stringify({ seriesIds }),
+        method: "POST",
+      }),
+  });
+}
+
+export function useMergeSuggest() {
+  return useMutation({
+    mutationFn: (seriesIds: number[]) =>
+      apiFetch<MergeSuggestion>("/merge-series/suggest", {
         body: JSON.stringify({ seriesIds }),
         method: "POST",
       }),
