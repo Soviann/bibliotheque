@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ComicSeries } from "../../../types/api";
 import { ComicStatus, ComicType } from "../../../types/enums";
 import { hasNewRelease } from "../../../utils/releaseUtils";
@@ -55,6 +55,15 @@ function makeTome(number: number) {
 }
 
 describe("hasNewRelease", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-14T12:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("returns true when new tomes detected recently", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
