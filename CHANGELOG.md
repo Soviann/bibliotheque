@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **CI** : Pré-build des images Docker (PHP + Nginx) sur ghcr.io à chaque tag, le NAS pull au lieu de rebuild (~30s vs ~10min)
+
 ## [v2.8.9] - 2026-03-14
 
 ### Fixed
