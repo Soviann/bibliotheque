@@ -10,5 +10,6 @@ gosu www-data composer dump-env prod
 # Warmup du cache Symfony (nécessite les env vars compilées ci-dessus)
 gosu www-data php bin/console cache:warmup --env=prod --no-debug
 
-# Exécute la commande par défaut (php-fpm) en tant que www-data
-exec gosu www-data "$@"
+# php-fpm doit démarrer en root (accès stderr, bind port 9000)
+# puis drop les privileges via sa config (user = www-data)
+exec "$@"
