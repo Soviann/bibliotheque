@@ -177,6 +177,69 @@ final class AuthorApiTest extends ApiTestCase
         self::assertArrayHasKey('id', $data);
     }
 
+    public function testPostCreateWithAccentedCharactersReturns201(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('POST', '/api/authors', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['name' => 'Joël Parnotte'],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertSame('Joël Parnotte', $data['name']);
+    }
+
+    public function testPostCreateDuplicateReturnsExistingAuthor(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $author = EntityFactory::createAuthor('Christophe Arleston');
+        $this->em->persist($author);
+        $this->em->flush();
+
+        $existingId = $author->getId();
+
+        // POST avec le même nom doit retourner l'auteur existant, pas une erreur
+        $client->request('POST', '/api/authors', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['name' => 'Christophe Arleston'],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertSame('Christophe Arleston', $data['name']);
+        self::assertSame($existingId, $data['id']);
+    }
+
+    public function testPostCreateDuplicateWithAccentedNameReturnsExistingAuthor(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $author = EntityFactory::createAuthor('Joël Parnotte');
+        $this->em->persist($author);
+        $this->em->flush();
+
+        $existingId = $author->getId();
+
+        $client->request('POST', '/api/authors', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => ['name' => 'Joël Parnotte'],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $data = $client->getResponse()->toArray();
+
+        self::assertSame('Joël Parnotte', $data['name']);
+        self::assertSame($existingId, $data['id']);
+    }
+
     public function testPostCreateValidationBlankNameReturns422(): void
     {
         $client = $this->createAuthenticatedClient();
