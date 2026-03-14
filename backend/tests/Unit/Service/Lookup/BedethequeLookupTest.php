@@ -501,6 +501,71 @@ final class BedethequeLookupTest extends TestCase
     }
 
     /**
+     * Teste que resolveLookup gère les réponses bloquées par les filtres de sécurité Gemini
+     * sans lever de ValueError, et retourne un message diagnostique incluant la raison.
+     */
+    public function testResolveLookupHandlesBlockedPromptWithSafetyFeedback(): void
+    {
+        $fakeResponse = GenerateContentResponse::from([
+            'candidates' => [],
+            'promptFeedback' => [
+                'blockReason' => 'SAFETY',
+                'safetyRatings' => [
+                    ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'probability' => 'HIGH'],
+                ],
+            ],
+            'usageMetadata' => ['promptTokenCount' => 10, 'totalTokenCount' => 10],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('warning')
+            ->with(self::stringContains('Bedetheque'), self::callback(
+                static fn (array $context): bool => isset($context['blockReason']) && 'SAFETY' === $context['blockReason'],
+            ));
+        $this->logger = $logger;
+
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertSame('not_found', $apiMessage->status);
+        self::assertStringContainsString('SAFETY', $apiMessage->message);
+    }
+
+    /**
+     * Teste que resolveLookup gère une réponse vide (sans candidats ni feedback).
+     */
+    public function testResolveLookupHandlesEmptyCandidatesWithoutFeedback(): void
+    {
+        $fakeResponse = GenerateContentResponse::from([
+            'candidates' => [],
+            'usageMetadata' => ['promptTokenCount' => 10, 'totalTokenCount' => 10],
+        ]);
+
+        $geminiClient = new ClientFake([$fakeResponse]);
+
+        $realCache = new ArrayAdapter();
+        $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
+
+        $provider = $this->createProvider(pool: $this->createPoolFromClient($geminiClient));
+
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'Test prompt'];
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        self::assertSame('not_found', $provider->getLastApiMessage()->status);
+    }
+
+    /**
      * Crée un GeminiClientPool mock qui délègue au client fourni.
      */
     private function createPoolFromClient(GeminiClient $client): GeminiClientPool
