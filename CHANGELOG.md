@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.1] - 2026-03-14
+
+### Fixed
+
+- **Déploiement SSH** : Ajout de `/usr/local/bin` au PATH du script de mise à jour pour les sessions SSH non-interactives (#218)
+
 ## [v2.8.0] - 2026-03-14
 
 ### Added
