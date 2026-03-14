@@ -173,34 +173,6 @@ final class LookupApiTest extends ApiTestCase
     // Rate limiting
     // ---------------------------------------------------------------
 
-    /**
-     * Teste que le rate limiter renvoie 429 avec Retry-After quand le quota est épuisé.
-     */
-    public function testIsbnLookupRateLimitedReturns429(): void
-    {
-        $container = static::getContainer();
-
-        /** @var \Symfony\Component\RateLimiter\RateLimiterFactory $limiterFactory */
-        $limiterFactory = $container->get('limiter.api_lookup');
-
-        // Épuisement du quota (30 tokens) pour l'IP utilisée par le client de test
-        $limiter = $limiterFactory->create('127.0.0.1');
-        $limiter->consume(30);
-
-        $client = $this->createAuthenticatedClient();
-        $client->request('GET', '/api/lookup/isbn', [
-            'query' => ['isbn' => '9782723489'],
-        ]);
-
-        self::assertResponseStatusCodeSame(429);
-
-        $response = $client->getResponse();
-        $data = $response->toArray(false);
-        self::assertSame('Trop de requêtes. Réessayez plus tard.', $data['error']);
-
-        $headers = $response->getHeaders(false);
-        self::assertArrayHasKey('retry-after', $headers, 'L\'en-tête Retry-After doit être présent');
-    }
 
     // ---------------------------------------------------------------
     // Paramètre type

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\Trait\RateLimitTrait;
 use App\Service\Import\ImportBooksService;
 use App\Service\Import\ImportExcelService;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
@@ -12,7 +11,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,8 +21,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/tools/import')]
 final class ImportController
 {
-    use RateLimitTrait;
-
     private const array ALLOWED_MIME_TYPES = [
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
@@ -34,7 +30,6 @@ final class ImportController
     public function __construct(
         private readonly ImportBooksService $importBooksService,
         private readonly ImportExcelService $importExcelService,
-        private readonly RateLimiterFactory $importLimiter,
     ) {
     }
 
@@ -44,11 +39,6 @@ final class ImportController
     #[Route('/books', name: 'api_tools_import_books', methods: ['POST'])]
     public function books(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->importLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         $file = $request->files->get('file');
 
         if (!$file instanceof UploadedFile) {
@@ -83,11 +73,6 @@ final class ImportController
     #[Route('/excel', name: 'api_tools_import_excel', methods: ['POST'])]
     public function excel(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->importLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         $file = $request->files->get('file');
 
         if (!$file instanceof UploadedFile) {

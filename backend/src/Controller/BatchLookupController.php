@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\Trait\RateLimitTrait;
 use App\DTO\BatchLookupSummary;
 use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
@@ -12,7 +11,6 @@ use App\Service\BatchLookupService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,11 +21,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/tools/batch-lookup')]
 final class BatchLookupController
 {
-    use RateLimitTrait;
-
     public function __construct(
         private readonly BatchLookupService $batchLookupService,
-        private readonly RateLimiterFactory $batchLookupLimiter,
     ) {
     }
 
@@ -50,13 +45,8 @@ final class BatchLookupController
      * Lance le lookup batch avec streaming SSE.
      */
     #[Route('/run', name: 'api_tools_batch_lookup_run', methods: ['POST'])]
-    public function run(Request $request): JsonResponse|StreamedResponse
+    public function run(Request $request): StreamedResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->batchLookupLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         /** @var array<string, mixed> $data */
         $data = \json_decode($request->getContent(), true) ?? [];
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\Trait\RateLimitTrait;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Merge\MergePreviewBuilder;
@@ -14,7 +13,6 @@ use App\Service\Merge\SeriesMerger;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -25,13 +23,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/merge-series')]
 final class MergeSeriesController
 {
-    use RateLimitTrait;
-
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
         private readonly MergePreviewBuilder $mergePreviewBuilder,
         private readonly MergePreviewHydrator $mergePreviewHydrator,
-        private readonly RateLimiterFactory $mergeSeriesLimiter,
         private readonly SeriesGroupDetector $seriesGroupDetector,
         private readonly SeriesMerger $seriesMerger,
     ) {
@@ -43,11 +38,6 @@ final class MergeSeriesController
     #[Route('/detect', name: 'api_merge_series_detect', methods: ['POST'])]
     public function detect(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->mergeSeriesLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         /** @var array<string, mixed> $data */
         $data = \json_decode($request->getContent(), true) ?? [];
 
@@ -119,11 +109,6 @@ final class MergeSeriesController
     #[Route('/suggest', name: 'api_merge_series_suggest', methods: ['POST'])]
     public function suggest(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->mergeSeriesLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         /** @var array<string, mixed> $data */
         $data = \json_decode($request->getContent(), true) ?? [];
 
@@ -171,11 +156,6 @@ final class MergeSeriesController
     #[Route('/execute', name: 'api_merge_series_execute', methods: ['POST'])]
     public function execute(Request $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->mergeSeriesLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         /** @var array<string, mixed> $data */
         $data = \json_decode($request->getContent(), true) ?? [];
 

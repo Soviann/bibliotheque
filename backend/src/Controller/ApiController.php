@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\Trait\RateLimitTrait;
 use App\Enum\ComicType;
 use App\Service\CoverSearchService;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -21,26 +18,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/lookup')]
 final class ApiController
 {
-    use RateLimitTrait;
-
-    public function __construct(
-        private readonly RateLimiterFactory $apiLookupLimiter,
-        #[Autowire(service: 'limiter.cover_search')]
-        private readonly RateLimiterFactory $coverSearchLimiter,
-    ) {
-    }
-
     /**
      * Recherche les informations d'un livre par ISBN.
      */
     #[Route('/isbn', name: 'api_lookup_isbn', methods: ['GET'])]
     public function isbnLookup(Request $request, LookupOrchestrator $lookupOrchestrator): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->apiLookupLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         $isbn = $request->query->get('isbn', '');
         $type = $this->resolveComicType($request);
 
@@ -61,11 +44,6 @@ final class ApiController
     #[Route('/title', name: 'api_lookup_title', methods: ['GET'])]
     public function titleLookup(Request $request, LookupOrchestrator $lookupOrchestrator): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->apiLookupLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         $title = $request->query->get('title', '');
         $type = $this->resolveComicType($request);
         $limit = \max(0, (int) $request->query->get('limit', '1'));
@@ -93,11 +71,6 @@ final class ApiController
     #[Route('/covers', name: 'api_lookup_covers', methods: ['GET'])]
     public function coverSearch(Request $request, CoverSearchService $coverSearchService): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit($request, $this->coverSearchLimiter);
-        if ($rateLimitResponse instanceof JsonResponse) {
-            return $rateLimitResponse;
-        }
-
         $query = $request->query->get('query', '');
         $type = $this->resolveComicType($request);
 
