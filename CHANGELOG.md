@@ -7,6 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.8] - 2026-03-14
+
+### Fixed
+
+- **Docker** : Augmente les délais du healthcheck PHP (start_period 60s, retries 10) pour le warmup sur NAS
+- **CI** : Skip les checks pour les PRs ne touchant que CHANGELOG, docs, scripts ou .md
+
 ## [v2.8.7] - 2026-03-14
 
 ### Fixed
