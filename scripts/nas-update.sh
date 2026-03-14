@@ -75,8 +75,14 @@ if [ -z "$TARGET_TAG" ]; then
 fi
 
 if [ "$TARGET_TAG" = "$CURRENT_TAG" ]; then
-    log "Déjà sur le tag ${TARGET_TAG}, aucune mise à jour nécessaire."
-    exit 0
+    # Vérifier que les conteneurs tournent, sinon forcer un rebuild
+    cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; exit 1; }
+    RUNNING=$(docker compose --env-file "$ENV_FILE" ps --format '{{.State}}' 2>/dev/null | grep -ci "running" || true)
+    if [ "$RUNNING" -ge 3 ]; then
+        log "Déjà sur le tag ${TARGET_TAG}, conteneurs OK."
+        exit 0
+    fi
+    log "Tag ${TARGET_TAG} déjà déployé mais conteneurs non running (${RUNNING}/3). Rebuild..."
 fi
 
 log "Mise à jour : ${CURRENT_TAG:-aucun tag} → ${TARGET_TAG}"
