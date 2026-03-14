@@ -1,4 +1,5 @@
 #!/bin/bash
+set -o pipefail
 # Script de mise à jour automatique — lancé par le planificateur DSM ou GitHub Actions (SSH)
 # Déploie le dernier tag SemVer (vX.Y.Z) depuis le dépôt distant.
 
@@ -13,7 +14,7 @@ LOG_FILE="${LOG_DIR}/update-$(date '+%Y-%m-%d').log"
 mkdir -p "$LOG_DIR"
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
 }
 
 # Retourne le dernier tag SemVer (vX.Y.Z) trié par version.
@@ -37,14 +38,14 @@ try_deploy() {
 
     export TAG="${tag#v}"
 
-    docker compose --env-file "$ENV_FILE" down >> "$LOG_FILE" 2>&1
+    docker compose --env-file "$ENV_FILE" down 2>&1 | tee -a "$LOG_FILE"
 
-    if ! docker compose --env-file "$ENV_FILE" pull >> "$LOG_FILE" 2>&1; then
+    if ! docker compose --env-file "$ENV_FILE" pull 2>&1 | tee -a "$LOG_FILE"; then
         log "ERREUR: docker compose pull a échoué."
         return 1
     fi
 
-    if ! docker compose --env-file "$ENV_FILE" up -d >> "$LOG_FILE" 2>&1; then
+    if ! docker compose --env-file "$ENV_FILE" up -d 2>&1 | tee -a "$LOG_FILE"; then
         log "ERREUR: docker compose up a échoué."
         return 1
     fi
@@ -68,7 +69,7 @@ log "=== Début de la mise à jour ==="
 cd "$APP_DIR" || { log "ERREUR: impossible d'accéder à ${APP_DIR}"; exit 1; }
 
 # Récupérer les tags distants
-if ! git fetch --tags origin >> "$LOG_FILE" 2>&1; then
+if ! git fetch --tags origin 2>&1 | tee -a "$LOG_FILE"; then
     log "ERREUR: git fetch --tags a échoué."
     exit 1
 fi
@@ -95,7 +96,7 @@ fi
 log "Mise à jour : ${CURRENT_TAG:-aucun tag} → ${TARGET_TAG}"
 
 # Checkout du tag cible
-git checkout "$TARGET_TAG" >> "$LOG_FILE" 2>&1
+git checkout "$TARGET_TAG" 2>&1 | tee -a "$LOG_FILE"
 
 # Tentative de déploiement avec le nouveau tag
 if try_deploy; then
@@ -103,11 +104,11 @@ if try_deploy; then
     sleep 15
 
     # Vider le cache Symfony en tant que www-data (le volume app_var persiste entre les rebuilds)
-    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod >> "$LOG_FILE" 2>&1
+    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"
     log "Cache Symfony vidé."
 
     # Migrations
-    docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod >> "$LOG_FILE" 2>&1
+    docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
     log "Migrations exécutées."
     log "=== Mise à jour terminée (${TARGET_TAG}) ==="
     exit 0
@@ -121,15 +122,15 @@ PREVIOUS_TAGS=$(git -C "$APP_DIR" tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-
 
 for tag in $PREVIOUS_TAGS; do
     log "Rollback vers ${tag}..."
-    git checkout "$tag" >> "$LOG_FILE" 2>&1
+    git checkout "$tag" 2>&1 | tee -a "$LOG_FILE"
 
     if try_deploy; then
         sleep 15
         # Vider le cache Symfony après rollback (en tant que www-data pour les permissions)
-        docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod >> "$LOG_FILE" 2>&1
+        docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"
         log "Cache Symfony vidé après rollback."
         log "ATTENTION: rollback effectué — vérifier manuellement la cohérence des migrations si le tag annulé contenait des changements de schéma."
-        docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod >> "$LOG_FILE" 2>&1
+        docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
         log "Migrations exécutées après rollback."
         log "=== Mise à jour terminée (rollback vers ${tag}) ==="
         exit 0
