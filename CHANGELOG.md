@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.3] - 2026-03-14
+
+### Fixed
+
+- **Docker** : Ajout du `cache:warmup` dans l'entrypoint PHP, supprimé par erreur dans #208. Corrige le crash du conteneur PHP en production
+
 ## [v2.8.2] - 2026-03-14
 
 ### Changed
