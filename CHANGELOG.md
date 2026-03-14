@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.2] - 2026-03-14
+
 ### Changed
 
 - **Accessibilité** : Ajout d'`aria-label` sur les boutons icônes, inputs de recherche et checkboxes. Fermeture du `CardActionBar` via Escape (#170)
