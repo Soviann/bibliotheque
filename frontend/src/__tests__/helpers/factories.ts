@@ -38,6 +38,7 @@ export function createMockComicSeries(
   const id = overrides.id ?? nextId++;
   return {
     "@id": `/api/comic_series/${id}`,
+    amazonUrl: null,
     authors: [],
     coverImage: null,
     coverUrl: null,

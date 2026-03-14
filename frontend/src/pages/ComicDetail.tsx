@@ -1,4 +1,4 @@
-import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit, ExternalLink, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useUpdateTome } from "../hooks/useUpdateTome";
-import { ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
+import { ComicStatus, ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
 
@@ -277,6 +277,17 @@ export default function ComicDetail() {
           <Trash2 className="h-5 w-5" />
           Supprimer
         </button>
+        {comic.status === ComicStatus.BUYING && comic.amazonUrl && (
+          <a
+            className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-base font-medium text-white hover:bg-amber-700"
+            href={comic.amazonUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <ExternalLink className="h-5 w-5" />
+            Amazon
+          </a>
+        )}
         <Link
           className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
           to={`/comic/${comic.id}/edit`}

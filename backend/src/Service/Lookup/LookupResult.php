@@ -10,6 +10,7 @@ namespace App\Service\Lookup;
 final class LookupResult implements \JsonSerializable
 {
     public function __construct(
+        public readonly ?string $amazonUrl = null,
         public readonly ?string $authors = null,
         public readonly ?string $description = null,
         public readonly ?string $isbn = null,
@@ -32,6 +33,7 @@ final class LookupResult implements \JsonSerializable
      */
     public function __unserialize(array $data): void
     {
+        $this->amazonUrl = \is_string($data['amazonUrl'] ?? null) ? $data['amazonUrl'] : null;
         $this->authors = \is_string($data['authors'] ?? null) ? $data['authors'] : null;
         $this->description = \is_string($data['description'] ?? null) ? $data['description'] : null;
         $this->isbn = \is_string($data['isbn'] ?? null) ? $data['isbn'] : null;
@@ -55,11 +57,12 @@ final class LookupResult implements \JsonSerializable
     }
 
     /**
-     * @return array{authors: ?string, description: ?string, isbn: ?string, isOneShot: ?bool, latestPublishedIssue: ?int, publishedDate: ?string, publisher: ?string, thumbnail: ?string, title: ?string, tomeEnd: ?int, tomeNumber: ?int}
+     * @return array{amazonUrl: ?string, authors: ?string, description: ?string, isbn: ?string, isOneShot: ?bool, latestPublishedIssue: ?int, publishedDate: ?string, publisher: ?string, thumbnail: ?string, title: ?string, tomeEnd: ?int, tomeNumber: ?int}
      */
     public function jsonSerialize(): array
     {
         return [
+            'amazonUrl' => $this->amazonUrl,
             'authors' => $this->authors,
             'description' => $this->description,
             'isbn' => $this->isbn,
@@ -80,6 +83,7 @@ final class LookupResult implements \JsonSerializable
     public function withIsbn(string $isbn): self
     {
         return new self(
+            amazonUrl: $this->amazonUrl,
             authors: $this->authors,
             description: $this->description,
             isbn: $isbn,

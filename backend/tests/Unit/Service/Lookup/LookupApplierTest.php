@@ -9,6 +9,8 @@ use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupResult;
 use App\Tests\Factory\EntityFactory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Tests unitaires pour LookupApplier.
@@ -16,12 +18,14 @@ use PHPUnit\Framework\TestCase;
 final class LookupApplierTest extends TestCase
 {
     private AuthorRepository $authorRepository;
+    private HttpClientInterface $httpClient;
     private LookupApplier $applier;
 
     protected function setUp(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepository::class);
-        $this->applier = new LookupApplier($this->authorRepository);
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
+        $this->applier = new LookupApplier($this->authorRepository, $this->httpClient);
     }
 
     public function testApplyFillsAllNullFields(): void
@@ -267,6 +271,79 @@ final class LookupApplierTest extends TestCase
 
         // latestPublishedIssue was already set → not updated → no tomes created
         self::assertCount(0, $series->getTomes());
+    }
+
+    public function testApplyFillsAmazonUrlWhenNullAndUrlIsValid(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $result = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/B08N5WRWNW',
+            source: 'test',
+        );
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $this->httpClient->method('request')
+            ->with('HEAD', 'https://www.amazon.fr/dp/B08N5WRWNW')
+            ->willReturn($response);
+
+        $updatedFields = $this->applier->apply($series, $result);
+
+        self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $series->getAmazonUrl());
+        self::assertContains('amazonUrl', $updatedFields);
+    }
+
+    public function testApplySkipsAmazonUrlWhenUrlReturns404(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $result = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/FAKE123',
+            source: 'test',
+        );
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(404);
+        $this->httpClient->method('request')
+            ->with('HEAD', 'https://www.amazon.fr/dp/FAKE123')
+            ->willReturn($response);
+
+        $updatedFields = $this->applier->apply($series, $result);
+
+        self::assertNull($series->getAmazonUrl());
+        self::assertNotContains('amazonUrl', $updatedFields);
+    }
+
+    public function testApplySkipsAmazonUrlWhenHttpRequestThrows(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $result = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/ERROR',
+            source: 'test',
+        );
+
+        $this->httpClient->method('request')
+            ->willThrowException(new \RuntimeException('Connection failed'));
+
+        $updatedFields = $this->applier->apply($series, $result);
+
+        self::assertNull($series->getAmazonUrl());
+        self::assertNotContains('amazonUrl', $updatedFields);
+    }
+
+    public function testApplySkipsAmazonUrlWhenAlreadySet(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+        $series->setAmazonUrl('https://www.amazon.fr/dp/EXISTING');
+
+        $result = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/NEW',
+            source: 'test',
+        );
+
+        $updatedFields = $this->applier->apply($series, $result);
+
+        self::assertSame('https://www.amazon.fr/dp/EXISTING', $series->getAmazonUrl());
+        self::assertNotContains('amazonUrl', $updatedFields);
     }
 
     public function testApplySkipsIsOneShotWhenAlreadyTrue(): void

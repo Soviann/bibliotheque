@@ -19,6 +19,7 @@ final class LookupResultTest extends TestCase
     public function testConstructorWithAllFields(): void
     {
         $result = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/B08N5WRWNW',
             authors: 'Eiichiro Oda',
             description: 'Un manga de pirates',
             isbn: '978-2723489',
@@ -33,6 +34,7 @@ final class LookupResultTest extends TestCase
             tomeNumber: 4,
         );
 
+        self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $result->amazonUrl);
         self::assertSame('Eiichiro Oda', $result->authors);
         self::assertSame('Un manga de pirates', $result->description);
         self::assertSame('978-2723489', $result->isbn);
@@ -54,6 +56,7 @@ final class LookupResultTest extends TestCase
     {
         $result = new LookupResult();
 
+        self::assertNull($result->amazonUrl);
         self::assertNull($result->authors);
         self::assertNull($result->description);
         self::assertNull($result->isbn);
@@ -74,6 +77,7 @@ final class LookupResultTest extends TestCase
     public function testJsonSerializeExcludesSource(): void
     {
         $result = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/B08N5WRWNW',
             authors: 'Toriyama',
             description: 'Dragon Ball',
             isbn: '1234567890',
@@ -91,6 +95,7 @@ final class LookupResultTest extends TestCase
         $json = $result->jsonSerialize();
 
         self::assertArrayNotHasKey('source', $json);
+        self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $json['amazonUrl']);
         self::assertSame('Toriyama', $json['authors']);
         self::assertSame('Dragon Ball', $json['description']);
         self::assertSame('1234567890', $json['isbn']);
@@ -164,6 +169,7 @@ final class LookupResultTest extends TestCase
     public function testWithIsbnReturnsNewInstance(): void
     {
         $original = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/B08N5WRWNW',
             authors: 'Oda',
             source: 'google_books',
             title: 'One Piece',
@@ -176,6 +182,7 @@ final class LookupResultTest extends TestCase
         self::assertNotSame($original, $withIsbn);
         self::assertNull($original->isbn);
         self::assertSame('978-2723489', $withIsbn->isbn);
+        self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $withIsbn->amazonUrl);
         self::assertSame('Oda', $withIsbn->authors);
         self::assertSame('google_books', $withIsbn->source);
         self::assertSame('One Piece', $withIsbn->title);
@@ -189,6 +196,7 @@ final class LookupResultTest extends TestCase
     public function testUnserializeWithFullData(): void
     {
         $original = new LookupResult(
+            amazonUrl: 'https://www.amazon.fr/dp/B08N5WRWNW',
             authors: 'Oda',
             description: 'Pirates',
             isbn: '1234567890',
@@ -206,6 +214,7 @@ final class LookupResultTest extends TestCase
         /** @var LookupResult $result */
         $result = \unserialize(\serialize($original));
 
+        self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $result->amazonUrl);
         self::assertSame('Oda', $result->authors);
         self::assertSame('Pirates', $result->description);
         self::assertSame('1234567890', $result->isbn);

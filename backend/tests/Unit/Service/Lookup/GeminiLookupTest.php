@@ -170,6 +170,7 @@ final class GeminiLookupTest extends TestCase
     public function testResolveLookupSuccessWithValidResponse(): void
     {
         $jsonResponse = \json_encode([
+            'amazonUrl' => 'https://www.amazon.fr/dp/B08N5WRWNW',
             'authors' => 'Eiichiro Oda',
             'description' => 'Un manga de pirates',
             'isOneShot' => false,
@@ -210,6 +211,7 @@ final class GeminiLookupTest extends TestCase
         $result = $provider->resolveLookup($state);
 
         self::assertNotNull($result);
+        self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $result->amazonUrl);
         self::assertSame('One Piece', $result->title);
         self::assertSame('Eiichiro Oda', $result->authors);
         self::assertSame('Glenat', $result->publisher);
@@ -514,6 +516,21 @@ final class GeminiLookupTest extends TestCase
         $result = $provider->resolveEnrich($cachedResult);
 
         self::assertSame($cachedResult, $result);
+    }
+
+    /**
+     * Teste que le prompt contient l'instruction pour amazonUrl.
+     */
+    public function testPrepareLookupPromptContainsAmazonUrlInstruction(): void
+    {
+        $cacheItem = $this->createCacheItem('test_key', null, false);
+        $this->cache->method('getItem')->willReturn($cacheItem);
+
+        $provider = $this->createProvider();
+        $state = $provider->prepareLookup('One Piece', null, 'title');
+
+        self::assertIsArray($state);
+        self::assertStringContainsString('amazonUrl', $state['prompt']);
     }
 
     /**

@@ -79,6 +79,7 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
 class ComicSeries implements SoftDeletableInterface
 {
     use SoftDeletableTrait;
+
     #[Groups(['comic:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -140,6 +141,18 @@ class ComicSeries implements SoftDeletableInterface
     #[Groups(['comic:read', 'comic:write'])]
     #[ORM\Column]
     private bool $isOneShot = false;
+
+    /**
+     * URL Amazon pour l'achat du prochain tome.
+     */
+    #[Groups(['comic:read', 'comic:write'])]
+    #[ORM\Column(length: 500, nullable: true)]
+    #[Assert\Regex(
+        pattern: '#^https?://(www\.)?amazon\.(fr|com|co\.\w+|de|it|es)/#',
+        message: 'L\'URL doit être un lien Amazon valide.'
+    )]
+    #[Assert\Url(requireTld: true)]
+    private ?string $amazonUrl = null;
 
     /**
      * Auteur(s) de la série.
@@ -246,6 +259,18 @@ class ComicSeries implements SoftDeletableInterface
     public function preUpdate(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getAmazonUrl(): ?string
+    {
+        return $this->amazonUrl;
+    }
+
+    public function setAmazonUrl(?string $amazonUrl): static
+    {
+        $this->amazonUrl = $amazonUrl;
+
+        return $this;
     }
 
     /**
