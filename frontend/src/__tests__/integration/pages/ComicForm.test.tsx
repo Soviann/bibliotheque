@@ -10,10 +10,23 @@ import {
   createMockHydraCollection,
   createMockLookupResult,
   createMockTome,
+  wrapAsCandidatesResponse,
 } from "../../helpers/factories";
+import type { LookupResult } from "../../../types/api";
 import { server } from "../../helpers/server";
 import { renderWithProviders } from "../../helpers/test-utils";
 import { ComicStatus, ComicType } from "../../../types/enums";
+
+/** Crée un handler MSW pour /api/lookup/title qui gère les deux formats (candidats et ciblé). */
+function mockTitleLookup(result: LookupResult) {
+  return http.get("/api/lookup/title", ({ request }) => {
+    const url = new URL(request.url);
+    if (url.searchParams.get("limit")) {
+      return HttpResponse.json(wrapAsCandidatesResponse(result));
+    }
+    return HttpResponse.json(result);
+  });
+}
 
 // Mock html5-qrcode for BarcodeScanner component
 vi.mock("html5-qrcode", () => ({
@@ -334,9 +347,7 @@ describe("ComicForm", () => {
         title: "Lookup Title",
       });
 
-      server.use(
-        http.get("/api/lookup/title", () => HttpResponse.json(lookupResult)),
-      );
+      server.use(mockTitleLookup(lookupResult));
 
       renderCreateForm();
 
@@ -344,7 +355,13 @@ describe("ComicForm", () => {
       const lookupInput = screen.getByPlaceholderText("Titre de la série");
       await user.type(lookupInput, "Lookup Title");
 
-      // Wait for lookup result to appear
+      // Wait for candidate to appear and select it
+      await waitFor(() => {
+        expect(screen.getByText("Lookup Title")).toBeInTheDocument();
+      });
+      await user.click(screen.getByText("Lookup Title"));
+
+      // Wait for targeted lookup result to appear
       await waitFor(() => {
         expect(screen.getByText("Appliquer")).toBeInTheDocument();
       });
@@ -392,7 +409,7 @@ describe("ComicForm", () => {
 
       server.use(
         http.get("/api/lookup/isbn", () => HttpResponse.json(isbnResult)),
-        http.get("/api/lookup/title", () => HttpResponse.json(titleResult)),
+        mockTitleLookup(titleResult),
       );
 
       renderCreateForm();
@@ -432,11 +449,18 @@ describe("ComicForm", () => {
       });
 
       let titleLookupCalled = false;
+      const mockResult = createMockLookupResult({ title: "Should Not Be Called" });
       server.use(
         http.get("/api/lookup/isbn", () => HttpResponse.json(isbnResult)),
-        http.get("/api/lookup/title", () => {
-          titleLookupCalled = true;
-          return HttpResponse.json(createMockLookupResult({ title: "Should Not Be Called" }));
+        http.get("/api/lookup/title", ({ request }) => {
+          const url = new URL(request.url);
+          if (!url.searchParams.get("limit")) {
+            titleLookupCalled = true;
+          }
+          if (url.searchParams.get("limit")) {
+            return HttpResponse.json(wrapAsCandidatesResponse(mockResult));
+          }
+          return HttpResponse.json(mockResult);
         }),
       );
 
@@ -478,9 +502,13 @@ describe("ComicForm", () => {
 
       server.use(
         http.get("/api/lookup/isbn", () => HttpResponse.json(isbnResult)),
-        http.get("/api/lookup/title", () =>
-          HttpResponse.json({ error: "Not found" }, { status: 404 }),
-        ),
+        http.get("/api/lookup/title", ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get("limit")) {
+            return HttpResponse.json({ apiMessages: {}, results: [], sources: [] });
+          }
+          return HttpResponse.json({ error: "Not found" }, { status: 404 });
+        }),
       );
 
       renderCreateForm();
@@ -513,14 +541,18 @@ describe("ComicForm", () => {
         title: "One Shot Series",
       });
 
-      server.use(
-        http.get("/api/lookup/title", () => HttpResponse.json(lookupResult)),
-      );
+      server.use(mockTitleLookup(lookupResult));
 
       renderCreateForm();
 
       const lookupInput = screen.getByPlaceholderText("Titre de la série");
       await user.type(lookupInput, "One Shot Series");
+
+      // Select candidate
+      await waitFor(() => {
+        expect(screen.getByText("One Shot Series")).toBeInTheDocument();
+      });
+      await user.click(screen.getByText("One Shot Series"));
 
       await waitFor(() => {
         expect(screen.getByText("Appliquer")).toBeInTheDocument();
@@ -541,10 +573,15 @@ describe("ComicForm", () => {
     it("shows loading indicator during lookup", async () => {
       const user = userEvent.setup();
 
+      const result = createMockLookupResult({ title: "Test" });
       server.use(
-        http.get("/api/lookup/title", async () => {
+        http.get("/api/lookup/title", async ({ request }) => {
           await new Promise((resolve) => setTimeout(resolve, 200));
-          return HttpResponse.json(createMockLookupResult({ title: "Test" }));
+          const url = new URL(request.url);
+          if (url.searchParams.get("limit")) {
+            return HttpResponse.json(wrapAsCandidatesResponse(result));
+          }
+          return HttpResponse.json(result);
         }),
       );
 
@@ -560,26 +597,23 @@ describe("ComicForm", () => {
     it("displays lookup result card with title, authors, and publisher", async () => {
       const user = userEvent.setup();
 
-      server.use(
-        http.get("/api/lookup/title", () =>
-          HttpResponse.json(
-            createMockLookupResult({
-              authors: "John Doe",
-              publisher: "BigPub",
-              title: "Result Title",
-            }),
-          ),
-        ),
-      );
+      const result = createMockLookupResult({
+        authors: "John Doe",
+        publisher: "BigPub",
+        title: "Result Title",
+      });
+
+      server.use(mockTitleLookup(result));
 
       renderCreateForm();
 
       await user.type(screen.getByPlaceholderText("Titre de la série"), "Result Title");
 
+      // Candidates are shown first
       await waitFor(() => {
         expect(screen.getByText("Result Title")).toBeInTheDocument();
       });
-      // Authors and publisher shown in the result card
+      // Authors and publisher shown in the candidate card
       expect(screen.getByText(/John Doe/)).toBeInTheDocument();
       expect(screen.getByText(/BigPub/)).toBeInTheDocument();
     });

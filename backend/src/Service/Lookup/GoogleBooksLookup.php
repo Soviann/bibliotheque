@@ -21,7 +21,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  * Provider de recherche via l'API Google Books.
  */
 #[AutoconfigureTag('app.lookup_provider', ['priority' => 100])]
-final class GoogleBooksLookup extends AbstractLookupProvider
+final class GoogleBooksLookup extends AbstractLookupProvider implements MultiResultLookupProviderInterface
 {
     private const string API_URL = 'https://www.googleapis.com/books/v1/volumes';
 
@@ -43,6 +43,25 @@ final class GoogleBooksLookup extends AbstractLookupProvider
         return 'google_books';
     }
 
+    public function prepareMultipleLookup(string $query, ?ComicType $type, int $limit): mixed
+    {
+        $this->resetApiMessage();
+
+        $queryParams = [
+            'maxResults' => \min($limit * 8, 40),
+            'q' => $query,
+        ];
+
+        if ('' !== $this->apiKey) {
+            $queryParams['key'] = $this->apiKey;
+        }
+
+        return $this->httpClient->request('GET', self::API_URL, [
+            'query' => $queryParams,
+            'timeout' => 10,
+        ]);
+    }
+
     public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
     {
         $this->resetApiMessage();
@@ -62,6 +81,51 @@ final class GoogleBooksLookup extends AbstractLookupProvider
             'query' => $query,
             'timeout' => 10,
         ]);
+    }
+
+    public function resolveMultipleLookup(mixed $state): array
+    {
+        \assert($state instanceof ResponseInterface);
+        try {
+            $data = $state->toArray();
+
+            if (empty($data['items'])) {
+                $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
+
+                return [];
+            }
+
+            $results = $this->groupItemsByTitle($data['items']);
+            $this->recordApiMessage(ApiLookupStatus::SUCCESS, \sprintf('%d résultat(s) trouvé(s)', \count($results)));
+
+            return $results;
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->error('Erreur réseau Google Books : {error}', [
+                'error' => $e->getMessage(),
+            ]);
+            $this->recordApiMessage(ApiLookupStatus::ERROR, 'Erreur de connexion');
+
+            return [];
+        } catch (ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e) {
+            $code = $e->getResponse()->getStatusCode();
+            if (429 === $code) {
+                $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
+            } else {
+                $this->recordApiMessage(ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
+            }
+            $this->logger->warning('Erreur HTTP Google Books : {error}', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [];
+        } catch (DecodingExceptionInterface $e) {
+            $this->logger->error('Réponse JSON invalide de Google Books : {error}', [
+                'error' => $e->getMessage(),
+            ]);
+            $this->recordApiMessage(ApiLookupStatus::ERROR, 'Réponse invalide');
+
+            return [];
+        }
     }
 
     public function resolveLookup(mixed $state): ?LookupResult
@@ -144,6 +208,41 @@ final class GoogleBooksLookup extends AbstractLookupProvider
     }
 
     /**
+     * Regroupe les items par titre distinct et fusionne chaque groupe.
+     *
+     * @param array<int, array<string, mixed>> $items
+     *
+     * @return list<LookupResult>
+     */
+    private function groupItemsByTitle(array $items): array
+    {
+        /** @var array<string, list<array<string, mixed>>> $groups */
+        $groups = [];
+
+        foreach ($items as $item) {
+            $volumeInfo = $item['volumeInfo'] ?? [];
+            if (!\is_array($volumeInfo)) {
+                continue;
+            }
+
+            $title = \is_string($volumeInfo['title'] ?? null) ? $volumeInfo['title'] : null;
+            if (null === $title) {
+                continue;
+            }
+
+            $normalizedTitle = $this->normalizeTitle($title);
+            $groups[$normalizedTitle][] = $item;
+        }
+
+        $results = [];
+        foreach ($groups as $groupItems) {
+            $results[] = $this->mergeItems($groupItems);
+        }
+
+        return $results;
+    }
+
+    /**
      * Fusionne les données de plusieurs résultats Google Books.
      *
      * @param array<int, array<string, mixed>> $items
@@ -221,5 +320,26 @@ final class GoogleBooksLookup extends AbstractLookupProvider
             thumbnail: $thumbnail,
             title: $title,
         );
+    }
+
+    /**
+     * Normalise un titre pour le regroupement (supprime suffixes de tome/volume, casse).
+     */
+    private function normalizeTitle(string $title): string
+    {
+        $patterns = [
+            '/\s*[-–—]\s*(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
+            '/\s+(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
+            '/\s*#\d+.*$/u',
+            '/\s*\(\d+\)\s*$/u',
+            '/\s+\d+\s*$/u',
+        ];
+
+        $normalized = $title;
+        foreach ($patterns as $pattern) {
+            $normalized = \preg_replace($pattern, '', $normalized) ?? $normalized;
+        }
+
+        return \mb_strtolower(\trim($normalized));
     }
 }

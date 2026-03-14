@@ -12,6 +12,7 @@ use App\Service\Lookup\EnrichableLookupProviderInterface;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupProviderInterface;
 use App\Service\Lookup\LookupResult;
+use App\Service\Lookup\MultiResultLookupProviderInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -783,6 +784,228 @@ final class LookupOrchestratorTest extends TestCase
         self::assertSame('9782723489003', $lookupResult->isbn);
         // Le resultat original n'avait pas d'ISBN
         self::assertNull($result->isbn);
+    }
+
+    /**
+     * Teste lookupByTitleMultiple avec un titre vide retourne un tableau vide.
+     */
+    public function testLookupByTitleMultipleWithEmptyTitleReturnsEmpty(): void
+    {
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), []);
+
+        self::assertSame([], $orchestrator->lookupByTitleMultiple('', null, 5));
+        self::assertSame([], $orchestrator->lookupByTitleMultiple('   ', null, 5));
+    }
+
+    /**
+     * Teste lookupByTitleMultiple retourne les resultats de plusieurs providers.
+     */
+    public function testLookupByTitleMultipleReturnsResults(): void
+    {
+        $provider = $this->createStubMultiResultProvider(
+            fieldPriority: 100,
+            name: 'multi_provider',
+            results: [
+                new LookupResult(authors: 'Oda', source: 'multi_provider', title: 'One Piece'),
+                new LookupResult(authors: 'Kishimoto', source: 'multi_provider', title: 'Naruto'),
+            ],
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);
+
+        $results = $orchestrator->lookupByTitleMultiple('One Piece', ComicType::MANGA, 5);
+
+        self::assertCount(2, $results);
+        self::assertSame('One Piece', $results[0]->title);
+        self::assertSame('Naruto', $results[1]->title);
+    }
+
+    /**
+     * Teste lookupByTitleMultiple deduplique par titre normalise.
+     */
+    public function testLookupByTitleMultipleDeduplicatesByTitle(): void
+    {
+        $provider1 = $this->createStubMultiResultProvider(
+            fieldPriority: 100,
+            name: 'provider1',
+            results: [
+                new LookupResult(source: 'provider1', title: 'One Piece'),
+                new LookupResult(source: 'provider1', title: 'Naruto'),
+            ],
+            supports: true,
+        );
+
+        $provider2 = $this->createStubMultiResultProvider(
+            fieldPriority: 80,
+            name: 'provider2',
+            results: [
+                new LookupResult(source: 'provider2', thumbnail: 'https://img.jpg', title: 'one piece'),
+                new LookupResult(source: 'provider2', title: 'Bleach'),
+            ],
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider1, $provider2]);
+
+        $results = $orchestrator->lookupByTitleMultiple('test', null, 10);
+
+        // 3 titres distincts: one piece, naruto, bleach
+        self::assertCount(3, $results);
+        $titles = \array_map(static fn (LookupResult $r) => $r->title, $results);
+        self::assertContains('One Piece', $titles);
+        self::assertContains('Naruto', $titles);
+        self::assertContains('Bleach', $titles);
+    }
+
+    /**
+     * Teste lookupByTitleMultiple inclut les providers single-result comme candidats.
+     */
+    public function testLookupByTitleMultipleIncludesSingleResultProviders(): void
+    {
+        $regularProvider = $this->createStubProvider(
+            fieldPriority: 200,
+            name: 'regular',
+            result: new LookupResult(source: 'regular', title: 'Single Result'),
+            supports: true,
+        );
+
+        $multiProvider = $this->createStubMultiResultProvider(
+            fieldPriority: 100,
+            name: 'multi',
+            results: [new LookupResult(source: 'multi', title: 'Multi Result')],
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$regularProvider, $multiProvider]);
+
+        $results = $orchestrator->lookupByTitleMultiple('test', null, 5);
+
+        self::assertCount(2, $results);
+        $titles = \array_map(static fn (LookupResult $r) => $r->title, $results);
+        self::assertContains('Single Result', $titles);
+        self::assertContains('Multi Result', $titles);
+    }
+
+    /**
+     * Teste lookupByTitleMultiple tronque au limit demande.
+     */
+    public function testLookupByTitleMultipleTruncatesToLimit(): void
+    {
+        $results = [];
+        for ($i = 1; $i <= 10; ++$i) {
+            $results[] = new LookupResult(source: 'provider', title: "Title {$i}");
+        }
+
+        $provider = $this->createStubMultiResultProvider(
+            fieldPriority: 100,
+            name: 'provider',
+            results: $results,
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);
+
+        $lookupResults = $orchestrator->lookupByTitleMultiple('test', null, 3);
+
+        self::assertCount(3, $lookupResults);
+    }
+
+    /**
+     * Teste lookupByTitleMultiple gere les exceptions dans prepareMultipleLookup.
+     */
+    public function testLookupByTitleMultiplePrepareException(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        $provider = $this->createStubMultiResultProvider(
+            fieldPriority: 100,
+            name: 'failing',
+            results: [],
+            supports: true,
+            throwOnPrepare: new \RuntimeException('Prepare failed'),
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, $logger, [$provider]);
+
+        $results = $orchestrator->lookupByTitleMultiple('test', null, 5);
+
+        self::assertSame([], $results);
+        $messages = $orchestrator->getLastApiMessages();
+        self::assertArrayHasKey('failing', $messages);
+        self::assertSame('error', $messages['failing']->status);
+    }
+
+    /**
+     * Cree un stub MultiResultLookupProviderInterface.
+     *
+     * @param list<LookupResult> $results
+     */
+    private function createStubMultiResultProvider(
+        int $fieldPriority,
+        string $name,
+        array $results,
+        bool $supports,
+        ?\Throwable $throwOnPrepare = null,
+    ): MultiResultLookupProviderInterface {
+        return new class($fieldPriority, $name, $results, $supports, $throwOnPrepare) implements MultiResultLookupProviderInterface {
+            /**
+             * @param list<LookupResult> $results
+             */
+            public function __construct(
+                private readonly int $fieldPriority,
+                private readonly string $name,
+                private readonly array $results,
+                private readonly bool $supports,
+                private readonly ?\Throwable $throwOnPrepare,
+            ) {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return $this->fieldPriority;
+            }
+
+            public function getLastApiMessage(): ?ApiMessage
+            {
+                return null;
+            }
+
+            public function getName(): string
+            {
+                return $this->name;
+            }
+
+            public function prepareMultipleLookup(string $query, ?ComicType $type, int $limit): mixed
+            {
+                if (null !== $this->throwOnPrepare) {
+                    throw $this->throwOnPrepare;
+                }
+
+                return 'multi_state';
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            {
+                return 'state';
+            }
+
+            public function resolveMultipleLookup(mixed $state): array
+            {
+                return $this->results;
+            }
+
+            public function resolveLookup(mixed $state): ?LookupResult
+            {
+                return $this->results[0] ?? null;
+            }
+
+            public function supports(string $mode, ?ComicType $type): bool
+            {
+                return $this->supports;
+            }
+        };
     }
 
     /**

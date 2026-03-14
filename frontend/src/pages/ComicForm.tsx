@@ -68,6 +68,7 @@ export default function ComicForm() {
     batchFrom,
     batchSize,
     batchTo,
+    clearCandidate,
     coverSearchOpen,
     form,
     handleSubmit,
@@ -86,6 +87,8 @@ export default function ComicForm() {
     removeAuthor,
     removeTome,
     resolveSyncFailure,
+    selectCandidate,
+    selectedCandidateTitle,
     setAuthorSearch,
     setBatchFrom,
     setBatchTo,
@@ -94,6 +97,7 @@ export default function ComicForm() {
     setLookupMode,
     setLookupTitle,
     syncFailure,
+    titleCandidates,
     tomeLookupLoading,
     update,
     updateTome,
@@ -165,6 +169,7 @@ export default function ComicForm() {
       {/* Lookup section */}
       <LookupSection
         applyLookup={applyLookup}
+        clearCandidate={clearCandidate}
         formTitle={form.title}
         isApplying={isApplying}
         isOnline={isOnline}
@@ -172,9 +177,12 @@ export default function ComicForm() {
         lookupMode={lookupMode}
         lookupResult={lookupResult}
         lookupTitle={lookupTitle}
+        selectCandidate={selectCandidate}
+        selectedCandidateTitle={selectedCandidateTitle}
         setLookupIsbn={setLookupIsbn}
         setLookupMode={setLookupMode}
         setLookupTitle={setLookupTitle}
+        titleCandidates={titleCandidates}
       />
 
       {/* Form */}

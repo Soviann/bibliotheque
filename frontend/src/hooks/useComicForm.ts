@@ -5,7 +5,7 @@ import { useAuthors } from "./useAuthors";
 import { useOnlineStatus } from "./useOnlineStatus";
 import { useComic } from "./useComic";
 import { useCreateComic } from "./useCreateComic";
-import { fetchLookupIsbn, fetchLookupTitle, useLookupIsbn, useLookupTitle } from "./useLookup";
+import { fetchLookupIsbn, fetchLookupTitle, useLookupIsbn, useLookupTitle, useLookupTitleCandidates } from "./useLookup";
 import { useSyncFailures } from "./useSyncFailures";
 import { useUpdateComic } from "./useUpdateComic";
 import { apiFetch } from "../services/api";
@@ -115,6 +115,7 @@ export function useComicForm() {
   const [lookupIsbn, setLookupIsbn] = useState("");
   const [lookupTitle, setLookupTitle] = useState("");
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("title");
+  const [selectedCandidateTitle, setSelectedCandidateTitle] = useState<string | null>(null);
   const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(null);
 
   // Cover search state
@@ -125,8 +126,9 @@ export function useComicForm() {
   const [batchTo, setBatchTo] = useState(1);
 
   const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
-  const titleLookup = useLookupTitle(lookupMode === "title" ? lookupTitle : "", form.type);
-  const lookupResult = lookupMode === "isbn" ? isbnLookup : titleLookup;
+  const titleCandidates = useLookupTitleCandidates(lookupMode === "title" ? lookupTitle : "", form.type);
+  const targetedLookup = useLookupTitle(selectedCandidateTitle ?? "", form.type);
+  const lookupResult = lookupMode === "isbn" ? isbnLookup : targetedLookup;
 
   // Author autocomplete
   const [authorSearch, setAuthorSearch] = useState("");
@@ -165,6 +167,14 @@ export function useComicForm() {
     }
   };
 
+  const selectCandidate = (title: string) => {
+    setSelectedCandidateTitle(title);
+  };
+
+  const clearCandidate = () => {
+    setSelectedCandidateTitle(null);
+  };
+
   const applyLookup = async () => {
     const result = lookupResult.data;
     if (!result) return;
@@ -183,6 +193,7 @@ export function useComicForm() {
       }
     } else {
       applySeriesFields(result);
+      setSelectedCandidateTitle(null);
       toast.success("Informations récupérées");
     }
   };
@@ -358,6 +369,7 @@ export function useComicForm() {
     batchFrom,
     batchSize,
     batchTo,
+    clearCandidate,
     coverSearchOpen,
     form,
     handleSubmit,
@@ -376,6 +388,8 @@ export function useComicForm() {
     removeAuthor,
     removeTome,
     resolveSyncFailure,
+    selectCandidate,
+    selectedCandidateTitle,
     setAuthorSearch,
     setBatchFrom,
     setBatchTo,
@@ -384,6 +398,7 @@ export function useComicForm() {
     setLookupMode,
     setLookupTitle,
     syncFailure,
+    titleCandidates,
     tomeLookupLoading,
     update,
     updateTome,

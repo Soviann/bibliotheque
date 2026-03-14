@@ -72,6 +72,116 @@ class LookupOrchestrator
     }
 
     /**
+     * Recherche par titre avec plusieurs résultats candidats.
+     *
+     * @return list<LookupResult>
+     */
+    public function lookupByTitleMultiple(string $title, ?ComicType $type, int $limit): array
+    {
+        $title = \trim($title);
+
+        if ('' === $title) {
+            return [];
+        }
+
+        $this->apiMessages = [];
+        $this->sources = [];
+
+        $startTime = \microtime(true);
+
+        // Phase 1 : lancer toutes les requêtes (non bloquant)
+        /** @var list<array{multi: bool, provider: LookupProviderInterface, state: mixed}> $prepared */
+        $prepared = [];
+
+        foreach ($this->providers as $provider) {
+            if (!$provider->supports('title', $type)) {
+                continue;
+            }
+
+            try {
+                if ($provider instanceof MultiResultLookupProviderInterface) {
+                    $state = $provider->prepareMultipleLookup($title, $type, $limit);
+                    $prepared[] = ['multi' => true, 'provider' => $provider, 'state' => $state];
+                } else {
+                    $state = $provider->prepareLookup($title, $type, 'title');
+                    $prepared[] = ['multi' => false, 'provider' => $provider, 'state' => $state];
+                }
+            } catch (\Throwable $e) {
+                $this->logger->error('Erreur prepareLookup {provider} : {error}', [
+                    'error' => $e->getMessage(),
+                    'provider' => $provider->getName(),
+                ]);
+                $this->apiMessages[$provider->getName()] = new ApiMessage(
+                    message: $e->getMessage(),
+                    status: ApiLookupStatus::ERROR->value,
+                );
+            }
+        }
+
+        // Phase 2 : résoudre les réponses
+        /** @var list<LookupResult> $allResults */
+        $allResults = [];
+
+        foreach ($prepared as ['multi' => $isMulti, 'provider' => $provider, 'state' => $state]) {
+            $elapsed = \microtime(true) - $startTime;
+
+            if ($elapsed >= $this->globalTimeout) {
+                $this->apiMessages[$provider->getName()] = new ApiMessage(
+                    message: 'Timeout global dépassé',
+                    status: ApiLookupStatus::TIMEOUT->value,
+                );
+
+                continue;
+            }
+
+            try {
+                if ($isMulti) {
+                    \assert($provider instanceof MultiResultLookupProviderInterface);
+                    $results = $provider->resolveMultipleLookup($state);
+                } else {
+                    $single = $provider->resolveLookup($state);
+                    $results = null !== $single ? [$single] : [];
+                }
+
+                $apiMessage = $provider->getLastApiMessage();
+
+                if (null !== $apiMessage) {
+                    $this->apiMessages[$provider->getName()] = $apiMessage;
+                }
+
+                if (\count($results) > 0) {
+                    \array_push($allResults, ...$results);
+                    $this->sources[] = $provider->getName();
+                }
+            } catch (\Throwable $e) {
+                $this->logger->error('Erreur resolveLookup {provider} : {error}', [
+                    'error' => $e->getMessage(),
+                    'provider' => $provider->getName(),
+                ]);
+                $this->apiMessages[$provider->getName()] = new ApiMessage(
+                    message: $e->getMessage(),
+                    status: ApiLookupStatus::ERROR->value,
+                );
+            }
+        }
+
+        // Dédupliquer par titre normalisé, garder le premier trouvé
+        $seen = [];
+        $deduplicated = [];
+
+        foreach ($allResults as $result) {
+            $key = \mb_strtolower(\trim($result->title ?? ''));
+            if ('' === $key || isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $deduplicated[] = $result;
+        }
+
+        return \array_slice($deduplicated, 0, $limit);
+    }
+
+    /**
      * Recherche par titre.
      */
     public function lookupByTitle(string $title, ?ComicType $type = null): ?LookupResult

@@ -63,13 +63,13 @@ parameters:
 		-
 			message: '#^Cannot call method getStatusCode\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
 			identifier: method.nonObject
-			count: 2
+			count: 4
 			path: tests/Functional/Api/LookupApiTest.php
 
 		-
 			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
 			identifier: method.nonObject
-			count: 4
+			count: 5
 			path: tests/Functional/Api/LookupApiTest.php
 
 		-
@@ -367,9 +367,15 @@ parameters:
 			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
 
 		-
-			message: '#^Parameter \#1 \$attributes of static method Gemini\\Responses\\GenerativeModel\\GenerateContentResponse\:\:from\(\) expects .+$#'
+			message: '#^Parameter \#1 \$attributes of static method Gemini\\Responses\\GenerativeModel\\GenerateContentResponse\:\:from\(\) expects array\{candidates\: array\<array\{content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\|null, finishReason\: string\|null, safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}\|null, citationMetadata\: array\{citationSources\: array\{array\{startIndex\: int, endIndex\: int, uri\: string\|null, license\: string\|null\}\}\}\|null, index\: int\|null, tokenCount\: int\|null, avgLogprobs\: float\|null, groundingAttributions\: array\<array\{sourceId\: array\{groundingPassage\?\: array\{passageId\: string, partIndex\: int\}, semanticRetrieverChunk\?\: array\{source\: string, chunk\: string\}\}, content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\}\>\|null, \.\.\.\}\>\|null, promptFeedback\: array\{safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}, blockReason\: string\|null\}\|null, usageMetadata\: array\{promptTokenCount\: int, totalTokenCount\: int, candidatesTokenCount\: int\|null, cachedContentTokenCount\: int\|null, toolUsePromptTokenCount\: int\|null, thoughtsTokenCount\: int\|null, promptTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, cacheTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, \.\.\.\}, modelVersion\: string\|null\}, array\{candidates\: array\{\}, promptFeedback\: array\{blockReason\: ''SAFETY'', safetyRatings\: array\{array\{category\: ''HARM_CATEGORY…'', probability\: ''HIGH'', blocked\: true\}\}\}, usageMetadata\: array\{candidatesTokenCount\: 0, promptTokenCount\: 10, totalTokenCount\: 10\}\} given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
+			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Gemini\\Responses\\GenerativeModel\\GenerateContentResponse\:\:from\(\) expects array\{candidates\: array\<array\{content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\|null, finishReason\: string\|null, safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}\|null, citationMetadata\: array\{citationSources\: array\{array\{startIndex\: int, endIndex\: int, uri\: string\|null, license\: string\|null\}\}\}\|null, index\: int\|null, tokenCount\: int\|null, avgLogprobs\: float\|null, groundingAttributions\: array\<array\{sourceId\: array\{groundingPassage\?\: array\{passageId\: string, partIndex\: int\}, semanticRetrieverChunk\?\: array\{source\: string, chunk\: string\}\}, content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\}\>\|null, \.\.\.\}\>\|null, promptFeedback\: array\{safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}, blockReason\: string\|null\}\|null, usageMetadata\: array\{promptTokenCount\: int, totalTokenCount\: int, candidatesTokenCount\: int\|null, cachedContentTokenCount\: int\|null, toolUsePromptTokenCount\: int\|null, thoughtsTokenCount\: int\|null, promptTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, cacheTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, \.\.\.\}, modelVersion\: string\|null\}, array\{candidates\: array\{\}, promptFeedback\: null, usageMetadata\: array\{candidatesTokenCount\: 0, promptTokenCount\: 10, totalTokenCount\: 10\}\} given\.$#'
+			identifier: argument.type
+			count: 1
 			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
 
 		-
@@ -423,7 +429,7 @@ parameters:
 		-
 			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
-			count: 5
+			count: 6
 			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
 
 		-
@@ -451,25 +457,25 @@ parameters:
 			path: tests/Unit/Service/Lookup/LookupApplierTest.php
 
 		-
-			message: '#^Method App\\Service\\Lookup\\AbstractLookupProvider@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:299\:\:resolveLookup\(\) never returns null so it can be removed from the return type\.$#'
+			message: '#^Method App\\Service\\Lookup\\AbstractLookupProvider@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:300\:\:resolveLookup\(\) never returns null so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
 
 		-
-			message: '#^Method App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:574\:\:resolveLookup\(\) never returns null so it can be removed from the return type\.$#'
+			message: '#^Method App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:575\:\:resolveLookup\(\) never returns null so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
 
 		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:574\:\:\$calledSupportsType is never read, only written\.$#'
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:575\:\:\$calledSupportsType is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
 
 		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:574\:\:\$calledWithType is never read, only written\.$#'
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:575\:\:\$calledWithType is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php

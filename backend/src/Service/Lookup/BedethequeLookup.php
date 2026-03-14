@@ -48,12 +48,12 @@ final class BedethequeLookup extends AbstractGeminiLookupProvider
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int
     {
-        if ('thumbnail' === $field) {
-            return 50;
-        }
-
         if (ComicType::BD === $type) {
             return 150;
+        }
+
+        if ('thumbnail' === $field) {
+            return 50;
         }
 
         return 110;
