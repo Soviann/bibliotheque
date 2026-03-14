@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Nouveaux providers de lookup** : Jikan, Kitsu, MangaDex (manga) et ComicVine (BD/Comics) pour enrichir les métadonnées. Refactoring LookupTitleCleaner (DRY) (#211)
 - **Lookup multi-candidats** : Le lookup par titre affiche plusieurs séries candidates regroupées par titre, permettant de choisir avant d'appliquer. Paramètre `limit` sur `/api/lookup/title` (défaut 1, max 10). Tous les providers contribuent aux candidats (#200)
 - **pcov** : Installation de pcov dans DDEV pour la couverture de code, commande `make coverage` (#172)
 - **Tests manquants** : Tests ImportBooksCommand, sw-custom, MergeGroupCard, SeriesMultiSelect, Tools page (#172)
