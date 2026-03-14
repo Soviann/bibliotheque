@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import ComicCard from "../../../components/ComicCard";
 import { createMockComicSeries, createMockTome } from "../../helpers/factories";
 import { renderWithProviders } from "../../helpers/test-utils";
-import { ComicType } from "../../../types/enums";
+import { ComicStatus, ComicType } from "../../../types/enums";
 
 describe("ComicCard", () => {
   beforeEach(() => {
@@ -252,5 +252,39 @@ describe("ComicCard", () => {
     renderWithProviders(<ComicCard comic={comic} />);
 
     expect(screen.queryByTitle("Achetés")).not.toBeInTheDocument();
+  });
+
+  it("shows new release badge when new tomes detected recently", () => {
+    const recentDate = new Date();
+    recentDate.setDate(recentDate.getDate() - 2);
+
+    const comic = createMockComicSeries({
+      latestPublishedIssue: 10,
+      latestPublishedIssueUpdatedAt: recentDate.toISOString(),
+      status: ComicStatus.BUYING,
+      title: "Naruto",
+      tomes: [createMockTome({ number: 1 }), createMockTome({ number: 2 })],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.getByText("Nouveau")).toBeInTheDocument();
+  });
+
+  it("does not show new release badge for finished series", () => {
+    const recentDate = new Date();
+    recentDate.setDate(recentDate.getDate() - 2);
+
+    const comic = createMockComicSeries({
+      latestPublishedIssue: 10,
+      latestPublishedIssueUpdatedAt: recentDate.toISOString(),
+      status: ComicStatus.FINISHED,
+      title: "Complete",
+      tomes: [createMockTome({ number: 1 })],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.queryByText("Nouveau")).not.toBeInTheDocument();
   });
 });

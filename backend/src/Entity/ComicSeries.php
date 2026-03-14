@@ -214,6 +214,12 @@ class ComicSeries implements SoftDeletableInterface
     private ?\DateTimeImmutable $lookupCompletedAt = null;
 
     /**
+     * Date de la dernière vérification de nouvelles parutions.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $newReleasesCheckedAt = null;
+
+    /**
      * Date de la dernière vérification de fusion de séries.
      */
     #[ORM\Column(nullable: true)]
@@ -475,6 +481,18 @@ class ComicSeries implements SoftDeletableInterface
     public function setMergeCheckedAt(?\DateTimeImmutable $mergeCheckedAt): static
     {
         $this->mergeCheckedAt = $mergeCheckedAt;
+
+        return $this;
+    }
+
+    public function getNewReleasesCheckedAt(): ?\DateTimeImmutable
+    {
+        return $this->newReleasesCheckedAt;
+    }
+
+    public function setNewReleasesCheckedAt(?\DateTimeImmutable $newReleasesCheckedAt): static
+    {
+        $this->newReleasesCheckedAt = $newReleasesCheckedAt;
 
         return $this;
     }

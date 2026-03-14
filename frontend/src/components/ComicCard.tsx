@@ -1,9 +1,10 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { Edit, EllipsisVertical, Euro, Eye, HardDrive, Trash2 } from "lucide-react";
+import { Bell, Edit, EllipsisVertical, Euro, Eye, HardDrive, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
+import { hasNewRelease } from "../utils/releaseUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
 import SyncPendingIndicator from "./SyncPendingIndicator";
 
@@ -24,6 +25,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
   const total = Math.max(comic.latestPublishedIssue ?? 0, coveredCount);
   const showStats = !comic.isOneShot && tomes.length > 0;
   const hasActions = !!onDelete;
+  const isNewRelease = hasNewRelease(comic);
 
   // Bloquer la navigation uniquement pour les créations offline (ID temporaire négatif)
   if (comic._syncPending && comic.id < 0) {
@@ -64,13 +66,22 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
       viewTransition
     >
       {/* Cover */}
-      <div className="aspect-[3/4] overflow-hidden bg-surface-tertiary">
+      <div className="relative aspect-[3/4] overflow-hidden bg-surface-tertiary">
         <img
           alt={comic.title}
           className="h-full w-full object-cover transition group-hover:scale-105"
           loading="lazy"
           src={coverSrc ?? ComicTypePlaceholder[comic.type]}
         />
+        {isNewRelease && (
+          <span
+            className="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm"
+            title="Nouveau(x) tome(s) détecté(s)"
+          >
+            <Bell className="h-2.5 w-2.5" />
+            Nouveau
+          </span>
+        )}
       </div>
 
       {/* Info */}

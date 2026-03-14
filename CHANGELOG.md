@@ -10,6 +10,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Added
 
 - **Lien Amazon** : Champ `amazonUrl` sur les séries, renseigné automatiquement par le lookup Gemini. Bouton Amazon affiché sur la page détail des séries en cours d'achat (#124)
+- **Vérification des nouvelles parutions** : Commande `app:check-new-releases` pour détecter les nouveaux tomes publiés sur les séries en cours d'achat. Badge « Nouveau » sur les cartes de la bibliothèque (#192)
 
 ## [v2.7.0] - 2026-03-14
 
