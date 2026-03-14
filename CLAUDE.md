@@ -135,7 +135,7 @@ Run CS-Fixer and tests afterwards.
 
 ### Tags/Releases (SemVer)
 
-Format: `vMAJOR.MINOR.PATCH`. Tags on `main` only. **Pushing a tag triggers production deployment** (NAS pulls latest tag nightly via `nas-update.sh`).
+Format: `vMAJOR.MINOR.PATCH`. Tags on `main` only. **Pushing a tag triggers production deployment** (CI builds images on ghcr.io, then SSH deploys on NAS via `nas-update.sh`).
 1. CHANGELOG: `[Unreleased]` → `[vX.Y.Z] - YYYY-MM-DD`
 2. Commit: `chore(release): vX.Y.Z`
 3. `git tag -a vX.Y.Z -m "vX.Y.Z"` + push tag + push commit
@@ -198,10 +198,13 @@ frontend/src/{components,hooks,pages,services,types,__tests__}/
 
 ### Docker (Synology NAS)
 
-3 containers: **nginx** (static + reverse proxy) + **php** (php-fpm 8.3) + **db** (MariaDB 10.11). Frontend built in multi-stage nginx Dockerfile.
+3 containers: **nginx** (static + reverse proxy) + **php** (php-fpm 8.3) + **db** (MariaDB 10.11). Frontend built in multi-stage nginx Dockerfile. Images pre-built on CI and pushed to `ghcr.io/soviann/bibliotheque-{php,nginx}`.
 
 ```bash
+# Dev local (build)
 cd backend && docker compose up --build -d
+# NAS production (pull pre-built images)
+TAG=2.9.0 docker compose pull && docker compose up -d
 ```
 
 Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude via SSH), `docs/guide-deploiement-ovh.md` (OVH bare metal)
