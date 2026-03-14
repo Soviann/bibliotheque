@@ -511,10 +511,10 @@ final class BedethequeLookupTest extends TestCase
             'promptFeedback' => [
                 'blockReason' => 'SAFETY',
                 'safetyRatings' => [
-                    ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'probability' => 'HIGH'],
+                    ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'probability' => 'HIGH', 'blocked' => true],
                 ],
             ],
-            'usageMetadata' => ['promptTokenCount' => 10, 'totalTokenCount' => 10],
+            'usageMetadata' => ['candidatesTokenCount' => 0, 'promptTokenCount' => 10, 'totalTokenCount' => 10],
         ]);
 
         $geminiClient = new ClientFake([$fakeResponse]);
@@ -537,6 +537,7 @@ final class BedethequeLookupTest extends TestCase
         self::assertNull($result);
 
         $apiMessage = $provider->getLastApiMessage();
+        self::assertNotNull($apiMessage);
         self::assertSame('not_found', $apiMessage->status);
         self::assertStringContainsString('SAFETY', $apiMessage->message);
     }
@@ -548,7 +549,8 @@ final class BedethequeLookupTest extends TestCase
     {
         $fakeResponse = GenerateContentResponse::from([
             'candidates' => [],
-            'usageMetadata' => ['promptTokenCount' => 10, 'totalTokenCount' => 10],
+            'promptFeedback' => null,
+            'usageMetadata' => ['candidatesTokenCount' => 0, 'promptTokenCount' => 10, 'totalTokenCount' => 10],
         ]);
 
         $geminiClient = new ClientFake([$fakeResponse]);
@@ -562,7 +564,10 @@ final class BedethequeLookupTest extends TestCase
         $result = $provider->resolveLookup($state);
 
         self::assertNull($result);
-        self::assertSame('not_found', $provider->getLastApiMessage()->status);
+
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertNotNull($apiMessage);
+        self::assertSame('not_found', $apiMessage->status);
     }
 
     /**
