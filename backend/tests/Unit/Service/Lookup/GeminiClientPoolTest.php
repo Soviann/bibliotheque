@@ -138,6 +138,27 @@ final class GeminiClientPoolTest extends TestCase
     }
 
     /**
+     * Teste la rotation vers la deuxième clé sur 400 (clé invalide/expirée) de la première.
+     */
+    public function testRotatesToSecondKeyOn400(): void
+    {
+        $pool = new GeminiClientPool('key1,key2', $this->logger, 'gemini-2.5-flash');
+
+        $callCount = 0;
+        $result = $pool->executeWithRetry(static function ($client, $model) use (&$callCount): string {
+            ++$callCount;
+            if (1 === $callCount) {
+                throw new ErrorException(['code' => 400, 'message' => 'API key not valid. Please pass a valid API key.', 'status' => 'INVALID_ARGUMENT']);
+            }
+
+            return 'ok_key2';
+        });
+
+        self::assertSame('ok_key2', $result);
+        self::assertSame(2, $callCount);
+    }
+
+    /**
      * Teste qu'une erreur non retryable est relancée immédiatement sans rotation.
      */
     public function testNon429ErrorRethrowsImmediately(): void
