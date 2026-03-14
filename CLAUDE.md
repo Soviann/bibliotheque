@@ -52,6 +52,7 @@ Location: `docs/plans/` (gitignored). Concise only: what to do (files, logic, or
 | `make jwt` | Generate JWT keypair |
 | `make dump-env` | Compile .env for Symfony |
 | `make db-diff` / `db-migrate` / `db-reset` / `db-seed` | Migration diff / migrate / drop+create+migrate / fixtures |
+| `make coverage` | PHPUnit HTML coverage report (pcov) |
 | `make rector` / `rector-dry` | Apply / preview Rector refactorings |
 | `make deploy` | docker-compose prod |
 

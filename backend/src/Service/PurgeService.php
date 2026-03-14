@@ -36,15 +36,15 @@ final class PurgeService
 
         $this->entityManager->getFilters()->disable('soft_delete');
 
+        $allSeries = $this->comicSeriesRepository->findBy(['id' => $seriesIds]);
+
         $count = 0;
 
-        foreach ($seriesIds as $id) {
-            $series = $this->comicSeriesRepository->find($id);
-
-            if ($series instanceof ComicSeries) {
-                $this->comicSeriesService->permanentDelete($id, $series);
-                ++$count;
-            }
+        foreach ($allSeries as $series) {
+            /** @var int $id entité persistée */
+            $id = $series->getId();
+            $this->comicSeriesService->permanentDelete($id, $series);
+            ++$count;
         }
 
         $this->entityManager->getFilters()->enable('soft_delete');
