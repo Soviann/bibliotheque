@@ -46,13 +46,9 @@ final class PurgeServiceTest extends TestCase
         $series1 = $this->createComicSeriesMock(1, 'Naruto', new \DateTimeImmutable());
         $series2 = $this->createComicSeriesMock(2, 'One Piece', new \DateTimeImmutable());
 
-        $this->comicSeriesRepository->method('find')->willReturnCallback(
-            static fn (int $id): ?ComicSeries => match ($id) {
-                1 => $series1,
-                2 => $series2,
-                default => null,
-            },
-        );
+        $this->comicSeriesRepository->method('findBy')
+            ->with(['id' => [1, 2]])
+            ->willReturn([$series1, $series2]);
 
         $this->comicSeriesService->expects(self::exactly(2))
             ->method('permanentDelete')
@@ -81,9 +77,9 @@ final class PurgeServiceTest extends TestCase
     {
         $series1 = $this->createComicSeriesMock(1, 'Naruto', new \DateTimeImmutable());
 
-        $this->comicSeriesRepository->method('find')->willReturnCallback(
-            static fn (int $id): ?ComicSeries => 1 === $id ? $series1 : null,
-        );
+        $this->comicSeriesRepository->method('findBy')
+            ->with(['id' => [1, 999]])
+            ->willReturn([$series1]);
 
         $this->comicSeriesService->expects(self::once())
             ->method('permanentDelete')
@@ -99,6 +95,25 @@ final class PurgeServiceTest extends TestCase
         $count = $this->purgeService->executePurge([]);
 
         self::assertSame(0, $count);
+    }
+
+    public function testExecutePurgeUsesBatchLoadingNotIndividualQueries(): void
+    {
+        $series1 = $this->createComicSeriesMock(1, 'Naruto', new \DateTimeImmutable());
+        $series2 = $this->createComicSeriesMock(2, 'One Piece', new \DateTimeImmutable());
+        $series3 = $this->createComicSeriesMock(3, 'Bleach', new \DateTimeImmutable());
+
+        // findBy doit être appelé une seule fois (batch), jamais find()
+        $this->comicSeriesRepository->expects(self::once())
+            ->method('findBy')
+            ->with(['id' => [1, 2, 3]])
+            ->willReturn([$series1, $series2, $series3]);
+
+        $this->comicSeriesRepository->expects(self::never())->method('find');
+
+        $count = $this->purgeService->executePurge([1, 2, 3]);
+
+        self::assertSame(3, $count);
     }
 
     public function testPurgeableSeriesIsJsonSerializable(): void

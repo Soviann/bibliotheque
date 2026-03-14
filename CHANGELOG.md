@@ -10,6 +10,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Added
 
 - **Lookup multi-candidats** : Le lookup par titre affiche plusieurs séries candidates regroupées par titre, permettant de choisir avant d'appliquer. Paramètre `limit` sur `/api/lookup/title` (défaut 1, max 10). Tous les providers contribuent aux candidats (#200)
+- **pcov** : Installation de pcov dans DDEV pour la couverture de code, commande `make coverage` (#172)
+- **Tests manquants** : Tests ImportBooksCommand, sw-custom, MergeGroupCard, SeriesMultiSelect, Tools page (#172)
+
+### Changed
+
+- **PurgeService** : Corrige le problème N+1 en utilisant `findBy()` au lieu de `find()` en boucle (#172)
 
 ### Fixed
 

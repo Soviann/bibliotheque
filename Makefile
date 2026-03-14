@@ -100,6 +100,9 @@ test-back: ## Lancer les tests PHPUnit
 test-front: ## Lancer les tests Vitest
 	cd $(FRONT) && npx vitest run
 
+coverage: ## Générer le rapport de couverture HTML (backend)
+	cd $(BACK) && vendor/bin/phpunit --coverage-html var/coverage
+
 # ── Qualité de code ───────────────────────────────
 
 .PHONY: lint lint-back lint-front phpstan cs cs-dry rector rector-dry

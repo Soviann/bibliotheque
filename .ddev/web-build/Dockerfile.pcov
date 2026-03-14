@@ -1,0 +1,1 @@
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends php${DDEV_PHP_VERSION}-pcov && rm -rf /var/lib/apt/lists/*
