@@ -29,6 +29,7 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
         - "latestPublishedIssue" (integer|null) : nombre de tomes parus
         - "tomeNumber" (integer|null) : si cet ISBN correspond à un tome précis, son numéro (ex : 4 pour le tome 4). Pour une intégrale/omnibus, le premier numéro couvert (ex : 4 pour « tomes 4-6 »). null si inconnu.
         - "tomeEnd" (integer|null) : uniquement pour les intégrales/omnibus couvrant plusieurs tomes, le dernier numéro couvert (ex : 6 pour « tomes 4-6 »). null si c'est un tome simple.
+        - "amazonUrl" (string|null) : URL Amazon.fr de la page de la série (pas d'un tome spécifique). De préférence un lien vers la page regroupant tous les tomes.
         TEXT;
 
     public function __construct(
@@ -87,6 +88,7 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
     protected function buildResult(array $data): LookupResult
     {
         return new LookupResult(
+            amazonUrl: \is_string($data['amazonUrl'] ?? null) ? $data['amazonUrl'] : null,
             authors: \is_string($data['authors'] ?? null) ? $data['authors'] : null,
             description: \is_string($data['description'] ?? null) ? $data['description'] : null,
             isOneShot: \is_bool($data['isOneShot'] ?? null) ? $data['isOneShot'] : null,

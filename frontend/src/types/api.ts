@@ -41,6 +41,7 @@ export interface Tome {
 export interface ComicSeries {
   "@id": string;
   _syncPending?: boolean;
+  amazonUrl: string | null;
   authors: Author[];
   coverImage: string | null;
   coverUrl: string | null;

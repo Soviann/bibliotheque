@@ -7,6 +7,7 @@ namespace App\Service\Lookup;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Repository\AuthorRepository;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Applique un LookupResult sur une ComicSeries (uniquement les champs null).
@@ -15,6 +16,7 @@ class LookupApplier
 {
     public function __construct(
         private readonly AuthorRepository $authorRepository,
+        private readonly HttpClientInterface $httpClient,
     ) {
     }
 
@@ -26,6 +28,11 @@ class LookupApplier
     public function apply(ComicSeries $series, LookupResult $result): array
     {
         $updatedFields = [];
+
+        if (null === $series->getAmazonUrl() && null !== $result->amazonUrl && $this->isUrlReachable($result->amazonUrl)) {
+            $series->setAmazonUrl($result->amazonUrl);
+            $updatedFields[] = 'amazonUrl';
+        }
 
         if (null === $series->getDescription() && null !== $result->description) {
             $series->setDescription($result->description);
@@ -74,6 +81,20 @@ class LookupApplier
         }
 
         return $updatedFields;
+    }
+
+    /**
+     * Vérifie qu'une URL est accessible via une requête HEAD.
+     */
+    private function isUrlReachable(string $url): bool
+    {
+        try {
+            $response = $this->httpClient->request('HEAD', $url);
+
+            return $response->getStatusCode() < 400;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**

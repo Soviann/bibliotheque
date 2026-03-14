@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Lien Amazon** : Champ `amazonUrl` sur les séries, renseigné automatiquement par le lookup Gemini. Bouton Amazon affiché sur la page détail des séries en cours d'achat (#124)
+
 ## [v2.7.0] - 2026-03-14
 
 ### Added

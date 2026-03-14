@@ -19,6 +19,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
      * @param int[] $ownedTomesNumbers
      */
     public function __construct(
+        public ?string $amazonUrl,
         public string $authors,
         public ?string $coverImage,
         public ?string $coverUrl,
@@ -65,6 +66,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
      */
     public function __unserialize(array $data): void
     {
+        $this->amazonUrl = \is_string($data['amazonUrl'] ?? null) ? $data['amazonUrl'] : null;
         $this->authors = \is_string($data['authors'] ?? null) ? $data['authors'] : '';
         $this->coverImage = \is_string($data['coverImage'] ?? null) ? $data['coverImage'] : null;
         $this->coverUrl = \is_string($data['coverUrl'] ?? null) ? $data['coverUrl'] : null;
@@ -109,6 +111,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
     public static function fromEntity(ComicSeries $comic, bool $hasNasTome): self
     {
         return new self(
+            amazonUrl: $comic->getAmazonUrl(),
             authors: $comic->getAuthorsAsString(),
             coverImage: $comic->getCoverImage(),
             coverUrl: $comic->getCoverUrl(),
@@ -154,6 +157,7 @@ final readonly class ComicSeriesListItem implements \JsonSerializable
     public function jsonSerialize(): array
     {
         return [
+            'amazonUrl' => $this->amazonUrl,
             'authors' => $this->authors,
             'coverImage' => $this->coverImage,
             'coverUrl' => $this->coverUrl,

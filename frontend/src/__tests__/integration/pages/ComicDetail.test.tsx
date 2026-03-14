@@ -867,6 +867,78 @@ describe("ComicDetail", () => {
     expect(screen.getByText(/hier/)).toBeInTheDocument();
   });
 
+  it("shows Amazon button when status is BUYING and amazonUrl is set", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            amazonUrl: "https://www.amazon.fr/dp/B08N5WRWNW",
+            id: 1,
+            status: ComicStatus.BUYING,
+            title: "Amazon Test",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Amazon Test")).toBeInTheDocument();
+    });
+
+    const amazonLink = screen.getByRole("link", { name: /amazon/i });
+    expect(amazonLink).toHaveAttribute("href", "https://www.amazon.fr/dp/B08N5WRWNW");
+    expect(amazonLink).toHaveAttribute("target", "_blank");
+    expect(amazonLink).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("does not show Amazon button when status is not BUYING", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            amazonUrl: "https://www.amazon.fr/dp/B08N5WRWNW",
+            id: 1,
+            status: ComicStatus.FINISHED,
+            title: "Not Buying",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Not Buying")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole("link", { name: /amazon/i })).not.toBeInTheDocument();
+  });
+
+  it("does not show Amazon button when amazonUrl is null", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            amazonUrl: null,
+            id: 1,
+            status: ComicStatus.BUYING,
+            title: "No Amazon",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Amazon")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole("link", { name: /amazon/i })).not.toBeInTheDocument();
+  });
+
   it("shows success toast after delete confirmation", async () => {
     const user = userEvent.setup();
 
