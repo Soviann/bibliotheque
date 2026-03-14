@@ -6,7 +6,7 @@ APP_DIR="/volume1/docker/bibliotheque"
 BACKEND_DIR="${APP_DIR}/backend"
 ENV_FILE="${BACKEND_DIR}/.env.nas"
 BACKUP_DIR="/volume1/google drive/Backup/Bibliotheque"
-LOG_DIR="/var/log/bibliotheque"
+LOG_DIR="${APP_DIR}/logs"
 LOG_FILE="${LOG_DIR}/backup-$(date '+%Y-%m-%d').log"
 RETENTION_DAYS=7
 
