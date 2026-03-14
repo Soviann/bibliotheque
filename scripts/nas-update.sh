@@ -1,6 +1,8 @@
 #!/bin/bash
-# Script de mise à jour automatique — lancé par le planificateur DSM (root)
+# Script de mise à jour automatique — lancé par le planificateur DSM ou GitHub Actions (SSH)
 # Déploie le dernier tag SemVer (vX.Y.Z) depuis le dépôt distant.
+
+export PATH="/usr/local/bin:$PATH"
 
 APP_DIR="/volume1/docker/bibliotheque"
 BACKEND_DIR="${APP_DIR}/backend"
