@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-# Compile les variables d'environnement pour Symfony (performance)
-composer dump-env prod
-
-# Corrige les permissions du cache (le volume app_var persiste entre les rebuilds)
+# Corrige les permissions des volumes (nécessite root)
 chown -R www-data:www-data var
 
-# Exécute la commande par défaut (php-fpm)
-exec "$@"
+# Compile les variables d'environnement pour Symfony (performance)
+gosu www-data composer dump-env prod
+
+# Exécute la commande par défaut (php-fpm) en tant que www-data
+exec gosu www-data "$@"

@@ -232,7 +232,7 @@ sudo docker compose --env-file .env.nas up --build -d
 
 | Conteneur | Image | Port | Rôle |
 |-----------|-------|------|------|
-| nginx | nginx:alpine + frontend build | 80 → 8082 | SPA React + proxy API + uploads |
+| nginx | nginxinc/nginx-unprivileged:alpine + frontend build | 8080 → 8082 | SPA React + proxy API + uploads |
 | php | php:8.3-fpm + Symfony | 9000 (interne) | PHP-FPM, API |
 | db | mariadb:10.11 | 3306 (interne) | Base de données |
 
