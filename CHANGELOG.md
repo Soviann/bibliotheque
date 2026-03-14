@@ -7,10 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.0] - 2026-03-14
+
 ### Added
 
 - **Lien Amazon** : Champ `amazonUrl` sur les séries, renseigné automatiquement par le lookup Gemini. Bouton Amazon affiché sur la page détail des séries en cours d'achat (#124)
 - **Vérification des nouvelles parutions** : Commande `app:check-new-releases` pour détecter les nouveaux tomes publiés sur les séries en cours d'achat. Badge « Nouveau » sur les cartes de la bibliothèque (#192)
+- **Déploiement automatique** : Le workflow release déclenche `nas-update.sh` via SSH après chaque tag, remplaçant le cron nightly (#216)
 
 ## [v2.7.0] - 2026-03-14
 
