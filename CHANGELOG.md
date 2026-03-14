@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Deploy** : Les logs de déploiement NAS sont maintenant visibles dans les logs GitHub Actions en plus du fichier local
+
 ## [v2.9.1] - 2026-03-14
 
 ### Fixed
