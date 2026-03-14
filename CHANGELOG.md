@@ -12,6 +12,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Fixed
 
 - **Docker** : Lance php-fpm en root (il drop lui-même les privileges). Corrige `Permission denied` sur stderr
+- **Deploy** : Le workflow met à jour le repo NAS avant de lancer le script de déploiement
 
 ## [v2.8.4] - 2026-03-14
 
