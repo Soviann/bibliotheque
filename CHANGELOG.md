@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.8.7] - 2026-03-14
+
+### Fixed
+
+- **Deploy** : Rebuild automatique si les conteneurs ne tournent pas, même si le tag est déjà déployé
+
 ## [v2.8.6] - 2026-03-14
 
 ### Fixed
