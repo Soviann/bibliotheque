@@ -1,4 +1,5 @@
 import { Edit, Trash2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { ComicSeries } from "../types/api";
 
 interface CardActionBarProps {
@@ -9,6 +10,21 @@ interface CardActionBarProps {
 }
 
 export default function CardActionBar({ comic, onClose, onDelete, onEdit }: CardActionBarProps) {
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!comic) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [comic, onClose]);
+
   if (!comic) return null;
 
   return (
@@ -21,7 +37,12 @@ export default function CardActionBar({ comic, onClose, onDelete, onEdit }: Card
       />
 
       {/* Barre d'actions */}
-      <div className="fixed inset-x-0 bottom-0 z-[60] border-t border-surface-border bg-surface-primary px-4 py-3 pb-safe">
+      <div
+        aria-label={`Actions pour ${comic.title}`}
+        className="fixed inset-x-0 bottom-0 z-[60] border-t border-surface-border bg-surface-primary px-4 py-3 pb-safe"
+        ref={barRef}
+        role="dialog"
+      >
         <p className="mb-2 truncate text-sm font-semibold text-text-primary">{comic.title}</p>
         <div className="flex gap-2">
           <button

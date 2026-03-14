@@ -81,7 +81,7 @@ describe("Layout", () => {
     expect(screen.getByText("Corbeille")).toBeInTheDocument();
   });
 
-  it("has a dark mode toggle button", () => {
+  it("has a dark mode toggle button with aria-label", () => {
     renderWithProviders(
       <Routes>
         <Route element={<Layout />} path="/">
@@ -90,10 +90,10 @@ describe("Layout", () => {
       </Routes>,
     );
 
-    expect(screen.getByTitle("Mode sombre")).toBeInTheDocument();
+    expect(screen.getByLabelText("Mode sombre")).toBeInTheDocument();
   });
 
-  it("has a logout button", () => {
+  it("has a logout button with aria-label", () => {
     renderWithProviders(
       <Routes>
         <Route element={<Layout />} path="/">
@@ -102,7 +102,19 @@ describe("Layout", () => {
       </Routes>,
     );
 
-    expect(screen.getByTitle("Déconnexion")).toBeInTheDocument();
+    expect(screen.getByLabelText("Déconnexion")).toBeInTheDocument();
+  });
+
+  it("has a tools link with aria-label", () => {
+    renderWithProviders(
+      <Routes>
+        <Route element={<Layout />} path="/">
+          <Route element={<div>Content</div>} index />
+        </Route>
+      </Routes>,
+    );
+
+    expect(screen.getByLabelText("Outils")).toBeInTheDocument();
   });
 
   it("toggles dark mode when button is clicked", async () => {

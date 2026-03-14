@@ -68,4 +68,21 @@ describe("CardActionBar", () => {
 
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
+
+  it("has role dialog with aria-label", () => {
+    renderWithProviders(<CardActionBar {...defaultProps} />);
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-label", "Actions pour Naruto");
+  });
+
+  it("closes on Escape key press", async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<CardActionBar {...defaultProps} />);
+
+    await user.keyboard("{Escape}");
+
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
 });

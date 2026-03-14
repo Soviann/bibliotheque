@@ -95,12 +95,12 @@ describe("ComicCard", () => {
     expect(screen.queryByText(/t\./)).not.toBeInTheDocument();
   });
 
-  it("shows the ⋮ menu button", () => {
+  it("shows the ⋮ menu button with aria-label", () => {
     const comic = createMockComicSeries({ title: "Test" });
 
     renderWithProviders(<ComicCard comic={comic} onDelete={vi.fn()} />);
 
-    const buttons = screen.getAllByTitle("Actions");
+    const buttons = screen.getAllByLabelText("Actions");
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 

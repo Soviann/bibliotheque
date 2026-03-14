@@ -150,7 +150,7 @@ export default function ComicForm() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
+        <button aria-label="Retour" className="text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-xl font-bold text-text-primary">

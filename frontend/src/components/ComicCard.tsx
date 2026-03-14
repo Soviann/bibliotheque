@@ -102,6 +102,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
             <>
               {/* Mobile: simple button → CardActionBar */}
               <button
+                aria-label="Actions"
                 className="shrink-0 rounded-lg p-1 text-text-muted hover:bg-surface-tertiary lg:hidden"
                 onClick={(e) => {
                   e.preventDefault();
@@ -117,6 +118,7 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
               {/* Desktop: Headless UI dropdown */}
               <Menu as="div" className="relative hidden shrink-0 lg:block">
                 <MenuButton
+                  aria-label="Actions"
                   className="rounded-lg p-1 text-text-muted hover:bg-surface-tertiary"
                   onClick={(e: React.MouseEvent) => {
                     e.preventDefault();

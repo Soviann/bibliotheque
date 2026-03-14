@@ -56,6 +56,7 @@ export default function CoverSearchModal({
               Rechercher une couverture
             </DialogTitle>
             <button
+              aria-label="Fermer"
               className="rounded-lg p-1 text-text-secondary hover:bg-surface-tertiary"
               onClick={onClose}
               type="button"

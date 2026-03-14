@@ -41,6 +41,25 @@ const defaultProps = {
   open: true,
 };
 
+describe("MergePreviewModal — accessibility", () => {
+  it("has aria-labels on tome checkboxes", () => {
+    render(
+      <MergePreviewModal
+        {...defaultProps}
+        preview={createMockPreview({
+          tomes: [createMockTome({ number: 1 }), createMockTome({ number: 2 })],
+        })}
+      />,
+    );
+
+    expect(screen.getByLabelText("Tome 1 acheté")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tome 1 téléchargé")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tome 1 lu")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tome 1 sur NAS")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tome 2 acheté")).toBeInTheDocument();
+  });
+});
+
 describe("MergePreviewModal — add tome", () => {
   it("renders an 'Ajouter un tome' button", () => {
     render(
