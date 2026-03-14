@@ -7,6 +7,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.9.3] - 2026-03-14
+
+### Fixed
+
+- **Lookup** : Corrige les modèles Gemini invalides (`gemini-3-flash`, `gemini-3.1-flash-lite`) qui causaient des erreurs en prod
+- **Lookup** : Ajoute le code 404 aux erreurs retryables du pool Gemini (un modèle inexistant est ignoré au lieu de crasher)
+- **Docker** : Passe `COMICVINE_API_KEY` au conteneur PHP en production
+
 ## [v2.9.2] - 2026-03-14
 
 ### Changed
