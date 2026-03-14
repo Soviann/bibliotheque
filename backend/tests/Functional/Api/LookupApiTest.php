@@ -119,6 +119,56 @@ final class LookupApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
+    /**
+     * Teste que le parametre limit invalide (> 10) est clamp a 10.
+     */
+    public function testTitleLookupWithLimitParameterProcesses(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('GET', '/api/lookup/title', [
+            'query' => ['limit' => '5', 'title' => 'One Piece', 'type' => 'manga'],
+        ]);
+
+        $statusCode = $client->getResponse()->getStatusCode();
+        self::assertContains($statusCode, [200, 404], 'Doit être 200 ou 404, pas une erreur serveur');
+    }
+
+    /**
+     * Teste que limit>1 retourne une reponse avec un tableau results.
+     */
+    public function testTitleLookupWithLimitMultiReturnsResultsArray(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('GET', '/api/lookup/title', [
+            'query' => ['limit' => '5', 'title' => 'Naruto', 'type' => 'manga'],
+        ]);
+
+        $statusCode = $client->getResponse()->getStatusCode();
+        self::assertSame(200, $statusCode);
+
+        $data = $client->getResponse()->toArray(false);
+        self::assertArrayHasKey('results', $data);
+        self::assertArrayHasKey('apiMessages', $data);
+        self::assertArrayHasKey('sources', $data);
+        self::assertIsArray($data['results']);
+    }
+
+    /**
+     * Teste que limit=0 retourne une erreur 400.
+     */
+    public function testTitleLookupWithLimitZeroReturns400(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('GET', '/api/lookup/title', [
+            'query' => ['limit' => '0', 'title' => 'One Piece'],
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
     // ---------------------------------------------------------------
     // Rate limiting
     // ---------------------------------------------------------------

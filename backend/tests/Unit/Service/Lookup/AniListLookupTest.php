@@ -882,6 +882,109 @@ final class AniListLookupTest extends TestCase
     }
 
     /**
+     * Teste que prepareMultipleLookup utilise la query Page avec perPage.
+     */
+    public function testPrepareMultipleLookupUsesPageQuery(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
+
+        $httpClient->expects(self::once())
+            ->method('request')
+            ->with(
+                'POST',
+                'https://graphql.anilist.co',
+                self::callback(static function (array $options): bool {
+                    return \str_contains($options['json']['query'], 'Page')
+                        && 'Naruto' === $options['json']['variables']['search']
+                        && 5 === $options['json']['variables']['perPage'];
+                }),
+            )
+            ->willReturn($response);
+
+        $this->provider->prepareMultipleLookup('Naruto', ComicType::MANGA, 5);
+    }
+
+    /**
+     * Teste resolveMultipleLookup retourne un resultat par media.
+     */
+    public function testResolveMultipleLookupReturnsMultipleResults(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Page' => [
+                    'media' => [
+                        [
+                            'coverImage' => ['extraLarge' => 'https://img1.jpg', 'large' => null],
+                            'description' => 'Ninja story',
+                            'format' => 'MANGA',
+                            'staff' => ['edges' => [['node' => ['name' => ['full' => 'Kishimoto']], 'role' => 'Story & Art']]],
+                            'startDate' => ['day' => null, 'month' => null, 'year' => 1999],
+                            'status' => 'FINISHED',
+                            'title' => ['english' => 'Naruto', 'native' => null, 'romaji' => null],
+                            'volumes' => 72,
+                        ],
+                        [
+                            'coverImage' => ['extraLarge' => 'https://img2.jpg', 'large' => null],
+                            'description' => 'Boruto story',
+                            'format' => 'MANGA',
+                            'staff' => ['edges' => []],
+                            'startDate' => ['day' => null, 'month' => null, 'year' => 2016],
+                            'status' => 'RELEASING',
+                            'title' => ['english' => 'Boruto', 'native' => null, 'romaji' => null],
+                            'volumes' => null,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $results = $this->provider->resolveMultipleLookup($response);
+
+        self::assertCount(2, $results);
+        self::assertSame('Naruto', $results[0]->title);
+        self::assertSame('Kishimoto', $results[0]->authors);
+        self::assertSame(72, $results[0]->latestPublishedIssue);
+        self::assertSame('Boruto', $results[1]->title);
+    }
+
+    /**
+     * Teste resolveMultipleLookup retourne un tableau vide quand pas de media.
+     */
+    public function testResolveMultipleLookupNoMedia(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'data' => [
+                'Page' => [
+                    'media' => [],
+                ],
+            ],
+        ]);
+
+        $results = $this->provider->resolveMultipleLookup($response);
+
+        self::assertSame([], $results);
+    }
+
+    /**
+     * Teste resolveMultipleLookup gere les erreurs de transport.
+     */
+    public function testResolveMultipleLookupTransportException(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $exception = new class('Timeout') extends \RuntimeException implements TransportExceptionInterface {};
+        $response->method('toArray')->willThrowException($exception);
+
+        $this->createLoggerMock();
+
+        $results = $this->provider->resolveMultipleLookup($response);
+
+        self::assertSame([], $results);
+    }
+
+    /**
      * Recree le provider avec un mock httpClient pour les tests d'attente.
      */
     private function createHttpClientMock(): HttpClientInterface&MockObject

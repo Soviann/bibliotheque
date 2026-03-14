@@ -74,6 +74,7 @@ final class BedethequeLookupTest extends TestCase
         self::assertSame(150, $provider->getFieldPriority('publisher', ComicType::BD));
         self::assertSame(150, $provider->getFieldPriority('latestPublishedIssue', ComicType::BD));
         self::assertSame(150, $provider->getFieldPriority('isOneShot', ComicType::BD));
+        self::assertSame(150, $provider->getFieldPriority('thumbnail', ComicType::BD));
     }
 
     /**
@@ -89,13 +90,12 @@ final class BedethequeLookupTest extends TestCase
     }
 
     /**
-     * Teste que thumbnail a une priorite basse (extraction non fiable via grounding).
+     * Teste que thumbnail a une priorite basse pour les types non-BD.
      */
-    public function testGetFieldPriorityThumbnailIsLow(): void
+    public function testGetFieldPriorityThumbnailIsLowForNonBd(): void
     {
         $provider = $this->createProvider();
 
-        self::assertSame(50, $provider->getFieldPriority('thumbnail', ComicType::BD));
         self::assertSame(50, $provider->getFieldPriority('thumbnail', ComicType::MANGA));
         self::assertSame(50, $provider->getFieldPriority('thumbnail', null));
     }

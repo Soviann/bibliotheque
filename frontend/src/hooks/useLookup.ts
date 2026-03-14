@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../services/api";
-import type { LookupResult } from "../types/api";
+import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 
 export function useLookupIsbn(isbn: string, type?: string) {
   const params = new URLSearchParams({ isbn });
@@ -21,6 +21,17 @@ export function useLookupTitle(title: string, type?: string) {
     enabled: title.length >= 2,
     queryFn: () => apiFetch<LookupResult>(`/lookup/title?${params}`),
     queryKey: ["lookup", "title", title, type],
+  });
+}
+
+export function useLookupTitleCandidates(title: string, type?: string, limit = 5) {
+  const params = new URLSearchParams({ limit: String(limit), title });
+  if (type) params.set("type", type);
+
+  return useQuery({
+    enabled: title.length >= 2,
+    queryFn: () => apiFetch<LookupCandidatesResponse>(`/lookup/title?${params}`),
+    queryKey: ["lookup", "title-candidates", title, type, limit],
   });
 }
 

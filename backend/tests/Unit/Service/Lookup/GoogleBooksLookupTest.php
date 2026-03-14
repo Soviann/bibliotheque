@@ -646,6 +646,106 @@ final class GoogleBooksLookupTest extends TestCase
     }
 
     /**
+     * Teste que prepareMultipleLookup envoie la meme requete que prepareLookup.
+     */
+    public function testPrepareMultipleLookupSendsRequest(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $httpClient = $this->createHttpClientMock();
+
+        $httpClient->expects(self::once())
+            ->method('request')
+            ->with(
+                'GET',
+                'https://www.googleapis.com/books/v1/volumes',
+                self::callback(static function (array $options): bool {
+                    return 'Naruto' === $options['query']['q']
+                        && 40 === $options['query']['maxResults'];
+                }),
+            )
+            ->willReturn($response);
+
+        $result = $this->provider->prepareMultipleLookup('Naruto', ComicType::MANGA, 5);
+
+        self::assertSame($response, $result);
+    }
+
+    /**
+     * Teste resolveMultipleLookup regroupe les items par titre distinct.
+     */
+    public function testResolveMultipleLookupGroupsByTitle(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Oda'],
+                        'description' => 'Pirates',
+                        'title' => 'One Piece',
+                    ],
+                ],
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Oda'],
+                        'publishedDate' => '1997',
+                        'title' => 'One Piece',
+                    ],
+                ],
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Kishimoto'],
+                        'description' => 'Ninjas',
+                        'title' => 'Naruto',
+                    ],
+                ],
+            ],
+        ]);
+
+        $results = $this->provider->resolveMultipleLookup($response);
+
+        self::assertCount(2, $results);
+        self::assertSame('One Piece', $results[0]->title);
+        self::assertSame('Oda', $results[0]->authors);
+        self::assertSame('Pirates', $results[0]->description);
+        self::assertSame('1997', $results[0]->publishedDate);
+        self::assertSame('Naruto', $results[1]->title);
+        self::assertSame('Kishimoto', $results[1]->authors);
+    }
+
+    /**
+     * Teste resolveMultipleLookup retourne un tableau vide quand pas d'items.
+     */
+    public function testResolveMultipleLookupNoItems(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn(['items' => []]);
+
+        $results = $this->provider->resolveMultipleLookup($response);
+
+        self::assertSame([], $results);
+    }
+
+    /**
+     * Teste resolveMultipleLookup gere les erreurs de transport.
+     */
+    public function testResolveMultipleLookupTransportException(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $exception = new class('Timeout') extends \RuntimeException implements TransportExceptionInterface {};
+        $response->method('toArray')->willThrowException($exception);
+
+        $this->createLoggerMock();
+
+        $results = $this->provider->resolveMultipleLookup($response);
+
+        self::assertSame([], $results);
+
+        $apiMessage = $this->provider->getLastApiMessage();
+        self::assertSame('error', $apiMessage->status);
+    }
+
+    /**
      * Recree le provider avec un mock httpClient pour les tests d'attente.
      */
     private function createHttpClientMock(): HttpClientInterface&MockObject

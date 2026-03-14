@@ -159,3 +159,23 @@ export interface LookupResult {
   tomeEnd: number | null;
   tomeNumber: number | null;
 }
+
+export interface LookupCandidatesResponse {
+  apiMessages: Record<string, { message: string; status: string }>;
+  results: LookupCandidate[];
+  sources: string[];
+}
+
+export interface LookupCandidate {
+  authors: string | null;
+  description: string | null;
+  isbn: string | null;
+  isOneShot: boolean | null;
+  latestPublishedIssue: number | null;
+  publishedDate: string | null;
+  publisher: string | null;
+  thumbnail: string | null;
+  title: string | null;
+  tomeEnd: number | null;
+  tomeNumber: number | null;
+}

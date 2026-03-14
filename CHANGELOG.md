@@ -7,6 +7,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Lookup multi-candidats** : Le lookup par titre affiche plusieurs séries candidates regroupées par titre, permettant de choisir avant d'appliquer. Paramètre `limit` sur `/api/lookup/title` (défaut 1, max 10). Tous les providers contribuent aux candidats (#200)
+
+### Fixed
+
+- **Priorité Bedetheque thumbnail BD** : La priorité du champ thumbnail est maintenant 150 (comme les autres champs) pour le type BD, au lieu de 50 (#200)
+
 ## [v2.6.0] - 2026-03-14
 
 ### Added

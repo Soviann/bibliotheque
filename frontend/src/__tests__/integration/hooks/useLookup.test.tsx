@@ -8,6 +8,7 @@ import {
   fetchLookupTitle,
   useLookupIsbn,
   useLookupTitle,
+  useLookupTitleCandidates,
 } from "../../../hooks/useLookup";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import { createMockLookupResult } from "../../helpers/factories";
@@ -210,6 +211,71 @@ describe("useLookupTitle", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
+    expect(capturedUrl).toContain("type=manga");
+  });
+});
+
+describe("useLookupTitleCandidates", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("is disabled when title is shorter than 2 characters", () => {
+    const { result } = renderHook(() => useLookupTitleCandidates("A"), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.fetchStatus).toBe("idle");
+  });
+
+  it("returns multiple candidates", async () => {
+    const candidatesResponse = {
+      apiMessages: {},
+      results: [
+        { authors: "Oda", description: null, isbn: null, isOneShot: false, latestPublishedIssue: null, publishedDate: null, publisher: "Glenat", thumbnail: null, title: "One Piece", tomeEnd: null, tomeNumber: null },
+        { authors: "Oda", description: null, isbn: null, isOneShot: null, latestPublishedIssue: null, publishedDate: null, publisher: null, thumbnail: null, title: "One Piece Party", tomeEnd: null, tomeNumber: null },
+      ],
+      sources: ["google_books"],
+    };
+
+    server.use(
+      http.get("/api/lookup/title", ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get("limit")) {
+          return HttpResponse.json(candidatesResponse);
+        }
+        return HttpResponse.json(createMockLookupResult({ title: "One Piece" }));
+      }),
+    );
+
+    const { result } = renderHook(() => useLookupTitleCandidates("One Piece"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.results).toHaveLength(2);
+    expect(result.current.data?.results[0].title).toBe("One Piece");
+    expect(result.current.data?.results[1].title).toBe("One Piece Party");
+  });
+
+  it("includes limit parameter in URL", async () => {
+    let capturedUrl = "";
+
+    server.use(
+      http.get("/api/lookup/title", ({ request }) => {
+        capturedUrl = new URL(request.url).search;
+        return HttpResponse.json({ apiMessages: {}, results: [], sources: [] });
+      }),
+    );
+
+    const { result } = renderHook(() => useLookupTitleCandidates("Test", "manga", 3), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(capturedUrl).toContain("limit=3");
     expect(capturedUrl).toContain("type=manga");
   });
 });
