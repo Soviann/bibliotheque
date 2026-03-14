@@ -3,6 +3,12 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'docs/**'
+      - 'scripts/**'
+      - '.github/workflows/release.yml'
+      - '*.md'
 
 permissions:
   contents: read
