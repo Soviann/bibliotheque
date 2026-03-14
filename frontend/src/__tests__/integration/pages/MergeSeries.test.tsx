@@ -56,6 +56,15 @@ describe("MergeSeries", () => {
           ),
         ),
       ),
+      http.post("/api/merge-series/suggest", () =>
+        HttpResponse.json({
+          entries: [
+            { id: 1, tomeNumber: 1 },
+            { id: 3, tomeNumber: 3 },
+          ],
+          title: "Naruto",
+        }),
+      ),
     );
   });
 

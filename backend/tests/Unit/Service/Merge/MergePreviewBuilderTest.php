@@ -185,9 +185,32 @@ class MergePreviewBuilderTest extends TestCase
     }
 
     /**
-     * Sélection manuelle : Gemini retourne titre + numéros de tomes.
+     * Sélection manuelle : retourne un fallback immédiat (titre 1ère série, numéros séquentiels).
      */
-    public function testBuildFromManualSelection(): void
+    public function testBuildFromManualSelectionReturnsFallback(): void
+    {
+        $series1 = $this->createSeries(10, 'Lucky Luke - Daisy Town', ComicType::BD, isOneShot: true);
+        $this->addTome($series1, 1, bought: true);
+
+        $series2 = $this->createSeries(20, 'Lucky Luke - Le pied-tendre', ComicType::BD, isOneShot: true);
+        $this->addTome($series2, 1, bought: true);
+
+        $builder = $this->createBuilder();
+        $preview = $builder->buildFromManualSelection([$series1, $series2]);
+
+        // Fallback : titre de la première série
+        self::assertSame('Lucky Luke - Daisy Town', $preview->title);
+        self::assertCount(2, $preview->tomes);
+
+        // Numéros séquentiels
+        self::assertSame(1, $preview->tomes[0]->number);
+        self::assertSame(2, $preview->tomes[1]->number);
+    }
+
+    /**
+     * suggestFromGemini retourne les suggestions de Gemini.
+     */
+    public function testSuggestFromGeminiReturnsGeminiResult(): void
     {
         $series1 = $this->createSeries(10, 'Lucky Luke - Daisy Town', ComicType::BD, isOneShot: true);
         $this->addTome($series1, 1, bought: true);
@@ -218,23 +241,21 @@ class MergePreviewBuilderTest extends TestCase
         $geminiClient = new ClientFake([$fakeResponse]);
 
         $builder = $this->createBuilder($geminiClient);
-        $preview = $builder->buildFromManualSelection([$series1, $series2]);
+        $result = $builder->suggestFromGemini([$series1, $series2]);
 
-        self::assertSame('Lucky Luke', $preview->title);
-        self::assertCount(2, $preview->tomes);
-
-        // Trié par numéro
-        self::assertSame(33, $preview->tomes[0]->number);
-        self::assertSame('Lucky Luke - Le pied-tendre', $preview->tomes[0]->title);
-
-        self::assertSame(51, $preview->tomes[1]->number);
-        self::assertSame('Lucky Luke - Daisy Town', $preview->tomes[1]->title);
+        self::assertNotNull($result);
+        self::assertSame('Lucky Luke', $result['title']);
+        self::assertCount(2, $result['entries']);
+        self::assertSame(10, $result['entries'][0]['id']);
+        self::assertSame(51, $result['entries'][0]['tomeNumber']);
+        self::assertSame(20, $result['entries'][1]['id']);
+        self::assertSame(33, $result['entries'][1]['tomeNumber']);
     }
 
     /**
-     * Gemini échoue : fallback avec le titre de la première série et numéros séquentiels.
+     * suggestFromGemini retourne null quand Gemini échoue.
      */
-    public function testBuildFromManualSelectionHandlesGeminiError(): void
+    public function testSuggestFromGeminiReturnsNullOnError(): void
     {
         $series1 = $this->createSeries(1, 'Tintin au Tibet', ComicType::BD, isOneShot: true);
         $this->addTome($series1, 1, bought: true);
@@ -242,7 +263,6 @@ class MergePreviewBuilderTest extends TestCase
         $series2 = $this->createSeries(2, 'Tintin au Congo', ComicType::BD, isOneShot: true);
         $this->addTome($series2, 1);
 
-        // Gemini retourne du texte invalide
         $fakeResponse = GenerateContentResponse::fake([
             'candidates' => [
                 [
@@ -258,15 +278,9 @@ class MergePreviewBuilderTest extends TestCase
         $geminiClient = new ClientFake([$fakeResponse]);
 
         $builder = $this->createBuilder($geminiClient);
-        $preview = $builder->buildFromManualSelection([$series1, $series2]);
+        $result = $builder->suggestFromGemini([$series1, $series2]);
 
-        // Fallback : titre de la première série
-        self::assertSame('Tintin au Tibet', $preview->title);
-        self::assertCount(2, $preview->tomes);
-
-        // Numéros séquentiels
-        self::assertSame(1, $preview->tomes[0]->number);
-        self::assertSame(2, $preview->tomes[1]->number);
+        self::assertNull($result);
     }
 
     private function createPoolFromClient(GeminiClient $client): GeminiClientPool

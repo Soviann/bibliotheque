@@ -53,33 +53,33 @@ final class MergePreviewBuilder
     }
 
     /**
-     * Construit un aperçu depuis une sélection manuelle (appel Gemini pour titre + numéros).
+     * Construit un aperçu depuis une sélection manuelle (titre 1ère série, numéros séquentiels).
      *
      * @param ComicSeries[] $seriesList
      */
     public function buildFromManualSelection(array $seriesList): MergePreview
     {
-        $geminiResult = $this->callGeminiForManualSelection($seriesList);
-
-        if (null !== $geminiResult) {
-            $title = $geminiResult['title'];
-            /** @var array<int, ?int> $tomeNumberMap */
-            $tomeNumberMap = [];
-            foreach ($geminiResult['entries'] as $entry) {
-                $tomeNumberMap[$entry['id']] = $entry['tomeNumber'];
-            }
-        } else {
-            // Fallback : titre de la première série, numéros séquentiels
-            $title = $seriesList[0]->getTitle();
-            /** @var array<int, ?int> $tomeNumberMap */
-            $tomeNumberMap = [];
-            $number = 1;
-            foreach ($seriesList as $series) {
-                $tomeNumberMap[(int) $series->getId()] = $number++;
-            }
+        $title = $seriesList[0]->getTitle();
+        /** @var array<int, ?int> $tomeNumberMap */
+        $tomeNumberMap = [];
+        $number = 1;
+        foreach ($seriesList as $series) {
+            $tomeNumberMap[(int) $series->getId()] = $number++;
         }
 
         return $this->buildPreview($title, $seriesList, $tomeNumberMap);
+    }
+
+    /**
+     * Appelle Gemini pour suggérer un titre canonique et des numéros de tomes.
+     *
+     * @param ComicSeries[] $seriesList
+     *
+     * @return array{title: string, entries: list<array{id: int, tomeNumber: int|null}>}|null
+     */
+    public function suggestFromGemini(array $seriesList): ?array
+    {
+        return $this->callGeminiForManualSelection($seriesList);
     }
 
     /**

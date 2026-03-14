@@ -106,6 +106,11 @@ export interface MergePreviewTome {
   tomeEnd: number | null;
 }
 
+export interface MergeSuggestion {
+  entries: { id: number; tomeNumber: number | null }[];
+  title: string;
+}
+
 export interface ImportExcelResult {
   sheetDetails: Record<
     string,
