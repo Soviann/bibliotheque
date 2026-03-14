@@ -23,8 +23,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "cgi-fcgi -bind -connect 127.0.0.1:9000 /ping 2>/dev/null | grep -q pong"]
       interval: 10s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 60s
       timeout: 5s
     environment:
       - APP_ENV=prod
