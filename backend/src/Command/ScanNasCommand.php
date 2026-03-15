@@ -116,8 +116,8 @@ final class ScanNasCommand extends Command
             // Trier par titre
             \usort($allSeries, static fn (NasSeriesData $a, NasSeriesData $b) => \strcasecmp($a->title, $b->title));
 
-            // Dédupliquer par titre (garder la version la plus "riche")
-            $allSeries = $this->deduplicateSeries($allSeries);
+            // Fusionner les séries en double (même série dans plusieurs dossiers)
+            $allSeries = $this->parser->mergeDuplicateSeries($allSeries);
 
             $this->writeSheet($spreadsheet, $sheetName, $allSeries);
 
@@ -154,19 +154,16 @@ final class ScanNasCommand extends Command
         if ('Comics' === $type) {
             foreach (self::COMICS_SUBDIRS as $subdir) {
                 $path = "{$basePath}/Comics/{$subdir}";
-                $listing = $this->sshLs($path);
-                $filesByDir = $this->fetchFilesByDir($listing, $path);
-                $allSeries = \array_merge($allSeries, $this->parser->parseUnreadSeries($listing, $filesByDir));
+                [$listing, $filesByDir] = $this->scanDirectory($path);
+                $allSeries = \array_merge($allSeries, $this->parser->parseUnreadSeries($listing, $filesByDir, $subdir));
             }
 
             $lusPath = "{$basePath}/Comics/_lus";
-            $lusListing = $this->sshLs($lusPath);
-            $lusFiles = $this->fetchFilesByDir($lusListing, $lusPath);
+            [$lusListing, $lusFiles] = $this->scanDirectory($lusPath);
             $allSeries = \array_merge($allSeries, $this->parser->parseReadSeries($lusListing, $lusFiles));
 
             $inProgressComicsPath = "{$inProgressPath}/Comics";
-            $inProgressListing = $this->sshLs($inProgressComicsPath);
-            $inProgressFiles = $this->fetchFilesByDir($inProgressListing, $inProgressComicsPath);
+            [$inProgressListing, $inProgressFiles] = $this->scanDirectory($inProgressComicsPath);
             $allSeries = \array_merge($allSeries, $this->parser->parseInProgressSeries($inProgressListing, $inProgressFiles));
         } elseif ('Livres' === $type) {
             $io->note('Livres : structure hétérogène, import manuel recommandé');
@@ -174,22 +171,39 @@ final class ScanNasCommand extends Command
             return [];
         } else {
             $path = "{$basePath}/{$type}";
-            $listing = $this->sshLs($path);
-            $filesByDir = $this->fetchFilesByDir($listing, $path);
+            [$listing, $filesByDir] = $this->scanDirectory($path);
             $allSeries = \array_merge($allSeries, $this->parser->parseUnreadSeries($listing, $filesByDir));
 
             $lusPath = "{$path}/_lus";
-            $lusListing = $this->sshLs($lusPath);
-            $lusFiles = $this->fetchFilesByDir($lusListing, $lusPath);
+            [$lusListing, $lusFiles] = $this->scanDirectory($lusPath);
             $allSeries = \array_merge($allSeries, $this->parser->parseReadSeries($lusListing, $lusFiles));
 
             $inProgressTypePath = "{$inProgressPath}/{$type}";
-            $inProgressListing = $this->sshLs($inProgressTypePath);
-            $inProgressFiles = $this->fetchFilesByDir($inProgressListing, $inProgressTypePath);
+            [$inProgressListing, $inProgressFiles] = $this->scanDirectory($inProgressTypePath);
             $allSeries = \array_merge($allSeries, $this->parser->parseInProgressSeries($inProgressListing, $inProgressFiles));
         }
 
         return $allSeries;
+    }
+
+    /**
+     * Scanne un répertoire distant : sépare fichiers isolés et dossiers, puis récupère les fichiers.
+     *
+     * @return array{list<string>, array<string, list<string>>}
+     */
+    private function scanDirectory(string $path): array
+    {
+        $rawListing = $this->sshLs($path);
+        $grouped = $this->parser->groupLooseFiles($rawListing);
+
+        $filesByDir = $this->fetchFilesByDir($grouped['directories'], $path);
+
+        // Ajouter les fichiers isolés rattachés à chaque dossier
+        foreach ($grouped['looseFiles'] as $dir => $files) {
+            $filesByDir[$dir] = \array_merge($filesByDir[$dir] ?? [], $files);
+        }
+
+        return [$grouped['directories'], $filesByDir];
     }
 
     /**
@@ -257,7 +271,7 @@ final class ScanNasCommand extends Command
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle($sheetName);
 
-        $headers = ['Titre', 'Statut', 'Dernier acheté', 'Lu jusqu\'à', 'Nombre publié', 'Dernier téléchargé', 'Sur NAS', 'Parution terminée'];
+        $headers = ['Titre', 'Statut', 'Dernier acheté', 'Lu jusqu\'à', 'Nombre publié', 'Dernier téléchargé', 'Sur NAS', 'Parution terminée', 'Éditeur'];
         foreach ($headers as $col => $header) {
             $sheet->setCellValue([$col + 1, 1], $header);
         }
@@ -286,42 +300,11 @@ final class ScanNasCommand extends Command
                 $sheet->setCellValue([8, $row], 'oui');
             }
 
+            if (null !== $series->publisher) {
+                $sheet->setCellValue([9, $row], $series->publisher);
+            }
+
             ++$row;
         }
-    }
-
-    /**
-     * Déduplique les séries par titre, en gardant la version avec le plus d'info.
-     *
-     * @param list<NasSeriesData> $series
-     *
-     * @return list<NasSeriesData>
-     */
-    private function deduplicateSeries(array $series): array
-    {
-        $byTitle = [];
-
-        foreach ($series as $s) {
-            $key = \mb_strtolower($s->title);
-
-            if (!isset($byTitle[$key])) {
-                $byTitle[$key] = $s;
-
-                continue;
-            }
-
-            $existing = $byTitle[$key];
-
-            $existingScore = ($existing->readComplete ? 2 : 0) + (null !== $existing->readUpTo ? 1 : 0);
-            $newScore = ($s->readComplete ? 2 : 0) + (null !== $s->readUpTo ? 1 : 0);
-
-            if ($newScore > $existingScore) {
-                $byTitle[$key] = $s;
-            } elseif ($newScore === $existingScore && (null !== $s->lastDownloaded) && ($s->lastDownloaded > ($existing->lastDownloaded ?? 0))) {
-                $byTitle[$key] = $s;
-            }
-        }
-
-        return \array_values($byTitle);
     }
 }

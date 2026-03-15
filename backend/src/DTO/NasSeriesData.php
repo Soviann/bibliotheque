@@ -15,6 +15,7 @@ final readonly class NasSeriesData
         public ?int $readUpTo,
         public bool $readComplete,
         public string $title,
+        public ?string $publisher = null,
     ) {
     }
 }
