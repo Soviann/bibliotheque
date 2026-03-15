@@ -154,19 +154,16 @@ final class ScanNasCommand extends Command
         if ('Comics' === $type) {
             foreach (self::COMICS_SUBDIRS as $subdir) {
                 $path = "{$basePath}/Comics/{$subdir}";
-                $listing = $this->sshLs($path);
-                $filesByDir = $this->fetchFilesByDir($listing, $path);
+                [$listing, $filesByDir] = $this->scanDirectory($path);
                 $allSeries = \array_merge($allSeries, $this->parser->parseUnreadSeries($listing, $filesByDir, $subdir));
             }
 
             $lusPath = "{$basePath}/Comics/_lus";
-            $lusListing = $this->sshLs($lusPath);
-            $lusFiles = $this->fetchFilesByDir($lusListing, $lusPath);
+            [$lusListing, $lusFiles] = $this->scanDirectory($lusPath);
             $allSeries = \array_merge($allSeries, $this->parser->parseReadSeries($lusListing, $lusFiles));
 
             $inProgressComicsPath = "{$inProgressPath}/Comics";
-            $inProgressListing = $this->sshLs($inProgressComicsPath);
-            $inProgressFiles = $this->fetchFilesByDir($inProgressListing, $inProgressComicsPath);
+            [$inProgressListing, $inProgressFiles] = $this->scanDirectory($inProgressComicsPath);
             $allSeries = \array_merge($allSeries, $this->parser->parseInProgressSeries($inProgressListing, $inProgressFiles));
         } elseif ('Livres' === $type) {
             $io->note('Livres : structure hétérogène, import manuel recommandé');
@@ -174,22 +171,39 @@ final class ScanNasCommand extends Command
             return [];
         } else {
             $path = "{$basePath}/{$type}";
-            $listing = $this->sshLs($path);
-            $filesByDir = $this->fetchFilesByDir($listing, $path);
+            [$listing, $filesByDir] = $this->scanDirectory($path);
             $allSeries = \array_merge($allSeries, $this->parser->parseUnreadSeries($listing, $filesByDir));
 
             $lusPath = "{$path}/_lus";
-            $lusListing = $this->sshLs($lusPath);
-            $lusFiles = $this->fetchFilesByDir($lusListing, $lusPath);
+            [$lusListing, $lusFiles] = $this->scanDirectory($lusPath);
             $allSeries = \array_merge($allSeries, $this->parser->parseReadSeries($lusListing, $lusFiles));
 
             $inProgressTypePath = "{$inProgressPath}/{$type}";
-            $inProgressListing = $this->sshLs($inProgressTypePath);
-            $inProgressFiles = $this->fetchFilesByDir($inProgressListing, $inProgressTypePath);
+            [$inProgressListing, $inProgressFiles] = $this->scanDirectory($inProgressTypePath);
             $allSeries = \array_merge($allSeries, $this->parser->parseInProgressSeries($inProgressListing, $inProgressFiles));
         }
 
         return $allSeries;
+    }
+
+    /**
+     * Scanne un répertoire distant : sépare fichiers isolés et dossiers, puis récupère les fichiers.
+     *
+     * @return array{list<string>, array<string, list<string>>}
+     */
+    private function scanDirectory(string $path): array
+    {
+        $rawListing = $this->sshLs($path);
+        $grouped = $this->parser->groupLooseFiles($rawListing);
+
+        $filesByDir = $this->fetchFilesByDir($grouped['directories'], $path);
+
+        // Ajouter les fichiers isolés rattachés à chaque dossier
+        foreach ($grouped['looseFiles'] as $dir => $files) {
+            $filesByDir[$dir] = \array_merge($filesByDir[$dir] ?? [], $files);
+        }
+
+        return [$grouped['directories'], $filesByDir];
     }
 
     /**

@@ -22,7 +22,15 @@ final class NasDirectoryParser
     /**
      * Articles à supprimer lors de la normalisation.
      */
+    /**
+     * Articles à supprimer lors de la normalisation.
+     */
     private const array ARTICLES = ['de', 'des', 'du', 'l', 'la', 'le', 'les', 'the'];
+
+    /**
+     * Extensions de fichiers BD/manga/livre.
+     */
+    private const string COMIC_EXTENSIONS_PATTERN = '/\.(?:cbr|cbz|pdf|zip|rar|epub)$/i';
 
     /**
      * Extrait le numéro de tome d'un nom de fichier/dossier.
@@ -210,6 +218,78 @@ final class NasDirectoryParser
     }
 
     /**
+     * Sépare les fichiers isolés des répertoires dans un listing.
+     *
+     * Les fichiers avec extension BD (.cbr, .cbz, .pdf…) sont rattachés
+     * au dossier correspondant (par préfixe normalisé). S'il n'existe pas,
+     * un dossier synthétique est créé à partir du nom de série extrait.
+     *
+     * @param list<string> $listing
+     *
+     * @return array{directories: list<string>, looseFiles: array<string, list<string>>}
+     */
+    public function groupLooseFiles(array $listing): array
+    {
+        $directories = [];
+        $files = [];
+
+        foreach ($listing as $entry) {
+            if ($this->isIgnoredEntry($entry) || $this->isInfoFile($entry)) {
+                continue;
+            }
+
+            if ($this->isComicFile($entry)) {
+                $files[] = $entry;
+            } else {
+                $directories[] = $entry;
+            }
+        }
+
+        /** @var array<string, list<string>> $looseFiles */
+        $looseFiles = [];
+
+        // Index normalisé des dossiers existants
+        /** @var array<string, string> $normalizedDirMap clé normalisée → nom original */
+        $normalizedDirMap = [];
+        foreach ($directories as $dir) {
+            $normalizedDirMap[$this->normalizeTitle($dir)] = $dir;
+        }
+
+        foreach ($files as $file) {
+            $seriesName = $this->extractSeriesNameFromFile($file);
+            $normalizedSeries = $this->normalizeTitle($seriesName);
+
+            // Chercher un dossier existant dont le titre normalisé correspond
+            $matchedDir = $normalizedDirMap[$normalizedSeries] ?? null;
+
+            if (null === $matchedDir) {
+                // Chercher par préfixe ou fuzzy
+                foreach ($normalizedDirMap as $normalizedDir => $dirName) {
+                    if (\str_starts_with($normalizedSeries, $normalizedDir) || $this->isFuzzyMatch($normalizedSeries, $normalizedDir)) {
+                        $matchedDir = $dirName;
+
+                        break;
+                    }
+                }
+            }
+
+            if (null === $matchedDir) {
+                // Créer un dossier synthétique
+                $matchedDir = $seriesName;
+                $directories[] = $matchedDir;
+                $normalizedDirMap[$normalizedSeries] = $matchedDir;
+            }
+
+            $looseFiles[$matchedDir][] = $file;
+        }
+
+        return [
+            'directories' => $directories,
+            'looseFiles' => $looseFiles,
+        ];
+    }
+
+    /**
      * Normalise un titre pour la comparaison fuzzy.
      *
      * Lowercase, translitération accents, & → et, suppression articles et ponctuation.
@@ -346,6 +426,33 @@ final class NasDirectoryParser
         $numbers = $this->extractAllTomeNumbers($files);
 
         return [] !== $numbers ? \max($numbers) : null;
+    }
+
+    /**
+     * Extrait le nom de série depuis un nom de fichier.
+     *
+     * "Aquablue - T12 retour aux sources.cbr" → "Aquablue"
+     * "Batman 01 - Year One.cbz" → "Batman"
+     */
+    private function extractSeriesNameFromFile(string $filename): string
+    {
+        $cleaned = $this->cleanFilename($filename);
+
+        // Supprimer tout à partir du premier séparateur suivi d'un numéro ou "T" + numéro
+        $name = (string) \preg_replace('/\s*[-–]\s*(?:T\d|\d).*$/i', '', $cleaned);
+
+        // Si le nom se termine par un numéro (ex: "Batman 01"), supprimer le numéro
+        $name = (string) \preg_replace('/\s+\d+\s*$/', '', $name);
+
+        return \trim($name);
+    }
+
+    /**
+     * Vérifie si une entrée est un fichier BD (par extension).
+     */
+    private function isComicFile(string $entry): bool
+    {
+        return 1 === \preg_match(self::COMIC_EXTENSIONS_PATTERN, $entry);
     }
 
     private function isIgnoredEntry(string $entry): bool

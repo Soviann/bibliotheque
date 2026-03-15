@@ -595,6 +595,60 @@ final class NasDirectoryParserTest extends TestCase
         self::assertSame(2, $result[0]->lastDownloaded);
     }
 
+    // --- groupLooseFiles ---
+
+    public function testGroupLooseFilesWithMatchingDir(): void
+    {
+        $listing = [
+            'Aquablue',
+            'Aquablue - T12 retour aux sources.cbr',
+            'Aquablue - T13 Septentrion.cbz',
+            'Aquablue - T14 standard island.cbr',
+            'Batman',
+        ];
+
+        $result = $this->parser->groupLooseFiles($listing);
+
+        // Les fichiers .cbr/.cbz doivent être rattachés au dossier "Aquablue"
+        self::assertSame(['Aquablue', 'Batman'], $result['directories']);
+        self::assertSame([
+            'Aquablue - T12 retour aux sources.cbr',
+            'Aquablue - T13 Septentrion.cbz',
+            'Aquablue - T14 standard island.cbr',
+        ], $result['looseFiles']['Aquablue']);
+    }
+
+    public function testGroupLooseFilesWithoutMatchingDir(): void
+    {
+        $listing = [
+            'Aquablue - T12 retour aux sources.cbr',
+            'Aquablue - T13 Septentrion.cbz',
+            'Batman',
+        ];
+
+        $result = $this->parser->groupLooseFiles($listing);
+
+        // Pas de dossier "Aquablue" → création synthétique
+        self::assertContains('Aquablue', $result['directories']);
+        self::assertContains('Batman', $result['directories']);
+        self::assertArrayHasKey('Aquablue', $result['looseFiles']);
+    }
+
+    public function testGroupLooseFilesIgnoresMetadata(): void
+    {
+        $listing = [
+            '@eaDir',
+            '_lus',
+            'Aquablue',
+            'GetComics.INFO',
+        ];
+
+        $result = $this->parser->groupLooseFiles($listing);
+
+        self::assertSame(['Aquablue'], $result['directories']);
+        self::assertEmpty($result['looseFiles']);
+    }
+
     public function testParseRangeTomeFormat(): void
     {
         $listing = ['Artica (T01-06)'];
