@@ -644,6 +644,36 @@ final class NasDirectoryParserTest extends TestCase
         self::assertArrayHasKey('Aquablue', $result['looseFiles']);
     }
 
+    public function testGroupLooseFilesChaosTeamPattern(): void
+    {
+        $listing = [
+            'Chaos team 1.2.cbr',
+            'Chaos team T00 - La vengeance du Beret Vert.cbr',
+            'Chaos team T01.cbr',
+        ];
+
+        $result = $this->parser->groupLooseFiles($listing);
+
+        // Tous les fichiers doivent être regroupés sous "Chaos team"
+        self::assertCount(1, $result['directories']);
+        self::assertSame('Chaos team', $result['directories'][0]);
+        self::assertCount(3, $result['looseFiles']['Chaos team']);
+    }
+
+    public function testGroupLooseFilesSpaceTomePattern(): void
+    {
+        $listing = [
+            'Batman',
+            'Batman 01 - Year One.cbr',
+            'Batman 02 - The Dark Knight.cbr',
+        ];
+
+        $result = $this->parser->groupLooseFiles($listing);
+
+        self::assertSame(['Batman'], $result['directories']);
+        self::assertCount(2, $result['looseFiles']['Batman']);
+    }
+
     public function testGroupLooseFilesIgnoresMetadata(): void
     {
         $listing = [

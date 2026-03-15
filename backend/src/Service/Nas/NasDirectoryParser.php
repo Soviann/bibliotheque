@@ -432,17 +432,25 @@ final class NasDirectoryParser
      * Extrait le nom de série depuis un nom de fichier.
      *
      * "Aquablue - T12 retour aux sources.cbr" → "Aquablue"
+     * "Chaos team T00 - La vengeance du Beret Vert.cbr" → "Chaos team"
+     * "Chaos team 1.2.cbr" → "Chaos team"
      * "Batman 01 - Year One.cbz" → "Batman"
      */
     private function extractSeriesNameFromFile(string $filename): string
     {
         $cleaned = $this->cleanFilename($filename);
 
-        // Supprimer tout à partir du premier séparateur suivi d'un numéro ou "T" + numéro
+        // " - T12 reste" ou " - 01 reste" (tiret + T/numéro)
         $name = (string) \preg_replace('/\s*[-–]\s*(?:T\d|\d).*$/i', '', $cleaned);
 
-        // Si le nom se termine par un numéro (ex: "Batman 01"), supprimer le numéro
-        $name = (string) \preg_replace('/\s+\d+\s*$/', '', $name);
+        // " T00 reste" (espace + T + chiffres, sans tiret)
+        $name = (string) \preg_replace('/\s+T\d+\b.*$/i', '', $name);
+
+        // " 01 - reste" (espace + chiffres + tiret + reste)
+        $name = (string) \preg_replace('/\s+\d+\s*[-–].*$/', '', $name);
+
+        // Numéro final : " 01" ou " 1.2"
+        $name = (string) \preg_replace('/\s+\d+(?:\.\d+)?\s*$/', '', $name);
 
         return \trim($name);
     }
