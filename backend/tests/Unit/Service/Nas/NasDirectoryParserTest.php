@@ -156,6 +156,24 @@ final class NasDirectoryParserTest extends TestCase
             'Anachron',
             true,
         ];
+
+        yield 'tome individuel T01 - titre' => [
+            'Clockwerx T01 - Genèse',
+            'Clockwerx',
+            false,
+        ];
+
+        yield 'tome individuel T00' => [
+            'Chaos team T00 - La vengeance du Beret Vert',
+            'Chaos team',
+            false,
+        ];
+
+        yield 'tome individuel T01 seul' => [
+            'Chaos team T01',
+            'Chaos team',
+            false,
+        ];
     }
 
     // --- parseListing pour /volume1/lecture/{type}/ ---

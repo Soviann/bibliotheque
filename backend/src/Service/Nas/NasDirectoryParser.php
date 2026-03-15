@@ -97,6 +97,9 @@ final class NasDirectoryParser
         $dirName = (string) \preg_replace('/\s*\(T\d+-\d+\)\s*$/i', '', $dirName);
         $dirName = (string) \preg_replace('/\s*-\s*Tome\s+\d+\s*à\s*\d+\s*$/i', '', $dirName);
 
+        // Retirer les indicateurs de tome individuel : " T01 - Genèse", " T01"
+        $dirName = (string) \preg_replace('/\s+T\d+\b.*$/i', '', $dirName);
+
         return [
             'isComplete' => $isComplete,
             'title' => \trim($dirName),
