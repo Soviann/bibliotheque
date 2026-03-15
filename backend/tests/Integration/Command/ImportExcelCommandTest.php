@@ -195,8 +195,8 @@ final class ImportExcelCommandTest extends KernelTestCase
         $sheet->setCellValue('A2', 'Buying Series');
         $sheet->setCellValue('B2', 'oui');
         $sheet->setCellValue('D2', '1');
-        // non → STOPPED
-        $sheet->setCellValue('A3', 'Stopped Series');
+        // non → BUYING + notInterestedBuy
+        $sheet->setCellValue('A3', 'Not Interested Buy Series');
         $sheet->setCellValue('B3', 'non');
         $sheet->setCellValue('D3', '1');
         // fini → FINISHED
@@ -217,12 +217,13 @@ final class ImportExcelCommandTest extends KernelTestCase
             self::assertSame(Command::SUCCESS, $this->commandTester->getStatusCode());
 
             $buying = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Buying Series']);
-            $stopped = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Stopped Series']);
+            $notInterestedBuy = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Not Interested Buy Series']);
             $finished = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Finished Series']);
             $default = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'Default Series']);
 
             self::assertSame(ComicStatus::BUYING, $buying->getStatus());
-            self::assertSame(ComicStatus::STOPPED, $stopped->getStatus());
+            self::assertSame(ComicStatus::BUYING, $notInterestedBuy->getStatus());
+            self::assertTrue($notInterestedBuy->isNotInterestedBuy());
             self::assertSame(ComicStatus::FINISHED, $finished->getStatus());
             self::assertSame(ComicStatus::BUYING, $default->getStatus());
         } finally {
