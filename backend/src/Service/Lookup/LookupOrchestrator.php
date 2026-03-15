@@ -165,11 +165,17 @@ class LookupOrchestrator
             }
         }
 
+        // Filtrer les résultats dont le titre ne correspond pas à la requête
+        $filtered = \array_filter(
+            $allResults,
+            static fn (LookupResult $r) => TitleMatcher::matches($title, $r->title ?? ''),
+        );
+
         // Dédupliquer par titre normalisé, garder le premier trouvé
         $seen = [];
         $deduplicated = [];
 
-        foreach ($allResults as $result) {
+        foreach ($filtered as $result) {
             $key = \mb_strtolower(\trim($result->title ?? ''));
             if ('' === $key || isset($seen[$key])) {
                 continue;
