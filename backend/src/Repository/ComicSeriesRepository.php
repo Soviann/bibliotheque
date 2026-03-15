@@ -281,6 +281,35 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Cherche une série par titre normalisé (sans tirets, ponctuation, casse).
+     * Fallback fuzzy quand le match exact échoue.
+     */
+    public function findOneByFuzzyTitle(string $title, ComicType $type): ?ComicSeries
+    {
+        // 1. Match exact
+        $exact = $this->findOneBy(['title' => $title, 'type' => $type]);
+        if (null !== $exact) {
+            return $exact;
+        }
+
+        // 2. Charger les candidats du même type avec un LIKE large, filtrer en PHP
+        return $this->fuzzySearch($title, $type);
+    }
+
+    /**
+     * Variante sans type (pour ImportBooksService qui ne connaît pas le type à l'avance).
+     */
+    public function findOneByFuzzyTitleAnyType(string $title): ?ComicSeries
+    {
+        $exact = $this->findOneBy(['title' => $title]);
+        if (null !== $exact) {
+            return $exact;
+        }
+
+        return $this->fuzzySearch($title);
+    }
+
+    /**
      * Retourne toutes les séries avec leurs relations pour l'API PWA.
      *
      * Utilise un cache applicatif (15 min) pour éviter de requêter la base
@@ -296,6 +325,56 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
             return $this->doFindAllForApi();
         });
+    }
+
+    /**
+     * Recherche fuzzy : extrait les mots-clés du titre, cherche via LIKE, puis compare normalisé en PHP.
+     */
+    private function fuzzySearch(string $title, ?ComicType $type = null): ?ComicSeries
+    {
+        $normalized = $this->normalizeForComparison($title);
+
+        // Extraire le mot le plus long comme filtre SQL (pour limiter les candidats)
+        $words = \explode(' ', $normalized);
+        \usort($words, static fn (string $a, string $b): int => \strlen($b) <=> \strlen($a));
+        $keyword = $words[0];
+
+        if (\strlen($keyword) < 3) {
+            return null;
+        }
+
+        $qb = $this->createQueryBuilder('c')
+            ->where('LOWER(c.title) LIKE :keyword')
+            ->setParameter('keyword', '%'.$keyword.'%');
+
+        if (null !== $type) {
+            $qb->andWhere('c.type = :type')->setParameter('type', $type);
+        }
+
+        /** @var ComicSeries[] $candidates */
+        $candidates = $qb->getQuery()->getResult();
+
+        foreach ($candidates as $candidate) {
+            if ($this->normalizeForComparison($candidate->getTitle()) === $normalized) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalise un titre pour comparaison : lowercase, sans tirets/ponctuation/espaces multiples.
+     */
+    private function normalizeForComparison(string $title): string
+    {
+        $n = \mb_strtolower($title);
+        // Translitération accents (é → e, etc.)
+        $n = \transliterator_transliterate('NFD; [:Nonspacing Mark:] Remove; NFC', $n) ?: $n;
+        $n = \str_replace(['-', "'", "\u{2019}", '.', ',', ':', '!', '?', '(', ')'], ' ', $n);
+        $n = (string) \preg_replace('/\s+/', ' ', $n);
+
+        return \trim($n);
     }
 
     /**

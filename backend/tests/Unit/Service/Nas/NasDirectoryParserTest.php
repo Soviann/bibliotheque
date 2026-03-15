@@ -730,4 +730,133 @@ final class NasDirectoryParserTest extends TestCase
         self::assertSame('Anahire', $result[0]->title);
         self::assertSame(4, $result[0]->lastDownloaded);
     }
+
+    // --- Fixes pour problèmes identifiés ---
+
+    public function testIgnoredSeriesAreSkipped(): void
+    {
+        $listing = ['Star Wars', 'Star Wars (integrale)', 'Batman'];
+        $filesByDir = [
+            'Star Wars' => ['Episode 1.cbr'],
+            'Star Wars (integrale)' => ['Vol 01.cbr'],
+            'Batman' => ['Batman 01.cbr'],
+        ];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        self::assertSame('Batman', $result[0]->title);
+    }
+
+    public function testMaxReasonableTomesCapsPagesAsNull(): void
+    {
+        // 176 fichiers image = pages, pas tomes
+        $listing = ['Aliens'];
+        $files = [];
+        for ($i = 1; $i <= 176; ++$i) {
+            $files[] = \sprintf('page_%03d.jpg', $i);
+        }
+        $filesByDir = ['Aliens' => $files];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        // Les images ne sont pas des fichiers BD, donc lastDownloaded = null (pas de fallback sur le nom)
+        self::assertNull($result[0]->lastDownloaded);
+    }
+
+    public function testHighTomeNumberFromFilesIsCapped(): void
+    {
+        // Fichiers .cbr numérotés très haut (>300) = probablement faux
+        $listing = ['Serie'];
+        $filesByDir = [
+            'Serie' => ['Serie 999.cbr'],
+        ];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        self::assertNull($result[0]->lastDownloaded);
+    }
+
+    public function testContainerDirectoryIsDetected(): void
+    {
+        self::assertTrue($this->parser->isContainerDirectory('crossovers'));
+        self::assertTrue($this->parser->isContainerDirectory('One Shots'));
+        self::assertFalse($this->parser->isContainerDirectory('Batman'));
+    }
+
+    public function testParseSeriesDirectoryStripsTrailingTome(): void
+    {
+        $result = $this->parser->parseSeriesDirectory('La Légende de Drizzt Tome');
+        self::assertSame('La Légende de Drizzt', $result['title']);
+    }
+
+    public function testParseSeriesDirectoryStripsTrailingDash(): void
+    {
+        $result = $this->parser->parseSeriesDirectory('Licorne -');
+        self::assertSame('Licorne', $result['title']);
+    }
+
+    public function testCbrFilesAreTomesNotPages(): void
+    {
+        // 115 fichiers .cbr = 115 tomes (issues de comics)
+        $listing = ['Aliens Labyrinth'];
+        $files = [];
+        for ($i = 1; $i <= 115; ++$i) {
+            $files[] = \sprintf('Aliens Labyrinth %03d.cbr', $i);
+        }
+        $filesByDir = ['Aliens Labyrinth' => $files];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        self::assertSame(115, $result[0]->lastDownloaded);
+    }
+
+    public function testLegitHighTomeCountNotFlagged(): void
+    {
+        // 50 tomes avec des trous (pas consécutifs) = vrais tomes
+        $listing = ['Serie'];
+        $files = [];
+        for ($i = 1; $i <= 50; $i += 2) {
+            $files[] = \sprintf('Serie %02d.cbr', $i);
+        }
+        $filesByDir = ['Serie' => $files];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        self::assertSame(49, $result[0]->lastDownloaded);
+    }
+
+    public function testBlockNumberInTitleNotExtracted(): void
+    {
+        $listing = ['Block 109'];
+        $filesByDir = [];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        self::assertSame('Block 109', $result[0]->title);
+        // 109 is part of the title, not a tome number
+        self::assertNull($result[0]->lastDownloaded);
+    }
+
+    public function testIgnoredSeriesInReadAndInProgress(): void
+    {
+        $listing = ['Star Wars', 'Batman'];
+        $filesByDir = [
+            'Star Wars' => ['Episode 1.cbr'],
+            'Batman' => ['Batman 01.cbr'],
+        ];
+
+        $readResult = $this->parser->parseReadSeries($listing, $filesByDir);
+        self::assertCount(1, $readResult);
+        self::assertSame('Batman', $readResult[0]->title);
+
+        $inProgressResult = $this->parser->parseInProgressSeries($listing, $filesByDir);
+        self::assertCount(1, $inProgressResult);
+        self::assertSame('Batman', $inProgressResult[0]->title);
+    }
 }

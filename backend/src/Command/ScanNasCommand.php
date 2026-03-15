@@ -196,32 +196,60 @@ final class ScanNasCommand extends Command
         $rawListing = $this->sshLs($path);
         $grouped = $this->parser->groupLooseFiles($rawListing);
 
-        $filesByDir = $this->fetchFilesByDir($grouped['directories'], $path);
+        [$updatedListing, $filesByDir] = $this->fetchFilesByDir($grouped['directories'], $path);
 
         // Ajouter les fichiers isolés rattachés à chaque dossier
         foreach ($grouped['looseFiles'] as $dir => $files) {
             $filesByDir[$dir] = \array_merge($filesByDir[$dir] ?? [], $files);
         }
 
-        return [$grouped['directories'], $filesByDir];
+        // Fusionner les listings (dossiers originaux hors conteneurs + dossiers des conteneurs + synthétiques des loose files)
+        $allDirs = $updatedListing;
+        foreach (\array_keys($grouped['looseFiles']) as $dir) {
+            if (!\in_array($dir, $allDirs, true)) {
+                $allDirs[] = $dir;
+            }
+        }
+
+        return [$allDirs, $filesByDir];
     }
 
     /**
      * Récupère les fichiers de chaque sous-répertoire via SSH.
+     * Les dossiers conteneurs (crossovers, one shots) sont descendus d'un niveau.
      *
      * @param list<string> $listing
      *
-     * @return array<string, list<string>>
+     * @return array{list<string>, array<string, list<string>>} [listing mis à jour, fichiers par dossier]
      */
     private function fetchFilesByDir(array $listing, string $basePath): array
     {
         $filesByDir = [];
+        $updatedListing = [];
 
         foreach ($listing as $entry) {
             if (\in_array($entry, ['@eaDir', '#recycle', '_lus'], true)) {
                 continue;
             }
 
+            // Dossiers conteneurs : descendre d'un niveau
+            if ($this->parser->isContainerDirectory($entry)) {
+                $subEntries = $this->sshLs("{$basePath}/{$entry}");
+                foreach ($subEntries as $subEntry) {
+                    if (\in_array($subEntry, ['@eaDir', '#recycle'], true)) {
+                        continue;
+                    }
+                    $updatedListing[] = $subEntry;
+                    $subFiles = $this->sshLs("{$basePath}/{$entry}/{$subEntry}");
+                    if ([] !== $subFiles) {
+                        $filesByDir[$subEntry] = $subFiles;
+                    }
+                }
+
+                continue;
+            }
+
+            $updatedListing[] = $entry;
             $files = $this->sshLs("{$basePath}/{$entry}");
 
             if ([] !== $files) {
@@ -229,7 +257,7 @@ final class ScanNasCommand extends Command
             }
         }
 
-        return $filesByDir;
+        return [$updatedListing, $filesByDir];
     }
 
     /**
