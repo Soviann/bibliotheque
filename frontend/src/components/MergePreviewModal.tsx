@@ -11,6 +11,15 @@ import type {
   MergePreviewTome,
   MergeSuggestion,
 } from "../types/api";
+import { statusOptions, typeOptions } from "../types/enums";
+import DatePartialSelect from "./DatePartialSelect";
+import SelectListbox from "./SelectListbox";
+
+const mergeInputClassName =
+  "rounded-lg border border-surface-border bg-surface-secondary px-3 py-2 text-sm text-text-primary focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
+
+const mergeListboxClassName =
+  "flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-secondary px-3 py-2 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
 
 interface MergePreviewModalProps {
   isExecuting: boolean;
@@ -31,18 +40,48 @@ export default function MergePreviewModal({
   preview,
   suggestion,
 }: MergePreviewModalProps) {
+  const [editedAmazonUrl, setEditedAmazonUrl] = useState("");
+  const [editedAuthors, setEditedAuthors] = useState("");
+  const [editedCoverUrl, setEditedCoverUrl] = useState("");
+  const [editedDefaultTomeBought, setEditedDefaultTomeBought] = useState(false);
+  const [editedDefaultTomeDownloaded, setEditedDefaultTomeDownloaded] = useState(false);
+  const [editedDefaultTomeRead, setEditedDefaultTomeRead] = useState(false);
+  const [editedDescription, setEditedDescription] = useState("");
+  const [editedIsOneShot, setEditedIsOneShot] = useState(false);
+  const [editedLatestPublishedIssue, setEditedLatestPublishedIssue] = useState("");
+  const [editedLatestPublishedIssueComplete, setEditedLatestPublishedIssueComplete] = useState(false);
+  const [editedNotInterestedBuy, setEditedNotInterestedBuy] = useState(false);
+  const [editedNotInterestedNas, setEditedNotInterestedNas] = useState(false);
+  const [editedPublishedDate, setEditedPublishedDate] = useState("");
+  const [editedPublisher, setEditedPublisher] = useState("");
+  const [editedStatus, setEditedStatus] = useState("buying");
   const [editedTitle, setEditedTitle] = useState("");
   const [editedTomes, setEditedTomes] = useState<MergePreviewTome[]>([]);
-  const [descExpanded, setDescExpanded] = useState(false);
+  const [editedType, setEditedType] = useState("bd");
 
   const [suggestionApplied, setSuggestionApplied] = useState(false);
 
   // Sync local state when preview changes
   useEffect(() => {
     if (preview) {
+      setEditedAmazonUrl(preview.amazonUrl ?? "");
+      setEditedAuthors(preview.authors.join(", "));
+      setEditedCoverUrl(preview.coverUrl ?? "");
+      setEditedDefaultTomeBought(preview.defaultTomeBought);
+      setEditedDefaultTomeDownloaded(preview.defaultTomeDownloaded);
+      setEditedDefaultTomeRead(preview.defaultTomeRead);
+      setEditedDescription(preview.description ?? "");
+      setEditedIsOneShot(preview.isOneShot);
+      setEditedLatestPublishedIssue(preview.latestPublishedIssue?.toString() ?? "");
+      setEditedLatestPublishedIssueComplete(preview.latestPublishedIssueComplete);
+      setEditedNotInterestedBuy(preview.notInterestedBuy);
+      setEditedNotInterestedNas(preview.notInterestedNas);
+      setEditedPublishedDate(preview.publishedDate ?? "");
+      setEditedPublisher(preview.publisher ?? "");
+      setEditedStatus(preview.status);
       setEditedTitle(preview.title);
       setEditedTomes(preview.tomes.map((t) => ({ ...t })));
-      setDescExpanded(false);
+      setEditedType(preview.type);
       setSuggestionApplied(false);
     }
   }, [preview]);
@@ -123,13 +162,6 @@ export default function MergePreviewModal({
 
   if (!preview) return null;
 
-  const description = preview.description ?? "";
-  const shouldTruncate = description.length > 200;
-  const displayedDescription =
-    shouldTruncate && !descExpanded
-      ? description.slice(0, 200) + "..."
-      : description;
-
   const inputClass =
     "rounded border border-surface-border bg-surface-secondary px-1.5 py-0.5 text-sm text-text-primary focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
 
@@ -171,39 +203,203 @@ export default function MergePreviewModal({
                 Suggestions IA en cours...
               </div>
             )}
+          </div>
 
-            {/* Metadata */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
-                {preview.type}
-              </span>
-              {preview.publisher && (
-                <span className="text-sm text-text-secondary">
-                  {preview.publisher}
-                </span>
+          {/* Scrollable content: metadata fields + tome table */}
+          <div className="min-h-0 flex-1 overflow-auto px-6 pb-2">
+            {/* Type + Status */}
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <SelectListbox
+                buttonClassName={mergeListboxClassName}
+                label="Type"
+                onChange={setEditedType}
+                options={typeOptions}
+                value={editedType}
+              />
+              <SelectListbox
+                buttonClassName={mergeListboxClassName}
+                label="Statut"
+                onChange={setEditedStatus}
+                options={statusOptions}
+                value={editedStatus}
+              />
+            </div>
+
+            {/* One-shot */}
+            <label className="mt-3 flex items-center gap-2">
+              <input
+                checked={editedIsOneShot}
+                className="h-4 w-4 rounded border-surface-border text-primary-600"
+                onChange={(e) => setEditedIsOneShot(e.target.checked)}
+                type="checkbox"
+              />
+              <span className="text-sm font-medium text-text-secondary">One-shot</span>
+            </label>
+
+            {/* Publisher */}
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-publisher">
+                Éditeur
+              </label>
+              <input
+                className={`mt-1 w-full ${mergeInputClassName}`}
+                id="merge-publisher"
+                onChange={(e) => setEditedPublisher(e.target.value)}
+                type="text"
+                value={editedPublisher}
+              />
+            </div>
+
+            {/* Published date */}
+            <div className="mt-3">
+              <DatePartialSelect
+                label="Date de parution"
+                onChange={setEditedPublishedDate}
+                value={editedPublishedDate}
+              />
+            </div>
+
+            {/* Cover URL */}
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-coverUrl">
+                URL de couverture
+              </label>
+              <input
+                className={`mt-1 w-full ${mergeInputClassName}`}
+                id="merge-coverUrl"
+                onChange={(e) => setEditedCoverUrl(e.target.value)}
+                placeholder="https://..."
+                type="url"
+                value={editedCoverUrl}
+              />
+              {editedCoverUrl && (
+                <img alt="Aperçu" className="mt-2 h-24 rounded-lg shadow" src={editedCoverUrl} />
               )}
             </div>
 
-            {preview.authors.length > 0 && (
-              <p className="mt-2 text-sm text-text-secondary">
-                {preview.authors.join(", ")}
-              </p>
-            )}
+            {/* Authors */}
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-authors">
+                Auteurs (séparés par des virgules)
+              </label>
+              <input
+                className={`mt-1 w-full ${mergeInputClassName}`}
+                id="merge-authors"
+                onChange={(e) => setEditedAuthors(e.target.value)}
+                type="text"
+                value={editedAuthors}
+              />
+            </div>
 
-            {description && (
-              <div className="mt-3">
-                <p className="text-sm text-text-secondary">{displayedDescription}</p>
-                {shouldTruncate && (
-                  <button
-                    className="mt-1 text-xs font-medium text-primary-600 hover:text-primary-700"
-                    onClick={() => setDescExpanded(!descExpanded)}
-                    type="button"
-                  >
-                    {descExpanded ? "Voir moins" : "Voir plus"}
-                  </button>
-                )}
+            {/* Description */}
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-description">
+                Description
+              </label>
+              <textarea
+                className={`mt-1 w-full ${mergeInputClassName}`}
+                id="merge-description"
+                onChange={(e) => setEditedDescription(e.target.value)}
+                rows={3}
+                value={editedDescription}
+              />
+            </div>
+
+            {/* Latest published issue + flags */}
+            <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-latestIssue">
+                  Dernier tome paru
+                </label>
+                <input
+                  className={`mt-1 w-24 ${mergeInputClassName}`}
+                  id="merge-latestIssue"
+                  min="0"
+                  onChange={(e) => setEditedLatestPublishedIssue(e.target.value)}
+                  type="number"
+                  value={editedLatestPublishedIssue}
+                />
               </div>
-            )}
+              <label className="flex items-center gap-2 pb-2">
+                <input
+                  checked={editedLatestPublishedIssueComplete}
+                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  onChange={(e) => setEditedLatestPublishedIssueComplete(e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Parution terminée</span>
+              </label>
+            </div>
+
+            {/* Default tome flags */}
+            <div className="mt-3 flex items-center gap-4">
+              <span className="text-sm font-medium text-text-secondary">Flags par défaut :</span>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={editedDefaultTomeBought}
+                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  onChange={(e) => setEditedDefaultTomeBought(e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Achetés</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={editedDefaultTomeDownloaded}
+                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  onChange={(e) => setEditedDefaultTomeDownloaded(e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Téléchargés</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={editedDefaultTomeRead}
+                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  onChange={(e) => setEditedDefaultTomeRead(e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Lus</span>
+              </label>
+            </div>
+
+            {/* Amazon URL */}
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-amazonUrl">
+                URL Amazon
+              </label>
+              <input
+                className={`mt-1 w-full ${mergeInputClassName}`}
+                id="merge-amazonUrl"
+                onChange={(e) => setEditedAmazonUrl(e.target.value)}
+                placeholder="https://..."
+                type="url"
+                value={editedAmazonUrl}
+              />
+            </div>
+
+            {/* Not interested flags */}
+            <div className="mt-3 flex items-center gap-4">
+              <span className="text-sm font-medium text-text-secondary">Pas intéressé :</span>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={editedNotInterestedBuy}
+                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  onChange={(e) => setEditedNotInterestedBuy(e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Achat</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={editedNotInterestedNas}
+                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  onChange={(e) => setEditedNotInterestedNas(e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">NAS</span>
+              </label>
+            </div>
 
             {/* Duplicate warning */}
             {hasDuplicates && (
@@ -212,10 +408,8 @@ export default function MergePreviewModal({
                 Numéros de tomes en double détectés. Modifiez-les avant de confirmer.
               </div>
             )}
-          </div>
 
-          {/* Tome table (scrollable) */}
-          <div className="mt-4 min-h-0 flex-1 overflow-auto px-6 pb-2">
+            {/* Tome table */}
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 z-10 bg-surface-primary">
                 <tr className="border-b border-surface-border text-text-muted">
@@ -353,10 +547,30 @@ export default function MergePreviewModal({
               className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
               disabled={isExecuting || hasDuplicates}
               onClick={() => {
+                const authors = editedAuthors
+                  .split(",")
+                  .map((a) => a.trim())
+                  .filter(Boolean);
                 onConfirm({
                   ...preview,
+                  amazonUrl: editedAmazonUrl || null,
+                  authors,
+                  coverUrl: editedCoverUrl || null,
+                  defaultTomeBought: editedDefaultTomeBought,
+                  defaultTomeDownloaded: editedDefaultTomeDownloaded,
+                  defaultTomeRead: editedDefaultTomeRead,
+                  description: editedDescription || null,
+                  isOneShot: editedIsOneShot,
+                  latestPublishedIssue: editedLatestPublishedIssue ? Number(editedLatestPublishedIssue) : null,
+                  latestPublishedIssueComplete: editedLatestPublishedIssueComplete,
+                  notInterestedBuy: editedNotInterestedBuy,
+                  notInterestedNas: editedNotInterestedNas,
+                  publishedDate: editedPublishedDate || null,
+                  publisher: editedPublisher || null,
+                  status: editedStatus,
                   title: editedTitle || preview.title,
                   tomes: editedTomes,
+                  type: editedType,
                 });
               }}
               type="button"

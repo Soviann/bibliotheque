@@ -90,21 +90,31 @@ final class MergePreviewBuilder
      */
     private function buildPreview(string $title, array $seriesList, array $tomeNumberMap): MergePreview
     {
+        $primary = [] !== $seriesList ? $seriesList[0] : null;
+
         return new MergePreview(
+            amazonUrl: $this->reconcileFirstNonNull($seriesList, static fn (ComicSeries $s): ?string => $s->getAmazonUrl()),
             authors: $this->reconcileAuthors($seriesList),
             coverUrl: $this->reconcileCoverUrl($seriesList),
+            defaultTomeBought: false,
+            defaultTomeDownloaded: false,
+            defaultTomeRead: false,
             description: $this->reconcileDescription($seriesList),
             isOneShot: false,
             latestPublishedIssue: $this->reconcileLatestPublishedIssue($seriesList),
             latestPublishedIssueComplete: $this->reconcileLatestPublishedIssueComplete($seriesList),
+            notInterestedBuy: false,
+            notInterestedNas: false,
+            publishedDate: $this->reconcileFirstNonNull($seriesList, static fn (ComicSeries $s): ?string => $s->getPublishedDate()),
             publisher: $this->reconcilePublisher($seriesList),
             sourceSeriesIds: \array_values(\array_map(
                 static fn (ComicSeries $s): int => (int) $s->getId(),
                 $seriesList,
             )),
+            status: null !== $primary ? $primary->getStatus()->value : 'buying',
             title: $title,
             tomes: $this->buildTomes($seriesList, $tomeNumberMap),
-            type: [] !== $seriesList ? $seriesList[0]->getType()->value : 'bd',
+            type: null !== $primary ? $primary->getType()->value : 'bd',
         );
     }
 
@@ -202,6 +212,28 @@ final class MergePreviewBuilder
         }
 
         return false;
+    }
+
+    /**
+     * Première valeur non null extraite par le callback.
+     *
+     * @template T
+     *
+     * @param ComicSeries[]             $seriesList
+     * @param callable(ComicSeries): ?T $extractor
+     *
+     * @return ?T
+     */
+    private function reconcileFirstNonNull(array $seriesList, callable $extractor): mixed
+    {
+        foreach ($seriesList as $series) {
+            $value = $extractor($series);
+            if (null !== $value) {
+                return $value;
+            }
+        }
+
+        return null;
     }
 
     /**

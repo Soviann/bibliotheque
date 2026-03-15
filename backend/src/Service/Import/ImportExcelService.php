@@ -172,7 +172,7 @@ final class ImportExcelService
             }
         }
 
-        $existing = $this->comicSeriesRepository->findOneBy(['title' => $title, 'type' => $comicType]);
+        $existing = $this->comicSeriesRepository->findOneByFuzzyTitle($title, $comicType);
         $isUpdate = null !== $existing;
         $comic = $existing ?? new ComicSeries();
 

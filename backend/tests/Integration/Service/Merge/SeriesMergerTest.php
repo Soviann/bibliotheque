@@ -62,14 +62,22 @@ final class SeriesMergerTest extends KernelTestCase
 
         // Construire l'aperçu de fusion
         $preview = new MergePreview(
+            amazonUrl: null,
             authors: ['Goscinny', 'Uderzo'],
             coverUrl: 'https://example.com/asterix.jpg',
+            defaultTomeBought: false,
+            defaultTomeDownloaded: false,
+            defaultTomeRead: false,
             description: 'Les aventures d\'Astérix le Gaulois',
             isOneShot: false,
             latestPublishedIssue: 40,
             latestPublishedIssueComplete: true,
+            notInterestedBuy: false,
+            notInterestedNas: false,
+            publishedDate: null,
             publisher: 'Hachette',
             sourceSeriesIds: [$id1, $id2, $id3],
+            status: 'buying',
             title: 'Astérix',
             tomes: [
                 new MergePreviewTome(bought: true, downloaded: false, isbn: '978-2-0001-0001-1', number: 1, onNas: false, read: true, title: 'Astérix le Gaulois', tomeEnd: null),

@@ -171,14 +171,22 @@ describe("useMergeSeries", () => {
       queryClient.setQueryData(["comics"], createMockHydraCollection([]));
 
       const preview: MergePreview = {
+        amazonUrl: null,
         authors: ["Goscinny"],
         coverUrl: null,
+        defaultTomeBought: false,
+        defaultTomeDownloaded: false,
+        defaultTomeRead: false,
         description: null,
         isOneShot: false,
         latestPublishedIssue: null,
         latestPublishedIssueComplete: false,
+        notInterestedBuy: false,
+        notInterestedNas: false,
+        publishedDate: null,
         publisher: null,
         sourceSeriesIds: [1, 2],
+        status: "buying",
         title: "Astérix",
         tomes: [],
         type: "BD",

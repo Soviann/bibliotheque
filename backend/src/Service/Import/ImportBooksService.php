@@ -70,7 +70,7 @@ final class ImportBooksService
         $enriched = 0;
 
         foreach ($groups as $group) {
-            $existing = $this->comicSeriesRepository->findOneBy(['title' => $group->seriesName]);
+            $existing = $this->comicSeriesRepository->findOneByFuzzyTitleAnyType($group->seriesName);
 
             if (null !== $existing) {
                 $this->enrichExisting($existing, $group->rows);

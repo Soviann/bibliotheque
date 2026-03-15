@@ -65,14 +65,22 @@ final class MergePreviewHydrator
         $sourceSeriesIds = \array_values(\array_map('\intval', $data['sourceSeriesIds']));
 
         return new MergePreview(
+            amazonUrl: isset($data['amazonUrl']) && \is_string($data['amazonUrl']) ? $data['amazonUrl'] : null,
             authors: $authors,
             coverUrl: isset($data['coverUrl']) && \is_string($data['coverUrl']) ? $data['coverUrl'] : null,
+            defaultTomeBought: (bool) ($data['defaultTomeBought'] ?? false),
+            defaultTomeDownloaded: (bool) ($data['defaultTomeDownloaded'] ?? false),
+            defaultTomeRead: (bool) ($data['defaultTomeRead'] ?? false),
             description: isset($data['description']) && \is_string($data['description']) ? $data['description'] : null,
             isOneShot: (bool) ($data['isOneShot'] ?? false),
             latestPublishedIssue: isset($data['latestPublishedIssue']) && \is_numeric($data['latestPublishedIssue']) ? (int) $data['latestPublishedIssue'] : null,
             latestPublishedIssueComplete: (bool) ($data['latestPublishedIssueComplete'] ?? false),
+            notInterestedBuy: (bool) ($data['notInterestedBuy'] ?? false),
+            notInterestedNas: (bool) ($data['notInterestedNas'] ?? false),
+            publishedDate: isset($data['publishedDate']) && \is_string($data['publishedDate']) ? $data['publishedDate'] : null,
             publisher: isset($data['publisher']) && \is_string($data['publisher']) ? $data['publisher'] : null,
             sourceSeriesIds: $sourceSeriesIds,
+            status: isset($data['status']) && \is_string($data['status']) ? $data['status'] : 'buying',
             title: $data['title'],
             tomes: $tomes,
             type: $data['type'],
