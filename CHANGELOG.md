@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Scan NAS** : Commande `app:scan-nas` qui scanne les fichiers du NAS via SSH et génère un fichier Excel compatible avec l'import
+- **Import Excel** : Nouvelle colonne « Parution terminée » (col H) pour marquer une série comme terminée sans perdre les valeurs numériques
+- **Import Excel** : Support du format « fini N » (ex: `fini 40`) dans les cellules numériques pour conserver le nombre tout en marquant comme terminé
+
 ## [v2.9.5] - 2026-03-15
 
 ### Changed

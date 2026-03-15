@@ -245,6 +245,103 @@ final class ImportExcelServiceTest extends TestCase
     }
 
     // ---------------------------------------------------------------
+    // Colonne 8 : Parution terminée
+    // ---------------------------------------------------------------
+
+    public function testImportPublicationFinishedColumnSetsCompleteAndKeepsNumbers(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?', 'Parution terminée'],
+                ['Asterix', 'oui', 40, 40, 40, 40, 'oui', 'oui'],
+            ],
+        ]);
+
+        self::assertCount(1, $persisted);
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertSame(40, $persisted[0]->getLatestPublishedIssue());
+        // Les nombres sont conservés, pas de "fini" → defaultTomeBought/Read/Downloaded restent false
+        self::assertFalse($persisted[0]->isDefaultTomeBought());
+        self::assertFalse($persisted[0]->isDefaultTomeRead());
+        self::assertFalse($persisted[0]->isDefaultTomeDownloaded());
+    }
+
+    public function testImportPublicationFinishedColumnNonDoesNotSetComplete(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?', 'Parution terminée'],
+                ['Asterix', 'oui', 5, 5, 40, 5, 'oui', 'non'],
+            ],
+        ]);
+
+        self::assertFalse($persisted[0]->isLatestPublishedIssueComplete());
+    }
+
+    public function testImportWithoutPublicationFinishedColumnFallsBackToFiniDetection(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'fini', 'fini', 'fini', 'fini', 'fini', 'fini'],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertTrue($persisted[0]->isDefaultTomeBought());
+        self::assertTrue($persisted[0]->isDefaultTomeRead());
+        self::assertTrue($persisted[0]->isDefaultTomeDownloaded());
+    }
+
+    public function testImportPublicationFinishedColumnCombinesWithFini(): void
+    {
+        // Col H = oui, mais les nombres sont des entiers (pas "fini")
+        // → latestPublishedIssueComplete = true, defaultTome* = false
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?', 'Parution terminée'],
+                ['Asterix', 'oui', 10, 8, 10, 10, 'oui', 'oui'],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertSame(10, $persisted[0]->getLatestPublishedIssue());
+        // 10 tomes, achetés 1-10, lus 1-8, téléchargés 1-10
+        $tomes = $persisted[0]->getTomes()->toArray();
+        self::assertCount(10, $tomes);
+    }
+
+    public function testImportParutionFiniWithNumberKeepsBothValues(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'oui', 5, 5, 'fini 40', null, null],
+            ],
+        ]);
+
+        self::assertCount(1, $persisted);
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertSame(40, $persisted[0]->getLatestPublishedIssue());
+    }
+
+    public function testImportLastBoughtFiniWithNumberKeepsBothValues(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Asterix', 'oui', 'fini 10', null, null, null, null],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isDefaultTomeBought());
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        // Le nombre 10 est conservé comme nombre de tomes
+        $tomes = $persisted[0]->getTomes()->toArray();
+        self::assertCount(10, $tomes);
+    }
+
+    // ---------------------------------------------------------------
 
     public function testImportExcelResultIsJsonSerializable(): void
     {

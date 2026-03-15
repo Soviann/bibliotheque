@@ -143,10 +143,12 @@ final class ImportExcelService
         $lastDownloaded = $this->parseIntegerValue($row[5] ?? null);
         $onNas = $this->determineOnNas($row[6] ?? null);
         $onNasFini = $this->isFiniValue($row[6] ?? null);
+        $publicationFinished = $this->isOuiValue($row[7] ?? null);
         $statusFini = $this->isFiniValue($row[1] ?? null);
 
         $latestPublishedIssue = $publishedCount->value;
-        $latestPublishedIssueComplete = $publishedCount->isComplete
+        $latestPublishedIssueComplete = $publicationFinished
+            || $publishedCount->isComplete
             || $lastBought->isComplete
             || $currentIssue->isComplete
             || $lastDownloaded->isComplete
@@ -280,10 +282,10 @@ final class ImportExcelService
             $candidates[] = $currentIssueValue;
         }
 
-        if (!$lastBoughtComplete && null !== $lastBoughtValue) {
+        if (null !== $lastBoughtValue) {
             $candidates[] = $lastBoughtValue;
         }
-        if (!$lastDownloadedComplete && null !== $lastDownloadedValue) {
+        if (null !== $lastDownloadedValue) {
             $candidates[] = $lastDownloadedValue;
         }
 
@@ -336,6 +338,20 @@ final class ImportExcelService
     }
 
     /**
+     * Vérifie si une valeur est "oui".
+     */
+    private function isOuiValue(mixed $value): bool
+    {
+        if (null === $value) {
+            return false;
+        }
+
+        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
+
+        return 'oui' === $value;
+    }
+
+    /**
      * Parse une valeur qui peut être un entier ou "fini".
      */
     private function parseIntegerValue(mixed $value): ParsedIntegerValue
@@ -350,8 +366,17 @@ final class ImportExcelService
             return new ParsedIntegerValue(isComplete: false, value: null);
         }
 
-        if ('fini' === \mb_strtolower($value)) {
+        $lowerValue = \mb_strtolower($value);
+
+        if ('fini' === $lowerValue) {
             return new ParsedIntegerValue(isComplete: true, value: null);
+        }
+
+        // Format "fini N" : parution terminée avec nombre de tomes
+        if (1 === \preg_match('/^fini\s+(\d+)$/i', $value, $finiMatches)) {
+            $intValue = (int) $finiMatches[1];
+
+            return new ParsedIntegerValue(isComplete: true, value: $intValue > 0 ? $intValue : null);
         }
 
         if (\str_contains($value, ',')) {
