@@ -116,8 +116,8 @@ final class ScanNasCommand extends Command
             // Trier par titre
             \usort($allSeries, static fn (NasSeriesData $a, NasSeriesData $b) => \strcasecmp($a->title, $b->title));
 
-            // Dédupliquer par titre (garder la version la plus "riche")
-            $allSeries = $this->deduplicateSeries($allSeries);
+            // Fusionner les séries en double (même série dans plusieurs dossiers)
+            $allSeries = $this->parser->mergeDuplicateSeries($allSeries);
 
             $this->writeSheet($spreadsheet, $sheetName, $allSeries);
 
@@ -288,40 +288,5 @@ final class ScanNasCommand extends Command
 
             ++$row;
         }
-    }
-
-    /**
-     * Déduplique les séries par titre, en gardant la version avec le plus d'info.
-     *
-     * @param list<NasSeriesData> $series
-     *
-     * @return list<NasSeriesData>
-     */
-    private function deduplicateSeries(array $series): array
-    {
-        $byTitle = [];
-
-        foreach ($series as $s) {
-            $key = \mb_strtolower($s->title);
-
-            if (!isset($byTitle[$key])) {
-                $byTitle[$key] = $s;
-
-                continue;
-            }
-
-            $existing = $byTitle[$key];
-
-            $existingScore = ($existing->readComplete ? 2 : 0) + (null !== $existing->readUpTo ? 1 : 0);
-            $newScore = ($s->readComplete ? 2 : 0) + (null !== $s->readUpTo ? 1 : 0);
-
-            if ($newScore > $existingScore) {
-                $byTitle[$key] = $s;
-            } elseif ($newScore === $existingScore && (null !== $s->lastDownloaded) && ($s->lastDownloaded > ($existing->lastDownloaded ?? 0))) {
-                $byTitle[$key] = $s;
-            }
-        }
-
-        return \array_values($byTitle);
     }
 }

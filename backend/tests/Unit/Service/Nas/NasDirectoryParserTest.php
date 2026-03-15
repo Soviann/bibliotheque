@@ -215,13 +215,17 @@ final class NasDirectoryParserTest extends TestCase
 
         self::assertCount(2, $result);
 
+        // Blake & Mortimer : pas (complet), 4 tomes lus
         self::assertSame('Blake & Mortimer', $result[0]->title);
         self::assertSame(4, $result[0]->lastDownloaded);
-        self::assertTrue($result[0]->readComplete);
+        self::assertFalse($result[0]->readComplete);
+        self::assertSame(4, $result[0]->readUpTo);
 
+        // Cedric : pas (complet), 10 tomes lus
         self::assertSame('Cedric', $result[1]->title);
         self::assertSame(10, $result[1]->lastDownloaded);
-        self::assertTrue($result[1]->readComplete);
+        self::assertFalse($result[1]->readComplete);
+        self::assertSame(10, $result[1]->readUpTo);
     }
 
     public function testParseInProgressListing(): void
@@ -273,6 +277,32 @@ final class NasDirectoryParserTest extends TestCase
         self::assertFalse($result[2]->readComplete);
     }
 
+    public function testParseReadListingWithComplete(): void
+    {
+        $listing = [
+            'Anachron (complet)',
+        ];
+
+        $filesByDir = [
+            'Anachron (complet)' => [
+                'Anachron 01.cbr',
+                'Anachron 02.cbr',
+                'Anachron 03.cbr',
+            ],
+        ];
+
+        $result = $this->parser->parseReadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+
+        // Anachron (complet) dans _lus : readComplete = true
+        self::assertSame('Anachron', $result[0]->title);
+        self::assertTrue($result[0]->isComplete);
+        self::assertSame(3, $result[0]->lastDownloaded);
+        self::assertTrue($result[0]->readComplete);
+        self::assertNull($result[0]->readUpTo);
+    }
+
     public function testParseUnreadListingSkipsMetadataDirs(): void
     {
         $listing = ['@eaDir', '#recycle', '_lus', 'Androides'];
@@ -284,6 +314,131 @@ final class NasDirectoryParserTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('Androides', $result[0]->title);
+    }
+
+    // --- mergeDuplicateSeries ---
+
+    public function testMergeDuplicateSeriesCombinesData(): void
+    {
+        $series = [
+            // Depuis BD/ : 15 tomes téléchargés, pas lu
+            new \App\DTO\NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 15,
+                readComplete: false,
+                readUpTo: null,
+                title: 'Blake et Mortimer',
+            ),
+            // Depuis BD/_lus/ : 10 tomes lus
+            new \App\DTO\NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 10,
+                readComplete: false,
+                readUpTo: 10,
+                title: 'Blake et Mortimer',
+            ),
+        ];
+
+        $result = $this->parser->mergeDuplicateSeries($series);
+
+        self::assertCount(1, $result);
+        self::assertSame('Blake et Mortimer', $result[0]->title);
+        self::assertSame(15, $result[0]->lastDownloaded);
+        self::assertSame(10, $result[0]->readUpTo);
+        self::assertFalse($result[0]->readComplete);
+        self::assertFalse($result[0]->isComplete);
+    }
+
+    public function testMergeDuplicateSeriesPreservesComplete(): void
+    {
+        $series = [
+            // Depuis BD/ : marqué (complet), 4 tomes
+            new \App\DTO\NasSeriesData(
+                isComplete: true,
+                lastDownloaded: 4,
+                readComplete: false,
+                readUpTo: null,
+                title: 'Anachron',
+            ),
+            // Depuis BD/_lus/ : 2 tomes lus
+            new \App\DTO\NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 2,
+                readComplete: false,
+                readUpTo: 2,
+                title: 'Anachron',
+            ),
+        ];
+
+        $result = $this->parser->mergeDuplicateSeries($series);
+
+        self::assertCount(1, $result);
+        self::assertSame('Anachron', $result[0]->title);
+        self::assertSame(4, $result[0]->lastDownloaded);
+        self::assertSame(2, $result[0]->readUpTo);
+        self::assertTrue($result[0]->isComplete);
+        self::assertFalse($result[0]->readComplete);
+    }
+
+    public function testMergeDuplicateSeriesThreeSources(): void
+    {
+        $series = [
+            // Depuis BD/ : 20 tomes téléchargés
+            new \App\DTO\NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 20,
+                readComplete: false,
+                readUpTo: null,
+                title: 'One Piece',
+            ),
+            // Depuis BD/_lus/ : 15 tomes lus
+            new \App\DTO\NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 15,
+                readComplete: false,
+                readUpTo: 15,
+                title: 'One Piece',
+            ),
+            // Depuis /lecture en cours/ : tomes 16-18, readUpTo = 15
+            new \App\DTO\NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 18,
+                readComplete: false,
+                readUpTo: 15,
+                title: 'One Piece',
+            ),
+        ];
+
+        $result = $this->parser->mergeDuplicateSeries($series);
+
+        self::assertCount(1, $result);
+        self::assertSame('One Piece', $result[0]->title);
+        self::assertSame(20, $result[0]->lastDownloaded);
+        self::assertSame(15, $result[0]->readUpTo);
+    }
+
+    public function testMergeDuplicateSeriesNoDuplicates(): void
+    {
+        $series = [
+            new \App\DTO\NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 5,
+                readComplete: false,
+                readUpTo: null,
+                title: 'Série A',
+            ),
+            new \App\DTO\NasSeriesData(
+                isComplete: true,
+                lastDownloaded: 3,
+                readComplete: true,
+                readUpTo: null,
+                title: 'Série B',
+            ),
+        ];
+
+        $result = $this->parser->mergeDuplicateSeries($series);
+
+        self::assertCount(2, $result);
     }
 
     public function testParseRangeTomeFormat(): void

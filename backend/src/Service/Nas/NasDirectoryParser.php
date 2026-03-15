@@ -141,11 +141,13 @@ final class NasDirectoryParser
             $parsed = $this->parseSeriesDirectory($entry);
             $lastDownloaded = $this->getMaxTomeFromFiles($filesByDir[$entry] ?? []);
 
+            // _lus = tomes lus, pas nécessairement série terminée
+            // readComplete seulement si marqué (complet)
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
                 lastDownloaded: $lastDownloaded,
-                readComplete: true,
-                readUpTo: null,
+                readComplete: $parsed['isComplete'],
+                readUpTo: $parsed['isComplete'] ? null : $lastDownloaded,
                 title: $parsed['title'],
             );
         }
@@ -191,6 +193,44 @@ final class NasDirectoryParser
         }
 
         return $series;
+    }
+
+    /**
+     * Fusionne les séries en double (même titre dans plusieurs dossiers).
+     *
+     * Combine les informations : lastDownloaded = max, readUpTo = max,
+     * isComplete/readComplete = OR logique.
+     *
+     * @param list<NasSeriesData> $series
+     *
+     * @return list<NasSeriesData>
+     */
+    public function mergeDuplicateSeries(array $series): array
+    {
+        /** @var array<string, NasSeriesData> $byTitle */
+        $byTitle = [];
+
+        foreach ($series as $s) {
+            $key = \mb_strtolower($s->title);
+
+            if (!isset($byTitle[$key])) {
+                $byTitle[$key] = $s;
+
+                continue;
+            }
+
+            $existing = $byTitle[$key];
+
+            $byTitle[$key] = new NasSeriesData(
+                isComplete: $existing->isComplete || $s->isComplete,
+                lastDownloaded: \max($existing->lastDownloaded ?? 0, $s->lastDownloaded ?? 0) ?: null,
+                readComplete: $existing->readComplete || $s->readComplete,
+                readUpTo: \max($existing->readUpTo ?? 0, $s->readUpTo ?? 0) ?: null,
+                title: $existing->title,
+            );
+        }
+
+        return \array_values($byTitle);
     }
 
     private function isIgnoredEntry(string $entry): bool
