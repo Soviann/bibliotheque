@@ -7,6 +7,19 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Formulaire série** : Champ « Date de parution » avec composant `DatePartialSelect` (année/mois/jour partiels)
+- **Modal de fusion** : Formulaire complet éditable (type, statut, éditeur, couverture, auteurs, description, flags, Amazon URL)
+- **MergePreview** : Tous les champs de série dans le DTO (`amazonUrl`, `status`, `publishedDate`, `defaultTome*`, `notInterested*`)
+
+### Fixed
+
+- **Scan NAS** : Ignore Star Wars (structure incompatible), corrige Block 109 (nombre du titre ≠ tome), descend dans les conteneurs (crossovers, one shots)
+- **Scan NAS** : Nettoie les extensions (.cbr/.cbz) et indicateurs (one-shot, complet, underscores, tags source) des titres de séries
+- **Scan NAS** : Les one-shots ne comptent plus leurs pages comme des tomes
+- **Import Excel/Livres** : Matching fuzzy des titres (normalisation accents, tirets, ponctuation) pour éviter les doublons
+
 ## [v2.10.0] - 2026-03-15
 
 ### Added
