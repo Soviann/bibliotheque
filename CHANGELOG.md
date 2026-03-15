@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.9.4] - 2026-03-15
+
 ### Added
 
 - **Sélection manuelle** : Affiche le type (BD, Manga, Comics, Livre) pour chaque série dans la liste
