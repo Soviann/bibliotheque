@@ -14,6 +14,17 @@ final class NasDirectoryParser
     private const array IGNORED_ENTRIES = ['@eaDir', '#recycle', '_lus'];
 
     /**
+     * Seuil de distance de Levenshtein (ratio max par rapport à la longueur).
+     * 0.2 = 20% de différence tolérée.
+     */
+    private const float FUZZY_THRESHOLD = 0.2;
+
+    /**
+     * Articles à supprimer lors de la normalisation.
+     */
+    private const array ARTICLES = ['de', 'des', 'du', 'l', 'la', 'le', 'les', 'the'];
+
+    /**
      * Extrait le numéro de tome d'un nom de fichier/dossier.
      *
      * Formats supportés :
@@ -92,7 +103,7 @@ final class NasDirectoryParser
      *
      * @return list<NasSeriesData>
      */
-    public function parseUnreadSeries(array $listing, array $filesByDir): array
+    public function parseUnreadSeries(array $listing, array $filesByDir, ?string $publisher = null): array
     {
         $series = [];
 
@@ -115,6 +126,7 @@ final class NasDirectoryParser
                 readComplete: false,
                 readUpTo: null,
                 title: $parsed['title'],
+                publisher: $publisher,
             );
         }
 
@@ -122,14 +134,14 @@ final class NasDirectoryParser
     }
 
     /**
-     * Parse les séries entièrement lues (_lus/).
+     * Parse les séries lues (_lus/).
      *
      * @param list<string>                $listing    Contenu du répertoire _lus/
      * @param array<string, list<string>> $filesByDir Fichiers par sous-répertoire
      *
      * @return list<NasSeriesData>
      */
-    public function parseReadSeries(array $listing, array $filesByDir): array
+    public function parseReadSeries(array $listing, array $filesByDir, ?string $publisher = null): array
     {
         $series = [];
 
@@ -149,6 +161,7 @@ final class NasDirectoryParser
                 readComplete: $parsed['isComplete'],
                 readUpTo: $parsed['isComplete'] ? null : $lastDownloaded,
                 title: $parsed['title'],
+                publisher: $publisher,
             );
         }
 
@@ -164,7 +177,7 @@ final class NasDirectoryParser
      *
      * @return list<NasSeriesData>
      */
-    public function parseInProgressSeries(array $listing, array $filesByDir): array
+    public function parseInProgressSeries(array $listing, array $filesByDir, ?string $publisher = null): array
     {
         $series = [];
 
@@ -189,6 +202,7 @@ final class NasDirectoryParser
                 readComplete: false,
                 readUpTo: $readUpTo,
                 title: $parsed['title'],
+                publisher: $publisher,
             );
         }
 
@@ -196,10 +210,39 @@ final class NasDirectoryParser
     }
 
     /**
-     * Fusionne les séries en double (même titre dans plusieurs dossiers).
+     * Normalise un titre pour la comparaison fuzzy.
      *
-     * Combine les informations : lastDownloaded = max, readUpTo = max,
-     * isComplete/readComplete = OR logique.
+     * Lowercase, translitération accents, & → et, suppression articles et ponctuation.
+     */
+    public function normalizeTitle(string $title): string
+    {
+        // Lowercase
+        $normalized = \mb_strtolower($title);
+
+        // Translitération accents (é → e, etc.)
+        $normalized = \transliterator_transliterate('NFD; [:Nonspacing Mark:] Remove; NFC', $normalized) ?: $normalized;
+
+        // & → et
+        $normalized = \str_replace('&', 'et', $normalized);
+
+        // Supprimer la ponctuation (garder lettres, chiffres, espaces)
+        $normalized = (string) \preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $normalized);
+
+        // Supprimer les articles (mots entiers)
+        $articlesPattern = '/\b('.\implode('|', self::ARTICLES).')\b/u';
+        $normalized = (string) \preg_replace($articlesPattern, '', $normalized);
+
+        // Collapse espaces multiples
+        $normalized = (string) \preg_replace('/\s+/', ' ', $normalized);
+
+        return \trim($normalized);
+    }
+
+    /**
+     * Fusionne les séries en double (même titre ou titre similaire).
+     *
+     * Passe 1 : regroupement par titre normalisé exact.
+     * Passe 2 : Levenshtein sur les titres normalisés (seuil 20%).
      *
      * @param list<NasSeriesData> $series
      *
@@ -207,35 +250,90 @@ final class NasDirectoryParser
      */
     public function mergeDuplicateSeries(array $series): array
     {
-        /** @var array<string, NasSeriesData> $byTitle */
-        $byTitle = [];
+        /** @var array<string, NasSeriesData> $byNormalized */
+        $byNormalized = [];
 
+        // Passe 1 : regroupement exact par titre normalisé
         foreach ($series as $s) {
-            $key = \mb_strtolower($s->title);
+            $key = $this->normalizeTitle($s->title);
 
-            if (!isset($byTitle[$key])) {
-                $byTitle[$key] = $s;
+            if (!isset($byNormalized[$key])) {
+                $byNormalized[$key] = $s;
 
                 continue;
             }
 
-            $existing = $byTitle[$key];
-
-            $byTitle[$key] = new NasSeriesData(
-                isComplete: $existing->isComplete || $s->isComplete,
-                lastDownloaded: \max($existing->lastDownloaded ?? 0, $s->lastDownloaded ?? 0) ?: null,
-                readComplete: $existing->readComplete || $s->readComplete,
-                readUpTo: \max($existing->readUpTo ?? 0, $s->readUpTo ?? 0) ?: null,
-                title: $existing->title,
-            );
+            $byNormalized[$key] = $this->mergeTwo($byNormalized[$key], $s);
         }
 
-        return \array_values($byTitle);
+        // Passe 2 : Levenshtein pour les titres proches
+        $keys = \array_keys($byNormalized);
+        $merged = [];
+
+        foreach ($keys as $key) {
+            if (!isset($byNormalized[$key])) {
+                continue;
+            }
+
+            $current = $byNormalized[$key];
+
+            foreach ($keys as $otherKey) {
+                if ($key === $otherKey || !isset($byNormalized[$otherKey])) {
+                    continue;
+                }
+
+                if ($this->isFuzzyMatch($key, $otherKey)) {
+                    $current = $this->mergeTwo($current, $byNormalized[$otherKey]);
+                    unset($byNormalized[$otherKey]);
+                }
+            }
+
+            $merged[] = $current;
+            unset($byNormalized[$key]);
+        }
+
+        return $merged;
     }
 
-    private function isIgnoredEntry(string $entry): bool
+    /**
+     * Nettoie un nom de fichier : supprime "GetComics.INFO" et les extensions.
+     */
+    private function cleanFilename(string $filename): string
     {
-        return \in_array($entry, self::IGNORED_ENTRIES, true);
+        // Supprimer "GetComics.INFO" (et variantes de casse)
+        $filename = (string) \preg_replace('/\(?GetComics\.INFO\)?/i', '', $filename);
+
+        // Supprimer l'extension
+        $filename = (string) \preg_replace('/\.\w{2,4}$/', '', $filename);
+
+        return \trim($filename);
+    }
+
+    /**
+     * Extrait tous les numéros de tomes des fichiers (après nettoyage).
+     *
+     * @param list<string> $files
+     *
+     * @return list<int>
+     */
+    private function extractAllTomeNumbers(array $files): array
+    {
+        $numbers = [];
+
+        foreach ($files as $file) {
+            if ($this->isInfoFile($file)) {
+                continue;
+            }
+
+            $cleaned = $this->cleanFilename($file);
+            $number = $this->extractTomeNumber($cleaned);
+
+            if (null !== $number) {
+                $numbers[] = $number;
+            }
+        }
+
+        return $numbers;
     }
 
     /**
@@ -250,24 +348,47 @@ final class NasDirectoryParser
         return [] !== $numbers ? \max($numbers) : null;
     }
 
-    /**
-     * Extrait tous les numéros de tomes des fichiers.
-     *
-     * @param list<string> $files
-     *
-     * @return list<int>
-     */
-    private function extractAllTomeNumbers(array $files): array
+    private function isIgnoredEntry(string $entry): bool
     {
-        $numbers = [];
+        return \in_array($entry, self::IGNORED_ENTRIES, true);
+    }
 
-        foreach ($files as $file) {
-            $number = $this->extractTomeNumber($file);
-            if (null !== $number) {
-                $numbers[] = $number;
-            }
+    /**
+     * Vérifie si un fichier est un .info à ignorer.
+     */
+    private function isInfoFile(string $filename): bool
+    {
+        return 1 === \preg_match('/\.info$/i', $filename);
+    }
+
+    /**
+     * Vérifie si deux titres normalisés sont suffisamment proches (Levenshtein).
+     */
+    private function isFuzzyMatch(string $normalizedA, string $normalizedB): bool
+    {
+        $maxLen = \max(\strlen($normalizedA), \strlen($normalizedB));
+
+        if (0 === $maxLen) {
+            return true;
         }
 
-        return $numbers;
+        $distance = \levenshtein($normalizedA, $normalizedB);
+
+        return $distance / $maxLen <= self::FUZZY_THRESHOLD;
+    }
+
+    /**
+     * Fusionne deux NasSeriesData en une seule.
+     */
+    private function mergeTwo(NasSeriesData $a, NasSeriesData $b): NasSeriesData
+    {
+        return new NasSeriesData(
+            isComplete: $a->isComplete || $b->isComplete,
+            lastDownloaded: \max($a->lastDownloaded ?? 0, $b->lastDownloaded ?? 0) ?: null,
+            readComplete: $a->readComplete || $b->readComplete,
+            readUpTo: \max($a->readUpTo ?? 0, $b->readUpTo ?? 0) ?: null,
+            title: $a->title,
+            publisher: $a->publisher ?? $b->publisher,
+        );
     }
 }

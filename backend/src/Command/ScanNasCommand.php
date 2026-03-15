@@ -156,7 +156,7 @@ final class ScanNasCommand extends Command
                 $path = "{$basePath}/Comics/{$subdir}";
                 $listing = $this->sshLs($path);
                 $filesByDir = $this->fetchFilesByDir($listing, $path);
-                $allSeries = \array_merge($allSeries, $this->parser->parseUnreadSeries($listing, $filesByDir));
+                $allSeries = \array_merge($allSeries, $this->parser->parseUnreadSeries($listing, $filesByDir, $subdir));
             }
 
             $lusPath = "{$basePath}/Comics/_lus";
@@ -257,7 +257,7 @@ final class ScanNasCommand extends Command
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle($sheetName);
 
-        $headers = ['Titre', 'Statut', 'Dernier acheté', 'Lu jusqu\'à', 'Nombre publié', 'Dernier téléchargé', 'Sur NAS', 'Parution terminée'];
+        $headers = ['Titre', 'Statut', 'Dernier acheté', 'Lu jusqu\'à', 'Nombre publié', 'Dernier téléchargé', 'Sur NAS', 'Parution terminée', 'Éditeur'];
         foreach ($headers as $col => $header) {
             $sheet->setCellValue([$col + 1, 1], $header);
         }
@@ -284,6 +284,10 @@ final class ScanNasCommand extends Command
 
             if ($series->isComplete) {
                 $sheet->setCellValue([8, $row], 'oui');
+            }
+
+            if (null !== $series->publisher) {
+                $sheet->setCellValue([9, $row], $series->publisher);
             }
 
             ++$row;

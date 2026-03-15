@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service\Nas;
 
+use App\DTO\NasSeriesData;
 use App\Service\Nas\NasDirectoryParser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -322,7 +323,7 @@ final class NasDirectoryParserTest extends TestCase
     {
         $series = [
             // Depuis BD/ : 15 tomes téléchargés, pas lu
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 15,
                 readComplete: false,
@@ -330,7 +331,7 @@ final class NasDirectoryParserTest extends TestCase
                 title: 'Blake et Mortimer',
             ),
             // Depuis BD/_lus/ : 10 tomes lus
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 10,
                 readComplete: false,
@@ -353,7 +354,7 @@ final class NasDirectoryParserTest extends TestCase
     {
         $series = [
             // Depuis BD/ : marqué (complet), 4 tomes
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: true,
                 lastDownloaded: 4,
                 readComplete: false,
@@ -361,7 +362,7 @@ final class NasDirectoryParserTest extends TestCase
                 title: 'Anachron',
             ),
             // Depuis BD/_lus/ : 2 tomes lus
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 2,
                 readComplete: false,
@@ -384,7 +385,7 @@ final class NasDirectoryParserTest extends TestCase
     {
         $series = [
             // Depuis BD/ : 20 tomes téléchargés
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 20,
                 readComplete: false,
@@ -392,7 +393,7 @@ final class NasDirectoryParserTest extends TestCase
                 title: 'One Piece',
             ),
             // Depuis BD/_lus/ : 15 tomes lus
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 15,
                 readComplete: false,
@@ -400,7 +401,7 @@ final class NasDirectoryParserTest extends TestCase
                 title: 'One Piece',
             ),
             // Depuis /lecture en cours/ : tomes 16-18, readUpTo = 15
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 18,
                 readComplete: false,
@@ -420,25 +421,178 @@ final class NasDirectoryParserTest extends TestCase
     public function testMergeDuplicateSeriesNoDuplicates(): void
     {
         $series = [
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 5,
                 readComplete: false,
                 readUpTo: null,
-                title: 'Série A',
+                title: 'Androides',
             ),
-            new \App\DTO\NasSeriesData(
+            new NasSeriesData(
                 isComplete: true,
                 lastDownloaded: 3,
                 readComplete: true,
                 readUpTo: null,
-                title: 'Série B',
+                title: 'Blake et Mortimer',
             ),
         ];
 
         $result = $this->parser->mergeDuplicateSeries($series);
 
         self::assertCount(2, $result);
+    }
+
+    // --- normalizeTitle ---
+
+    #[DataProvider('normalizeTitleProvider')]
+    public function testNormalizeTitle(string $input, string $expected): void
+    {
+        self::assertSame($expected, $this->parser->normalizeTitle($input));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function normalizeTitleProvider(): iterable
+    {
+        yield 'lowercase + accents' => ['Étoile du Désert', 'etoile desert'];
+        yield '& remplacé par et' => ['Blake & Mortimer', 'blake et mortimer'];
+        yield 'articles supprimés' => ['Les 4 Princes De Ganahan', '4 princes ganahan'];
+        yield 'ponctuation supprimée' => ['L\'Étoile (du) Nord!', 'etoile nord'];
+        yield 'espaces multiples' => ['  One   Piece  ', 'one piece'];
+        yield 'article le en début' => ['Le Château des étoiles', 'chateau etoiles'];
+        yield 'article the' => ['The Walking Dead', 'walking dead'];
+    }
+
+    // --- fuzzy merge ---
+
+    public function testMergeDuplicateSeriesFuzzyMatch(): void
+    {
+        $series = [
+            new NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 15,
+                readComplete: false,
+                readUpTo: null,
+                title: 'Blake et Morter',
+            ),
+            new NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 10,
+                readComplete: false,
+                readUpTo: 10,
+                title: 'Blake & Mortimer',
+            ),
+        ];
+
+        $result = $this->parser->mergeDuplicateSeries($series);
+
+        self::assertCount(1, $result);
+        self::assertSame(15, $result[0]->lastDownloaded);
+        self::assertSame(10, $result[0]->readUpTo);
+    }
+
+    public function testMergeDuplicateSeriesNoFalsePositive(): void
+    {
+        $series = [
+            new NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 5,
+                readComplete: false,
+                readUpTo: null,
+                title: 'Naruto',
+            ),
+            new NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 3,
+                readComplete: false,
+                readUpTo: null,
+                title: 'Narutaru',
+            ),
+        ];
+
+        $result = $this->parser->mergeDuplicateSeries($series);
+
+        // Titres trop différents, pas de fusion
+        self::assertCount(2, $result);
+    }
+
+    // --- publisher ---
+
+    public function testParseUnreadSeriesWithPublisher(): void
+    {
+        $listing = ['Spider-Man'];
+        $filesByDir = [
+            'Spider-Man' => ['Spider-Man 01.cbr'],
+        ];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir, 'Marvel');
+
+        self::assertCount(1, $result);
+        self::assertSame('Marvel', $result[0]->publisher);
+    }
+
+    public function testMergeDuplicateSeriesPreservesPublisher(): void
+    {
+        $series = [
+            new NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 5,
+                publisher: 'DC Comics',
+                readComplete: false,
+                readUpTo: null,
+                title: 'Batman',
+            ),
+            new NasSeriesData(
+                isComplete: false,
+                lastDownloaded: 3,
+                readComplete: false,
+                readUpTo: 3,
+                title: 'Batman',
+            ),
+        ];
+
+        $result = $this->parser->mergeDuplicateSeries($series);
+
+        self::assertCount(1, $result);
+        self::assertSame('DC Comics', $result[0]->publisher);
+    }
+
+    // --- nettoyage fichiers ---
+
+    public function testParseUnreadSeriesIgnoresInfoFiles(): void
+    {
+        $listing = ['Batman'];
+        $filesByDir = [
+            'Batman' => [
+                'Batman 01.cbr',
+                'Batman 02.cbr',
+                'GetComics.INFO',
+                'cover.info',
+                'metadata.INFO',
+            ],
+        ];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        self::assertSame(2, $result[0]->lastDownloaded);
+    }
+
+    public function testParseUnreadSeriesCleansGetComicsFromFilenames(): void
+    {
+        $listing = ['Batman'];
+        $filesByDir = [
+            'Batman' => [
+                'Batman 01 (GetComics.INFO).cbr',
+                'Batman 02 - Title (GetComics.INFO).cbz',
+            ],
+        ];
+
+        $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
+
+        self::assertCount(1, $result);
+        self::assertSame(2, $result[0]->lastDownloaded);
     }
 
     public function testParseRangeTomeFormat(): void
