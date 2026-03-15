@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.11.0] - 2026-03-15
+
 ### Added
 
 - **Formulaire série** : Champ « Date de parution » avec composant `DatePartialSelect` (année/mois/jour partiels)
