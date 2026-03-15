@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.10.0] - 2026-03-15
+
 ### Added
 
 - **Tomes hors-série** : Champ `isHorsSerie` sur `Tome` avec numérotation séparée (HS1, HS2…) indépendante des tomes réguliers
