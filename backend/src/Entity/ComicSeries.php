@@ -100,6 +100,20 @@ class ComicSeries implements SoftDeletableInterface
     private ComicType $type = ComicType::BD;
 
     /**
+     * Indique que l'utilisateur n'est pas intéressé par l'achat de cette série.
+     */
+    #[Groups(['comic:read', 'comic:write'])]
+    #[ORM\Column]
+    private bool $notInterestedBuy = false;
+
+    /**
+     * Indique que l'utilisateur n'est pas intéressé par le téléchargement sur le NAS.
+     */
+    #[Groups(['comic:read', 'comic:write'])]
+    #[ORM\Column]
+    private bool $notInterestedNas = false;
+
+    /**
      * Les nouveaux tomes créés par le lookup doivent être marqués achetés.
      */
     #[Groups(['comic:read', 'comic:write'])]
@@ -246,7 +260,7 @@ class ComicSeries implements SoftDeletableInterface
      */
     #[Groups(['comic:read', 'comic:write'])]
     #[ORM\OneToMany(targetEntity: Tome::class, mappedBy: 'comicSeries', cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[ORM\OrderBy(['number' => 'ASC'])]
+    #[ORM\OrderBy(['isHorsSerie' => 'ASC', 'number' => 'ASC'])]
     private Collection $tomes;
 
     #[Groups(['comic:read'])]
@@ -485,6 +499,30 @@ class ComicSeries implements SoftDeletableInterface
         return $this;
     }
 
+    public function isNotInterestedBuy(): bool
+    {
+        return $this->notInterestedBuy;
+    }
+
+    public function setNotInterestedBuy(bool $notInterestedBuy): static
+    {
+        $this->notInterestedBuy = $notInterestedBuy;
+
+        return $this;
+    }
+
+    public function isNotInterestedNas(): bool
+    {
+        return $this->notInterestedNas;
+    }
+
+    public function setNotInterestedNas(bool $notInterestedNas): static
+    {
+        $this->notInterestedNas = $notInterestedNas;
+
+        return $this;
+    }
+
     public function getNewReleasesCheckedAt(): ?\DateTimeImmutable
     {
         return $this->newReleasesCheckedAt;
@@ -540,7 +578,10 @@ class ComicSeries implements SoftDeletableInterface
      */
     public function getOwnedTomesNumbers(): array
     {
-        return $this->tomes->map(static fn (Tome $t): int => $t->getNumber())->toArray();
+        return $this->tomes
+            ->filter(static fn (Tome $t): bool => !$t->isHorsSerie())
+            ->map(static fn (Tome $t): int => $t->getNumber())
+            ->toArray();
     }
 
     public function getPublishedDate(): ?string
@@ -565,7 +606,7 @@ class ComicSeries implements SoftDeletableInterface
      */
     public function getReadTomesCount(): int
     {
-        return $this->tomes->filter(static fn (Tome $t): bool => $t->isRead())->count();
+        return $this->tomes->filter(static fn (Tome $t): bool => !$t->isHorsSerie() && $t->isRead())->count();
     }
 
     public function setPublisher(?string $publisher): static
@@ -655,13 +696,15 @@ class ComicSeries implements SoftDeletableInterface
      */
     public function isCurrentlyReading(): bool
     {
-        if ($this->tomes->isEmpty()) {
+        $regularTomes = $this->tomes->filter(static fn (Tome $t): bool => !$t->isHorsSerie());
+
+        if ($regularTomes->isEmpty()) {
             return false;
         }
 
         $readCount = $this->getReadTomesCount();
 
-        return $readCount > 0 && $readCount < $this->tomes->count();
+        return $readCount > 0 && $readCount < $regularTomes->count();
     }
 
     /**
@@ -677,11 +720,13 @@ class ComicSeries implements SoftDeletableInterface
      */
     public function isFullyRead(): bool
     {
-        if ($this->tomes->isEmpty()) {
+        $regularTomes = $this->tomes->filter(static fn (Tome $t): bool => !$t->isHorsSerie());
+
+        if ($regularTomes->isEmpty()) {
             return false;
         }
 
-        return $this->getReadTomesCount() === $this->tomes->count();
+        return $this->getReadTomesCount() === $regularTomes->count();
     }
 
     /**
@@ -748,7 +793,8 @@ class ComicSeries implements SoftDeletableInterface
      */
     private function getMaxTomeNumber(?\Closure $filter = null): ?int
     {
-        $tomes = $filter instanceof \Closure ? $this->tomes->filter($filter) : $this->tomes;
+        $regularTomes = $this->tomes->filter(static fn (Tome $t): bool => !$t->isHorsSerie());
+        $tomes = $filter instanceof \Closure ? $regularTomes->filter($filter) : $regularTomes;
 
         if ($tomes->isEmpty()) {
             return null;

@@ -141,6 +141,8 @@ final class ImportExcelService
         $currentIssue = $this->parseIntegerValue($row[3] ?? null);
         $publishedCount = $this->parseIntegerValue($row[4] ?? null);
         $lastDownloaded = $this->parseIntegerValue($row[5] ?? null);
+        $notInterestedBuy = $this->isNonValue($statusValue);
+        $notInterestedNas = $this->isNonValue($row[6] ?? null);
         $onNas = $this->determineOnNas($row[6] ?? null);
         $onNasFini = $this->isFiniValue($row[6] ?? null);
         $publicationFinished = $this->isOuiValue($row[7] ?? null);
@@ -184,6 +186,8 @@ final class ImportExcelService
         $comic->setDefaultTomeRead($defaultTomeRead);
         $comic->setLatestPublishedIssue($latestPublishedIssue);
         $comic->setLatestPublishedIssueComplete($latestPublishedIssueComplete);
+        $comic->setNotInterestedBuy($notInterestedBuy);
+        $comic->setNotInterestedNas($notInterestedNas);
         $comic->setStatus($this->determineStatus($statusValue));
 
         $tomesCount = $this->syncTomes(
@@ -195,7 +199,8 @@ final class ImportExcelService
             $lastDownloaded->value,
             $lastDownloaded->isComplete,
             $onNas,
-            $latestPublishedIssue
+            $latestPublishedIssue,
+            $publishedCount->hsCount,
         );
 
         return new ImportResult(isUpdate: $isUpdate, series: $comic, tomesCount: $tomesCount);
@@ -214,6 +219,7 @@ final class ImportExcelService
         bool $lastDownloadedComplete,
         bool $onNas,
         ?int $latestPublishedIssue,
+        ?int $hsCount = null,
     ): int {
         $maxTomeNumber = $this->determineMaxTomeNumber(
             $currentIssueValue,
@@ -225,35 +231,56 @@ final class ImportExcelService
             $latestPublishedIssue
         );
 
-        if (null === $maxTomeNumber || $maxTomeNumber <= 0) {
-            return 0;
-        }
-
-        $existingTomes = [];
-        foreach ($comic->getTomes() as $tome) {
-            $existingTomes[$tome->getNumber()] = $tome;
-        }
-
         $newTomesCount = 0;
 
-        for ($number = 1; $number <= $maxTomeNumber; ++$number) {
-            $isBought = $lastBoughtComplete
-                || (null !== $lastBoughtValue && $number <= $lastBoughtValue);
-            $isDownloaded = $lastDownloadedComplete
-                || (null !== $lastDownloadedValue && $number <= $lastDownloadedValue);
+        if (null !== $maxTomeNumber && $maxTomeNumber > 0) {
+            $existingRegular = [];
+            foreach ($comic->getTomes() as $tome) {
+                if (!$tome->isHorsSerie()) {
+                    $existingRegular[$tome->getNumber()] = $tome;
+                }
+            }
 
-            if (isset($existingTomes[$number])) {
-                $existingTomes[$number]->setBought($isBought);
-                $existingTomes[$number]->setDownloaded($isDownloaded);
-                $existingTomes[$number]->setOnNas($onNas);
-            } else {
-                $tome = new Tome();
-                $tome->setBought($isBought);
-                $tome->setDownloaded($isDownloaded);
-                $tome->setNumber($number);
-                $tome->setOnNas($onNas);
-                $comic->addTome($tome);
-                ++$newTomesCount;
+            for ($number = 1; $number <= $maxTomeNumber; ++$number) {
+                $isBought = $lastBoughtComplete
+                    || (null !== $lastBoughtValue && $number <= $lastBoughtValue);
+                $isDownloaded = $lastDownloadedComplete
+                    || (null !== $lastDownloadedValue && $number <= $lastDownloadedValue);
+
+                if (isset($existingRegular[$number])) {
+                    $existingRegular[$number]->setBought($isBought);
+                    $existingRegular[$number]->setDownloaded($isDownloaded);
+                    $existingRegular[$number]->setOnNas($onNas);
+                } else {
+                    $tome = new Tome();
+                    $tome->setBought($isBought);
+                    $tome->setDownloaded($isDownloaded);
+                    $tome->setNumber($number);
+                    $tome->setOnNas($onNas);
+                    $comic->addTome($tome);
+                    ++$newTomesCount;
+                }
+            }
+        }
+
+        // Tomes hors-série
+        if (null !== $hsCount && $hsCount > 0) {
+            $existingHs = [];
+            foreach ($comic->getTomes() as $tome) {
+                if ($tome->isHorsSerie()) {
+                    $existingHs[$tome->getNumber()] = $tome;
+                }
+            }
+
+            for ($number = 1; $number <= $hsCount; ++$number) {
+                if (!isset($existingHs[$number])) {
+                    $tome = new Tome();
+                    $tome->setIsHorsSerie(true);
+                    $tome->setNumber($number);
+                    $tome->setOnNas($onNas);
+                    $comic->addTome($tome);
+                    ++$newTomesCount;
+                }
             }
         }
 
@@ -305,9 +332,8 @@ final class ImportExcelService
         $value = \mb_strtolower(\trim($value));
 
         return match ($value) {
-            'non' => ComicStatus::STOPPED,
             'fini' => ComicStatus::FINISHED,
-            'oui', '' => ComicStatus::BUYING,
+            'non', 'oui', '' => ComicStatus::BUYING,
             default => ComicStatus::BUYING,
         };
     }
@@ -338,6 +364,20 @@ final class ImportExcelService
     }
 
     /**
+     * Vérifie si une valeur est "non".
+     */
+    private function isNonValue(mixed $value): bool
+    {
+        if (null === $value) {
+            return false;
+        }
+
+        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
+
+        return 'non' === $value;
+    }
+
+    /**
      * Vérifie si une valeur est "oui".
      */
     private function isOuiValue(mixed $value): bool
@@ -357,26 +397,50 @@ final class ImportExcelService
     private function parseIntegerValue(mixed $value): ParsedIntegerValue
     {
         if (null === $value) {
-            return new ParsedIntegerValue(isComplete: false, value: null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: false, value: null);
         }
 
         $value = \is_scalar($value) ? \trim((string) $value) : '';
 
         if ('' === $value) {
-            return new ParsedIntegerValue(isComplete: false, value: null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: false, value: null);
         }
 
         $lowerValue = \mb_strtolower($value);
 
         if ('fini' === $lowerValue) {
-            return new ParsedIntegerValue(isComplete: true, value: null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: true, value: null);
+        }
+
+        // Format "fini N+MHS" ou "fini N+HS" : parution terminée avec hors-série
+        if (1 === \preg_match('/^fini\s+(\d+)\+(\d*)HS$/i', $value, $finiHsMatches)) {
+            $intValue = (int) $finiHsMatches[1];
+            $hsCount = '' === $finiHsMatches[2] ? 1 : (int) $finiHsMatches[2];
+
+            return new ParsedIntegerValue(
+                hsCount: $hsCount > 0 ? $hsCount : null,
+                isComplete: true,
+                value: $intValue > 0 ? $intValue : null,
+            );
         }
 
         // Format "fini N" : parution terminée avec nombre de tomes
         if (1 === \preg_match('/^fini\s+(\d+)$/i', $value, $finiMatches)) {
             $intValue = (int) $finiMatches[1];
 
-            return new ParsedIntegerValue(isComplete: true, value: $intValue > 0 ? $intValue : null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: true, value: $intValue > 0 ? $intValue : null);
+        }
+
+        // Format "N+MHS" ou "N+HS" : tomes réguliers + hors-série
+        if (1 === \preg_match('/^(\d+)\+(\d*)HS$/i', $value, $hsMatches)) {
+            $intValue = (int) $hsMatches[1];
+            $hsCount = '' === $hsMatches[2] ? 1 : (int) $hsMatches[2];
+
+            return new ParsedIntegerValue(
+                hsCount: $hsCount > 0 ? $hsCount : null,
+                isComplete: false,
+                value: $intValue > 0 ? $intValue : null,
+            );
         }
 
         if (\str_contains($value, ',')) {
@@ -389,11 +453,11 @@ final class ImportExcelService
                 }
             }
 
-            return new ParsedIntegerValue(isComplete: false, value: $maxVal > 0 ? $maxVal : null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: false, value: $maxVal > 0 ? $maxVal : null);
         }
 
         $intValue = (int) $value;
 
-        return new ParsedIntegerValue(isComplete: false, value: $intValue > 0 ? $intValue : null);
+        return new ParsedIntegerValue(hsCount: null, isComplete: false, value: $intValue > 0 ? $intValue : null);
     }
 }

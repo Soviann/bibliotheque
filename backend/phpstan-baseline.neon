@@ -145,6 +145,12 @@ parameters:
 			path: tests/Integration/Command/ImportExcelCommandTest.php
 
 		-
+			message: '#^Cannot call method isNotInterestedBuy\(\) on App\\Entity\\ComicSeries\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Integration/Command/ImportExcelCommandTest.php
+
+		-
 			message: '#^Parameter \#1 \$kernel of class Symfony\\Bundle\\FrameworkBundle\\Console\\Application constructor expects Symfony\\Component\\HttpKernel\\KernelInterface, Symfony\\Component\\HttpKernel\\KernelInterface\|null given\.$#'
 			identifier: argument.type
 			count: 1

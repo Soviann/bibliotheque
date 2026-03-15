@@ -964,7 +964,7 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       // Get the tome number input (first column number input)
-      const tomeNumberInputs = document.querySelectorAll("tbody td:first-child input[type='number']");
+      const tomeNumberInputs = document.querySelectorAll("tbody td:nth-child(2) input[type='number']");
       const tomeNumberInput = tomeNumberInputs[0] as HTMLInputElement;
 
       await user.clear(tomeNumberInput);
@@ -1119,7 +1119,7 @@ describe("ComicForm", () => {
 
       expect(screen.getByText("Tomes (1)")).toBeInTheDocument();
       // The new tome number should be 1
-      const tomeNumberInputs = document.querySelectorAll("tbody td:first-child input[type='number']");
+      const tomeNumberInputs = document.querySelectorAll("tbody td:nth-child(2) input[type='number']");
       expect(tomeNumberInputs[0]).toHaveValue(1);
     });
 
@@ -1154,7 +1154,7 @@ describe("ComicForm", () => {
         expect(screen.getByText("Tomes (5)")).toBeInTheDocument();
 
         // Verify tome numbers are 1 through 5 (first number input per row = tome number)
-        const tomeNumberInputs = document.querySelectorAll("tbody td:first-child input[type='number']");
+        const tomeNumberInputs = document.querySelectorAll("tbody td:nth-child(2) input[type='number']");
         expect(tomeNumberInputs).toHaveLength(5);
         expect(tomeNumberInputs[0]).toHaveValue(1);
         expect(tomeNumberInputs[1]).toHaveValue(2);

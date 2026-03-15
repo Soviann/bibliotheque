@@ -342,6 +342,163 @@ final class ImportExcelServiceTest extends TestCase
     }
 
     // ---------------------------------------------------------------
+    // Tomes hors-série (HS)
+    // ---------------------------------------------------------------
+
+    public function testImportParutionWithHsCreatesSeparateHsTomes(): void
+    {
+        // Format "3+2HS" → 3 tomes réguliers + 2 tomes HS
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Fourmi blanche', 'oui', 3, 3, '3+2HS', null, null],
+            ],
+        ]);
+
+        self::assertCount(1, $persisted);
+        $tomes = $persisted[0]->getTomes()->toArray();
+        self::assertCount(5, $tomes);
+
+        $regular = \array_filter($tomes, static fn ($t) => !$t->isHorsSerie());
+        $hs = \array_filter($tomes, static fn ($t) => $t->isHorsSerie());
+
+        self::assertCount(3, $regular);
+        self::assertCount(2, $hs);
+
+        // Les HS ont leurs propres numéros 1 et 2
+        $hsNumbers = \array_map(static fn ($t) => $t->getNumber(), $hs);
+        \sort($hsNumbers);
+        self::assertSame([1, 2], $hsNumbers);
+    }
+
+    public function testImportParutionWithSingleHsCreatesOneHsTome(): void
+    {
+        // Format "8+HS" → 8 tomes réguliers + 1 tome HS
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'oui', 8, 8, '8+HS', null, null],
+            ],
+        ]);
+
+        $tomes = $persisted[0]->getTomes()->toArray();
+        self::assertCount(9, $tomes);
+
+        $hs = \array_values(\array_filter($tomes, static fn ($t) => $t->isHorsSerie()));
+        self::assertCount(1, $hs);
+        self::assertSame(1, $hs[0]->getNumber());
+    }
+
+    public function testImportParutionWithoutHsCreatesNoHsTomes(): void
+    {
+        // Format "5" → 5 tomes réguliers, pas de HS
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'oui', 5, 5, 5, null, null],
+            ],
+        ]);
+
+        $tomes = $persisted[0]->getTomes()->toArray();
+        self::assertCount(5, $tomes);
+
+        $hs = \array_filter($tomes, static fn ($t) => $t->isHorsSerie());
+        self::assertCount(0, $hs);
+    }
+
+    public function testImportParutionFiniWithHsFormat(): void
+    {
+        // Format "fini 3+2HS" → parution terminée, 3 tomes + 2 HS
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'oui', 3, 3, 'fini 3+2HS', null, null],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isLatestPublishedIssueComplete());
+        self::assertSame(3, $persisted[0]->getLatestPublishedIssue());
+
+        $tomes = $persisted[0]->getTomes()->toArray();
+        $hs = \array_filter($tomes, static fn ($t) => $t->isHorsSerie());
+        self::assertCount(2, $hs);
+    }
+
+    public function testHsTomesExcludedFromComicSeriesHelpers(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'oui', 3, 3, '3+2HS', null, null],
+            ],
+        ]);
+
+        // getCurrentIssue (getMaxTomeNumber) ne doit compter que les tomes réguliers
+        self::assertSame(3, $persisted[0]->getCurrentIssue());
+        // getOwnedTomesNumbers ne doit retourner que les tomes réguliers
+        $ownedNumbers = $persisted[0]->getOwnedTomesNumbers();
+        \sort($ownedNumbers);
+        self::assertSame([1, 2, 3], $ownedNumbers);
+    }
+
+    // ---------------------------------------------------------------
+    // Pas intéressé (deux booléens indépendants)
+    // ---------------------------------------------------------------
+
+    public function testImportBuyNonSetsNotInterestedBuy(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'non', null, null, 5, null, 'oui'],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isNotInterestedBuy());
+        self::assertFalse($persisted[0]->isNotInterestedNas());
+    }
+
+    public function testImportOnNasNonSetsNotInterestedNas(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'oui', 5, 5, 5, null, 'non'],
+            ],
+        ]);
+
+        self::assertFalse($persisted[0]->isNotInterestedBuy());
+        self::assertTrue($persisted[0]->isNotInterestedNas());
+    }
+
+    public function testImportBuyNonAndOnNasNonSetsBoth(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'non', null, null, 5, null, 'non'],
+            ],
+        ]);
+
+        self::assertTrue($persisted[0]->isNotInterestedBuy());
+        self::assertTrue($persisted[0]->isNotInterestedNas());
+    }
+
+    public function testImportBuyNonDoesNotSetStatusStopped(): void
+    {
+        $persisted = $this->importAndCapture([
+            'BD' => [
+                ['Titre', 'Buy?', 'Last bought', 'Current', 'Parution', 'Last dled', 'On NAS?'],
+                ['Test serie', 'non', null, null, 5, null, null],
+            ],
+        ]);
+
+        // "non" ne doit plus mapper sur STOPPED
+        self::assertNotSame(\App\Enum\ComicStatus::STOPPED, $persisted[0]->getStatus());
+        self::assertTrue($persisted[0]->isNotInterestedBuy());
+    }
+
+    // ---------------------------------------------------------------
 
     public function testImportExcelResultIsJsonSerializable(): void
     {
