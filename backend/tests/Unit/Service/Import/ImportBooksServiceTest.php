@@ -45,7 +45,7 @@ final class ImportBooksServiceTest extends TestCase
             ['9781234567890', 'Mon Livre', 'Auteur Test', 'Editeur', '', 'BD', 'Description'],
         ]);
 
-        $this->comicSeriesRepository->method('findOneBy')->willReturn(null);
+        $this->comicSeriesRepository->method('findOneByFuzzyTitleAnyType')->willReturn(null);
         $this->entityManager->expects(self::never())->method('persist');
         $this->entityManager->expects(self::never())->method('flush');
 
@@ -64,7 +64,7 @@ final class ImportBooksServiceTest extends TestCase
             ['9781234567890', 'Mon Livre', 'Auteur', 'Editeur', '', 'Manga', 'Desc'],
         ]);
 
-        $this->comicSeriesRepository->method('findOneBy')->willReturn(null);
+        $this->comicSeriesRepository->method('findOneByFuzzyTitleAnyType')->willReturn(null);
         $this->authorRepository->method('findOrCreateMultiple')->willReturn([]);
         $this->entityManager->expects(self::once())->method('persist');
         $this->entityManager->expects(self::once())->method('flush');
@@ -87,8 +87,8 @@ final class ImportBooksServiceTest extends TestCase
         $existing->setTitle('Existing Series');
         $existing->setType(ComicType::BD);
 
-        $this->comicSeriesRepository->method('findOneBy')
-            ->with(['title' => 'Existing Series'])
+        $this->comicSeriesRepository->method('findOneByFuzzyTitleAnyType')
+            ->with('Existing Series')
             ->willReturn($existing);
 
         $this->entityManager->expects(self::never())->method('persist');
@@ -110,7 +110,7 @@ final class ImportBooksServiceTest extends TestCase
             ['333', 'Naruto - Tome 3', 'Kishimoto', 'Kana', '', 'Manga', ''],
         ]);
 
-        $this->comicSeriesRepository->method('findOneBy')->willReturn(null);
+        $this->comicSeriesRepository->method('findOneByFuzzyTitleAnyType')->willReturn(null);
         $this->authorRepository->method('findOrCreateMultiple')->willReturn([]);
 
         $result = $this->service->import($filePath, true);
