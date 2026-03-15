@@ -67,7 +67,7 @@ final class NasDirectoryParser
             $number = (int) $matches[1];
 
             // Éviter les faux positifs (années, etc.)
-            if ($number > 0 && $number < 1000) {
+            if ($number >= 0 && $number < 1000) {
                 return $number;
             }
         }
@@ -487,13 +487,29 @@ final class NasDirectoryParser
     /**
      * Fusionne deux NasSeriesData en une seule.
      */
+    /**
+     * Retourne le max de deux valeurs nullable (null si les deux sont null).
+     */
+    private function maxNullable(?int $a, ?int $b): ?int
+    {
+        if (null === $a) {
+            return $b;
+        }
+
+        if (null === $b) {
+            return $a;
+        }
+
+        return \max($a, $b);
+    }
+
     private function mergeTwo(NasSeriesData $a, NasSeriesData $b): NasSeriesData
     {
         return new NasSeriesData(
             isComplete: $a->isComplete || $b->isComplete,
-            lastDownloaded: \max($a->lastDownloaded ?? 0, $b->lastDownloaded ?? 0) ?: null,
+            lastDownloaded: $this->maxNullable($a->lastDownloaded, $b->lastDownloaded),
             readComplete: $a->readComplete || $b->readComplete,
-            readUpTo: \max($a->readUpTo ?? 0, $b->readUpTo ?? 0) ?: null,
+            readUpTo: $this->maxNullable($a->readUpTo, $b->readUpTo),
             title: $a->title,
             publisher: $a->publisher ?? $b->publisher,
         );

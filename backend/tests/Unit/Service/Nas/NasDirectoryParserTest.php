@@ -93,6 +93,16 @@ final class NasDirectoryParserTest extends TestCase
             'Crossbeat-[one-shot].zip',
             null,
         ];
+
+        yield 'tome 0' => [
+            'Serie 00 - Prologue.cbr',
+            0,
+        ];
+
+        yield 'tome 0 avec T' => [
+            'Serie - T00 - Origines.cbz',
+            0,
+        ];
     }
 
     // --- parseSeriesTitle ---
