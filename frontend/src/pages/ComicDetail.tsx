@@ -243,7 +243,7 @@ export default function ComicDetail() {
                   <tr className="hover:bg-surface-tertiary/50" key={tome.id}>
                     <td className="px-4 py-2 font-medium text-text-primary">
                       {tome._syncPending && <SyncPendingIndicator className="mr-1" />}
-                      {tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
+                      {tome.isHorsSerie ? "HS" : ""}{tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
                     </td>
                     <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
                     {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (

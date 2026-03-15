@@ -9,6 +9,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Tomes hors-série** : Champ `isHorsSerie` sur `Tome` avec numérotation séparée (HS1, HS2…) indépendante des tomes réguliers
+- **Import Excel** : Parsing du format `N+MHS` / `N+HS` (ex: `3+2HS`, `8+HS`) dans la colonne Parution pour créer les tomes hors-série
+- **Pas intéressé** : Deux booléens indépendants `notInterestedBuy` et `notInterestedNas` sur `ComicSeries` pour distinguer « pas intéressé par l'achat » et « pas intéressé par le NAS »
+- **Import Excel** : Col B `non` → `notInterestedBuy`, col G `non` → `notInterestedNas` (au lieu de STOPPED / simple false)
 - **Scan NAS** : Commande `app:scan-nas` qui scanne les fichiers du NAS via SSH et génère un fichier Excel compatible avec l'import
 - **Import Excel** : Nouvelle colonne « Parution terminée » (col H) pour marquer une série comme terminée sans perdre les valeurs numériques
 - **Import Excel** : Support du format « fini N » (ex: `fini 40`) dans les cellules numériques pour conserver le nombre tout en marquant comme terminé

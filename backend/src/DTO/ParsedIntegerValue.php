@@ -10,6 +10,7 @@ namespace App\DTO;
 final readonly class ParsedIntegerValue
 {
     public function __construct(
+        public ?int $hsCount,
         public bool $isComplete,
         public ?int $value,
     ) {

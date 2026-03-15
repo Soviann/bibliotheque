@@ -16,6 +16,7 @@ export interface TomeFormData {
   bought: boolean;
   downloaded: boolean;
   id?: number;
+  isHorsSerie: boolean;
   isbn: string;
   number: number;
   onNas: boolean;
@@ -41,8 +42,13 @@ export interface FormData {
   type: string;
 }
 
-function emptyTome(number: number): TomeFormData {
-  return { bought: false, downloaded: false, isbn: "", number, onNas: false, read: false, title: "", tomeEnd: "" };
+export function compareTomes(a: TomeFormData, b: TomeFormData): number {
+  if (a.isHorsSerie !== b.isHorsSerie) return a.isHorsSerie ? 1 : -1;
+  return a.number - b.number;
+}
+
+function emptyTome(number: number, isHorsSerie = false): TomeFormData {
+  return { bought: false, downloaded: false, isHorsSerie, isbn: "", number, onNas: false, read: false, title: "", tomeEnd: "" };
 }
 
 function buildInitialForm(comic?: ComicSeries): FormData {
@@ -64,6 +70,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
         bought: t.bought,
         downloaded: t.downloaded,
         id: t.id,
+        isHorsSerie: t.isHorsSerie,
         isbn: t.isbn ?? "",
         number: t.number,
         onNas: t.onNas,
@@ -199,7 +206,8 @@ export function useComicForm() {
   };
 
   const addTome = () => {
-    const nextNum = form.tomes.length > 0 ? Math.max(...form.tomes.map((t) => t.number)) + 1 : 1;
+    const regularTomes = form.tomes.filter((t) => !t.isHorsSerie);
+    const nextNum = regularTomes.length > 0 ? Math.max(...regularTomes.map((t) => t.number)) + 1 : 1;
     update("tomes", [...form.tomes, emptyTome(nextNum)]);
   };
 
@@ -215,7 +223,7 @@ export function useComicForm() {
       }
     }
     if (newTomes.length > 0) {
-      update("tomes", [...form.tomes, ...newTomes].sort((a, b) => a.number - b.number));
+      update("tomes", [...form.tomes, ...newTomes].sort(compareTomes));
     }
   };
 
@@ -313,11 +321,12 @@ export function useComicForm() {
 
     if (!form.isOneShot) {
       payload.tomes = [...form.tomes]
-        .sort((a, b) => a.number - b.number)
+        .sort(compareTomes)
         .map((t) => ({
           ...(t.id ? { "@id": `/api/tomes/${t.id}` } : {}),
           bought: t.bought,
           downloaded: t.downloaded,
+          isHorsSerie: t.isHorsSerie,
           isbn: t.isbn || null,
           number: t.number,
           onNas: t.onNas,

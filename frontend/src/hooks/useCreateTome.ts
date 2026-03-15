@@ -24,6 +24,7 @@ export function useCreateTome(seriesId: number) {
           createdAt: new Date().toISOString(),
           downloaded: (variables.downloaded as boolean) ?? false,
           id: tempId!,
+          isHorsSerie: (variables.isHorsSerie as boolean) ?? false,
           isbn: (variables.isbn as string) ?? null,
           number: (variables.number as number) ?? 0,
           onNas: (variables.onNas as boolean) ?? false,
@@ -34,7 +35,10 @@ export function useCreateTome(seriesId: number) {
         };
         return {
           ...old,
-          tomes: [...old.tomes, tempTome].sort((a, b) => a.number - b.number),
+          tomes: [...old.tomes, tempTome].sort((a, b) => {
+            if (a.isHorsSerie !== b.isHorsSerie) return a.isHorsSerie ? 1 : -1;
+            return a.number - b.number;
+          }),
         };
       });
     },

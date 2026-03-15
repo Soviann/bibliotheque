@@ -1,4 +1,5 @@
 import { Layers, Loader2, Plus, Search, Trash2 } from "lucide-react";
+import { compareTomes } from "../hooks/useComicForm";
 import type { FormData, TomeFormData } from "../hooks/useComicForm";
 
 interface TomeTableProps {
@@ -85,11 +86,20 @@ export default function TomeTable({
       <div className="space-y-3 sm:hidden" data-testid="tomes-cards">
         {form.tomes
           .map((tome, i) => ({ tome, originalIndex: i }))
-          .sort((a, b) => a.tome.number - b.tome.number)
+          .sort((a, b) => compareTomes(a.tome, b.tome))
           .map(({ tome, originalIndex: i }) => (
           <div className={`rounded-lg border p-3 space-y-2 ${tome.id ? "border-surface-border bg-surface-primary" : "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30"}`} key={i}>
             <div className="flex items-center gap-2">
               {!tome.id && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Nouveau</span>}
+              <label className="flex items-center gap-1 text-xs font-medium text-text-muted">
+                <input
+                  checked={tome.isHorsSerie}
+                  className="h-3.5 w-3.5 rounded border-surface-border text-amber-600"
+                  onChange={(e) => updateTome(i, "isHorsSerie", e.target.checked)}
+                  type="checkbox"
+                />
+                HS
+              </label>
               <input
                 className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm font-medium text-text-primary"
                 min="0"
@@ -186,6 +196,7 @@ export default function TomeTable({
         <table className="w-full text-sm">
           <thead className="bg-surface-tertiary">
             <tr>
+              <th className="px-3 py-2 text-center font-medium text-text-secondary">HS</th>
               <th className="px-3 py-2 text-left font-medium text-text-secondary">#</th>
               <th className="px-3 py-2 text-left font-medium text-text-secondary">Fin</th>
               <th className="px-3 py-2 text-left font-medium text-text-secondary">Titre</th>
@@ -200,9 +211,17 @@ export default function TomeTable({
           <tbody className="divide-y divide-surface-border">
             {form.tomes
               .map((tome, i) => ({ tome, originalIndex: i }))
-              .sort((a, b) => a.tome.number - b.tome.number)
+              .sort((a, b) => compareTomes(a.tome, b.tome))
               .map(({ tome, originalIndex: i }) => (
               <tr className={tome.id ? "" : "bg-emerald-50 dark:bg-emerald-950/20"} key={i}>
+                <td className="px-3 py-1.5 text-center">
+                  <input
+                    checked={tome.isHorsSerie}
+                    className="h-4 w-4 rounded border-surface-border text-amber-600"
+                    onChange={(e) => updateTome(i, "isHorsSerie", e.target.checked)}
+                    type="checkbox"
+                  />
+                </td>
                 <td className="px-3 py-1.5">
                   <div className="flex items-center gap-1">
                     <input

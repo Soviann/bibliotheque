@@ -33,6 +33,8 @@ export function useCreateComic() {
           latestPublishedIssue: null,
           latestPublishedIssueComplete: false,
           latestPublishedIssueUpdatedAt: null,
+          notInterestedBuy: false,
+          notInterestedNas: false,
           publishedDate: null,
           publisher: (variables.publisher as string) ?? null,
           status: (variables.status as ComicStatus) ?? ComicStatus.BUYING,

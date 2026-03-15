@@ -34,7 +34,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(
             paginationEnabled: false,
-            order: ['number' => 'ASC'],
+            order: ['isHorsSerie' => 'ASC', 'number' => 'ASC'],
         ),
         new Post(
             denormalizationContext: ['groups' => ['tome:write']],
@@ -50,7 +50,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Index(name: 'idx_tome_isbn', columns: ['isbn'])]
 #[ORM\Index(name: 'idx_tome_on_nas', columns: ['on_nas'])]
-#[ORM\Index(name: 'idx_tome_series_number', columns: ['comic_series_id', 'number'])]
+#[ORM\Index(name: 'idx_tome_series_number', columns: ['comic_series_id', 'is_hors_serie', 'number'])]
 class Tome
 {
     #[Groups(['tome:read', 'comic:read'])]
@@ -65,6 +65,13 @@ class Tome
     #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
     #[ORM\Column]
     private bool $bought = false;
+
+    /**
+     * Indique si c'est un tome hors-série (numérotation séparée).
+     */
+    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
+    #[ORM\Column]
+    private bool $isHorsSerie = false;
 
     /**
      * Série à laquelle appartient ce tome.
@@ -208,6 +215,18 @@ class Tome
     public function setIsbn(?string $isbn): static
     {
         $this->isbn = $isbn;
+
+        return $this;
+    }
+
+    public function isHorsSerie(): bool
+    {
+        return $this->isHorsSerie;
+    }
+
+    public function setIsHorsSerie(bool $isHorsSerie): static
+    {
+        $this->isHorsSerie = $isHorsSerie;
 
         return $this;
     }

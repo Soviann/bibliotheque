@@ -29,6 +29,7 @@ export interface Tome {
   createdAt: string;
   downloaded: boolean;
   id: number;
+  isHorsSerie: boolean;
   isbn: string | null;
   number: number;
   onNas: boolean;
@@ -52,6 +53,8 @@ export interface ComicSeries {
   description: string | null;
   id: number;
   isOneShot: boolean;
+  notInterestedBuy: boolean;
+  notInterestedNas: boolean;
   latestPublishedIssue: number | null;
   latestPublishedIssueComplete: boolean;
   latestPublishedIssueUpdatedAt: string | null;
