@@ -13,7 +13,7 @@ use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * Détecte les groupes de séries qui devraient être fusionnées via Gemini.
@@ -25,7 +25,7 @@ final class SeriesGroupDetector
     public function __construct(
         private readonly GeminiClientPool $geminiClientPool,
         #[Autowire(service: 'limiter.gemini_api')]
-        private readonly RateLimiterFactory $limiterFactory,
+        private readonly RateLimiterFactoryInterface $limiterFactory,
         private readonly LoggerInterface $logger,
     ) {
     }

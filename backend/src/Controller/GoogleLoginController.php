@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -27,7 +27,7 @@ final class GoogleLoginController
         private readonly GoogleClient $googleClient,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly LoggerInterface $logger,
-        private readonly RateLimiterFactory $googleLoginLimiter,
+        private readonly RateLimiterFactoryInterface $googleLoginLimiter,
         private readonly UserRepository $userRepository,
         private readonly ValidatorInterface $validator,
     ) {

@@ -13,7 +13,7 @@ use Gemini\Enums\HarmCategory;
 use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * Classe abstraite pour les providers de lookup utilisant l'API Gemini avec Google Search grounding.
@@ -28,7 +28,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
     public function __construct(
         protected readonly AdapterInterface $cache,
         protected readonly GeminiClientPool $geminiClientPool,
-        protected readonly RateLimiterFactory $limiterFactory,
+        protected readonly RateLimiterFactoryInterface $limiterFactory,
         protected readonly LoggerInterface $logger,
     ) {
     }

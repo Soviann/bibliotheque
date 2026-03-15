@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * Provider de recherche via l'API Google Gemini avec Google Search grounding.
@@ -37,7 +37,7 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
         AdapterInterface $cache,
         GeminiClientPool $geminiClientPool,
         #[Autowire(service: 'limiter.gemini_api')]
-        RateLimiterFactory $limiterFactory,
+        RateLimiterFactoryInterface $limiterFactory,
         LoggerInterface $logger,
     ) {
         parent::__construct($cache, $geminiClientPool, $limiterFactory, $logger);

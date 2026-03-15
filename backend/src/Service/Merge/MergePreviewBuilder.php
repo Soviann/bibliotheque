@@ -14,7 +14,7 @@ use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * Construit un aperçu de fusion à partir d'un groupe détecté ou d'une sélection manuelle.
@@ -24,7 +24,7 @@ final class MergePreviewBuilder
     public function __construct(
         private readonly GeminiClientPool $geminiClientPool,
         #[Autowire(service: 'limiter.gemini_api')]
-        private readonly RateLimiterFactory $limiterFactory,
+        private readonly RateLimiterFactoryInterface $limiterFactory,
         private readonly LoggerInterface $logger,
     ) {
     }
