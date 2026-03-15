@@ -103,11 +103,34 @@ final class NasDirectoryParser
     /**
      * Parse le nom d'un répertoire de série pour en extraire le titre et le statut complet.
      *
-     * @return array{title: string, isComplete: bool}
+     * @return array{isComplete: bool, isOneShot: bool, title: string}
      */
     public function parseSeriesDirectory(string $dirName): array
     {
         $isComplete = false;
+
+        // Détecter (COMPLET) avant nettoyage (peut être au milieu : "Axis (2014).(COMPLET).VO.cbr-KAIL")
+        if (1 === \preg_match('/\(complet\)/i', $dirName)) {
+            $isComplete = true;
+        }
+
+        // Retirer les extensions de fichiers BD (cas des fichiers isolés traités comme dossiers)
+        $dirName = (string) \preg_replace('/\.(?:cbr|cbz|pdf|zip|rar|epub)(?:-\w+)?$/i', '', $dirName);
+
+        // Supprimer "GetComics.INFO" (et variantes)
+        $dirName = (string) \preg_replace('/\(?GetComics\.INFO\)?/i', '', $dirName);
+
+        // Supprimer tags BDFR
+        $dirName = (string) \preg_replace('/\s*-\s*BDFR\b.*$/i', '', $dirName);
+
+        // Remplacer underscores par espaces
+        $dirName = \str_replace('_', ' ', $dirName);
+
+        // Remplacer les points entre mots par des espaces (Les.Mondes.fantastiques)
+        $dirName = (string) \preg_replace('/(?<=\p{L})\.(?=\p{L})/u', ' ', $dirName);
+
+        // Retirer (COMPLET).VO.cbr-KAIL patterns et variantes
+        $dirName = (string) \preg_replace('/\.\((?:COMPLET|INCOMPLET)\)\.\w+$/i', '', $dirName);
 
         // Détecter "(complet)" en fin de chaîne (insensible à la casse)
         if (1 === \preg_match('/\s*\(complet\)\s*$/i', $dirName)) {
@@ -127,10 +150,31 @@ final class NasDirectoryParser
 
         // Retirer "Tome" final et tirets/espaces en fin de chaîne
         $dirName = (string) \preg_replace('/\s+Tome\s*$/i', '', $dirName);
+
+        // Retirer les indicateurs one-shot
+        $isOneShot = 1 === \preg_match('/one[- ]?shot/i', $dirName);
+        $dirName = (string) \preg_replace('/\s*[-–]\s*one[- ]?shot\b/i', '', $dirName);
+        $dirName = (string) \preg_replace('/\s*\(?one[- ]?shot\)?\s*/i', '', $dirName);
+
+        // Retirer # et ce qui suit, années entre parenthèses
+        $dirName = (string) \preg_replace('/\s*#.*$/', '', $dirName);
+        $dirName = (string) \preg_replace('/\s*\(\s*\d{4}\s*\)\s*/', ' ', $dirName);
+
+        // Retirer les tags de source [CRG], (DCP), (www...), etc.
+        $dirName = (string) \preg_replace('/\s*[\[(][^)\]]*(?:CRG|DCP|dcp|comicrel|www\.|Parallax|Troll|Grumpybear|rougher|DarthScanner|Blasty|Senijaza|Wild|jxsi|Ygolonac|J_Logan|por\s)[^)\]]*[\])]\s*/i', '', $dirName);
+
+        // Retirer "- fini" en fin de chaîne
+        $dirName = (string) \preg_replace('/\s*-\s*fini\s*$/i', '', $dirName);
+
+        // Retirer préfixes "[is]", "[YT]" etc.
+        $dirName = (string) \preg_replace('/^\[\w+\]\s*/', '', $dirName);
+
+        // Nettoyer tirets/espaces en fin de chaîne
         $dirName = \rtrim($dirName, " \t\n\r\0\x0B-");
 
         return [
-            'isComplete' => $isComplete,
+            'isComplete' => $isComplete || $isOneShot,
+            'isOneShot' => $isOneShot,
             'title' => \trim($dirName),
         ];
     }
@@ -170,6 +214,11 @@ final class NasDirectoryParser
                 }
             }
 
+            // One-shot : pas de numéro de tome (les fichiers sont des pages)
+            if ($parsed['isOneShot']) {
+                $lastDownloaded = null;
+            }
+
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
                 lastDownloaded: $lastDownloaded,
@@ -207,6 +256,10 @@ final class NasDirectoryParser
             }
 
             $lastDownloaded = $this->getMaxTomeFromFiles($filesByDir[$entry] ?? [], $parsed['title']);
+
+            if ($parsed['isOneShot']) {
+                $lastDownloaded = null;
+            }
 
             // _lus = tomes lus, pas nécessairement série terminée
             // readComplete seulement si marqué (complet)
@@ -253,6 +306,11 @@ final class NasDirectoryParser
 
             $lastDownloaded = [] !== $tomeNumbers ? \max($tomeNumbers) : null;
             $minTome = [] !== $tomeNumbers ? \min($tomeNumbers) : null;
+
+            if ($parsed['isOneShot']) {
+                $lastDownloaded = null;
+                $minTome = null;
+            }
 
             // Si le premier tome n'est pas le T1, les précédents ont été lus
             $readUpTo = (null !== $minTome && $minTome > 1) ? $minTome - 1 : null;
@@ -587,6 +645,24 @@ final class NasDirectoryParser
 
         // Numéro final : " 01" ou " 1.2"
         $name = (string) \preg_replace('/\s+\d+(?:\.\d+)?\s*$/', '', $name);
+
+        // Retirer les indicateurs one-shot, (complet), (incomplet), année entre parenthèses, tags BDFR
+        $name = (string) \preg_replace('/\s*[-–]\s*one[- ]?shot\b/i', '', $name);
+        $name = (string) \preg_replace('/\s*\(?one[- ]?shot\)?\s*/i', '', $name);
+        $name = (string) \preg_replace('/\s*\(complet\)\s*/i', '', $name);
+        $name = (string) \preg_replace('/\s*\(incomplet\)\s*/i', '', $name);
+        $name = (string) \preg_replace('/\s*#.*$/', '', $name);
+        $name = (string) \preg_replace('/\s*\(\d{4}\)\s*/', ' ', $name);
+        $name = (string) \preg_replace('/\s*-\s*BDFR\b.*$/i', '', $name);
+
+        // Remplacer les underscores par des espaces
+        $name = \str_replace('_', ' ', $name);
+
+        // Remplacer les points entre mots par des espaces (Les.Mondes.fantastiques)
+        $name = (string) \preg_replace('/(?<=\p{L})\.(?=\p{L})/u', ' ', $name);
+
+        // Nettoyer les tirets/espaces en fin de chaîne
+        $name = \rtrim($name, " \t\n\r\0\x0B-");
 
         return \trim($name);
     }

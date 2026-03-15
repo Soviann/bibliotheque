@@ -139,10 +139,10 @@ final class NasDirectoryParserTest extends TestCase
             false,
         ];
 
-        yield 'titre avec (COMPLET) majuscules' => [
+        yield 'titre avec (COMPLET) majuscules et extension' => [
             'Axis (2014).(COMPLET).VO.cbr-KAIL',
-            'Axis (2014).(COMPLET).VO.cbr-KAIL',
-            false,
+            'Axis',
+            true,
         ];
 
         yield 'titre avec article (l\')' => [
