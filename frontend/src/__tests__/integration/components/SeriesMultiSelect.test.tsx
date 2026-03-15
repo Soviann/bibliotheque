@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it, vi } from "vitest";
@@ -9,11 +9,12 @@ import {
 } from "../../helpers/factories";
 import { server } from "../../helpers/server";
 import { renderWithProviders } from "../../helpers/test-utils";
+import { ComicType } from "../../../types/enums";
 
 const comics = [
-  createMockComicSeries({ id: 1, title: "Naruto", tomes: [] }),
-  createMockComicSeries({ id: 2, title: "One Piece", tomes: [] }),
-  createMockComicSeries({ id: 3, title: "Bleach", tomes: [] }),
+  createMockComicSeries({ id: 1, title: "Naruto", tomes: [], type: ComicType.MANGA }),
+  createMockComicSeries({ id: 2, title: "One Piece", tomes: [], type: ComicType.MANGA }),
+  createMockComicSeries({ id: 3, title: "Bleach", tomes: [], type: ComicType.BD }),
 ];
 
 function setupHandler() {
@@ -117,5 +118,77 @@ describe("SeriesMultiSelect", () => {
     await user.click(removeButtons[0]);
 
     expect(onSelectionChange).toHaveBeenCalledWith([2]);
+  });
+
+  it("displays the type badge for each series", async () => {
+    setupHandler();
+
+    renderWithProviders(
+      <SeriesMultiSelect onSelectionChange={vi.fn()} selectedIds={[]} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    // Naruto and One Piece are Manga, Bleach is BD
+    expect(screen.getAllByText("Manga")).toHaveLength(2);
+    expect(screen.getByText("BD")).toBeInTheDocument();
+  });
+
+  it("opens detail modal when clicking detail link without toggling selection", async () => {
+    setupHandler();
+    const user = userEvent.setup();
+    const onSelectionChange = vi.fn();
+
+    renderWithProviders(
+      <SeriesMultiSelect onSelectionChange={onSelectionChange} selectedIds={[]} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    // Click the detail button for Naruto
+    const detailButtons = screen.getAllByRole("button", { name: /détail/i });
+    await user.click(detailButtons[0]);
+
+    // Modal should open with series title
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Naruto")).toBeInTheDocument();
+
+    // Selection should NOT have changed
+    expect(onSelectionChange).not.toHaveBeenCalled();
+  });
+
+  it("closes detail modal when clicking close button", async () => {
+    setupHandler();
+    const user = userEvent.setup();
+
+    renderWithProviders(
+      <SeriesMultiSelect onSelectionChange={vi.fn()} selectedIds={[]} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Naruto")).toBeInTheDocument();
+    });
+
+    const detailButtons = screen.getAllByRole("button", { name: /détail/i });
+    await user.click(detailButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+
+    // Close the modal
+    const closeButton = within(screen.getByRole("dialog")).getByRole("button", { name: /fermer/i });
+    await user.click(closeButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 });
