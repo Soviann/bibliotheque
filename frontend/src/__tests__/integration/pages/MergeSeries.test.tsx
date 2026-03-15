@@ -22,14 +22,22 @@ const mockGroups: MergeGroup[] = [
 ];
 
 const mockPreview: MergePreview = {
+  amazonUrl: null,
   authors: ["Kishimoto"],
   coverUrl: null,
+  defaultTomeBought: false,
+  defaultTomeDownloaded: false,
+  defaultTomeRead: false,
   description: null,
   isOneShot: false,
   latestPublishedIssue: null,
   latestPublishedIssueComplete: false,
+  notInterestedBuy: false,
+  notInterestedNas: false,
+  publishedDate: null,
   publisher: null,
   sourceSeriesIds: [1, 3],
+  status: "buying",
   title: "Naruto",
   tomes: [
     { bought: false, downloaded: false, isbn: null, number: 1, onNas: false, read: false, title: null, tomeEnd: null },

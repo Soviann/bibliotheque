@@ -19,14 +19,22 @@ function createMockTome(overrides: Partial<MergePreviewTome> = {}): MergePreview
 
 function createMockPreview(overrides: Partial<MergePreview> = {}): MergePreview {
   return {
+    amazonUrl: null,
     authors: [],
     coverUrl: null,
+    defaultTomeBought: false,
+    defaultTomeDownloaded: false,
+    defaultTomeRead: false,
     description: null,
     isOneShot: false,
     latestPublishedIssue: null,
     latestPublishedIssueComplete: false,
+    notInterestedBuy: false,
+    notInterestedNas: false,
+    publishedDate: null,
     publisher: null,
     sourceSeriesIds: [1, 2],
+    status: "buying",
     title: "Test Series",
     tomes: [createMockTome({ number: 1 }), createMockTome({ number: 2 })],
     type: "manga",

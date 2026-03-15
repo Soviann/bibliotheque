@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowLeft, Image, Loader2, X } from "lucide-react";
 import AuthorAutocomplete from "../components/AuthorAutocomplete";
 import CoverSearchModal from "../components/CoverSearchModal";
+import DatePartialSelect from "../components/DatePartialSelect";
 import LookupSection from "../components/LookupSection";
 import SelectListbox from "../components/SelectListbox";
 import SkeletonBox from "../components/SkeletonBox";
@@ -242,6 +243,13 @@ export default function ComicForm() {
             value={form.publisher}
           />
         </div>
+
+        {/* Published date */}
+        <DatePartialSelect
+          label="Date de parution"
+          onChange={(v) => update("publishedDate", v)}
+          value={form.publishedDate}
+        />
 
         {/* Cover URL */}
         <div>

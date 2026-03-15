@@ -85,14 +85,22 @@ export interface MergeGroupEntry {
 }
 
 export interface MergePreview {
+  amazonUrl: string | null;
   authors: string[];
   coverUrl: string | null;
+  defaultTomeBought: boolean;
+  defaultTomeDownloaded: boolean;
+  defaultTomeRead: boolean;
   description: string | null;
   isOneShot: boolean;
   latestPublishedIssue: number | null;
   latestPublishedIssueComplete: boolean;
+  notInterestedBuy: boolean;
+  notInterestedNas: boolean;
+  publishedDate: string | null;
   publisher: string | null;
   sourceSeriesIds: number[];
+  status: string;
   title: string;
   tomes: MergePreviewTome[];
   type: string;

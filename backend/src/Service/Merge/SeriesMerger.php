@@ -8,6 +8,7 @@ use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
+use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Repository\AuthorRepository;
 use App\Repository\ComicSeriesRepository;
@@ -41,13 +42,21 @@ final class SeriesMerger
         $primary = $sourceSeries[0];
 
         // 3. Mettre à jour les métadonnées
-        $primary->setTitle($preview->title);
+        $primary->setAmazonUrl($preview->amazonUrl);
         $primary->setCoverUrl($preview->coverUrl);
+        $primary->setDefaultTomeBought($preview->defaultTomeBought);
+        $primary->setDefaultTomeDownloaded($preview->defaultTomeDownloaded);
+        $primary->setDefaultTomeRead($preview->defaultTomeRead);
         $primary->setDescription($preview->description);
         $primary->setIsOneShot($preview->isOneShot);
         $primary->setLatestPublishedIssue($preview->latestPublishedIssue);
         $primary->setLatestPublishedIssueComplete($preview->latestPublishedIssueComplete);
+        $primary->setNotInterestedBuy($preview->notInterestedBuy);
+        $primary->setNotInterestedNas($preview->notInterestedNas);
+        $primary->setPublishedDate($preview->publishedDate);
         $primary->setPublisher($preview->publisher);
+        $primary->setStatus(ComicStatus::from($preview->status));
+        $primary->setTitle($preview->title);
         $primary->setType(ComicType::from($preview->type));
 
         // 4. Gérer les auteurs
