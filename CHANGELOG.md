@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.9.5] - 2026-03-15
+
 ### Changed
 
 - **Lookup** : Filtre les résultats multi-candidats dont le titre ne correspond pas à la requête de recherche
