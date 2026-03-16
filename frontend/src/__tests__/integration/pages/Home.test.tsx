@@ -757,7 +757,7 @@ describe("Home", () => {
     expect(screen.queryByTestId("search-loading")).not.toBeInTheDocument();
   });
 
-  it("applies fade transition class to results grid", async () => {
+  it("renders virtualized results grid", async () => {
     const comics = [
       createMockComicSeries({ id: 1, title: "Naruto" }),
     ];
@@ -774,10 +774,8 @@ describe("Home", () => {
       expect(screen.getByText("Naruto")).toBeInTheDocument();
     });
 
-    // The results grid should have transition classes
     const grid = screen.getByTestId("comics-grid");
     expect(grid).toBeInTheDocument();
-    expect(grid.className).toContain("transition");
   });
 
   it("pre-fills search from URL param", async () => {

@@ -1,5 +1,5 @@
 import { Edit, Trash2 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import type { ComicSeries } from "../types/api";
 
 interface CardActionBarProps {
@@ -9,7 +9,7 @@ interface CardActionBarProps {
   onEdit: (comic: ComicSeries) => void;
 }
 
-export default function CardActionBar({ comic, onClose, onDelete, onEdit }: CardActionBarProps) {
+export default memo(function CardActionBar({ comic, onClose, onDelete, onEdit }: CardActionBarProps) {
   const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,4 +65,4 @@ export default function CardActionBar({ comic, onClose, onDelete, onEdit }: Card
       </div>
     </>
   );
-}
+});
