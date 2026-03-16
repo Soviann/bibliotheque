@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useUpdateTome } from "../../../hooks/useUpdateTome";
+import { queryKeys } from "../../../queryKeys";
 import { enqueue } from "../../../services/offlineQueue";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import {
@@ -66,7 +67,7 @@ describe("useUpdateTome", () => {
     const queryClient = createTestQueryClient();
 
     queryClient.setQueryData(
-      ["comic", 1],
+      queryKeys.comics.detail(1),
       createMockComicSeries({ id: 1, title: "Test" }),
     );
 
@@ -86,7 +87,7 @@ describe("useUpdateTome", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(["comic", 1])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.comics.detail(1))?.isInvalidated).toBe(true);
   });
 
   it("handles API error", async () => {

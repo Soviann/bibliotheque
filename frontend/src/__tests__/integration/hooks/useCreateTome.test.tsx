@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useCreateTome } from "../../../hooks/useCreateTome";
+import { queryKeys } from "../../../queryKeys";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import { createMockComicSeries, createMockTome } from "../../helpers/factories";
 import { server } from "../../helpers/server";
@@ -80,7 +81,7 @@ describe("useCreateTome", () => {
 
     const queryClient = createTestQueryClient();
     const series = createMockComicSeries({ id: 5, tomes: [] });
-    queryClient.setQueryData(["comic", 5], series);
+    queryClient.setQueryData(queryKeys.comics.detail(5), series);
 
     const { result } = renderHook(() => useCreateTome(5), {
       wrapper: createWrapper(queryClient),
@@ -92,7 +93,7 @@ describe("useCreateTome", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const cached = queryClient.getQueryData<typeof series>(["comic", 5]);
+    const cached = queryClient.getQueryData<typeof series>(queryKeys.comics.detail(5));
     expect(cached?.tomes).toHaveLength(1);
     expect(cached?.tomes[0].number).toBe(3);
     expect(cached?.tomes[0]._syncPending).toBe(true);

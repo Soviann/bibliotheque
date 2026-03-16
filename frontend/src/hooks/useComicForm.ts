@@ -8,6 +8,7 @@ import { useCreateComic } from "./useCreateComic";
 import { fetchLookupIsbn, fetchLookupTitle, useLookupIsbn, useLookupTitle, useLookupTitleCandidates } from "./useLookup";
 import { useSyncFailures } from "./useSyncFailures";
 import { useUpdateComic } from "./useUpdateComic";
+import { endpoints } from "../endpoints";
 import { apiFetch } from "../services/api";
 import type { Author, ComicSeries } from "../types/api";
 import { ComicStatus, ComicType } from "../types/enums";
@@ -294,7 +295,7 @@ export function useComicForm() {
         pendingAuthors.push(a.name);
       } else {
         try {
-          const created = await apiFetch<Author>("/authors", {
+          const created = await apiFetch<Author>(endpoints.authors, {
             body: JSON.stringify({ name: a.name }),
             method: "POST",
           });

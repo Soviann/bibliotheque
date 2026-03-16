@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { queryKeys } from "../queryKeys";
 import {
   getSyncFailures,
   removeSyncFailure as removeFailure,
@@ -12,7 +13,7 @@ export function useSyncFailures() {
 
   const { data: failures = [] } = useQuery<SyncFailure[]>({
     queryFn: getSyncFailures,
-    queryKey: ["syncFailures"],
+    queryKey: queryKeys.offline.syncFailures,
     refetchInterval: 3000,
   });
 
@@ -20,7 +21,7 @@ export function useSyncFailures() {
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === "sync-failure") {
-        void queryClient.invalidateQueries({ queryKey: ["syncFailures"] });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.offline.syncFailures });
       }
     };
 
@@ -32,12 +33,12 @@ export function useSyncFailures() {
 
   const resolveSyncFailure = async (id: number) => {
     await resolveFailure(id);
-    void queryClient.invalidateQueries({ queryKey: ["syncFailures"] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.offline.syncFailures });
   };
 
   const removeSyncFailure = async (id: number) => {
     await removeFailure(id);
-    void queryClient.invalidateQueries({ queryKey: ["syncFailures"] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.offline.syncFailures });
   };
 
   return { failures, removeSyncFailure, resolveSyncFailure };

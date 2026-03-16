@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useComic } from "../../../hooks/useComic";
+import { queryKeys } from "../../../queryKeys";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import {
   createMockComicSeries,
@@ -81,7 +82,7 @@ describe("useComic", () => {
 
     // Pre-populate comics collection
     queryClient.setQueryData(
-      ["comics"],
+      queryKeys.comics.all,
       createMockHydraCollection([comic]),
     );
 
@@ -100,7 +101,7 @@ describe("useComic", () => {
 
     // Pre-populate comics collection with a different comic
     queryClient.setQueryData(
-      ["comics"],
+      queryKeys.comics.all,
       createMockHydraCollection([otherComic]),
     );
 

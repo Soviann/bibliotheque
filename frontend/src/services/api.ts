@@ -1,4 +1,5 @@
 import { del, set } from "idb-keyval";
+import { endpoints } from "../endpoints";
 
 const API_BASE = "/api";
 const TOKEN_KEY = "jwt_token";
@@ -192,7 +193,7 @@ export async function fetchSSE<TMessage, TComplete>(
 }
 
 export async function loginWithGoogle(credential: string): Promise<string> {
-  const response = await fetch(`${API_BASE}/login/google`, {
+  const response = await fetch(`${API_BASE}${endpoints.login.google}`, {
     body: JSON.stringify({ credential }),
     headers: { "Content-Type": "application/json" },
     method: "POST",

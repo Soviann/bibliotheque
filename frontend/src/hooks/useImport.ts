@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ImportBooksResult, ImportExcelResult } from "../types/api";
 
@@ -14,13 +16,13 @@ export function useImportExcel() {
 
   return useMutation({
     mutationFn: ({ dryRun, file }: { dryRun: boolean; file: File }) =>
-      apiFetch<ImportExcelResult>("/tools/import/excel", {
+      apiFetch<ImportExcelResult>(endpoints.import.excel, {
         body: buildFormData(file, dryRun),
         method: "POST",
       }),
     onSuccess: (_, variables) => {
       if (!variables.dryRun) {
-        queryClient.invalidateQueries({ queryKey: ["comics"] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
       }
     },
   });
@@ -31,13 +33,13 @@ export function useImportBooks() {
 
   return useMutation({
     mutationFn: ({ dryRun, file }: { dryRun: boolean; file: File }) =>
-      apiFetch<ImportBooksResult>("/tools/import/books", {
+      apiFetch<ImportBooksResult>(endpoints.import.books, {
         body: buildFormData(file, dryRun),
         method: "POST",
       }),
     onSuccess: (_, variables) => {
       if (!variables.dryRun) {
-        queryClient.invalidateQueries({ queryKey: ["comics"] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
       }
     },
   });

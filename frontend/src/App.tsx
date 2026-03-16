@@ -8,6 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import AuthGuard from "./components/AuthGuard";
+import { queryKeys } from "./queryKeys";
 import ErrorFallback from "./components/ErrorFallback";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
@@ -120,7 +121,7 @@ export default function App() {
             dehydrateOptions: {
               shouldDehydrateQuery: (query) => {
                 const key = query.queryKey[0];
-                return key === "comics" || key === "comic";
+                return key === queryKeys.comics.all[0] || key === queryKeys.comics.detailPrefix[0];
               },
             },
             maxAge: 60 * 60 * 1000,

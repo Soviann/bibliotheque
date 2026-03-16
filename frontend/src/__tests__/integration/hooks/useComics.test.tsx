@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useComics } from "../../../hooks/useComics";
+import { queryKeys } from "../../../queryKeys";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import {
   createMockComicSeries,
@@ -109,7 +110,7 @@ describe("useComics", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const cachedComic = queryClient.getQueryData(["comic", 42]);
+    const cachedComic = queryClient.getQueryData(queryKeys.comics.detail(42));
     expect(cachedComic).toEqual(series);
   });
 });

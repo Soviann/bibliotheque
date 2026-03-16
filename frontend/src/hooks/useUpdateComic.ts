@@ -1,4 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ComicSeries, HydraCollection } from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
@@ -21,7 +23,7 @@ export function useUpdateComic() {
 
   return useOfflineMutation<ComicSeries, Partial<ComicSeries> & { id: number } & Record<string, unknown>>({
     mutationFn: ({ id, ...data }) =>
-      apiFetch<ComicSeries>(`/comic_series/${id}`, {
+      apiFetch<ComicSeries>(endpoints.comicSeries.detail(id), {
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/merge-patch+json" },
         method: "PATCH",
@@ -31,7 +33,7 @@ export function useUpdateComic() {
     offlineResourceType: "comic_series",
     onSuccess: (data, variables) => {
       // Mettre à jour la collection avec la réponse serveur (pas de refetch)
-      qc.setQueryData<HydraCollection<ComicSeries>>(["comics"], (old) => {
+      qc.setQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -44,7 +46,7 @@ export function useUpdateComic() {
     optimisticUpdate: (queryClient, variables) => {
       const safeFields = safeOptimisticFields(variables);
       // Mettre à jour dans la liste
-      queryClient.setQueryData<HydraCollection<ComicSeries>>(["comics"], (old) => {
+      queryClient.setQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -54,11 +56,11 @@ export function useUpdateComic() {
         };
       });
       // Mettre à jour dans le détail
-      queryClient.setQueryData<ComicSeries>(["comic", variables.id], (old) => {
+      queryClient.setQueryData<ComicSeries>(queryKeys.comics.detail(variables.id), (old) => {
         if (!old) return old;
         return { ...old, ...safeFields, _syncPending: true };
       });
     },
-    queryKeysToInvalidate: (variables) => [["comic", variables.id]],
+    queryKeysToInvalidate: (variables) => [queryKeys.comics.detail(variables.id)],
   });
 }

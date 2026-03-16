@@ -1,3 +1,5 @@
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ComicSeries, HydraCollection } from "../types/api";
 import { ComicStatus, ComicType } from "../types/enums";
@@ -7,14 +9,14 @@ export function useCreateComic() {
   return useOfflineMutation<ComicSeries, Partial<ComicSeries> & Record<string, unknown>>({
     generateTempId: true,
     mutationFn: (data) =>
-      apiFetch<ComicSeries>("/comic_series", {
+      apiFetch<ComicSeries>(endpoints.comicSeries.collection, {
         body: JSON.stringify(data),
         method: "POST",
       }),
     offlineOperation: "create",
     offlineResourceType: "comic_series",
     optimisticUpdate: (qc, variables, tempId) => {
-      qc.setQueryData<HydraCollection<ComicSeries>>(["comics"], (old) => {
+      qc.setQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all, (old) => {
         if (!old) return old;
         const tempSeries: ComicSeries = {
           "@id": `/api/comic_series/${tempId}`,
@@ -50,6 +52,6 @@ export function useCreateComic() {
         };
       });
     },
-    queryKeysToInvalidate: [["comics"]],
+    queryKeysToInvalidate: [queryKeys.comics.all],
   });
 }

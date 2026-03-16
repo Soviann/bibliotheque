@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch, fetchSSE } from "../services/api";
 import type { BatchLookupProgress, BatchLookupSummary } from "../types/api";
 
@@ -16,9 +18,9 @@ export function useBatchLookupPreview(
   return useQuery({
     queryFn: () =>
       apiFetch<{ count: number }>(
-        `/tools/batch-lookup/preview${qs ? `?${qs}` : ""}`,
+        `${endpoints.batchLookup.preview}${qs ? `?${qs}` : ""}`,
       ),
-    queryKey: ["batch-lookup-preview", type ?? "", force],
+    queryKey: queryKeys.batchLookup.preview(type ?? "", force),
   });
 }
 
@@ -57,7 +59,7 @@ export function useBatchLookup(): BatchLookupState {
       setSummary(null);
 
       void fetchSSE<BatchLookupProgress, BatchLookupSummary>(
-        "/tools/batch-lookup/run",
+        endpoints.batchLookup.run,
         options,
         (data) => {
           setProgress((prev) => [...prev, data]);
@@ -66,9 +68,9 @@ export function useBatchLookup(): BatchLookupState {
           setSummary(data);
           setIsRunning(false);
           abortRef.current = null;
-          queryClient.invalidateQueries({ queryKey: ["comics"] });
+          queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
           queryClient.invalidateQueries({
-            queryKey: ["batch-lookup-preview"],
+            queryKey: queryKeys.batchLookup.previewPrefix,
           });
         },
         (error) => {

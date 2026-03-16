@@ -8,6 +8,7 @@ import {
   useRestoreComic,
   usePermanentDelete,
 } from "../../../hooks/useTrash";
+import { queryKeys } from "../../../queryKeys";
 import { enqueue } from "../../../services/offlineQueue";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import {
@@ -146,8 +147,8 @@ describe("useRestoreComic", () => {
   it("invalidates trash and comics queries on success", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(["trash"], createMockHydraCollection([], "/api/trash"));
-    queryClient.setQueryData(["comics"], createMockHydraCollection([]));
+    queryClient.setQueryData(queryKeys.trash.all, createMockHydraCollection([], "/api/trash"));
+    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
 
     server.use(
       http.put("/api/comic_series/7/restore", () =>
@@ -165,8 +166,8 @@ describe("useRestoreComic", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(["trash"])?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(["comics"])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(true);
   });
 });
 
@@ -201,7 +202,7 @@ describe("usePermanentDelete", () => {
   it("invalidates trash queries on success", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(["trash"], createMockHydraCollection([], "/api/trash"));
+    queryClient.setQueryData(queryKeys.trash.all, createMockHydraCollection([], "/api/trash"));
 
     server.use(
       http.delete("/api/trash/9/permanent", () =>
@@ -219,7 +220,7 @@ describe("usePermanentDelete", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(["trash"])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(true);
   });
 
   it("returns error on failed DELETE", async () => {
