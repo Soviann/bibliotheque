@@ -187,6 +187,32 @@ describe("apiFetch", () => {
     await expect(apiFetch("/test")).rejects.toThrow("Erreur 500");
   });
 
+  it("sanitizes server error details that expose internals", async () => {
+    server.use(
+      http.get("/api/test", () =>
+        HttpResponse.json(
+          { detail: "An exception occurred in the driver: SQLSTATE[42S02]: Base table or view not found" },
+          { status: 500 },
+        ),
+      ),
+    );
+
+    await expect(apiFetch("/test")).rejects.toThrow("Erreur serveur");
+  });
+
+  it("passes through safe user-facing error messages", async () => {
+    server.use(
+      http.get("/api/test", () =>
+        HttpResponse.json(
+          { detail: "Série introuvable" },
+          { status: 404 },
+        ),
+      ),
+    );
+
+    await expect(apiFetch("/test")).rejects.toThrow("Série introuvable");
+  });
+
   it("handles 401 by removing token and redirecting to /login", async () => {
     setToken("expired-token");
 

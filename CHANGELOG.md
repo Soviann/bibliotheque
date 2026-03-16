@@ -16,6 +16,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 - **Performance** : Invalidation ciblée des queries TanStack — `useUpdateComic` et `useDeleteComic` n'invalident plus que la série concernée
 - **Performance** : `staleTime` réduit de 30 min à 5 min, `refetchOnWindowFocus` activé
 
+### Fixed
+
+- **Sécurité** : Vidage du cache SW (`api-cache`) au logout — les données API ne persistent plus après déconnexion
+- **Sécurité** : Validation du schéma URL des couvertures (`http://`/`https://` uniquement) — bloque `javascript:` et `data:`
+- **Sécurité** : Messages d'erreur serveur sanitisés — les détails internes (SQL, stack trace) ne sont plus exposés
+
 ## [v2.11.0] - 2026-03-15
 
 ### Added
