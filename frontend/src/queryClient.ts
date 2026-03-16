@@ -7,9 +7,9 @@ export const queryClient = new QueryClient({
     queries: {
       gcTime: 60 * 60 * 1000,
       networkMode: "offlineFirst",
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
       retry: 1,
-      staleTime: 30 * 60 * 1000,
+      staleTime: 5 * 60 * 1000,
     },
     mutations: {
       networkMode: "offlineFirst",

@@ -44,6 +44,6 @@ export function useUpdateComic() {
         return { ...old, ...safeFields, _syncPending: true };
       });
     },
-    queryKeysToInvalidate: [["comics"], ["comic"]],
+    queryKeysToInvalidate: (variables) => [["comics"], ["comic", variables.id]],
   });
 }
