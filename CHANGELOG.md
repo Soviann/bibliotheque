@@ -7,17 +7,21 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.12.0] - 2026-03-16
+
 ### Changed
 
 - **Recherche** : Hook `useDebounce` partagé remplace les `setTimeout` manuels dans Home et ToBuy (cleanup automatique)
 - **Performance** : Virtualisation des grilles (Home, ToBuy) avec `@tanstack/react-virtual` — seules les lignes visibles sont rendues
 - **Performance** : `React.memo` sur `ComicCard`, `CardActionBar` et `MergeGroupCard` pour éviter les re-renders inutiles
 - **Performance** : Callbacks mémoïsés dans Home, stats mémoïsées dans ComicDetail
-- **Performance** : Invalidation ciblée des queries TanStack — `useUpdateComic` et `useDeleteComic` n'invalident plus que la série concernée
+- **Performance** : Invalidation ciblée des queries TanStack — `useUpdateComic` met à jour la collection via `setQueryData` au lieu de refetch
 - **Performance** : `staleTime` réduit de 30 min à 5 min, `refetchOnWindowFocus` activé
 
 ### Fixed
 
+- **Grille** : Les cartes se chevauchaient dans la grille virtualisée — ajout de `measureElement` et gap vertical
+- **Données** : La modification d'une série était écrasée par un refetch obsolète de la collection
 - **Sécurité** : Vidage du cache SW (`api-cache`) au logout — les données API ne persistent plus après déconnexion
 - **Sécurité** : Validation du schéma URL des couvertures (`http://`/`https://` uniquement) — bloque `javascript:` et `data:`
 - **Sécurité** : Messages d'erreur serveur sanitisés — les détails internes (SQL, stack trace) ne sont plus exposés
