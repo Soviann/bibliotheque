@@ -1,3 +1,5 @@
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ComicSeries, Tome } from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
@@ -5,7 +7,7 @@ import { useOfflineMutation } from "./useOfflineMutation";
 export function useUpdateTome(seriesId?: number) {
   return useOfflineMutation<Tome, Partial<Tome> & { id: number }>({
     mutationFn: ({ id, ...data }) =>
-      apiFetch<Tome>(`/tomes/${id}`, {
+      apiFetch<Tome>(endpoints.tomes.detail(id), {
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/merge-patch+json" },
         method: "PATCH",
@@ -19,7 +21,7 @@ export function useUpdateTome(seriesId?: number) {
     offlineResourceType: "tome",
     optimisticUpdate: (qc, variables) => {
       if (!seriesId) return;
-      qc.setQueryData<ComicSeries>(["comic", seriesId], (old) => {
+      qc.setQueryData<ComicSeries>(queryKeys.comics.detail(seriesId), (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -29,6 +31,6 @@ export function useUpdateTome(seriesId?: number) {
         };
       });
     },
-    queryKeysToInvalidate: [["comic"]],
+    queryKeysToInvalidate: [queryKeys.comics.detailPrefix],
   });
 }

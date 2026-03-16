@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Frontend** : Centralisation des query keys (`queryKeys.ts`) et des endpoints API (`endpoints.ts`) — supprime les chaînes éparpillées dans 20+ hooks et 12 fichiers de tests
+
 ## [v2.12.0] - 2026-03-16
 
 ### Changed

@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { Author, HydraCollection } from "../types/api";
 
@@ -7,7 +9,7 @@ export function useAuthors(search: string = "") {
 
   return useQuery({
     enabled: search.length >= 1,
-    queryFn: () => apiFetch<HydraCollection<Author>>(`/authors${params}`),
-    queryKey: ["authors", search],
+    queryFn: () => apiFetch<HydraCollection<Author>>(`${endpoints.authors}${params}`),
+    queryKey: queryKeys.authors.search(search),
   });
 }

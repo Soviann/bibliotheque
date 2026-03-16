@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import { queryKeys } from "../../../queryKeys";
 import type { ComicSeries } from "../../../types/api";
 import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
 import ToBuy from "../../../pages/ToBuy";
@@ -49,7 +50,7 @@ function makeSeries(id: number, title: string, overrides: Partial<ComicSeries> =
 
 function renderWithComics(comics: ComicSeries[]) {
   const queryClient = createTestQueryClient();
-  queryClient.setQueryData(["comics"], {
+  queryClient.setQueryData(queryKeys.comics.all, {
     "@context": "/api/contexts/ComicSeries",
     "@id": "/api/comics",
     "@type": "Collection",

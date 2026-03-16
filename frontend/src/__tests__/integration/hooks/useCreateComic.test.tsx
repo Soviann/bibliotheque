@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useCreateComic } from "../../../hooks/useCreateComic";
+import { queryKeys } from "../../../queryKeys";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import {
   createMockComicSeries,
@@ -57,7 +58,7 @@ describe("useCreateComic", () => {
     const queryClient = createTestQueryClient();
 
     // Pre-populate cache
-    queryClient.setQueryData(["comics"], createMockHydraCollection([]));
+    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
 
     server.use(
       http.post("/api/comic_series", () =>
@@ -79,7 +80,7 @@ describe("useCreateComic", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // Cache should be invalidated
-    const state = queryClient.getQueryState(["comics"]);
+    const state = queryClient.getQueryState(queryKeys.comics.all);
     expect(state?.isInvalidated).toBe(true);
   });
 

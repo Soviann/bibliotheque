@@ -1,3 +1,5 @@
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ComicSeries, Tome } from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
@@ -6,7 +8,7 @@ export function useCreateTome(seriesId: number) {
   return useOfflineMutation<Tome, Partial<Tome> & Record<string, unknown>>({
     generateTempId: true,
     mutationFn: (data) =>
-      apiFetch<Tome>(`/comic_series/${seriesId}/tomes`, {
+      apiFetch<Tome>(endpoints.comicSeries.tomes(seriesId), {
         body: JSON.stringify(data),
         method: "POST",
       }),
@@ -15,7 +17,7 @@ export function useCreateTome(seriesId: number) {
     offlineParentResourceType: "comic_series",
     offlineResourceType: "tome",
     optimisticUpdate: (qc, variables, tempId) => {
-      qc.setQueryData<ComicSeries>(["comic", seriesId], (old) => {
+      qc.setQueryData<ComicSeries>(queryKeys.comics.detail(seriesId), (old) => {
         if (!old) return old;
         const tempTome: Tome = {
           "@id": `/api/tomes/${tempId}`,
@@ -42,6 +44,6 @@ export function useCreateTome(seriesId: number) {
         };
       });
     },
-    queryKeysToInvalidate: [["comic", seriesId]],
+    queryKeysToInvalidate: [queryKeys.comics.detail(seriesId)],
   });
 }

@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { toast } from "sonner";
 import { useCreateComic } from "../../../hooks/useCreateComic";
 import { useUpdateComic } from "../../../hooks/useUpdateComic";
+import { queryKeys } from "../../../queryKeys";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import { createMockComicSeries } from "../../helpers/factories";
 import { server } from "../../helpers/server";
@@ -248,7 +249,7 @@ describe("useOfflineMutation", () => {
           offlineOperation: "create" as const,
           offlineResourceType: "comic_series" as const,
           onOfflineSuccess,
-          queryKeysToInvalidate: [["comics"]],
+          queryKeysToInvalidate: [queryKeys.comics.all],
         }),
       { wrapper: createWrapper() },
     );
@@ -351,7 +352,7 @@ describe("useOfflineMutation", () => {
     });
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(["comics"], { member: [], totalItems: 0 });
+    queryClient.setQueryData(queryKeys.comics.all, { member: [], totalItems: 0 });
 
     const { result } = renderHook(() => useCreateComic(), {
       wrapper: createWrapper(queryClient),
@@ -364,6 +365,6 @@ describe("useOfflineMutation", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // Should NOT invalidate when offline
-    expect(queryClient.getQueryState(["comics"])?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(false);
   });
 });

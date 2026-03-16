@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useDeleteComic } from "../../../hooks/useDeleteComic";
+import { queryKeys } from "../../../queryKeys";
 import { enqueue } from "../../../services/offlineQueue";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import { createMockHydraCollection } from "../../helpers/factories";
@@ -55,9 +56,9 @@ describe("useDeleteComic", () => {
   it("invalidates comics and trash queries on success", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(["comics"], createMockHydraCollection([]));
+    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
     queryClient.setQueryData(
-      ["trash"],
+      queryKeys.trash.all,
       createMockHydraCollection([], "/api/trash"),
     );
 
@@ -77,8 +78,8 @@ describe("useDeleteComic", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(["comics"])?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(["trash"])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(true);
   });
 
   it("handles API error", async () => {

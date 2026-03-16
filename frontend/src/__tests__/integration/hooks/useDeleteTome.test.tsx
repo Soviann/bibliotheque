@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useDeleteTome } from "../../../hooks/useDeleteTome";
+import { queryKeys } from "../../../queryKeys";
 import { createTestQueryClient } from "../../helpers/test-utils";
 import { createMockComicSeries, createMockTome } from "../../helpers/factories";
 import { server } from "../../helpers/server";
@@ -79,7 +80,7 @@ describe("useDeleteTome", () => {
     const queryClient = createTestQueryClient();
     const tome = createMockTome({ id: 10, number: 1 });
     const series = createMockComicSeries({ id: 5, tomes: [tome] });
-    queryClient.setQueryData(["comic", 5], series);
+    queryClient.setQueryData(queryKeys.comics.detail(5), series);
 
     const { result } = renderHook(() => useDeleteTome(5), {
       wrapper: createWrapper(queryClient),
@@ -91,7 +92,7 @@ describe("useDeleteTome", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const cached = queryClient.getQueryData<typeof series>(["comic", 5]);
+    const cached = queryClient.getQueryData<typeof series>(queryKeys.comics.detail(5));
     expect(cached?.tomes).toHaveLength(0);
   });
 });

@@ -1,3 +1,5 @@
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ComicSeries, HydraCollection } from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
@@ -5,12 +7,12 @@ import { useOfflineMutation } from "./useOfflineMutation";
 export function useDeleteComic() {
   return useOfflineMutation<unknown, { id: number }>({
     mutationFn: ({ id }) =>
-      apiFetch(`/comic_series/${id}`, { method: "DELETE" }),
+      apiFetch(endpoints.comicSeries.detail(id), { method: "DELETE" }),
     offlineOperation: "delete",
     offlineResourceId: (v) => String(v.id),
     offlineResourceType: "comic_series",
     optimisticUpdate: (qc, variables) => {
-      qc.setQueryData<HydraCollection<ComicSeries>>(["comics"], (old) => {
+      qc.setQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -19,6 +21,6 @@ export function useDeleteComic() {
         };
       });
     },
-    queryKeysToInvalidate: (variables) => [["comics"], ["comic", variables.id], ["trash"]],
+    queryKeysToInvalidate: (variables) => [queryKeys.comics.all, queryKeys.comics.detail(variables.id), queryKeys.trash.all],
   });
 }

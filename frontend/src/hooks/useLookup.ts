@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 
@@ -8,8 +10,8 @@ export function useLookupIsbn(isbn: string, type?: string) {
 
   return useQuery({
     enabled: isbn.length >= 10,
-    queryFn: () => apiFetch<LookupResult>(`/lookup/isbn?${params}`),
-    queryKey: ["lookup", "isbn", isbn, type],
+    queryFn: () => apiFetch<LookupResult>(`${endpoints.lookup.isbn}?${params}`),
+    queryKey: queryKeys.lookup.isbn(isbn, type),
   });
 }
 
@@ -19,8 +21,8 @@ export function useLookupTitle(title: string, type?: string) {
 
   return useQuery({
     enabled: title.length >= 2,
-    queryFn: () => apiFetch<LookupResult>(`/lookup/title?${params}`),
-    queryKey: ["lookup", "title", title, type],
+    queryFn: () => apiFetch<LookupResult>(`${endpoints.lookup.title}?${params}`),
+    queryKey: queryKeys.lookup.title(title, type),
   });
 }
 
@@ -30,8 +32,8 @@ export function useLookupTitleCandidates(title: string, type?: string, limit = 5
 
   return useQuery({
     enabled: title.length >= 2,
-    queryFn: () => apiFetch<LookupCandidatesResponse>(`/lookup/title?${params}`),
-    queryKey: ["lookup", "title-candidates", title, type, limit],
+    queryFn: () => apiFetch<LookupCandidatesResponse>(`${endpoints.lookup.title}?${params}`),
+    queryKey: queryKeys.lookup.titleCandidates(title, type, limit),
   });
 }
 
@@ -39,12 +41,12 @@ export function useLookupTitleCandidates(title: string, type?: string, limit = 5
 export async function fetchLookupIsbn(isbn: string, type?: string): Promise<LookupResult> {
   const params = new URLSearchParams({ isbn });
   if (type) params.set("type", type);
-  return apiFetch<LookupResult>(`/lookup/isbn?${params}`);
+  return apiFetch<LookupResult>(`${endpoints.lookup.isbn}?${params}`);
 }
 
 /** Appel impératif — lookup par titre */
 export async function fetchLookupTitle(title: string, type?: string): Promise<LookupResult> {
   const params = new URLSearchParams({ title });
   if (type) params.set("type", type);
-  return apiFetch<LookupResult>(`/lookup/title?${params}`);
+  return apiFetch<LookupResult>(`${endpoints.lookup.title}?${params}`);
 }

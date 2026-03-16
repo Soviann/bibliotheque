@@ -1,3 +1,5 @@
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ComicSeries } from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
@@ -5,14 +7,14 @@ import { useOfflineMutation } from "./useOfflineMutation";
 export function useDeleteTome(seriesId: number) {
   return useOfflineMutation<unknown, { id: number }>({
     mutationFn: ({ id }) =>
-      apiFetch(`/tomes/${id}`, { method: "DELETE" }),
+      apiFetch(endpoints.tomes.detail(id), { method: "DELETE" }),
     offlineOperation: "delete",
     offlineParentResourceId: String(seriesId),
     offlineParentResourceType: "comic_series",
     offlineResourceId: (v) => String(v.id),
     offlineResourceType: "tome",
     optimisticUpdate: (qc, variables) => {
-      qc.setQueryData<ComicSeries>(["comic", seriesId], (old) => {
+      qc.setQueryData<ComicSeries>(queryKeys.comics.detail(seriesId), (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -20,6 +22,6 @@ export function useDeleteTome(seriesId: number) {
         };
       });
     },
-    queryKeysToInvalidate: [["comic", seriesId]],
+    queryKeysToInvalidate: [queryKeys.comics.detail(seriesId)],
   });
 }

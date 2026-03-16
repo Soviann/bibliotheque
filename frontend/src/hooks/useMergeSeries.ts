@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { endpoints } from "../endpoints";
+import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type {
   MergeGroup,
@@ -15,7 +17,7 @@ interface DetectParams {
 export function useDetectMergeGroups() {
   return useMutation({
     mutationFn: (params: DetectParams) =>
-      apiFetch<MergeGroup[]>("/merge-series/detect", {
+      apiFetch<MergeGroup[]>(endpoints.mergeSeries.detect, {
         body: JSON.stringify(params),
         method: "POST",
       }),
@@ -25,7 +27,7 @@ export function useDetectMergeGroups() {
 export function useMergePreview() {
   return useMutation({
     mutationFn: (seriesIds: number[]) =>
-      apiFetch<MergePreview>("/merge-series/preview", {
+      apiFetch<MergePreview>(endpoints.mergeSeries.preview, {
         body: JSON.stringify({ seriesIds }),
         method: "POST",
       }),
@@ -35,7 +37,7 @@ export function useMergePreview() {
 export function useMergeSuggest() {
   return useMutation({
     mutationFn: (seriesIds: number[]) =>
-      apiFetch<MergeSuggestion>("/merge-series/suggest", {
+      apiFetch<MergeSuggestion>(endpoints.mergeSeries.suggest, {
         body: JSON.stringify({ seriesIds }),
         method: "POST",
       }),
@@ -48,14 +50,14 @@ export function useExecuteMerge() {
   return useMutation({
     mutationFn: (preview: MergePreview) =>
       apiFetch<{ id: number; title: string; type: string }>(
-        "/merge-series/execute",
+        endpoints.mergeSeries.execute,
         {
           body: JSON.stringify(preview),
           method: "POST",
         },
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comics"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
     },
   });
 }

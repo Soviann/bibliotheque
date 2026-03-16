@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
+import { queryKeys } from "../queryKeys";
 
 export type SyncStatus = "error" | "idle" | "success" | "syncing";
 
@@ -28,8 +29,8 @@ export function useSyncStatus() {
       case "sync-complete":
         setState({ error: null, status: "success", syncedCount: data.count ?? 0 });
         if ((data.count ?? 0) > 0) {
-          void queryClient.invalidateQueries({ queryKey: ["comics"] });
-          void queryClient.invalidateQueries({ queryKey: ["comic"] });
+          void queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
+          void queryClient.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix });
         }
         break;
       case "sync-error":

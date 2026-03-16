@@ -9,6 +9,7 @@ import {
   useMergePreview,
   useMergeSuggest,
 } from "../../../hooks/useMergeSeries";
+import { queryKeys } from "../../../queryKeys";
 import type { MergePreview } from "../../../types/api";
 import { createMockHydraCollection } from "../../helpers/factories";
 import { server } from "../../helpers/server";
@@ -168,7 +169,7 @@ describe("useMergeSeries", () => {
       );
 
       const queryClient = createTestQueryClient();
-      queryClient.setQueryData(["comics"], createMockHydraCollection([]));
+      queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
 
       const preview: MergePreview = {
         amazonUrl: null,
@@ -207,7 +208,7 @@ describe("useMergeSeries", () => {
         title: "Astérix",
         type: "BD",
       });
-      expect(queryClient.getQueryState(["comics"])?.isInvalidated).toBe(true);
+      expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(true);
     });
   });
 });
