@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "../services/api";
 import type { ComicSeries, HydraCollection } from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
@@ -16,6 +17,8 @@ function safeOptimisticFields(variables: Record<string, unknown>): Partial<Comic
 }
 
 export function useUpdateComic() {
+  const qc = useQueryClient();
+
   return useOfflineMutation<ComicSeries, Partial<ComicSeries> & { id: number } & Record<string, unknown>>({
     mutationFn: ({ id, ...data }) =>
       apiFetch<ComicSeries>(`/comic_series/${id}`, {
@@ -26,10 +29,22 @@ export function useUpdateComic() {
     offlineOperation: "update",
     offlineResourceId: (v) => String(v.id),
     offlineResourceType: "comic_series",
-    optimisticUpdate: (qc, variables) => {
+    onSuccess: (data, variables) => {
+      // Mettre à jour la collection avec la réponse serveur (pas de refetch)
+      qc.setQueryData<HydraCollection<ComicSeries>>(["comics"], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          member: old.member.map((c) =>
+            c.id === variables.id ? { ...data, _syncPending: false } : c,
+          ),
+        };
+      });
+    },
+    optimisticUpdate: (queryClient, variables) => {
       const safeFields = safeOptimisticFields(variables);
       // Mettre à jour dans la liste
-      qc.setQueryData<HydraCollection<ComicSeries>>(["comics"], (old) => {
+      queryClient.setQueryData<HydraCollection<ComicSeries>>(["comics"], (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -39,11 +54,11 @@ export function useUpdateComic() {
         };
       });
       // Mettre à jour dans le détail
-      qc.setQueryData<ComicSeries>(["comic", variables.id], (old) => {
+      queryClient.setQueryData<ComicSeries>(["comic", variables.id], (old) => {
         if (!old) return old;
         return { ...old, ...safeFields, _syncPending: true };
       });
     },
-    queryKeysToInvalidate: (variables) => [["comics"], ["comic", variables.id]],
+    queryKeysToInvalidate: (variables) => [["comic", variables.id]],
   });
 }
