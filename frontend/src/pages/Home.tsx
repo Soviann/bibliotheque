@@ -1,5 +1,5 @@
 import { BookOpen, Filter, Heart, Loader2, Search } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CardActionBar from "../components/CardActionBar";
@@ -9,6 +9,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import Filters from "../components/Filters";
 import { useComics } from "../hooks/useComics";
+import { useDebounce } from "../hooks/useDebounce";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import type { ComicSeries } from "../types/api";
@@ -35,13 +36,12 @@ export default function Home() {
 
   const navigate = useNavigate();
   const [search, setSearch] = useState(searchParam);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchParam);
+  const debouncedSearch = useDebounce(search, 300);
   const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
   const [menuComic, setMenuComic] = useState<ComicSeries | null>(null);
 
   useEffect(() => {
     setSearch(searchParam);
-    setDebouncedSearch(searchParam);
   }, [searchParam]);
 
   const updateParam = useCallback(
@@ -68,18 +68,11 @@ export default function Home() {
     (v: SortOption) => updateParam("sort", v === "title-asc" ? "" : v),
     [updateParam],
   );
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const handleSearchChange = useCallback(
-    (v: string) => {
-      setSearch(v);
-      clearTimeout(searchTimerRef.current);
-      searchTimerRef.current = setTimeout(() => {
-        setDebouncedSearch(v);
-        updateParam("search", v.trim());
-      }, 300);
-    },
-    [updateParam],
-  );
+  const handleSearchChange = useCallback((v: string) => setSearch(v), []);
+
+  useEffect(() => {
+    updateParam("search", debouncedSearch.trim());
+  }, [debouncedSearch, updateParam]);
 
   const isMobile = useMediaQuery("(max-width: 639px)");
   const { data, isFetching, isLoading } = useComics();

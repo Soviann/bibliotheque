@@ -1,9 +1,10 @@
 import { Loader2, Search, ShoppingCart } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import EmptyState from "../components/EmptyState";
 import { useComics } from "../hooks/useComics";
+import { useDebounce } from "../hooks/useDebounce";
 import { searchComics } from "../utils/searchComics";
 import { filterSeriesToBuy, getNextTomesToBuy } from "../utils/toBuyUtils";
 
@@ -12,18 +13,9 @@ export default function ToBuy() {
   const allComics = data?.member ?? [];
 
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const debouncedSearch = useDebounce(search, 300);
 
-  const handleSearchChange = useCallback((v: string) => {
-    setSearch(v);
-    clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => setDebouncedSearch(v), 300);
-  }, []);
-
-  useEffect(() => {
-    return () => clearTimeout(searchTimerRef.current);
-  }, []);
+  const handleSearchChange = useCallback((v: string) => setSearch(v), []);
 
   const filtered = useMemo(() => {
     const toBuy = filterSeriesToBuy(allComics);
