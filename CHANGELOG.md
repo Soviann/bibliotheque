@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Recherche** : Hook `useDebounce` partagé remplace les `setTimeout` manuels dans Home et ToBuy (cleanup automatique)
+
 ## [v2.11.0] - 2026-03-15
 
 ### Added
