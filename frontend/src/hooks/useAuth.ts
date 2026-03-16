@@ -22,6 +22,7 @@ export function useAuth() {
   const logout = useCallback(() => {
     queryClient.clear();
     del("bibliotheque-query-cache");
+    void caches.delete("api-cache");
     removeToken();
     navigate("/login", { viewTransition: true });
   }, [navigate, queryClient]);

@@ -41,6 +41,11 @@ describe("Layout", () => {
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
     mockUseSyncStatus.mockReturnValue({ error: null, status: "idle", syncedCount: 0 });
+    vi.stubGlobal("caches", { delete: vi.fn().mockResolvedValue(true) });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("renders header with app title", () => {

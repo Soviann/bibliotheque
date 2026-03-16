@@ -22,6 +22,20 @@ export function isAuthenticated(): boolean {
   return getToken() !== null;
 }
 
+const SERVER_ERROR_PATTERNS = [
+  /SQLSTATE/i,
+  /exception.*driver/i,
+  /stack trace/i,
+  /vendor\//i,
+];
+
+function sanitizeErrorMessage(message: string, status: number): string {
+  if (status >= 500 && SERVER_ERROR_PATTERNS.some((p) => p.test(message))) {
+    return "Erreur serveur";
+  }
+  return message;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -67,9 +81,8 @@ export async function apiFetch<T>(
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     const body = error as { detail?: string; error?: string };
-    throw new Error(
-      body.detail ?? body.error ?? `Erreur ${response.status}`,
-    );
+    const message = body.detail ?? body.error ?? `Erreur ${response.status}`;
+    throw new Error(sanitizeErrorMessage(message, response.status));
   }
 
   // 204 No Content

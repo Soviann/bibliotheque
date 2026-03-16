@@ -33,6 +33,11 @@ describe("useAuth", () => {
   beforeEach(() => {
     localStorage.clear();
     mockNavigate.mockReset();
+    vi.stubGlobal("caches", { delete: vi.fn().mockResolvedValue(true) });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("returns isAuthenticated false when no token", () => {
@@ -160,5 +165,19 @@ describe("useAuth", () => {
 
     expect(localStorage.getItem("jwt_token")).toBeNull();
     expect(mockNavigate).toHaveBeenCalledWith("/login", { viewTransition: true });
+  });
+
+  it("logout clears SW api-cache", () => {
+    localStorage.setItem("jwt_token", "some-token");
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.logout();
+    });
+
+    expect(caches.delete).toHaveBeenCalledWith("api-cache");
   });
 });

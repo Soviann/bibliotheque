@@ -23,4 +23,23 @@ describe("getCoverSrc", () => {
     expect(getCoverSrc({ coverImage: "local.jpg", coverUrl: "https://remote.com/img.jpg" }))
       .toBe("/uploads/covers/local.jpg");
   });
+
+  it("rejects coverUrl with javascript: scheme", () => {
+    // eslint-disable-next-line no-script-url
+    expect(getCoverSrc({ coverImage: null, coverUrl: "javascript:alert(1)" })).toBeNull();
+  });
+
+  it("rejects coverUrl with data: scheme", () => {
+    expect(getCoverSrc({ coverImage: null, coverUrl: "data:text/html,<script>alert(1)</script>" })).toBeNull();
+  });
+
+  it("accepts http:// coverUrl", () => {
+    expect(getCoverSrc({ coverImage: null, coverUrl: "http://example.com/img.jpg" }))
+      .toBe("http://example.com/img.jpg");
+  });
+
+  it("accepts https:// coverUrl", () => {
+    expect(getCoverSrc({ coverImage: null, coverUrl: "https://example.com/img.jpg" }))
+      .toBe("https://example.com/img.jpg");
+  });
 });
