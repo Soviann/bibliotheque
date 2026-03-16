@@ -57,21 +57,16 @@ describe("useUpdateComic", () => {
     expect(result.current.data?.title).toBe("Updated Title");
   });
 
-  it("invalidates comics and comic queries on success", async () => {
+  it("updates collection via setQueryData and invalidates comic detail on success", async () => {
     const queryClient = createTestQueryClient();
+    const oldComic = createMockComicSeries({ id: 3, title: "Old" });
+    const newComic = createMockComicSeries({ id: 3, title: "New" });
 
-    queryClient.setQueryData(["comics"], createMockHydraCollection([]));
-    queryClient.setQueryData(
-      ["comic", 3],
-      createMockComicSeries({ id: 3, title: "Old" }),
-    );
+    queryClient.setQueryData(["comics"], createMockHydraCollection([oldComic]));
+    queryClient.setQueryData(["comic", 3], oldComic);
 
     server.use(
-      http.patch("/api/comic_series/3", () =>
-        HttpResponse.json(
-          createMockComicSeries({ id: 3, title: "New" }),
-        ),
-      ),
+      http.patch("/api/comic_series/3", () => HttpResponse.json(newComic)),
     );
 
     const { result } = renderHook(() => useUpdateComic(), {
@@ -84,28 +79,28 @@ describe("useUpdateComic", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(["comics"])?.isInvalidated).toBe(true);
+    // Collection should NOT be invalidated (updated via setQueryData instead)
+    expect(queryClient.getQueryState(["comics"])?.isInvalidated).toBe(false);
+    // Collection should contain the server response
+    const collection = queryClient.getQueryData<{ member: { id: number; title: string }[] }>(["comics"]);
+    expect(collection?.member.find((c) => c.id === 3)?.title).toBe("New");
+    // Detail should be invalidated for fresh refetch
     expect(queryClient.getQueryState(["comic", 3])?.isInvalidated).toBe(true);
   });
 
   it("does not invalidate unrelated comic detail queries", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(["comics"], createMockHydraCollection([]));
-    queryClient.setQueryData(
-      ["comic", 3],
+    queryClient.setQueryData(["comics"], createMockHydraCollection([
       createMockComicSeries({ id: 3, title: "Target" }),
-    );
-    queryClient.setQueryData(
-      ["comic", 5],
       createMockComicSeries({ id: 5, title: "Other" }),
-    );
+    ]));
+    queryClient.setQueryData(["comic", 3], createMockComicSeries({ id: 3, title: "Target" }));
+    queryClient.setQueryData(["comic", 5], createMockComicSeries({ id: 5, title: "Other" }));
 
     server.use(
       http.patch("/api/comic_series/3", () =>
-        HttpResponse.json(
-          createMockComicSeries({ id: 3, title: "Updated" }),
-        ),
+        HttpResponse.json(createMockComicSeries({ id: 3, title: "Updated" })),
       ),
     );
 
