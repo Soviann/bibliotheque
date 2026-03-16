@@ -7,9 +7,9 @@ describe("queryClient default options", () => {
 
     expect(defaults?.gcTime).toBe(60 * 60 * 1000);
     expect(defaults?.networkMode).toBe("offlineFirst");
-    expect(defaults?.refetchOnWindowFocus).toBe(false);
+    expect(defaults?.refetchOnWindowFocus).toBe(true);
     expect(defaults?.retry).toBe(1);
-    expect(defaults?.staleTime).toBe(30 * 60 * 1000);
+    expect(defaults?.staleTime).toBe(5 * 60 * 1000);
   });
 
   it("has correct mutation defaults", () => {

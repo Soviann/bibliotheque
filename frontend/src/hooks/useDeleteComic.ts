@@ -19,6 +19,6 @@ export function useDeleteComic() {
         };
       });
     },
-    queryKeysToInvalidate: [["comics"], ["trash"]],
+    queryKeysToInvalidate: (variables) => [["comics"], ["comic", variables.id], ["trash"]],
   });
 }

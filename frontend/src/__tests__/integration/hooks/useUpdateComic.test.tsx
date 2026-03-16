@@ -88,6 +88,43 @@ describe("useUpdateComic", () => {
     expect(queryClient.getQueryState(["comic", 3])?.isInvalidated).toBe(true);
   });
 
+  it("does not invalidate unrelated comic detail queries", async () => {
+    const queryClient = createTestQueryClient();
+
+    queryClient.setQueryData(["comics"], createMockHydraCollection([]));
+    queryClient.setQueryData(
+      ["comic", 3],
+      createMockComicSeries({ id: 3, title: "Target" }),
+    );
+    queryClient.setQueryData(
+      ["comic", 5],
+      createMockComicSeries({ id: 5, title: "Other" }),
+    );
+
+    server.use(
+      http.patch("/api/comic_series/3", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 3, title: "Updated" }),
+        ),
+      ),
+    );
+
+    const { result } = renderHook(() => useUpdateComic(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await act(async () => {
+      result.current.mutate({ id: 3, title: "Updated" });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // comic 3 should be invalidated (targeted)
+    expect(queryClient.getQueryState(["comic", 3])?.isInvalidated).toBe(true);
+    // comic 5 should NOT be invalidated (not related)
+    expect(queryClient.getQueryState(["comic", 5])?.isInvalidated).toBe(false);
+  });
+
   it("handles API error", async () => {
     server.use(
       http.patch("/api/comic_series/3", () =>

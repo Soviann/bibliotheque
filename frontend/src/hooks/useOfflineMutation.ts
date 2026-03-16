@@ -19,7 +19,7 @@ interface UseOfflineMutationOptions<TData, TVariables> {
   onOfflineSuccess?: () => void;
   onSuccess?: (data: TData, variables: TVariables) => void;
   optimisticUpdate?: (queryClient: QueryClient, variables: TVariables, tempId?: number) => void;
-  queryKeysToInvalidate: QueryKey[];
+  queryKeysToInvalidate: QueryKey[] | ((variables: TVariables) => QueryKey[]);
 }
 
 async function registerSync(): Promise<void> {
@@ -83,7 +83,10 @@ export function useOfflineMutation<TData, TVariables extends Record<string, unkn
     },
     onSuccess: (data, variables) => {
       if (navigator.onLine) {
-        for (const key of queryKeysToInvalidate) {
+        const keys = typeof queryKeysToInvalidate === "function"
+          ? queryKeysToInvalidate(variables)
+          : queryKeysToInvalidate;
+        for (const key of keys) {
           void queryClient.invalidateQueries({ queryKey: key });
         }
         onSuccess?.(data, variables);
