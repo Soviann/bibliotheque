@@ -1,4 +1,5 @@
 import { Eye, X } from "lucide-react";
+import { memo } from "react";
 import type { MergeGroup } from "../types/api";
 
 interface MergeGroupCardProps {
@@ -7,7 +8,7 @@ interface MergeGroupCardProps {
   onSkip: (group: MergeGroup) => void;
 }
 
-export default function MergeGroupCard({
+export default memo(function MergeGroupCard({
   group,
   onPreview,
   onSkip,
@@ -59,4 +60,4 @@ export default function MergeGroupCard({
       </div>
     </div>
   );
-}
+});

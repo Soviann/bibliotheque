@@ -10,6 +10,9 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Changed
 
 - **Recherche** : Hook `useDebounce` partagé remplace les `setTimeout` manuels dans Home et ToBuy (cleanup automatique)
+- **Performance** : Virtualisation des grilles (Home, ToBuy) avec `@tanstack/react-virtual` — seules les lignes visibles sont rendues
+- **Performance** : `React.memo` sur `ComicCard`, `CardActionBar` et `MergeGroupCard` pour éviter les re-renders inutiles
+- **Performance** : Callbacks mémoïsés dans Home, stats mémoïsées dans ComicDetail
 
 ## [v2.11.0] - 2026-03-15
 

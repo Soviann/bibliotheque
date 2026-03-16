@@ -1,5 +1,6 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { Bell, Edit, EllipsisVertical, Euro, Eye, HardDrive, Trash2 } from "lucide-react";
+import { memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
@@ -14,7 +15,7 @@ interface ComicCardProps {
   onMenuOpen?: (comic: ComicSeries) => void;
 }
 
-export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
+export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
   const navigate = useNavigate();
   const coverSrc = getCoverSrc(comic);
   const tomes = comic.tomes ?? [];
@@ -182,4 +183,4 @@ export default function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProp
       </div>
     </Link>
   );
-}
+});

@@ -8,6 +8,7 @@ import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import Filters from "../components/Filters";
+import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
 import { useDeleteComic } from "../hooks/useDeleteComic";
@@ -69,6 +70,15 @@ export default function Home() {
     [updateParam],
   );
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
+  const handleMenuClose = useCallback(() => setMenuComic(null), []);
+  const handleMenuDelete = useCallback((c: ComicSeries) => {
+    setMenuComic(null);
+    setDeleteTarget(c);
+  }, []);
+  const handleMenuEdit = useCallback((c: ComicSeries) => {
+    setMenuComic(null);
+    navigate(`/comic/${c.id}/edit`, { viewTransition: true });
+  }, [navigate]);
 
   useEffect(() => {
     updateParam("search", debouncedSearch.trim());
@@ -170,27 +180,20 @@ export default function Home() {
           />
         )
       ) : (
-        <div
-          className="grid grid-cols-2 gap-3 transition-opacity duration-300 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-          data-testid="comics-grid"
-        >
-          {filtered.map((comic) => (
-            <ComicCard comic={comic} key={comic.id} onDelete={setDeleteTarget} onMenuOpen={setMenuComic} />
-          ))}
-        </div>
+        <VirtualGrid
+          items={filtered}
+          renderItem={(comic) => (
+            <ComicCard comic={comic} onDelete={setDeleteTarget} onMenuOpen={setMenuComic} />
+          )}
+          testId="comics-grid"
+        />
       )}
 
       <CardActionBar
         comic={menuComic}
-        onClose={() => setMenuComic(null)}
-        onDelete={(c) => {
-          setMenuComic(null);
-          setDeleteTarget(c);
-        }}
-        onEdit={(c) => {
-          setMenuComic(null);
-          navigate(`/comic/${c.id}/edit`, { viewTransition: true });
-        }}
+        onClose={handleMenuClose}
+        onDelete={handleMenuDelete}
+        onEdit={handleMenuEdit}
       />
 
       <ConfirmModal

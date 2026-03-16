@@ -1,5 +1,5 @@
 import { ArrowLeft, Edit, ExternalLink, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
@@ -39,6 +39,13 @@ export default function ComicDetail() {
   const updateTome = useUpdateTome(id ? Number(id) : undefined);
   const [showDelete, setShowDelete] = useState(false);
   const [optimisticTomes, setOptimisticTomes] = useState<Tome[]>([]);
+
+  const { boughtCount, downloadedCount, progressTotal, readCount } = useMemo(() => ({
+    boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
+    downloadedCount: countCoveredTomes(optimisticTomes, (t) => t.downloaded),
+    progressTotal: Math.max(comic?.latestPublishedIssue ?? 0, countCoveredTomes(optimisticTomes)),
+    readCount: countCoveredTomes(optimisticTomes, (t) => t.read),
+  }), [optimisticTomes, comic?.latestPublishedIssue]);
 
   useEffect(() => {
     if (comic?.tomes) {
@@ -117,10 +124,6 @@ export default function ComicDetail() {
 
   const coverSrc = getCoverSrc(comic);
   const showProgress = !comic.isOneShot && optimisticTomes.length > 0;
-  const progressTotal = Math.max(comic.latestPublishedIssue ?? 0, countCoveredTomes(optimisticTomes));
-  const boughtCount = countCoveredTomes(optimisticTomes, (t) => t.bought);
-  const readCount = countCoveredTomes(optimisticTomes, (t) => t.read);
-  const downloadedCount = countCoveredTomes(optimisticTomes, (t) => t.downloaded);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">

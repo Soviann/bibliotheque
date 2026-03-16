@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import EmptyState from "../components/EmptyState";
+import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
 import { searchComics } from "../utils/searchComics";
@@ -20,7 +21,11 @@ export default function ToBuy() {
   const filtered = useMemo(() => {
     const toBuy = filterSeriesToBuy(allComics);
     const searched = searchComics(toBuy, debouncedSearch);
-    return [...searched].sort((a, b) => a.title.localeCompare(b.title, "fr"));
+    const sorted = [...searched].sort((a, b) => a.title.localeCompare(b.title, "fr"));
+    return sorted.map((comic) => ({
+      comic,
+      nextTomes: getNextTomesToBuy(comic).map((n) => `T.${n}`).join(", "),
+    }));
   }, [allComics, debouncedSearch]);
 
   return (
@@ -64,16 +69,17 @@ export default function ToBuy() {
           />
         )
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {filtered.map((comic) => (
-            <div key={comic.id}>
+        <VirtualGrid
+          items={filtered}
+          renderItem={({ comic, nextTomes }) => (
+            <>
               <ComicCard comic={comic} />
               <p className="mt-1 truncate px-1 text-xs text-emerald-600 dark:text-emerald-400">
-                Prochain : {getNextTomesToBuy(comic).map((n) => `T.${n}`).join(", ")}
+                Prochain : {nextTomes}
               </p>
-            </div>
-          ))}
-        </div>
+            </>
+          )}
+        />
       )}
     </div>
   );
