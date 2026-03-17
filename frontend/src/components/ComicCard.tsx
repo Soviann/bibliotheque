@@ -53,6 +53,9 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
                 {ComicTypeLabel[comic.type]}
                 {!comic.isOneShot && ` · ${tomes.length} t.`}
               </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                En attente de synchronisation
+              </p>
             </div>
           </div>
         </div>

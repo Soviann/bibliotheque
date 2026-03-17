@@ -119,6 +119,12 @@ describe("Home", () => {
     expect(screen.getByText(/XYZNOTFOUND/)).toBeInTheDocument();
   });
 
+  it("shows h1 title 'Ma bibliothèque'", () => {
+    renderWithProviders(<Home />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Ma bibliothèque" })).toBeInTheDocument();
+  });
+
   it("shows empty filter results state when filters yield nothing", async () => {
     const comics = [
       createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic", type: ComicType.MANGA }),
@@ -134,6 +140,31 @@ describe("Home", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Aucune série avec ces filtres")).toBeInTheDocument();
+    });
+  });
+
+  it("resets filters when clicking 'Réinitialiser les filtres'", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic", type: ComicType.MANGA }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />, { initialEntries: ["/?type=bd&status=finished&sort=title-desc"] });
+
+    await waitFor(() => {
+      expect(screen.getByText("Aucune série avec ces filtres")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Réinitialiser les filtres" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Buying Comic")).toBeInTheDocument();
     });
   });
 

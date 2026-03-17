@@ -22,8 +22,7 @@ function OfflineFallback() {
         Page non disponible hors ligne
       </h2>
       <p className="max-w-md text-text-secondary">
-        Cette page n'a pas été mise en cache. Reconnectez-vous à Internet pour y
-        accéder.
+        La page <code className="font-mono text-text-primary">{window.location.pathname}</code> n'a pas été mise en cache. Reconnectez-vous à Internet pour y accéder.
       </p>
       <button
         className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"

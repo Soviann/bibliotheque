@@ -98,8 +98,22 @@ export default function Home() {
     return sortComics(searchComics(preFiltered, debouncedSearch), sort);
   }, [allComics, debouncedSearch, sort, status, type]);
 
+  const handleResetFilters = useCallback(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("type");
+        next.delete("status");
+        next.delete("sort");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [setSearchParams]);
+
   return (
     <div className="space-y-4">
+      <h1 className="text-xl font-bold text-text-primary">Ma bibliothèque</h1>
       {/* Search bar + filter button (mobile) + count */}
       <div className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1">
@@ -175,7 +189,9 @@ export default function Home() {
           />
         ) : (
           <EmptyState
+            actionLabel="Réinitialiser les filtres"
             icon={Filter}
+            onAction={handleResetFilters}
             title="Aucune série avec ces filtres"
           />
         )

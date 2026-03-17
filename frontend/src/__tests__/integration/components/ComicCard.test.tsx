@@ -271,6 +271,18 @@ describe("ComicCard", () => {
     expect(screen.getByText("Nouveau")).toBeInTheDocument();
   });
 
+  it("shows 'En attente de synchronisation' on offline card", () => {
+    const comic = createMockComicSeries({
+      _syncPending: true,
+      id: -1,
+      title: "Offline Comic",
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.getByText("En attente de synchronisation")).toBeInTheDocument();
+  });
+
   it("does not show new release badge for finished series", () => {
     const recentDate = new Date();
     recentDate.setDate(recentDate.getDate() - 2);

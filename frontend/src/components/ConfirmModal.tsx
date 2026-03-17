@@ -26,9 +26,9 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   return (
     <Dialog className="relative z-50" onClose={onClose} open={open}>
-      <DialogBackdrop className="fixed inset-0 bg-black/30" />
+      <DialogBackdrop className="fixed inset-0 bg-black/30 transition duration-200 ease-out data-closed:opacity-0" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-sm rounded-xl bg-surface-primary p-6 shadow-lg">
+        <DialogPanel className="w-full max-w-sm rounded-xl bg-surface-primary p-6 shadow-lg transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-red-500" />
             <div>

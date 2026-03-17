@@ -409,6 +409,7 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(screen.getByText("Série introuvable")).toBeInTheDocument();
     });
+    expect(screen.getByRole("link", { name: "Retour à la bibliothèque" })).toHaveAttribute("href", "/");
   });
 
   it("does not render authors section when no authors", async () => {

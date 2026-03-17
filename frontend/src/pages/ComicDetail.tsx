@@ -1,8 +1,9 @@
-import { ArrowLeft, Edit, ExternalLink, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
+import EmptyState from "../components/EmptyState";
 import ProgressBar from "../components/ProgressBar";
 import SkeletonBox from "../components/SkeletonBox";
 import SyncPendingIndicator from "../components/SyncPendingIndicator";
@@ -119,7 +120,14 @@ export default function ComicDetail() {
   }
 
   if (!comic) {
-    return <div className="py-12 text-center text-text-muted">Série introuvable</div>;
+    return (
+      <EmptyState
+        actionHref="/"
+        actionLabel="Retour à la bibliothèque"
+        icon={BookOpen}
+        title="Série introuvable"
+      />
+    );
   }
 
   const coverSrc = getCoverSrc(comic);

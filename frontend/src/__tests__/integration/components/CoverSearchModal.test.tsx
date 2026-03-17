@@ -104,11 +104,21 @@ describe("CoverSearchModal", () => {
     expect(screen.getAllByTestId("skeleton-box")).toHaveLength(8);
   });
 
-  it("shows minimum characters message when query is too short", async () => {
+  it("shows minimum characters message when query has 1 char", async () => {
     const user = userEvent.setup();
     renderWithProviders(<CoverSearchModal {...defaultProps} defaultQuery="" />);
 
-    expect(screen.getByText("Saisissez au moins 2 caractères")).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText("Rechercher..."), "N");
+
+    await waitFor(() => {
+      expect(screen.getByText("Saisissez au moins 2 caractères")).toBeInTheDocument();
+    });
+  });
+
+  it("does not show minimum characters message when query is empty", () => {
+    renderWithProviders(<CoverSearchModal {...defaultProps} defaultQuery="" />);
+
+    expect(screen.queryByText("Saisissez au moins 2 caractères")).not.toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", async () => {
