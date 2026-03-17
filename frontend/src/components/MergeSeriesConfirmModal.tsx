@@ -44,9 +44,9 @@ export default function MergeSeriesConfirmModal({
 
   return (
     <Dialog className="relative z-50" onClose={onClose} open={open}>
-      <DialogBackdrop className="fixed inset-0 bg-black/30" />
+      <DialogBackdrop className="fixed inset-0 bg-black/30 transition duration-200 ease-out data-closed:opacity-0" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-lg rounded-xl bg-surface-primary shadow-lg">
+        <DialogPanel className="w-full max-w-lg rounded-xl bg-surface-primary shadow-lg transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0">
           <div className="px-6 pt-6">
             <DialogTitle className="text-lg font-semibold text-text-primary">
               Confirmer les séries à fusionner

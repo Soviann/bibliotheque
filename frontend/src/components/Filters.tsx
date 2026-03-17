@@ -1,4 +1,4 @@
-import { Dialog, DialogPanel } from "@headlessui/react";
+import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -69,8 +69,8 @@ function FilterDrawer({
 }: FiltersProps & { onClose: () => void; open: boolean }) {
   return (
     <Dialog onClose={onClose} open={open}>
-      <div className="fixed inset-0 z-40 bg-black/40" aria-hidden="true" />
-      <DialogPanel className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-surface-primary p-5 shadow-xl">
+      <DialogBackdrop className="fixed inset-0 z-40 bg-black/40 transition duration-300 ease-out data-closed:opacity-0" />
+      <DialogPanel className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-surface-primary p-5 shadow-xl transition duration-300 ease-out data-closed:translate-y-full">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-text-primary">Filtres</h2>
           <button

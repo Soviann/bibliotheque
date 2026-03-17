@@ -65,6 +65,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
           className="flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
           disabled={batchFrom < 1 || batchFrom > batchTo || batchSize > maxBatchSize}
           onClick={addBatchTomes}
+          title={batchSize > maxBatchSize ? `Maximum ${maxBatchSize} tomes à la fois` : undefined}
           type="button"
         >
           <Layers className="h-4 w-4" /> Générer
