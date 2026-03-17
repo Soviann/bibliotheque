@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.13.0] - 2026-03-17
+
 ### Added
 
 - **UX** : Transitions CSS sur toutes les modales et le drawer filtres (fade + scale/slide)
