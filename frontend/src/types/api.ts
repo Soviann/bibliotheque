@@ -161,6 +161,54 @@ export interface BatchLookupSummary {
   updated: number;
 }
 
+export interface CreateComicPayload {
+  _pendingAuthors?: string[];
+  authors: string[];
+  coverUrl: string | null;
+  defaultTomeBought: boolean;
+  defaultTomeDownloaded: boolean;
+  defaultTomeRead: boolean;
+  description: string | null;
+  isOneShot: boolean;
+  latestPublishedIssue: number | null;
+  latestPublishedIssueComplete: boolean;
+  publishedDate: string | null;
+  publisher: string | null;
+  status: ComicStatus;
+  title: string;
+  tomes?: TomePayload[];
+  type: ComicType;
+}
+
+export interface UpdateComicPayload extends Partial<CreateComicPayload> {
+  id: number;
+}
+
+export interface TomePayload {
+  "@id"?: string;
+  bought: boolean;
+  downloaded: boolean;
+  isHorsSerie: boolean;
+  isbn: string | null;
+  number: number;
+  onNas: boolean;
+  read: boolean;
+  title: string | null;
+  tomeEnd: number | null;
+}
+
+export interface CreateTomePayload {
+  bought: boolean;
+  downloaded: boolean;
+  isHorsSerie: boolean;
+  isbn: string | null;
+  number: number;
+  onNas: boolean;
+  read: boolean;
+  title: string | null;
+  tomeEnd: number | null;
+}
+
 export interface LookupResult {
   apiMessages: Record<string, { message: string; status: string }>;
   authors: string | null;

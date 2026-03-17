@@ -23,6 +23,20 @@ export function isAuthenticated(): boolean {
   return getToken() !== null;
 }
 
+export function getErrorMessage(err: unknown, fallback = "Erreur inconnue"): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  if (err !== null && err !== undefined) return String(err);
+  return fallback;
+}
+
+export function handleUnauthorized(): void {
+  if (navigator.onLine) {
+    removeToken();
+    window.location.href = "/login";
+  }
+}
+
 const SERVER_ERROR_PATTERNS = [
   /SQLSTATE/i,
   /exception.*driver/i,
@@ -71,11 +85,7 @@ export async function apiFetch<T>(
   }
 
   if (response.status === 401) {
-    // Only clear token if genuinely online (not a network fluke)
-    if (navigator.onLine) {
-      removeToken();
-      window.location.href = "/login";
-    }
+    handleUnauthorized();
     throw new Error("Non authentifié");
   }
 
@@ -126,10 +136,7 @@ export async function fetchSSE<TMessage, TComplete>(
   }
 
   if (response.status === 401) {
-    if (navigator.onLine) {
-      removeToken();
-      window.location.href = "/login";
-    }
+    handleUnauthorized();
     onError(new Error("Non authentifié"));
     return;
   }

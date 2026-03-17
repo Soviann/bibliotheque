@@ -1,12 +1,12 @@
 import { endpoints } from "../endpoints";
 import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
-import type { ComicSeries, HydraCollection } from "../types/api";
+import type { ComicSeries, CreateComicPayload, HydraCollection } from "../types/api";
 import { ComicStatus, ComicType } from "../types/enums";
 import { useOfflineMutation } from "./useOfflineMutation";
 
 export function useCreateComic() {
-  return useOfflineMutation<ComicSeries, Partial<ComicSeries> & Record<string, unknown>>({
+  return useOfflineMutation<ComicSeries, CreateComicPayload>({
     generateTempId: true,
     mutationFn: (data) =>
       apiFetch<ComicSeries>(endpoints.comicSeries.collection, {
@@ -24,25 +24,25 @@ export function useCreateComic() {
           amazonUrl: null,
           authors: [],
           coverImage: null,
-          coverUrl: (variables.coverUrl as string) ?? null,
+          coverUrl: variables.coverUrl ?? null,
           createdAt: new Date().toISOString(),
-          defaultTomeBought: false,
-          defaultTomeDownloaded: false,
-          defaultTomeRead: false,
-          description: (variables.description as string) ?? null,
+          defaultTomeBought: variables.defaultTomeBought ?? false,
+          defaultTomeDownloaded: variables.defaultTomeDownloaded ?? false,
+          defaultTomeRead: variables.defaultTomeRead ?? false,
+          description: variables.description ?? null,
           id: tempId!,
-          isOneShot: (variables.isOneShot as boolean) ?? false,
+          isOneShot: variables.isOneShot ?? false,
           latestPublishedIssue: null,
           latestPublishedIssueComplete: false,
           latestPublishedIssueUpdatedAt: null,
           notInterestedBuy: false,
           notInterestedNas: false,
           publishedDate: null,
-          publisher: (variables.publisher as string) ?? null,
-          status: (variables.status as ComicStatus) ?? ComicStatus.BUYING,
-          title: (variables.title as string) ?? "",
+          publisher: variables.publisher ?? null,
+          status: variables.status ?? ComicStatus.BUYING,
+          title: variables.title ?? "",
           tomes: [],
-          type: (variables.type as ComicType) ?? ComicType.BD,
+          type: variables.type ?? ComicType.BD,
           updatedAt: new Date().toISOString(),
         };
         return {
