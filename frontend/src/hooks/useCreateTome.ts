@@ -1,11 +1,11 @@
 import { endpoints } from "../endpoints";
 import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
-import type { ComicSeries, Tome } from "../types/api";
+import type { ComicSeries, CreateTomePayload, Tome } from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
 
 export function useCreateTome(seriesId: number) {
-  return useOfflineMutation<Tome, Partial<Tome> & Record<string, unknown>>({
+  return useOfflineMutation<Tome, CreateTomePayload>({
     generateTempId: true,
     mutationFn: (data) =>
       apiFetch<Tome>(endpoints.comicSeries.tomes(seriesId), {
@@ -22,17 +22,17 @@ export function useCreateTome(seriesId: number) {
         const tempTome: Tome = {
           "@id": `/api/tomes/${tempId}`,
           _syncPending: true,
-          bought: (variables.bought as boolean) ?? false,
+          bought: variables.bought ?? false,
           createdAt: new Date().toISOString(),
-          downloaded: (variables.downloaded as boolean) ?? false,
+          downloaded: variables.downloaded ?? false,
           id: tempId!,
-          isHorsSerie: (variables.isHorsSerie as boolean) ?? false,
-          isbn: (variables.isbn as string) ?? null,
-          number: (variables.number as number) ?? 0,
-          onNas: (variables.onNas as boolean) ?? false,
-          read: (variables.read as boolean) ?? false,
-          title: (variables.title as string) ?? null,
-          tomeEnd: (variables.tomeEnd as number) ?? null,
+          isHorsSerie: variables.isHorsSerie ?? false,
+          isbn: variables.isbn ?? null,
+          number: variables.number ?? 0,
+          onNas: variables.onNas ?? false,
+          read: variables.read ?? false,
+          title: variables.title ?? null,
+          tomeEnd: variables.tomeEnd ?? null,
           updatedAt: new Date().toISOString(),
         };
         return {

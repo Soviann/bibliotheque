@@ -16,11 +16,21 @@ describe("ErrorFallback", () => {
     expect(screen.getByText("Quelque chose a mal tourné")).toBeInTheDocument();
   });
 
-  it("renders fallback message for non-Error values", () => {
+  it("renders string error directly", () => {
     const resetErrorBoundary = vi.fn();
 
     renderWithProviders(
       <ErrorFallback error={"string error"} resetErrorBoundary={resetErrorBoundary} />,
+    );
+
+    expect(screen.getByText("string error")).toBeInTheDocument();
+  });
+
+  it("renders fallback message for null/undefined values", () => {
+    const resetErrorBoundary = vi.fn();
+
+    renderWithProviders(
+      <ErrorFallback error={null} resetErrorBoundary={resetErrorBoundary} />,
     );
 
     expect(screen.getByText("Erreur inconnue")).toBeInTheDocument();

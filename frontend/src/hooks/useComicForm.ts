@@ -10,8 +10,8 @@ import { useSyncFailures } from "./useSyncFailures";
 import { useTomeManagement } from "./useTomeManagement";
 import { useUpdateComic } from "./useUpdateComic";
 import { endpoints } from "../endpoints";
-import { apiFetch } from "../services/api";
-import type { Author, ComicSeries } from "../types/api";
+import { apiFetch, getErrorMessage } from "../services/api";
+import type { Author, ComicSeries, CreateComicPayload, TomePayload, UpdateComicPayload } from "../types/api";
 import { ComicStatus, ComicType } from "../types/enums";
 
 export interface TomeFormData {
@@ -160,7 +160,22 @@ export function useComicForm() {
       }
     }
 
-    const payload: Record<string, unknown> = {
+    const tomes: TomePayload[] | undefined = form.isOneShot
+      ? undefined
+      : [...form.tomes].sort(compareTomes).map((t) => ({
+          ...(t.id ? { "@id": `/api/tomes/${t.id}` } : {}),
+          bought: t.bought,
+          downloaded: t.downloaded,
+          isHorsSerie: t.isHorsSerie,
+          isbn: t.isbn || null,
+          number: t.number,
+          onNas: t.onNas,
+          read: t.read,
+          title: t.title || null,
+          tomeEnd: t.tomeEnd ? Number(t.tomeEnd) : null,
+        }));
+
+    const basePayload: CreateComicPayload = {
       ...(pendingAuthors.length > 0 ? { _pendingAuthors: pendingAuthors } : {}),
       authors: authorIris,
       coverUrl: form.coverUrl || null,
@@ -173,50 +188,32 @@ export function useComicForm() {
       latestPublishedIssueComplete: form.latestPublishedIssueComplete,
       publishedDate: form.publishedDate || null,
       publisher: form.publisher || null,
-      status: form.status,
+      status: form.status as ComicStatus,
       title: form.title,
-      type: form.type,
+      tomes,
+      type: form.type as ComicType,
     };
 
-    if (!form.isOneShot) {
-      payload.tomes = [...form.tomes]
-        .sort(compareTomes)
-        .map((t) => ({
-          ...(t.id ? { "@id": `/api/tomes/${t.id}` } : {}),
-          bought: t.bought,
-          downloaded: t.downloaded,
-          isHorsSerie: t.isHorsSerie,
-          isbn: t.isbn || null,
-          number: t.number,
-          onNas: t.onNas,
-          read: t.read,
-          title: t.title || null,
-          tomeEnd: t.tomeEnd ? Number(t.tomeEnd) : null,
-        }));
-    }
-
     if (isEdit && id) {
-      updateComic.mutate(
-        { id: Number(id), ...payload } as Partial<ComicSeries> & { id: number },
-        {
-          onSuccess: (data) => {
-            if (!data) return;
-            if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
-            toast.success("Série mise à jour");
-            navigate(`/comic/${id}`, { viewTransition: true });
-          },
-          onError: (err) => toast.error(err.message),
+      const updatePayload: UpdateComicPayload = { id: Number(id), ...basePayload };
+      updateComic.mutate(updatePayload, {
+        onSuccess: (data) => {
+          if (!data) return;
+          if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
+          toast.success("Série mise à jour");
+          navigate(`/comic/${id}`, { viewTransition: true });
         },
-      );
+        onError: (err) => toast.error(getErrorMessage(err)),
+      });
     } else {
-      createComic.mutate(payload as Partial<ComicSeries>, {
+      createComic.mutate(basePayload, {
         onSuccess: (created) => {
           if (!created) return;
           if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
           toast.success("Série créée");
           navigate(`/comic/${created.id}`, { viewTransition: true });
         },
-        onError: (err) => toast.error(err.message),
+        onError: (err) => toast.error(getErrorMessage(err)),
       });
     }
 

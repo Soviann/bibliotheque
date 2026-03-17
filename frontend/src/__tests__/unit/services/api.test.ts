@@ -3,13 +3,82 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   apiFetch,
+  getErrorMessage,
   getToken,
+  handleUnauthorized,
   isAuthenticated,
   loginWithGoogle,
   removeToken,
   setToken,
 } from "../../../services/api";
 import { server } from "../../helpers/server";
+
+describe("getErrorMessage", () => {
+  it("extracts message from Error instance", () => {
+    expect(getErrorMessage(new Error("Something failed"))).toBe("Something failed");
+  });
+
+  it("converts string to message", () => {
+    expect(getErrorMessage("string error")).toBe("string error");
+  });
+
+  it("converts number to string", () => {
+    expect(getErrorMessage(42)).toBe("42");
+  });
+
+  it("returns fallback for null", () => {
+    expect(getErrorMessage(null)).toBe("Erreur inconnue");
+  });
+
+  it("returns fallback for undefined", () => {
+    expect(getErrorMessage(undefined)).toBe("Erreur inconnue");
+  });
+
+  it("returns custom fallback when provided", () => {
+    expect(getErrorMessage(null, "Custom fallback")).toBe("Custom fallback");
+  });
+});
+
+describe("handleUnauthorized", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("removes token and redirects when online", () => {
+    setToken("expired-token");
+    const originalLocation = window.location;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...originalLocation, href: originalLocation.href },
+      writable: true,
+    });
+
+    handleUnauthorized();
+
+    expect(getToken()).toBeNull();
+    expect(window.location.href).toBe("/login");
+
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+      writable: true,
+    });
+  });
+
+  it("does NOT remove token when offline", () => {
+    setToken("my-token");
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+
+    handleUnauthorized();
+
+    expect(getToken()).toBe("my-token");
+  });
+});
 
 describe("Token helpers", () => {
   beforeEach(() => {

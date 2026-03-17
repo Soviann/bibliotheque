@@ -22,6 +22,7 @@ import {
   useMergePreview,
   useMergeSuggest,
 } from "../hooks/useMergeSeries";
+import { getErrorMessage } from "../services/api";
 import type { ComicSeries, HydraCollection, MergeGroup, MergePreview, MergeSuggestion } from "../types/api";
 import { type SelectOption, typeOptions } from "../types/enums";
 
@@ -68,7 +69,7 @@ export default function MergeSeries() {
 
     detectMutation.mutate(params, {
       onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Erreur lors de la détection");
+        toast.error(getErrorMessage(error, "Erreur lors de la détection"));
       },
       onSuccess: (data) => {
         setGroups(data);
@@ -107,7 +108,7 @@ export default function MergeSeries() {
 
     previewMutation.mutate(confirmedIds, {
       onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Erreur lors de la génération de l'aperçu");
+        toast.error(getErrorMessage(error, "Erreur lors de la génération de l'aperçu"));
       },
       onSuccess: (data) => {
         setPreviewData(data);
@@ -126,7 +127,7 @@ export default function MergeSeries() {
   const handleConfirmMerge = (preview: MergePreview) => {
     executeMerge.mutate(preview, {
       onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Erreur lors de la fusion");
+        toast.error(getErrorMessage(error, "Erreur lors de la fusion"));
       },
       onSuccess: () => {
         toast.success("Séries fusionnées avec succès");

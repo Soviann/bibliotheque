@@ -31,7 +31,7 @@ async function registerSync(): Promise<void> {
   }
 }
 
-export function useOfflineMutation<TData, TVariables extends Record<string, unknown>>({
+export function useOfflineMutation<TData, TVariables extends object>({
   generateTempId,
   mutationFn,
   offlineContentType,

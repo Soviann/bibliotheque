@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Frontend** : Consolidation de la gestion d'erreurs — extraction de `handleUnauthorized()` et `getErrorMessage()` dans `api.ts`, remplacement de `Record<string, unknown>` par des interfaces typées (`CreateComicPayload`, `UpdateComicPayload`, `CreateTomePayload`, `TomePayload`)
 - **Frontend** : Centralisation des query keys (`queryKeys.ts`) et des endpoints API (`endpoints.ts`) — supprime les chaînes éparpillées dans 20+ hooks et 12 fichiers de tests
 - **Frontend** : Découpage de `MergePreviewModal` (587→80 lignes) en `MergeMetadataForm`, `MergeTomeTable` et `useMergePreviewForm` (useReducer)
 - **Frontend** : Découpage de `useComicForm` (420→210 lignes) en `useLookupFeature`, `useTomeManagement` et `useAuthorManagement`
