@@ -10,6 +10,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Changed
 
 - **Frontend** : Centralisation des query keys (`queryKeys.ts`) et des endpoints API (`endpoints.ts`) — supprime les chaînes éparpillées dans 20+ hooks et 12 fichiers de tests
+- **Frontend** : Découpage de `MergePreviewModal` (587→80 lignes) en `MergeMetadataForm`, `MergeTomeTable` et `useMergePreviewForm` (useReducer)
+- **Frontend** : Découpage de `useComicForm` (420→210 lignes) en `useLookupFeature`, `useTomeManagement` et `useAuthorManagement`
+- **Frontend** : `TomeTable` reçoit un objet `TomeManager` au lieu de 12 props individuelles
+- **Frontend** : Extraction de `SyncFailureSection` dans `components/`
 
 ## [v2.12.0] - 2026-03-16
 
