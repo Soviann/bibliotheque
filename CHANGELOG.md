@@ -7,6 +7,16 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **UX** : Transitions CSS sur toutes les modales et le drawer filtres (fade + scale/slide)
+- **UX** : Titre h1 « Ma bibliothèque » sur la page d'accueil
+- **UX** : Bouton « Réinitialiser les filtres » quand aucune série ne correspond aux filtres actifs
+- **UX** : EmptyState avec lien retour sur la page « Série introuvable »
+- **UX** : Message « En attente de synchronisation » sur les cartes créées hors ligne
+- **UX** : Tooltip sur le bouton Générer quand le nombre de tomes dépasse la limite
+- **UX** : Affichage du chemin demandé dans la page OfflineFallback
+
 ### Changed
 
 - **Frontend** : Consolidation de la gestion d'erreurs — extraction de `handleUnauthorized()` et `getErrorMessage()` dans `api.ts`, remplacement de `Record<string, unknown>` par des interfaces typées (`CreateComicPayload`, `UpdateComicPayload`, `CreateTomePayload`, `TomePayload`)
