@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuthors } from "./useAuthors";
+import { useAuthorManagement } from "./useAuthorManagement";
+import { useLookupFeature } from "./useLookupFeature";
 import { useOnlineStatus } from "./useOnlineStatus";
 import { useComic } from "./useComic";
 import { useCreateComic } from "./useCreateComic";
-import { fetchLookupIsbn, fetchLookupTitle, useLookupIsbn, useLookupTitle, useLookupTitleCandidates } from "./useLookup";
 import { useSyncFailures } from "./useSyncFailures";
+import { useTomeManagement } from "./useTomeManagement";
 import { useUpdateComic } from "./useUpdateComic";
 import { endpoints } from "../endpoints";
 import { apiFetch } from "../services/api";
@@ -47,10 +48,6 @@ export interface FormData {
 export function compareTomes(a: TomeFormData, b: TomeFormData): number {
   if (a.isHorsSerie !== b.isHorsSerie) return a.isHorsSerie ? 1 : -1;
   return a.number - b.number;
-}
-
-function emptyTome(number: number, isHorsSerie = false): TomeFormData {
-  return { bought: false, downloaded: false, isHorsSerie, isbn: "", number, onNas: false, read: false, title: "", tomeEnd: "" };
 }
 
 function buildInitialForm(comic?: ComicSeries): FormData {
@@ -98,12 +95,10 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     publisher: "",
     status: ComicStatus.BUYING,
     title: "",
-    tomes: [emptyTome(1)],
+    tomes: [{ bought: false, downloaded: false, isHorsSerie: false, isbn: "", number: 1, onNas: false, read: false, title: "", tomeEnd: "" }],
     type: ComicType.BD,
   };
 }
-
-const maxBatchSize = 100;
 
 export function useComicForm() {
   const { id } = useParams<{ id: string }>();
@@ -121,30 +116,8 @@ export function useComicForm() {
   const [form, setForm] = useState<FormData>(buildInitialForm());
   const [initialized, setInitialized] = useState(!isEdit);
 
-  // Lookup state
-  const [isApplying, setIsApplying] = useState(false);
-  const [lookupIsbn, setLookupIsbn] = useState("");
-  const [lookupTitle, setLookupTitle] = useState("");
-  const [lookupMode, setLookupMode] = useState<"isbn" | "title">("title");
-  const [selectedCandidateTitle, setSelectedCandidateTitle] = useState<string | null>(null);
-  const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(null);
-
   // Cover search state
   const [coverSearchOpen, setCoverSearchOpen] = useState(false);
-
-  // Batch add state
-  const [batchFrom, setBatchFrom] = useState(1);
-  const [batchTo, setBatchTo] = useState(1);
-
-  const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
-  const titleCandidates = useLookupTitleCandidates(lookupMode === "title" ? lookupTitle : "", form.type);
-  const targetedLookup = useLookupTitle(selectedCandidateTitle ?? "", form.type);
-  const lookupResult = lookupMode === "isbn" ? isbnLookup : targetedLookup;
-
-  // Author autocomplete
-  const [authorSearch, setAuthorSearch] = useState("");
-  const { data: authorResults } = useAuthors(authorSearch);
-  const authorOptions = authorResults?.member ?? [];
 
   // Initialize form with comic data on edit
   useEffect(() => {
@@ -158,130 +131,10 @@ export function useComicForm() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const applySeriesFields = (result: import("../types/api").LookupResult) => {
-    setForm((prev) => ({
-      ...prev,
-      coverUrl: result.thumbnail ?? prev.coverUrl,
-      description: result.description ?? prev.description,
-      isOneShot: result.isOneShot || prev.isOneShot,
-      latestPublishedIssue: result.latestPublishedIssue?.toString() ?? prev.latestPublishedIssue,
-      publishedDate: result.publishedDate ?? prev.publishedDate,
-      publisher: result.publisher ?? prev.publisher,
-      title: result.title || prev.title,
-    }));
-
-    if (result.authors) {
-      const authorNames = result.authors.split(",").map((n) => n.trim()).filter(Boolean);
-      update(
-        "authors",
-        authorNames.map((name, i) => ({ "@id": "", id: -(i + 1), name })),
-      );
-    }
-  };
-
-  const selectCandidate = (title: string) => {
-    setSelectedCandidateTitle(title);
-  };
-
-  const clearCandidate = () => {
-    setSelectedCandidateTitle(null);
-  };
-
-  const applyLookup = async () => {
-    const result = lookupResult.data;
-    if (!result) return;
-
-    if (lookupMode === "isbn" && result.title) {
-      setIsApplying(true);
-      try {
-        const titleResult = await fetchLookupTitle(result.title, form.type);
-        applySeriesFields(titleResult);
-        toast.success("Informations récupérées (ISBN → titre)");
-      } catch {
-        applySeriesFields(result);
-        toast.success("Informations récupérées (ISBN uniquement)");
-      } finally {
-        setIsApplying(false);
-      }
-    } else {
-      applySeriesFields(result);
-      setSelectedCandidateTitle(null);
-      toast.success("Informations récupérées");
-    }
-  };
-
-  const addTome = () => {
-    const regularTomes = form.tomes.filter((t) => !t.isHorsSerie);
-    const nextNum = regularTomes.length > 0 ? Math.max(...regularTomes.map((t) => t.number)) + 1 : 1;
-    update("tomes", [...form.tomes, emptyTome(nextNum)]);
-  };
-
-  const batchSize = batchTo - batchFrom + 1;
-
-  const addBatchTomes = () => {
-    if (batchFrom < 1 || batchFrom > batchTo || batchSize > maxBatchSize) return;
-    const existingNumbers = new Set(form.tomes.map((t) => t.number));
-    const newTomes: TomeFormData[] = [];
-    for (let n = batchFrom; n <= batchTo; n++) {
-      if (!existingNumbers.has(n)) {
-        newTomes.push(emptyTome(n));
-      }
-    }
-    if (newTomes.length > 0) {
-      update("tomes", [...form.tomes, ...newTomes].sort(compareTomes));
-    }
-  };
-
-  const removeTome = (index: number) => {
-    update(
-      "tomes",
-      form.tomes.filter((_, i) => i !== index),
-    );
-  };
-
-  const updateTome = <K extends keyof TomeFormData>(index: number, key: K, value: TomeFormData[K]) => {
-    update(
-      "tomes",
-      form.tomes.map((t, i) => (i === index ? { ...t, [key]: value } : t)),
-    );
-  };
-
-  const lookupTomeIsbn = async (index: number) => {
-    const isbn = form.tomes[index]?.isbn;
-    if (!isbn || isbn.length < 10) return;
-
-    setTomeLookupLoading(index);
-    try {
-      const result = await fetchLookupIsbn(isbn, form.type);
-      update(
-        "tomes",
-        form.tomes.map((t, i) =>
-          i === index
-            ? { ...t, isbn: result.isbn ?? t.isbn, title: result.title ?? t.title, tomeEnd: result.tomeEnd?.toString() ?? t.tomeEnd }
-            : t,
-        ),
-      );
-      toast.success(`Tome ${form.tomes[index].number} : informations récupérées`);
-    } catch {
-      toast.error("Échec de la recherche ISBN");
-    } finally {
-      setTomeLookupLoading(null);
-    }
-  };
-
-  const addAuthor = (author: Author) => {
-    if (!form.authors.some((a) => a.name === author.name)) {
-      update("authors", [...form.authors, author]);
-    }
-    setAuthorSearch("");
-  };
-
-  const removeAuthor = (index: number) => {
-    update(
-      "authors",
-      form.authors.filter((_, i) => i !== index),
-    );
-  };
+  // Sub-hooks
+  const lookup = useLookupFeature(form, update);
+  const tomeManager = useTomeManagement(form, update);
+  const authorManager = useAuthorManagement(form, update);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -375,47 +228,41 @@ export function useComicForm() {
   const isSaving = createComic.isPending || updateComic.isPending;
 
   return {
-    addAuthor,
-    addBatchTomes,
-    addTome,
-    applyLookup,
-    authorOptions,
-    authorSearch,
-    batchFrom,
-    batchSize,
-    batchTo,
-    clearCandidate,
+    // Author management
+    addAuthor: authorManager.addAuthor,
+    authorOptions: authorManager.authorOptions,
+    authorSearch: authorManager.authorSearch,
+    removeAuthor: authorManager.removeAuthor,
+    setAuthorSearch: authorManager.setAuthorSearch,
+    // Cover search
     coverSearchOpen,
+    setCoverSearchOpen,
+    // Form state
     form,
     handleSubmit,
     initialized,
-    isApplying,
     isEdit,
     isOnline,
     isSaving,
-    lookupIsbn,
-    lookupMode,
-    lookupResult,
-    lookupTitle,
-    lookupTomeIsbn,
-    maxBatchSize,
     navigate,
-    removeAuthor,
-    removeTome,
     resolveSyncFailure,
-    selectCandidate,
-    selectedCandidateTitle,
-    setAuthorSearch,
-    setBatchFrom,
-    setBatchTo,
-    setCoverSearchOpen,
-    setLookupIsbn,
-    setLookupMode,
-    setLookupTitle,
     syncFailure,
-    titleCandidates,
-    tomeLookupLoading,
     update,
-    updateTome,
+    // Lookup
+    applyLookup: lookup.applyLookup,
+    clearCandidate: lookup.clearCandidate,
+    isApplying: lookup.isApplying,
+    lookupIsbn: lookup.lookupIsbn,
+    lookupMode: lookup.lookupMode,
+    lookupResult: lookup.lookupResult,
+    lookupTitle: lookup.lookupTitle,
+    selectCandidate: lookup.selectCandidate,
+    selectedCandidateTitle: lookup.selectedCandidateTitle,
+    setLookupIsbn: lookup.setLookupIsbn,
+    setLookupMode: lookup.setLookupMode,
+    setLookupTitle: lookup.setLookupTitle,
+    titleCandidates: lookup.titleCandidates,
+    // Tome management
+    tomeManager,
   };
 }

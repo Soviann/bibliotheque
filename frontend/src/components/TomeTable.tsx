@@ -1,38 +1,29 @@
 import { Layers, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { compareTomes } from "../hooks/useComicForm";
-import type { FormData, TomeFormData } from "../hooks/useComicForm";
+import type { FormData } from "../hooks/useComicForm";
+import type { TomeManager } from "../hooks/useTomeManagement";
 
 interface TomeTableProps {
-  addBatchTomes: () => void;
-  addTome: () => void;
-  batchFrom: number;
-  batchSize: number;
-  batchTo: number;
   form: FormData;
-  lookupTomeIsbn: (index: number) => void;
-  maxBatchSize: number;
-  removeTome: (index: number) => void;
-  setBatchFrom: (v: number) => void;
-  setBatchTo: (v: number) => void;
-  tomeLookupLoading: number | null;
-  updateTome: <K extends keyof TomeFormData>(index: number, key: K, value: TomeFormData[K]) => void;
+  tomeManager: TomeManager;
 }
 
-export default function TomeTable({
-  addBatchTomes,
-  addTome,
-  batchFrom,
-  batchSize,
-  batchTo,
-  form,
-  lookupTomeIsbn,
-  maxBatchSize,
-  removeTome,
-  setBatchFrom,
-  setBatchTo,
-  tomeLookupLoading,
-  updateTome,
-}: TomeTableProps) {
+export default function TomeTable({ form, tomeManager }: TomeTableProps) {
+  const {
+    addBatchTomes,
+    addTome,
+    batchFrom,
+    batchSize,
+    batchTo,
+    lookupTomeIsbn,
+    maxBatchSize,
+    removeTome,
+    setBatchFrom,
+    setBatchTo,
+    tomeLookupLoading,
+    updateTome,
+  } = tomeManager;
+
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">

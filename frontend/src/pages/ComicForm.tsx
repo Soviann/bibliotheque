@@ -1,74 +1,23 @@
-import { AlertTriangle, ArrowLeft, Image, Loader2, X } from "lucide-react";
+import { ArrowLeft, Image, Loader2 } from "lucide-react";
 import AuthorAutocomplete from "../components/AuthorAutocomplete";
 import CoverSearchModal from "../components/CoverSearchModal";
 import DatePartialSelect from "../components/DatePartialSelect";
 import LookupSection from "../components/LookupSection";
 import SelectListbox from "../components/SelectListbox";
 import SkeletonBox from "../components/SkeletonBox";
+import SyncFailureSection from "../components/SyncFailureSection";
 import TomeTable from "../components/TomeTable";
 import { useComicForm } from "../hooks/useComicForm";
-import type { SyncFailure } from "../services/offlineQueue";
 import { statusOptions, typeOptions } from "../types/enums";
-import { fieldLabels, formatSyncValue, operationLabels } from "../utils/syncLabels";
-
-function SyncFailureSection({ failure, onDismiss }: { failure: SyncFailure; onDismiss: () => void }) {
-  const entries = Object.entries(failure.payload)
-    .filter(([key]) => !key.startsWith("_") && key !== "id")
-    .sort(([a], [b]) => a.localeCompare(b));
-
-  return (
-    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
-      <div className="flex items-start gap-2">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-            {operationLabels[failure.operation] ?? failure.operation} échouée — {failure.error}
-          </p>
-          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-            Modifications tentées hors ligne :
-          </p>
-          <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-            {entries.map(([key, value]) => (
-              <div className="contents" key={key}>
-                <dt className="font-medium text-amber-800 dark:text-amber-300">
-                  {fieldLabels[key] ?? key}
-                </dt>
-                <dd className="truncate text-amber-700 dark:text-amber-400">
-                  {formatSyncValue(value)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-2 text-xs text-amber-600 dark:text-amber-500">
-            Enregistrez le formulaire pour résoudre automatiquement cette erreur.
-          </p>
-        </div>
-        <button
-          className="shrink-0 rounded p-1 text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-900/40"
-          onClick={onDismiss}
-          title="Ignorer"
-          type="button"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 const formListboxClassName = "flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
 
 export default function ComicForm() {
   const {
     addAuthor,
-    addBatchTomes,
-    addTome,
     applyLookup,
     authorOptions,
     authorSearch,
-    batchFrom,
-    batchSize,
-    batchTo,
     clearCandidate,
     coverSearchOpen,
     form,
@@ -82,26 +31,20 @@ export default function ComicForm() {
     lookupMode,
     lookupResult,
     lookupTitle,
-    lookupTomeIsbn,
-    maxBatchSize,
     navigate,
     removeAuthor,
-    removeTome,
     resolveSyncFailure,
     selectCandidate,
     selectedCandidateTitle,
     setAuthorSearch,
-    setBatchFrom,
-    setBatchTo,
     setCoverSearchOpen,
     setLookupIsbn,
     setLookupMode,
     setLookupTitle,
     syncFailure,
     titleCandidates,
-    tomeLookupLoading,
+    tomeManager,
     update,
-    updateTome,
   } = useComicForm();
 
   if (isEdit && !initialized) {
@@ -373,19 +316,8 @@ export default function ComicForm() {
         {/* Tomes */}
         {!form.isOneShot && (
           <TomeTable
-            addBatchTomes={addBatchTomes}
-            addTome={addTome}
-            batchFrom={batchFrom}
-            batchSize={batchSize}
-            batchTo={batchTo}
             form={form}
-            lookupTomeIsbn={lookupTomeIsbn}
-            maxBatchSize={maxBatchSize}
-            removeTome={removeTome}
-            setBatchFrom={setBatchFrom}
-            setBatchTo={setBatchTo}
-            tomeLookupLoading={tomeLookupLoading}
-            updateTome={updateTome}
+            tomeManager={tomeManager}
           />
         )}
       </form>
