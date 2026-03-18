@@ -20,7 +20,9 @@ export const queryClient = new QueryClient({
 function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery"): Persister {
   return {
     persistClient: async (client: PersistedClient) => {
-      await set(idbValidKey, client);
+      // JSON round-trip strips non-cloneable values (Promises from TanStack Query v5 suspense)
+      // that would cause DataCloneError with IndexedDB's structured clone algorithm
+      await set(idbValidKey, JSON.parse(JSON.stringify(client)) as PersistedClient);
     },
     removeClient: async () => {
       await del(idbValidKey);
