@@ -1,5 +1,6 @@
 import { AlertTriangle, Plus, X } from "lucide-react";
 import type { MergeFormAction } from "../hooks/useMergePreviewForm";
+import { formCheckboxFocusClassName } from "../styles/formStyles";
 import type { MergePreviewTome } from "../types/api";
 
 const inputClass =
@@ -91,7 +92,7 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
                   <input
                     aria-label={`Tome ${tome.number} acheté`}
                     checked={tome.bought}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
+                    className={formCheckboxFocusClassName}
                     onChange={(e) => dispatch({ type: "UPDATE_TOME", index, patch: { bought: e.target.checked } })}
                     type="checkbox"
                   />
@@ -100,7 +101,7 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
                   <input
                     aria-label={`Tome ${tome.number} téléchargé`}
                     checked={tome.downloaded}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
+                    className={formCheckboxFocusClassName}
                     onChange={(e) => dispatch({ type: "UPDATE_TOME", index, patch: { downloaded: e.target.checked } })}
                     type="checkbox"
                   />
@@ -109,7 +110,7 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
                   <input
                     aria-label={`Tome ${tome.number} lu`}
                     checked={tome.read}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
+                    className={formCheckboxFocusClassName}
                     onChange={(e) => dispatch({ type: "UPDATE_TOME", index, patch: { read: e.target.checked } })}
                     type="checkbox"
                   />
@@ -118,7 +119,7 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
                   <input
                     aria-label={`Tome ${tome.number} sur NAS`}
                     checked={tome.onNas}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
+                    className={formCheckboxFocusClassName}
                     onChange={(e) => dispatch({ type: "UPDATE_TOME", index, patch: { onNas: e.target.checked } })}
                     type="checkbox"
                   />

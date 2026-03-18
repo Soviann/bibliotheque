@@ -2,6 +2,7 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { formSelectClassName } from "../styles/formStyles";
 import {
   type SelectOption,
   statusOptionsAll,
@@ -43,7 +44,7 @@ function FilterSelect({
     <label className="flex flex-col gap-1.5">
       <span className="text-sm font-medium text-text-primary">{label}</span>
       <select
-        className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2.5 text-sm text-text-primary focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        className={`w-full ${formSelectClassName}`}
         onChange={(e) => onChange(e.target.value)}
         value={value}
       >

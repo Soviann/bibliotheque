@@ -1,14 +1,13 @@
 import { Sparkles } from "lucide-react";
 import type { MergeFormAction, MergeFormState } from "../hooks/useMergePreviewForm";
+import {
+  formCheckboxClassName,
+  formInputSecondaryFocusClassName,
+  formListboxButtonSecondaryClassName,
+} from "../styles/formStyles";
 import { statusOptions, typeOptions } from "../types/enums";
 import DatePartialSelect from "./DatePartialSelect";
 import SelectListbox from "./SelectListbox";
-
-const mergeInputClassName =
-  "rounded-lg border border-surface-border bg-surface-secondary px-3 py-2 text-sm text-text-primary focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
-
-const mergeListboxClassName =
-  "flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-secondary px-3 py-2 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
 
 interface MergeMetadataFormProps {
   dispatch: React.Dispatch<MergeFormAction>;
@@ -47,14 +46,14 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
       {/* Type + Status */}
       <div className="mt-4 grid grid-cols-2 gap-4">
         <SelectListbox
-          buttonClassName={mergeListboxClassName}
+          buttonClassName={formListboxButtonSecondaryClassName}
           label="Type"
           onChange={(v) => setField("type", v)}
           options={typeOptions}
           value={state.type}
         />
         <SelectListbox
-          buttonClassName={mergeListboxClassName}
+          buttonClassName={formListboxButtonSecondaryClassName}
           label="Statut"
           onChange={(v) => setField("status", v)}
           options={statusOptions}
@@ -66,7 +65,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
       <label className="mt-3 flex items-center gap-2">
         <input
           checked={state.isOneShot}
-          className="h-4 w-4 rounded border-surface-border text-primary-600"
+          className={formCheckboxClassName}
           onChange={(e) => setField("isOneShot", e.target.checked)}
           type="checkbox"
         />
@@ -79,7 +78,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           Éditeur
         </label>
         <input
-          className={`mt-1 w-full ${mergeInputClassName}`}
+          className={`mt-1 w-full ${formInputSecondaryFocusClassName}`}
           id="merge-publisher"
           onChange={(e) => setField("publisher", e.target.value)}
           type="text"
@@ -102,7 +101,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           URL de couverture
         </label>
         <input
-          className={`mt-1 w-full ${mergeInputClassName}`}
+          className={`mt-1 w-full ${formInputSecondaryFocusClassName}`}
           id="merge-coverUrl"
           onChange={(e) => setField("coverUrl", e.target.value)}
           placeholder="https://..."
@@ -120,7 +119,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           Auteurs (séparés par des virgules)
         </label>
         <input
-          className={`mt-1 w-full ${mergeInputClassName}`}
+          className={`mt-1 w-full ${formInputSecondaryFocusClassName}`}
           id="merge-authors"
           onChange={(e) => setField("authors", e.target.value)}
           type="text"
@@ -134,7 +133,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           Description
         </label>
         <textarea
-          className={`mt-1 w-full ${mergeInputClassName}`}
+          className={`mt-1 w-full ${formInputSecondaryFocusClassName}`}
           id="merge-description"
           onChange={(e) => setField("description", e.target.value)}
           rows={3}
@@ -149,7 +148,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
             Dernier tome paru
           </label>
           <input
-            className={`mt-1 w-24 ${mergeInputClassName}`}
+            className={`mt-1 w-24 ${formInputSecondaryFocusClassName}`}
             id="merge-latestIssue"
             min="0"
             onChange={(e) => setField("latestPublishedIssue", e.target.value)}
@@ -160,7 +159,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-2 pb-2">
           <input
             checked={state.latestPublishedIssueComplete}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("latestPublishedIssueComplete", e.target.checked)}
             type="checkbox"
           />
@@ -174,7 +173,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.defaultTomeBought}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("defaultTomeBought", e.target.checked)}
             type="checkbox"
           />
@@ -183,7 +182,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.defaultTomeDownloaded}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("defaultTomeDownloaded", e.target.checked)}
             type="checkbox"
           />
@@ -192,7 +191,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.defaultTomeRead}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("defaultTomeRead", e.target.checked)}
             type="checkbox"
           />
@@ -206,7 +205,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           URL Amazon
         </label>
         <input
-          className={`mt-1 w-full ${mergeInputClassName}`}
+          className={`mt-1 w-full ${formInputSecondaryFocusClassName}`}
           id="merge-amazonUrl"
           onChange={(e) => setField("amazonUrl", e.target.value)}
           placeholder="https://..."
@@ -221,7 +220,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.notInterestedBuy}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("notInterestedBuy", e.target.checked)}
             type="checkbox"
           />
@@ -230,7 +229,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.notInterestedNas}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("notInterestedNas", e.target.checked)}
             type="checkbox"
           />

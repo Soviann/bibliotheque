@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Refactor** : Centralise les classNames de formulaire dans `formStyles.ts` (input, select, checkbox, label, listbox)
 - **A11y** : `aria-current="page"` sur le lien actif de BottomNav
 - **A11y** : `aria-label` sur tous les inputs sans label visible (TomeTable, SelectListbox)
 - **A11y** : `aria-label` dynamique sur le bouton filtres mobile avec nombre de filtres actifs

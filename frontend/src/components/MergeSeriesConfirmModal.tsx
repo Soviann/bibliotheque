@@ -5,6 +5,7 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { useEffect, useState } from "react";
+import { formCheckboxFocusClassName } from "../styles/formStyles";
 
 export interface MergeSeriesEntry {
   id: number;
@@ -69,7 +70,7 @@ export default function MergeSeriesConfirmModal({
                 >
                   <input
                     checked={checkedIds.has(entry.id)}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
+                    className={formCheckboxFocusClassName}
                     onChange={() => toggleEntry(entry.id)}
                     type="checkbox"
                   />

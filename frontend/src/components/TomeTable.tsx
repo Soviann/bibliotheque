@@ -2,6 +2,7 @@ import { Layers, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { compareTomes } from "../hooks/useComicForm";
 import type { FormData } from "../hooks/useComicForm";
 import type { TomeManager } from "../hooks/useTomeManagement";
+import { formCheckboxClassName } from "../styles/formStyles";
 
 interface TomeTableProps {
   form: FormData;
@@ -149,7 +150,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
               <label className="flex items-center gap-2 text-sm text-text-secondary">
                 <input
                   checked={tome.bought}
-                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  className={formCheckboxClassName}
                   onChange={(e) => updateTome(i, "bought", e.target.checked)}
                   type="checkbox"
                 />
@@ -158,7 +159,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
               <label className="flex items-center gap-2 text-sm text-text-secondary">
                 <input
                   checked={tome.downloaded}
-                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  className={formCheckboxClassName}
                   onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
                   type="checkbox"
                 />
@@ -167,7 +168,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
               <label className="flex items-center gap-2 text-sm text-text-secondary">
                 <input
                   checked={tome.read}
-                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  className={formCheckboxClassName}
                   onChange={(e) => updateTome(i, "read", e.target.checked)}
                   type="checkbox"
                 />
@@ -176,7 +177,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
               <label className="flex items-center gap-2 text-sm text-text-secondary">
                 <input
                   checked={tome.onNas}
-                  className="h-4 w-4 rounded border-surface-border text-primary-600"
+                  className={formCheckboxClassName}
                   onChange={(e) => updateTome(i, "onNas", e.target.checked)}
                   type="checkbox"
                 />
@@ -276,7 +277,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 <td className="px-3 py-1.5 text-center">
                   <input
                     checked={tome.bought}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600"
+                    className={formCheckboxClassName}
                     onChange={(e) => updateTome(i, "bought", e.target.checked)}
                     type="checkbox"
                   />
@@ -284,7 +285,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 <td className="px-3 py-1.5 text-center">
                   <input
                     checked={tome.downloaded}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600"
+                    className={formCheckboxClassName}
                     onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
                     type="checkbox"
                   />
@@ -292,7 +293,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 <td className="px-3 py-1.5 text-center">
                   <input
                     checked={tome.read}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600"
+                    className={formCheckboxClassName}
                     onChange={(e) => updateTome(i, "read", e.target.checked)}
                     type="checkbox"
                   />
@@ -300,7 +301,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 <td className="px-3 py-1.5 text-center">
                   <input
                     checked={tome.onNas}
-                    className="h-4 w-4 rounded border-surface-border text-primary-600"
+                    className={formCheckboxClassName}
                     onChange={(e) => updateTome(i, "onNas", e.target.checked)}
                     type="checkbox"
                   />

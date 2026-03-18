@@ -5,6 +5,7 @@ import {
   ComboboxOptions,
 } from "@headlessui/react";
 import { Plus, Search, X } from "lucide-react";
+import { formLabelClassName } from "../styles/formStyles";
 import type { Author } from "../types/api";
 
 interface AuthorAutocompleteProps {
@@ -26,7 +27,7 @@ export default function AuthorAutocomplete({
 }: AuthorAutocompleteProps) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-text-secondary">Auteurs</label>
+      <label className={formLabelClassName}>Auteurs</label>
       <div className="flex flex-wrap gap-2 mb-2">
         {authors.map((author, i) => (
           <span

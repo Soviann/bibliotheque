@@ -1,5 +1,6 @@
 import { ArrowLeft, Layers, Loader2 } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { formInputClassName } from "../styles/formStyles";
 import BarcodeScanner from "./BarcodeScanner";
 import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 
@@ -76,7 +77,7 @@ export default function LookupSection({
       {lookupMode === "isbn" ? (
         <div className="flex gap-2">
           <input
-            className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+            className={`flex-1 ${formInputClassName}`}
             onChange={(e) => setLookupIsbn(e.target.value)}
             placeholder="ISBN (10 ou 13 chiffres)"
             value={lookupIsbn}
@@ -86,7 +87,7 @@ export default function LookupSection({
       ) : (
         <div className="flex gap-2">
           <input
-            className="flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+            className={`flex-1 ${formInputClassName}`}
             onChange={(e) => {
               setLookupTitle(e.target.value);
               clearCandidate();
