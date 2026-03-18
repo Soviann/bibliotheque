@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.13.2] - 2026-03-18
+
+### Fixed
+
+- **Cache offline** : Corrige `DataCloneError` lors de la persistance du cache IndexedDB (Promises non-sérialisables de TanStack Query v5)
+
 ## [v2.13.1] - 2026-03-18
 
 ### Changed
