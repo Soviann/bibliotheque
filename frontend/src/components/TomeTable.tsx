@@ -93,6 +93,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 HS
               </label>
               <input
+                aria-label="Numéro"
                 className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm font-medium text-text-primary"
                 min="0"
                 onChange={(e) => updateTome(i, "number", Number(e.target.value))}
@@ -100,6 +101,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 value={tome.number}
               />
               <input
+                aria-label="Fin"
                 className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm text-text-primary"
                 min="0"
                 onChange={(e) => updateTome(i, "tomeEnd", e.target.value)}
@@ -108,6 +110,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 value={tome.tomeEnd}
               />
               <input
+                aria-label="Titre"
                 className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
                 onChange={(e) => updateTome(i, "title", e.target.value)}
                 placeholder="Titre"
@@ -124,6 +127,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
             </div>
             <div className="flex items-center gap-1">
               <input
+                aria-label="ISBN"
                 className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
                 onChange={(e) => updateTome(i, "isbn", e.target.value)}
                 placeholder="ISBN"
@@ -217,6 +221,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 <td className="px-3 py-1.5">
                   <div className="flex items-center gap-1">
                     <input
+                      aria-label="Numéro"
                       className="w-14 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
                       min="0"
                       onChange={(e) => updateTome(i, "number", Number(e.target.value))}
@@ -228,6 +233,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 </td>
                 <td className="px-3 py-1.5">
                   <input
+                    aria-label="Fin"
                     className="w-14 rounded border border-surface-border bg-surface-primary px-2 py-1 text-center text-sm text-text-primary"
                     min="0"
                     onChange={(e) => updateTome(i, "tomeEnd", e.target.value)}
@@ -238,6 +244,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 </td>
                 <td className="px-3 py-1.5">
                   <input
+                    aria-label="Titre"
                     className="w-full min-w-[100px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
                     onChange={(e) => updateTome(i, "title", e.target.value)}
                     placeholder="Titre"
@@ -247,6 +254,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 <td className="px-3 py-1.5">
                   <div className="flex items-center gap-1">
                     <input
+                      aria-label="ISBN"
                       className="w-full min-w-[120px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
                       onChange={(e) => updateTome(i, "isbn", e.target.value)}
                       placeholder="ISBN"
@@ -299,6 +307,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                 </td>
                 <td className="px-3 py-1.5">
                   <button
+                    aria-label={`Supprimer tome ${tome.number}`}
                     className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                     onClick={() => removeTome(i)}
                     type="button"

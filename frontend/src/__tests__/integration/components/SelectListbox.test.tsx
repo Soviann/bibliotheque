@@ -50,6 +50,30 @@ describe("SelectListbox", () => {
     expect(screen.getByText("Mon champ")).toBeInTheDocument();
   });
 
+  it("adds aria-label on button when no label prop but placeholder provided", () => {
+    render(
+      <SelectListbox
+        onChange={vi.fn()}
+        options={options}
+        placeholder="Choisir un type"
+        value=""
+      />,
+    );
+    expect(screen.getByRole("button")).toHaveAttribute("aria-label", "Choisir un type");
+  });
+
+  it("does not add aria-label on button when label prop is provided", () => {
+    render(
+      <SelectListbox
+        label="Type"
+        onChange={vi.fn()}
+        options={options}
+        value="a"
+      />,
+    );
+    expect(screen.getByRole("button")).not.toHaveAttribute("aria-label");
+  });
+
   it("falls back to first option when value doesn't match and no placeholder", () => {
     render(<SelectListbox onChange={vi.fn()} options={options} value="z" />);
     expect(screen.getByText("Option A")).toBeInTheDocument();

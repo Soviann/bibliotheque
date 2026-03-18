@@ -42,4 +42,17 @@ describe("BottomNav", () => {
     expect(homeLink?.className).toContain("text-text-secondary");
     expect(homeLink?.className).not.toContain("border-primary-500");
   });
+
+  it("sets aria-current='page' on the active link only", () => {
+    renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
+
+    const toBuyLink = screen.getByText("À acheter").closest("a");
+    expect(toBuyLink).toHaveAttribute("aria-current", "page");
+
+    const homeLink = screen.getByText("Accueil").closest("a");
+    expect(homeLink).not.toHaveAttribute("aria-current");
+
+    const addLink = screen.getByText("Ajouter").closest("a");
+    expect(addLink).not.toHaveAttribute("aria-current");
+  });
 });

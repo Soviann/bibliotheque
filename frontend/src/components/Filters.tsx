@@ -119,12 +119,16 @@ export default function Filters({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   if (isMobile) {
-    const hasActiveFilters = type !== "" || status !== "";
+    const activeFilterCount = [type, status].filter((v) => v !== "").length;
+    const hasActiveFilters = activeFilterCount > 0;
+    const filterLabel = hasActiveFilters
+      ? `Filtres (${activeFilterCount} actif${activeFilterCount > 1 ? "s" : ""})`
+      : "Filtres";
 
     return (
       <>
         <button
-          aria-label="Filtres"
+          aria-label={filterLabel}
           className="relative shrink-0 rounded-lg border border-surface-border bg-surface-primary p-2 text-text-muted transition hover:border-primary-400 hover:text-text-primary"
           data-testid="filters-button"
           onClick={() => setDrawerOpen(true)}
