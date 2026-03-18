@@ -1,3 +1,5 @@
+import { formInputCompactClassName, formLabelClassName } from "../styles/formStyles";
+
 interface DatePartialSelectProps {
   label?: string;
   onChange: (value: string) => void;
@@ -11,8 +13,6 @@ const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
-
-import { formInputClassName } from "../styles/formStyles";
 
 export default function DatePartialSelect({ label, onChange, value }: DatePartialSelectProps) {
   const parts = value.split("-");
@@ -30,17 +30,15 @@ export default function DatePartialSelect({ label, onChange, value }: DatePartia
     return `${y}-${m}-${d}`;
   };
 
-  const selectClass = formInputClassName.replace("px-3", "px-2");
-
   return (
     <div>
       {label && (
-        <span className="mb-1 block text-sm font-medium text-text-secondary">{label}</span>
+        <span className={formLabelClassName}>{label}</span>
       )}
       <div className="flex gap-2">
         <select
           aria-label="Année"
-          className={`${selectClass} w-24`}
+          className={`${formInputCompactClassName} w-24`}
           onChange={(e) => {
             const y = e.target.value;
             onChange(buildValue(y, y ? month : "", ""));
@@ -56,7 +54,7 @@ export default function DatePartialSelect({ label, onChange, value }: DatePartia
         </select>
         <select
           aria-label="Mois"
-          className={`${selectClass} w-20`}
+          className={`${formInputCompactClassName} w-20`}
           disabled={!year}
           onChange={(e) => {
             const m = e.target.value;
@@ -73,7 +71,7 @@ export default function DatePartialSelect({ label, onChange, value }: DatePartia
         </select>
         <select
           aria-label="Jour"
-          className={`${selectClass} w-20`}
+          className={`${formInputCompactClassName} w-20`}
           disabled={!month}
           onChange={(e) => onChange(buildValue(year, month, e.target.value))}
           value={day}

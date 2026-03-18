@@ -7,6 +7,7 @@ import {
 import { Eye, Search, X } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { useComics } from "../hooks/useComics";
+import { formCheckboxFocusClassName } from "../styles/formStyles";
 import type { ComicSeries } from "../types/api";
 import { ComicStatusLabel, ComicTypeLabel } from "../types/enums";
 
@@ -109,7 +110,7 @@ export default function SeriesMultiSelect({
               >
                 <input
                   checked={isSelected}
-                  className="h-4 w-4 rounded border-surface-border text-primary-600 focus:ring-primary-500"
+                  className={formCheckboxFocusClassName}
                   onChange={() => toggleSelection(comic.id)}
                   type="checkbox"
                 />

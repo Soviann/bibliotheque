@@ -5,6 +5,7 @@ import {
   ListboxOptions,
 } from "@headlessui/react";
 import { Check, ChevronDown } from "lucide-react";
+import { formLabelClassName } from "../styles/formStyles";
 import type { SelectOption } from "../types/enums";
 
 interface SelectListboxProps {
@@ -30,7 +31,7 @@ export default function SelectListbox({
   return (
     <div>
       {label && (
-        <span className="mb-1 block text-sm font-medium text-text-secondary">
+        <span className={formLabelClassName}>
           {label}
         </span>
       )}
