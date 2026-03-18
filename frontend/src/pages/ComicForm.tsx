@@ -8,9 +8,13 @@ import SkeletonBox from "../components/SkeletonBox";
 import SyncFailureSection from "../components/SyncFailureSection";
 import TomeTable from "../components/TomeTable";
 import { useComicForm } from "../hooks/useComicForm";
+import {
+  formCheckboxClassName,
+  formInputClassName,
+  formLabelClassName,
+  formListboxButtonClassName,
+} from "../styles/formStyles";
 import { statusOptions, typeOptions } from "../types/enums";
-
-const formListboxClassName = "flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
 
 export default function ComicForm() {
   const {
@@ -133,11 +137,11 @@ export default function ComicForm() {
       <form className="space-y-5" onSubmit={handleSubmit}>
         {/* Title */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="title">
+          <label className={formLabelClassName} htmlFor="title">
             Titre *
           </label>
           <input
-            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+            className={`w-full ${formInputClassName}`}
             id="title"
             onChange={(e) => update("title", e.target.value)}
             required
@@ -148,14 +152,14 @@ export default function ComicForm() {
         {/* Type + Status */}
         <div className="grid grid-cols-2 gap-4">
           <SelectListbox
-            buttonClassName={formListboxClassName}
+            buttonClassName={formListboxButtonClassName}
             label="Type *"
             onChange={(v) => update("type", v)}
             options={typeOptions}
             value={form.type}
           />
           <SelectListbox
-            buttonClassName={formListboxClassName}
+            buttonClassName={formListboxButtonClassName}
             label="Statut *"
             onChange={(v) => update("status", v)}
             options={statusOptions}
@@ -167,7 +171,7 @@ export default function ComicForm() {
         <label className="flex items-center gap-2">
           <input
             checked={form.isOneShot}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => update("isOneShot", e.target.checked)}
             type="checkbox"
           />
@@ -176,11 +180,11 @@ export default function ComicForm() {
 
         {/* Publisher */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="publisher">
+          <label className={formLabelClassName} htmlFor="publisher">
             Éditeur
           </label>
           <input
-            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+            className={`w-full ${formInputClassName}`}
             id="publisher"
             onChange={(e) => update("publisher", e.target.value)}
             value={form.publisher}
@@ -196,12 +200,12 @@ export default function ComicForm() {
 
         {/* Cover URL */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="coverUrl">
+          <label className={formLabelClassName} htmlFor="coverUrl">
             URL de couverture
           </label>
           <div className="flex gap-2">
             <input
-              className="min-w-0 flex-1 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+              className={`min-w-0 flex-1 ${formInputClassName}`}
               id="coverUrl"
               onChange={(e) => update("coverUrl", e.target.value)}
               placeholder="https://..."
@@ -245,11 +249,11 @@ export default function ComicForm() {
 
         {/* Description */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="description">
+          <label className={formLabelClassName} htmlFor="description">
             Description
           </label>
           <textarea
-            className="w-full rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+            className={`w-full ${formInputClassName}`}
             id="description"
             onChange={(e) => update("description", e.target.value)}
             rows={3}
@@ -260,11 +264,11 @@ export default function ComicForm() {
         {/* Latest published issue + publication complete + default flags */}
         <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-text-secondary" htmlFor="latestPublishedIssue">
+            <label className={formLabelClassName} htmlFor="latestPublishedIssue">
               Dernier tome paru
             </label>
             <input
-              className="w-32 rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary"
+              className={`w-32 ${formInputClassName}`}
               id="latestPublishedIssue"
               min="0"
               onChange={(e) => update("latestPublishedIssue", e.target.value)}
@@ -275,7 +279,7 @@ export default function ComicForm() {
           <label className="flex items-center gap-2 pb-2">
             <input
               checked={form.latestPublishedIssueComplete}
-              className="h-4 w-4 rounded border-surface-border text-primary-600"
+              className={formCheckboxClassName}
               onChange={(e) => update("latestPublishedIssueComplete", e.target.checked)}
               type="checkbox"
             />
@@ -286,7 +290,7 @@ export default function ComicForm() {
             <label className="flex items-center gap-1.5">
               <input
                 checked={form.defaultTomeBought}
-                className="h-4 w-4 rounded border-surface-border text-primary-600"
+                className={formCheckboxClassName}
                 onChange={(e) => update("defaultTomeBought", e.target.checked)}
                 type="checkbox"
               />
@@ -295,7 +299,7 @@ export default function ComicForm() {
             <label className="flex items-center gap-1.5">
               <input
                 checked={form.defaultTomeDownloaded}
-                className="h-4 w-4 rounded border-surface-border text-primary-600"
+                className={formCheckboxClassName}
                 onChange={(e) => update("defaultTomeDownloaded", e.target.checked)}
                 type="checkbox"
               />
@@ -304,7 +308,7 @@ export default function ComicForm() {
             <label className="flex items-center gap-1.5">
               <input
                 checked={form.defaultTomeRead}
-                className="h-4 w-4 rounded border-surface-border text-primary-600"
+                className={formCheckboxClassName}
                 onChange={(e) => update("defaultTomeRead", e.target.checked)}
                 type="checkbox"
               />

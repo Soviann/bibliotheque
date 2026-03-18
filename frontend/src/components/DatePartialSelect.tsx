@@ -12,6 +12,8 @@ function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
+import { formInputClassName } from "../styles/formStyles";
+
 export default function DatePartialSelect({ label, onChange, value }: DatePartialSelectProps) {
   const parts = value.split("-");
   const year = parts[0] || "";
@@ -28,8 +30,7 @@ export default function DatePartialSelect({ label, onChange, value }: DatePartia
     return `${y}-${m}-${d}`;
   };
 
-  const selectClass =
-    "rounded-lg border border-surface-border bg-surface-primary px-2 py-2 text-sm text-text-primary";
+  const selectClass = formInputClassName.replace("px-3", "px-2");
 
   return (
     <div>

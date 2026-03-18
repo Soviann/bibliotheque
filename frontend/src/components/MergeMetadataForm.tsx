@@ -1,14 +1,16 @@
 import { Sparkles } from "lucide-react";
 import type { MergeFormAction, MergeFormState } from "../hooks/useMergePreviewForm";
+import {
+  formCheckboxClassName,
+  formInputFocusClassName,
+  formListboxButtonClassName,
+} from "../styles/formStyles";
 import { statusOptions, typeOptions } from "../types/enums";
 import DatePartialSelect from "./DatePartialSelect";
 import SelectListbox from "./SelectListbox";
 
-const mergeInputClassName =
-  "rounded-lg border border-surface-border bg-surface-secondary px-3 py-2 text-sm text-text-primary focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
-
-const mergeListboxClassName =
-  "flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-secondary px-3 py-2 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500";
+const mergeInputClassName = formInputFocusClassName.replace("bg-surface-primary", "bg-surface-secondary");
+const mergeListboxClassName = formListboxButtonClassName.replace("bg-surface-primary", "bg-surface-secondary");
 
 interface MergeMetadataFormProps {
   dispatch: React.Dispatch<MergeFormAction>;
@@ -66,7 +68,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
       <label className="mt-3 flex items-center gap-2">
         <input
           checked={state.isOneShot}
-          className="h-4 w-4 rounded border-surface-border text-primary-600"
+          className={formCheckboxClassName}
           onChange={(e) => setField("isOneShot", e.target.checked)}
           type="checkbox"
         />
@@ -160,7 +162,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-2 pb-2">
           <input
             checked={state.latestPublishedIssueComplete}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("latestPublishedIssueComplete", e.target.checked)}
             type="checkbox"
           />
@@ -174,7 +176,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.defaultTomeBought}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("defaultTomeBought", e.target.checked)}
             type="checkbox"
           />
@@ -183,7 +185,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.defaultTomeDownloaded}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("defaultTomeDownloaded", e.target.checked)}
             type="checkbox"
           />
@@ -192,7 +194,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.defaultTomeRead}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("defaultTomeRead", e.target.checked)}
             type="checkbox"
           />
@@ -221,7 +223,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.notInterestedBuy}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("notInterestedBuy", e.target.checked)}
             type="checkbox"
           />
@@ -230,7 +232,7 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         <label className="flex items-center gap-1.5">
           <input
             checked={state.notInterestedNas}
-            className="h-4 w-4 rounded border-surface-border text-primary-600"
+            className={formCheckboxClassName}
             onChange={(e) => setField("notInterestedNas", e.target.checked)}
             type="checkbox"
           />
