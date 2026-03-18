@@ -7,6 +7,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **A11y** : `aria-current="page"` sur le lien actif de BottomNav
+- **A11y** : `aria-label` sur tous les inputs sans label visible (TomeTable, SelectListbox)
+- **A11y** : `aria-label` dynamique sur le bouton filtres mobile avec nombre de filtres actifs
+- **A11y** : Focus ring visible sur le bouton retour du formulaire série
+- **A11y** : Séparateur visuel entre résultats et option « Créer » dans AuthorAutocomplete
+- **A11y** : `aria-label` sur les boutons supprimer (tomes desktop, retirer auteur)
+
 ## [v2.13.0] - 2026-03-17
 
 ### Added

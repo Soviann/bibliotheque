@@ -131,6 +131,33 @@ describe("Filters", () => {
       expect(screen.queryByText("Tous les statuts")).not.toBeInTheDocument();
     });
 
+    it("has dynamic aria-label reflecting active filter count", () => {
+      renderWithProviders(<Filters {...defaultProps} status="buying" type="manga" />);
+
+      expect(screen.getByTestId("filters-button")).toHaveAttribute(
+        "aria-label",
+        "Filtres (2 actifs)",
+      );
+    });
+
+    it("has plain aria-label when no filters active", () => {
+      renderWithProviders(<Filters {...defaultProps} />);
+
+      expect(screen.getByTestId("filters-button")).toHaveAttribute(
+        "aria-label",
+        "Filtres",
+      );
+    });
+
+    it("has aria-label with 1 active filter", () => {
+      renderWithProviders(<Filters {...defaultProps} type="manga" />);
+
+      expect(screen.getByTestId("filters-button")).toHaveAttribute(
+        "aria-label",
+        "Filtres (1 actif)",
+      );
+    });
+
     it("shows indicator dot when filters are active", () => {
       renderWithProviders(<Filters {...defaultProps} status="buying" type="manga" />);
 

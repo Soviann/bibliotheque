@@ -60,6 +60,81 @@ describe("TomeTable", () => {
     expect(generateButton).toHaveAttribute("title", "Maximum 100 tomes à la fois");
   });
 
+  it("adds aria-labels on mobile card inputs", () => {
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          downloaded: false,
+          id: 1,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    // Simulate mobile by checking the cards container
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const cards = screen.getByTestId("tomes-cards");
+    const numberInput = cards.querySelector("input[type='number'][aria-label='Numéro']");
+    expect(numberInput).toBeInTheDocument();
+
+    const tomeEndInput = cards.querySelector("input[aria-label='Fin']");
+    expect(tomeEndInput).toBeInTheDocument();
+
+    const titleInput = cards.querySelector("input[aria-label='Titre']");
+    expect(titleInput).toBeInTheDocument();
+
+    const isbnInput = cards.querySelector("input[aria-label='ISBN']");
+    expect(isbnInput).toBeInTheDocument();
+  });
+
+  it("adds aria-labels on desktop table inputs", () => {
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          downloaded: false,
+          id: 1,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const table = screen.getByTestId("tomes-table");
+    const numberInput = table.querySelector("input[type='number'][aria-label='Numéro']");
+    expect(numberInput).toBeInTheDocument();
+
+    const tomeEndInput = table.querySelector("input[aria-label='Fin']");
+    expect(tomeEndInput).toBeInTheDocument();
+
+    const titleInput = table.querySelector("input[aria-label='Titre']");
+    expect(titleInput).toBeInTheDocument();
+
+    const isbnInput = table.querySelector("input[aria-label='ISBN']");
+    expect(isbnInput).toBeInTheDocument();
+
+    // Desktop delete button should have aria-label
+    const deleteButton = table.querySelector("button[aria-label]");
+    expect(deleteButton).toHaveAttribute("aria-label", "Supprimer tome 1");
+  });
+
   it("does not show tooltip when batch is within limit", () => {
     const tomeManager = createMockTomeManager({
       batchFrom: 1,

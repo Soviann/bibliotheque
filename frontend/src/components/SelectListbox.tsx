@@ -37,6 +37,7 @@ export default function SelectListbox({
       <Listbox onChange={onChange} value={value}>
         <div className="relative">
           <ListboxButton
+            aria-label={!label ? (placeholder ?? options[0]?.label) : undefined}
             className={
               buttonClassName ??
               "flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"

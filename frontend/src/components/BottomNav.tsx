@@ -51,6 +51,7 @@ export default function BottomNav() {
           const active = isActive(pathname);
           return (
             <Link
+              aria-current={active ? "page" : undefined}
               className={`flex flex-col items-center justify-center gap-0.5 px-3 text-xs font-medium transition-colors ${
                 active ? activeColor : "text-text-secondary"
               }`}
