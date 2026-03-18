@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.13.1] - 2026-03-18
+
 ### Changed
 
 - **Refactor** : Centralise les classNames de formulaire dans `formStyles.ts` (input, select, checkbox, label, listbox)
