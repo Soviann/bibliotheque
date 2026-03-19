@@ -129,7 +129,7 @@ describe("ComicDetail", () => {
     renderComicDetail();
 
     await waitFor(() => {
-      expect(screen.getByText(/Akira Toriyama, Eiichiro Oda/)).toBeInTheDocument();
+      expect(screen.getByText("Akira Toriyama, Eiichiro Oda")).toBeInTheDocument();
     });
   });
 
@@ -424,7 +424,7 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(screen.getByText("No Authors")).toBeInTheDocument();
     });
-    expect(screen.queryByText("Auteurs :")).not.toBeInTheDocument();
+    expect(screen.queryByText("Auteurs")).not.toBeInTheDocument();
   });
 
   it("renders published date when available", async () => {
@@ -441,7 +441,7 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(screen.getByText("With Date")).toBeInTheDocument();
     });
-    expect(screen.getByText("Parution :")).toBeInTheDocument();
+    expect(screen.getByText("Parution")).toBeInTheDocument();
     expect(screen.getByText("15 mars 2020")).toBeInTheDocument();
   });
 
@@ -459,7 +459,7 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(screen.getByText("No Date")).toBeInTheDocument();
     });
-    expect(screen.queryByText("Parution :")).not.toBeInTheDocument();
+    expect(screen.queryByText("Parution")).not.toBeInTheDocument();
   });
 
   it("does not render publisher section when publisher is null", async () => {
@@ -476,10 +476,80 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(screen.getByText("No Publisher")).toBeInTheDocument();
     });
-    expect(screen.queryByText("Éditeur :")).not.toBeInTheDocument();
+    expect(screen.queryByText("Éditeur")).not.toBeInTheDocument();
   });
 
-  it("does not render description when description is null", async () => {
+  it("renders metadata in a definition list grid", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            authors: [createMockAuthor({ name: "Toriyama" })],
+            id: 1,
+            publisher: "Glénat",
+            publishedDate: "2020-03-15",
+            title: "Grid Test",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Grid Test")).toBeInTheDocument();
+    });
+
+    // Metadata should be in a <dl> element
+    const dl = document.querySelector("dl");
+    expect(dl).toBeInTheDocument();
+
+    // Labels should be <dt> elements
+    const dtElements = dl!.querySelectorAll("dt");
+    const dtTexts = Array.from(dtElements).map((dt) => dt.textContent);
+    expect(dtTexts).toContain("Auteurs");
+    expect(dtTexts).toContain("Éditeur");
+    expect(dtTexts).toContain("Parution");
+
+    // Values should be <dd> elements
+    const ddElements = dl!.querySelectorAll("dd");
+    const ddTexts = Array.from(ddElements).map((dd) => dd.textContent);
+    expect(ddTexts).toContain("Toriyama");
+    expect(ddTexts).toContain("Glénat");
+    expect(ddTexts).toContain("15 mars 2020");
+  });
+
+  it("renders description in a separate section below metadata", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            authors: [createMockAuthor({ name: "Author" })],
+            description: "Un manga épique",
+            id: 1,
+            title: "Desc Section",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Desc Section")).toBeInTheDocument();
+    });
+
+    // Description should NOT be inside the <dl>
+    const dl = document.querySelector("dl");
+    expect(dl).toBeInTheDocument();
+    expect(dl!.textContent).not.toContain("Un manga épique");
+
+    // Description should be in its own section with a heading
+    expect(screen.getByText("Description")).toBeInTheDocument();
+    expect(screen.getByText("Un manga épique")).toBeInTheDocument();
+  });
+
+  it("does not render description section when description is null", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
@@ -493,9 +563,7 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(screen.getByText("No Desc")).toBeInTheDocument();
     });
-    // Only type/status badges + title should be present, no description paragraph
-    const paragraphs = document.querySelectorAll("p.leading-relaxed");
-    expect(paragraphs.length).toBe(0);
+    expect(screen.queryByText("Description")).not.toBeInTheDocument();
   });
 
   it("shows placeholder cover when both coverUrl and coverImage are null", async () => {
@@ -836,10 +904,10 @@ describe("ComicDetail", () => {
     renderComicDetail();
 
     await waitFor(() => {
-      expect(screen.getByText("Nouveaux tomes :")).toBeInTheDocument();
+      expect(screen.getByText("Nouveaux tomes")).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/achetés, téléchargés/)).toBeInTheDocument();
+    expect(screen.getByText("achetés, téléchargés")).toBeInTheDocument();
   });
 
   it("shows latestPublishedIssueUpdatedAt as relative date", async () => {
