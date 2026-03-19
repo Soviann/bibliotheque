@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **ComicDetail** : Métadonnées affichées en grille clé-valeur (dl/dt/dd) au lieu de paragraphes séquentiels, description séparée dans sa propre section
 - **TomeTable** : Breakpoint carte/table relevé de `sm` (640px) à `md` (768px) — les tablettes et desktops étroits utilisent le layout carte dépliable au lieu de la table qui déborde
 
 ### Added

@@ -263,46 +263,59 @@ export default function ComicDetail() {
             )}
           </div>
 
-          {comic.authors.length > 0 && (
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium">Auteurs :</span>{" "}
-              {comic.authors.map((a) => a.name).join(", ")}
-            </p>
-          )}
-          {comic.publisher && (
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium">Éditeur :</span> {comic.publisher}
-            </p>
-          )}
-          {comic.publishedDate && (
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium">Parution :</span>{" "}
-              {new Date(comic.publishedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-            </p>
-          )}
-          {comic.latestPublishedIssue != null && (
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium">Tomes parus :</span> {comic.latestPublishedIssue}
-              {comic.latestPublishedIssueComplete && " (terminée)"}
-              {comic.latestPublishedIssueUpdatedAt && (
-                <span className="ml-2 text-text-muted">
-                  (mis à jour {formatRelativeDate(comic.latestPublishedIssueUpdatedAt)})
-                </span>
-              )}
-            </p>
-          )}
-          {(comic.defaultTomeBought || comic.defaultTomeDownloaded || comic.defaultTomeRead) && (
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium">Nouveaux tomes :</span>{" "}
-              {[
-                comic.defaultTomeBought && "achetés",
-                comic.defaultTomeDownloaded && "téléchargés",
-                comic.defaultTomeRead && "lus",
-              ].filter(Boolean).join(", ")}
-            </p>
-          )}
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+            {comic.authors.length > 0 && (
+              <>
+                <dt className="font-medium text-text-secondary">Auteurs</dt>
+                <dd className="text-text-secondary">{comic.authors.map((a) => a.name).join(", ")}</dd>
+              </>
+            )}
+            {comic.publisher && (
+              <>
+                <dt className="font-medium text-text-secondary">Éditeur</dt>
+                <dd className="text-text-secondary">{comic.publisher}</dd>
+              </>
+            )}
+            {comic.publishedDate && (
+              <>
+                <dt className="font-medium text-text-secondary">Parution</dt>
+                <dd className="text-text-secondary">
+                  {new Date(comic.publishedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                </dd>
+              </>
+            )}
+            {comic.latestPublishedIssue != null && (
+              <>
+                <dt className="font-medium text-text-secondary">Tomes parus</dt>
+                <dd className="text-text-secondary">
+                  {comic.latestPublishedIssue}
+                  {comic.latestPublishedIssueComplete && " (terminée)"}
+                  {comic.latestPublishedIssueUpdatedAt && (
+                    <span className="ml-2 text-text-muted">
+                      (mis à jour {formatRelativeDate(comic.latestPublishedIssueUpdatedAt)})
+                    </span>
+                  )}
+                </dd>
+              </>
+            )}
+            {(comic.defaultTomeBought || comic.defaultTomeDownloaded || comic.defaultTomeRead) && (
+              <>
+                <dt className="font-medium text-text-secondary">Nouveaux tomes</dt>
+                <dd className="text-text-secondary">
+                  {[
+                    comic.defaultTomeBought && "achetés",
+                    comic.defaultTomeDownloaded && "téléchargés",
+                    comic.defaultTomeRead && "lus",
+                  ].filter(Boolean).join(", ")}
+                </dd>
+              </>
+            )}
+          </dl>
           {comic.description && (
-            <p className="text-sm leading-relaxed text-text-secondary">{comic.description}</p>
+            <div>
+              <h3 className="text-sm font-medium text-text-secondary">Description</h3>
+              <p className="mt-1 text-sm leading-relaxed text-text-secondary">{comic.description}</p>
+            </div>
           )}
         </div>
       </div>
