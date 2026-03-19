@@ -1019,6 +1019,28 @@ describe("ComicDetail", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("limits cover height on mobile with max-h-64", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            coverUrl: "https://example.com/cover.jpg",
+            id: 1,
+            title: "Mobile Cover",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      const img = screen.getByAltText("Mobile Cover");
+      expect(img.className).toContain("max-h-64");
+      expect(img.className).toContain("md:max-h-none");
+    });
+  });
+
   it("renders delete button with outline/ghost red style instead of solid red", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
