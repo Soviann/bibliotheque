@@ -940,6 +940,53 @@ describe("ComicDetail", () => {
     expect(screen.queryByRole("link", { name: /amazon/i })).not.toBeInTheDocument();
   });
 
+  it("renders action buttons in correct order: Modifier, Amazon, Supprimer", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            amazonUrl: "https://www.amazon.fr/dp/B08N5WRWNW",
+            id: 1,
+            status: ComicStatus.BUYING,
+            title: "Button Order",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Button Order")).toBeInTheDocument();
+    });
+
+    const actionBar = screen.getByText("Modifier").closest("div.sticky")!;
+    const buttons = actionBar.querySelectorAll("a, button");
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]).toHaveTextContent("Modifier");
+    expect(buttons[1]).toHaveTextContent("Amazon");
+    expect(buttons[2]).toHaveTextContent("Supprimer");
+  });
+
+  it("renders delete button with outline/ghost red style instead of solid red", async () => {
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(createMockComicSeries({ id: 1, title: "Ghost Delete" })),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Ghost Delete")).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByText("Supprimer").closest("button")!;
+    expect(deleteButton.className).not.toContain("bg-red-600");
+    expect(deleteButton.className).toContain("border");
+    expect(deleteButton.className).toContain("text-red-600");
+  });
+
   it("shows success toast after delete confirmation", async () => {
     const user = userEvent.setup();
 

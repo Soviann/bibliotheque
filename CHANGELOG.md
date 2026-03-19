@@ -7,6 +7,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **CoverSearchModal** : Indicateur de scroll (dégradé) en bas de la grille d'images
+- **EmptyState** : Animation fade-in + slide-up à l'apparition (respecte `prefers-reduced-motion`)
+
+### Changed
+
+- **ComicDetail** : Réordonne la barre d'actions (Modifier → Amazon → Supprimer) et passe le bouton Supprimer en style outline rouge
+
 ## [v2.13.2] - 2026-03-18
 
 ### Fixed
