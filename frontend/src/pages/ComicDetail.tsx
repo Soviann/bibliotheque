@@ -280,14 +280,14 @@ export default function ComicDetail() {
 
       {/* Sticky action bar */}
       <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
-        <button
-          className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-base font-medium text-white hover:bg-red-700"
-          onClick={() => setShowDelete(true)}
-          type="button"
+        <Link
+          className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
+          to={`/comic/${comic.id}/edit`}
+          viewTransition
         >
-          <Trash2 className="h-5 w-5" />
-          Supprimer
-        </button>
+          <Edit className="h-5 w-5" />
+          Modifier
+        </Link>
         {comic.status === ComicStatus.BUYING && comic.amazonUrl && (
           <a
             className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-base font-medium text-white hover:bg-amber-700"
@@ -299,14 +299,14 @@ export default function ComicDetail() {
             Amazon
           </a>
         )}
-        <Link
-          className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
-          to={`/comic/${comic.id}/edit`}
-          viewTransition
+        <button
+          className="flex items-center gap-2 rounded-lg border border-red-600 px-5 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-950/30"
+          onClick={() => setShowDelete(true)}
+          type="button"
         >
-          <Edit className="h-5 w-5" />
-          Modifier
-        </Link>
+          <Trash2 className="h-5 w-5" />
+          Supprimer
+        </button>
       </div>
 
       <ConfirmModal
