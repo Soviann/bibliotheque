@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **TomeTable** : Breakpoint carte/table relevé de `sm` (640px) à `md` (768px) — les tablettes et desktops étroits utilisent le layout carte dépliable au lieu de la table qui déborde
+
 ### Added
 
 - **TomeTable** : Cartes de tomes dépliables sur mobile — vue repliée `#N - Titre` avec chevron, déplier pour éditer (ISBN, checkboxes, supprimer). Les nouveaux tomes sont dépliés par défaut
