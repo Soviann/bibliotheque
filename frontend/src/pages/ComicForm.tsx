@@ -99,7 +99,7 @@ export default function ComicForm() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button aria-label="Retour" className="rounded-lg text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" onClick={() => navigate(-1)} type="button">
+        <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" onClick={() => navigate(-1)} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-xl font-bold text-text-primary">
