@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **FilterChips** : Chips de filtre rapide (type + statut) scrollables horizontalement au-dessus de la grille sur la page d'accueil — complètent les dropdowns existants
 - **ComicForm** : Sections repliables (Info générale, Publication, Média) — les champs restent dans le DOM pour que le lookup autofill fonctionne même replié
 - **ComicDetail** : Actions en masse sur la table des tomes — checkbox dans les en-têtes pour cocher/décocher tous les tomes par colonne (état indeterminate, PATCH optimiste)
 - **ComicDetail** : Lightbox plein écran au clic sur la couverture (ne s'active pas sur les placeholders)

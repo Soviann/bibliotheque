@@ -6,6 +6,7 @@ import CardActionBar from "../components/CardActionBar";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import EmptyState from "../components/EmptyState";
+import FilterChips from "../components/FilterChips";
 import Filters from "../components/Filters";
 import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
@@ -160,6 +161,14 @@ export default function Home() {
           {filtered.length}/{allComics.length}
         </span>
       </div>
+
+      {/* Quick filter chips */}
+      <FilterChips
+        onStatusChange={handleStatusChange}
+        onTypeChange={handleTypeChange}
+        status={status}
+        type={type}
+      />
 
       {/* Desktop filters */}
       {!isMobile && (
