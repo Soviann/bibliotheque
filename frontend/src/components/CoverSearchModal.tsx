@@ -5,7 +5,7 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { Search, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCoverSearch } from "../hooks/useCoverSearch";
 import SkeletonBox from "./SkeletonBox";
 
@@ -28,7 +28,30 @@ export default function CoverSearchModal({
   const [debouncedQuery, setDebouncedQuery] = useState(defaultQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+
   const { data: results, isLoading } = useCoverSearch(debouncedQuery, type);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
+    setShowScrollIndicator(!nearBottom);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !results || results.length === 0) {
+      setShowScrollIndicator(false);
+      return;
+    }
+    // Check after images may have loaded
+    const timer = setTimeout(() => {
+      setShowScrollIndicator(el.scrollHeight > el.clientHeight);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [results]);
 
   useEffect(() => {
     setSearchQuery(defaultQuery);
@@ -79,7 +102,8 @@ export default function CoverSearchModal({
             </div>
           </div>
 
-          <div className="overflow-y-auto p-4">
+          <div className="relative">
+          <div className="overflow-y-auto p-4" onScroll={handleScroll} ref={scrollRef}>
             {isLoading && debouncedQuery.length >= 2 && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -122,6 +146,13 @@ export default function CoverSearchModal({
                 Saisissez au moins 2 caractères
               </p>
             )}
+          </div>
+          {showScrollIndicator && (
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-surface-primary to-transparent"
+              data-testid="scroll-indicator"
+            />
+          )}
           </div>
         </DialogPanel>
       </div>

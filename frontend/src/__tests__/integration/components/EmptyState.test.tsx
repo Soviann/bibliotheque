@@ -64,4 +64,13 @@ describe("EmptyState", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
+
+  it("has fade-in-up animation class", () => {
+    renderWithProviders(
+      <EmptyState icon={Heart} title="Liste vide" />,
+    );
+
+    const container = screen.getByText("Liste vide").closest("div");
+    expect(container).toHaveClass("animate-fade-in-up");
+  });
 });
