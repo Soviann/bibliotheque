@@ -223,6 +223,185 @@ describe("ComicDetail — inline tome toggle", () => {
     });
   });
 
+  it("renders header checkboxes for bulk toggle", async () => {
+    const tomes = [
+      createMockTome({ bought: true, downloaded: false, id: 10, number: 1, onNas: false, read: false }),
+      createMockTome({ bought: true, downloaded: false, id: 11, number: 2, onNas: false, read: false }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("checkbox", { name: /tout cocher acheté/i })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /tout cocher téléchargé/i })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /tout cocher lu/i })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /tout cocher nas/i })).toBeInTheDocument();
+  });
+
+  it("select all: when none checked, click checks all and sends PATCH for each", async () => {
+    const user = userEvent.setup();
+    const patchedIds: number[] = [];
+
+    const tomes = [
+      createMockTome({ bought: false, id: 10, number: 1 }),
+      createMockTome({ bought: false, id: 11, number: 2 }),
+      createMockTome({ bought: false, id: 12, number: 3 }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+        ),
+      ),
+      http.patch("/api/tomes/:id", async ({ params }) => {
+        patchedIds.push(Number(params.id));
+        return HttpResponse.json(createMockTome({ bought: true, id: Number(params.id) }));
+      }),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+    });
+
+    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher acheté/i });
+    await user.click(headerCheckbox);
+
+    // All row checkboxes should be checked optimistically
+    const rows = screen.getAllByRole("row").slice(1); // skip header
+    for (const row of rows) {
+      const checkboxes = within(row).getAllByRole("checkbox");
+      expect(checkboxes[0]).toBeChecked(); // bought column
+    }
+
+    // PATCH calls for all 3 tomes
+    await waitFor(() => {
+      expect(patchedIds).toHaveLength(3);
+    });
+    expect(patchedIds.sort()).toEqual([10, 11, 12]);
+  });
+
+  it("deselect all: when all checked, click unchecks all", async () => {
+    const user = userEvent.setup();
+    const patchBodies: Array<Record<string, unknown>> = [];
+
+    const tomes = [
+      createMockTome({ bought: true, id: 10, number: 1 }),
+      createMockTome({ bought: true, id: 11, number: 2 }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+        ),
+      ),
+      http.patch("/api/tomes/:id", async ({ request }) => {
+        patchBodies.push((await request.json()) as Record<string, unknown>);
+        return HttpResponse.json(createMockTome({ bought: false, id: 10 }));
+      }),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
+    });
+
+    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher acheté/i });
+    expect(headerCheckbox).toBeChecked();
+
+    await user.click(headerCheckbox);
+
+    // All row checkboxes should be unchecked
+    const rows = screen.getAllByRole("row").slice(1);
+    for (const row of rows) {
+      const checkboxes = within(row).getAllByRole("checkbox");
+      expect(checkboxes[0]).not.toBeChecked();
+    }
+
+    await waitFor(() => {
+      expect(patchBodies).toHaveLength(2);
+    });
+    expect(patchBodies[0]).toEqual(expect.objectContaining({ bought: false }));
+  });
+
+  it("header checkbox is indeterminate when some tomes are checked", async () => {
+    const tomes = [
+      createMockTome({ bought: true, id: 10, number: 1 }),
+      createMockTome({ bought: false, id: 11, number: 2 }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
+    });
+
+    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher acheté/i }) as HTMLInputElement;
+    expect(headerCheckbox.indeterminate).toBe(true);
+    expect(headerCheckbox.checked).toBe(false);
+  });
+
+  it("only sends PATCH for tomes that actually changed", async () => {
+    const user = userEvent.setup();
+    const patchedIds: number[] = [];
+
+    const tomes = [
+      createMockTome({ downloaded: true, id: 10, number: 1 }),
+      createMockTome({ downloaded: false, id: 11, number: 2 }),
+      createMockTome({ downloaded: true, id: 12, number: 3 }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+        ),
+      ),
+      http.patch("/api/tomes/:id", async ({ params }) => {
+        patchedIds.push(Number(params.id));
+        return HttpResponse.json(createMockTome({ downloaded: true, id: Number(params.id) }));
+      }),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+    });
+
+    // Click "select all downloaded" — only tome 11 needs changing
+    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher téléchargé/i });
+    await user.click(headerCheckbox);
+
+    await waitFor(() => {
+      expect(patchedIds).toHaveLength(1);
+    });
+    expect(patchedIds[0]).toBe(11);
+  });
+
   it("checkboxes have accessible labels", async () => {
     const tomes = [
       createMockTome({ id: 10, number: 3 }),
