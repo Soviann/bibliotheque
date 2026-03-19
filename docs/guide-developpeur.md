@@ -290,6 +290,7 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 | `Layout` | Shell de l'app (header, navigation, Outlet) |
 | `AuthGuard` | Redirige vers /login si non authentifié |
 | `ComicCard` | Carte d'une série (couverture, titre, auteur, badges) |
+| `FilterChips` | Chips de filtre rapide (type, statut) scrollables |
 | `Filters` | Menus déroulants de filtrage (type, statut) |
 | `ConfirmModal` | Modal de confirmation (Headless UI Dialog) |
 | `ErrorFallback` | Fallback pour ErrorBoundary |

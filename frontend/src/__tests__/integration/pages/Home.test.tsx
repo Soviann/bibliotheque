@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { toast } from "sonner";
@@ -246,9 +246,10 @@ describe("Home", () => {
       expect(screen.getByText("Naruto")).toBeInTheDocument();
     });
 
-    // Open type filter and select Manga
+    // Open type filter and select Manga (use listbox to avoid chip ambiguity)
     await user.click(screen.getByText("Tous les types"));
-    await user.click(screen.getByText("Manga"));
+    const listbox = screen.getByRole("listbox");
+    await user.click(within(listbox).getByText("Manga"));
 
     expect(screen.getByText("Naruto")).toBeInTheDocument();
     expect(screen.queryByText("Tintin")).not.toBeInTheDocument();

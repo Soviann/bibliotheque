@@ -52,7 +52,9 @@ Cliquer sur une carte ouvre la page de détail de la série.
 
 ### Filtres
 
-Deux menus déroulants permettent de filtrer la bibliothèque :
+Des **chips de filtre rapide** (type et statut) sont affichés au-dessus de la grille pour un accès en un tap. Ils sont scrollables horizontalement sur mobile. Cliquer un chip active le filtre ; cliquer à nouveau le désactive.
+
+En complément, deux menus déroulants permettent de filtrer la bibliothèque :
 
 - **Type** : BD, Manga, Comics, Livre
 - **Statut** : En cours d'achat, Terminé, Arrêté, Liste de souhaits
