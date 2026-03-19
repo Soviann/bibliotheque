@@ -17,6 +17,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 - **CoverSearchModal** : Indicateur de scroll (dégradé) en bas de la grille d'images
 - **EmptyState** : Animation fade-in + slide-up à l'apparition (respecte `prefers-reduced-motion`)
 - **ComicForm** : Flags par défaut des tomes déplacés près de la section Tomes et relabellés « État par défaut des nouveaux tomes » — masqués quand one-shot est coché
+- **ComicDetail** : Couverture limitée en hauteur sur mobile (`max-h-64`) pour éviter qu'elle occupe tout l'écran — layout desktop inchangé
 
 ### Changed
 

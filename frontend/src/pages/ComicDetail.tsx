@@ -236,7 +236,7 @@ export default function ComicDetail() {
         <div className="w-full md:w-48">
           <img
             alt={comic.title}
-            className={`w-full rounded-lg shadow${coverSrc ? " cursor-pointer" : ""}`}
+            className={`w-full max-h-64 md:max-h-none object-contain rounded-lg shadow${coverSrc ? " cursor-pointer" : ""}`}
             onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
           />
