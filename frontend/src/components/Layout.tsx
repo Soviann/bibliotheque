@@ -63,6 +63,7 @@ export default function Layout() {
           >
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
+          <div className="mx-1 h-5 w-px bg-surface-border" />
           <button
             aria-label="Déconnexion"
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"

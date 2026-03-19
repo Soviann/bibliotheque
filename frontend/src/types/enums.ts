@@ -7,6 +7,13 @@ export const ComicStatus = {
 
 export type ComicStatus = (typeof ComicStatus)[keyof typeof ComicStatus];
 
+export const ComicStatusColor: Record<ComicStatus, string> = {
+  [ComicStatus.BUYING]: "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+  [ComicStatus.FINISHED]: "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
+  [ComicStatus.STOPPED]: "bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400",
+  [ComicStatus.WISHLIST]: "bg-violet-100 text-violet-700 dark:bg-violet-950/30 dark:text-violet-400",
+};
+
 export const ComicStatusLabel: Record<ComicStatus, string> = {
   [ComicStatus.BUYING]: "En cours d'achat",
   [ComicStatus.FINISHED]: "Terminé",

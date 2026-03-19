@@ -15,6 +15,9 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Changed
 
 - **ComicDetail** : Réordonne la barre d'actions (Modifier → Amazon → Supprimer) et passe le bouton Supprimer en style outline rouge
+- **ComicDetail** : Badges de statut colorés (bleu En cours, vert Terminé, orange Arrêté, violet Wishlist) au lieu du gris uniforme
+- **Layout** : Séparateur visuel avant le bouton Déconnexion dans le header
+- **Tools** : Uniformise la taille du titre de page (`text-xl` comme les autres pages)
 
 ## [v2.13.2] - 2026-03-18
 
