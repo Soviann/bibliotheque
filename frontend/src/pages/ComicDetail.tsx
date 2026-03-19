@@ -11,7 +11,7 @@ import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useUpdateTome } from "../hooks/useUpdateTome";
-import { ComicStatus, ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
+import { ComicStatus, ComicStatusColor, ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
 
@@ -163,7 +163,7 @@ export default function ComicDetail() {
             <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
               {ComicTypeLabel[comic.type]}
             </span>
-            <span className="rounded-full bg-surface-tertiary px-3 py-1 text-sm font-medium text-text-secondary">
+            <span className={`rounded-full px-3 py-1 text-sm font-medium ${ComicStatusColor[comic.status]}`}>
               {ComicStatusLabel[comic.status]}
             </span>
             {comic.isOneShot && (

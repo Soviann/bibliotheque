@@ -58,7 +58,7 @@ export default function Tools() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1 className="mb-6 text-2xl font-bold text-text-primary">Outils</h1>
+      <h1 className="mb-6 text-xl font-bold text-text-primary">Outils</h1>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {tools.map(({ description, icon: Icon, title, to }) => (
