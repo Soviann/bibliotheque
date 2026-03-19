@@ -91,6 +91,10 @@ export default function ComicDetail() {
     }
   }, [comic?.tomes]);
 
+  useEffect(() => {
+    return () => clearTimeout(toggleTimerRef.current);
+  }, []);
+
   const handleToggleTome = useCallback(
     (tome: Tome, field: "bought" | "downloaded" | "onNas" | "read") => {
       const newValue = !tome[field];
@@ -142,6 +146,10 @@ export default function ComicDetail() {
       setOptimisticTomes((prev) =>
         prev.map((t) => ({ ...t, [field]: targetValue })),
       );
+
+      if (navigator.onLine) {
+        toast.success(`${tomesToUpdate.length} tomes mis à jour`, { duration: 1500 });
+      }
 
       // Fire individual PATCH mutations for tomes that need changing
       for (const tome of tomesToUpdate) {
