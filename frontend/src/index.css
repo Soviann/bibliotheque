@@ -5,6 +5,11 @@
   --bottom-nav-h: 3.5rem;
 }
 
+/* Empêcher le pull-to-refresh natif du navigateur (PWA) */
+body {
+  overscroll-behavior-y: contain;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
