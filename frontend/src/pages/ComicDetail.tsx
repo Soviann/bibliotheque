@@ -1,5 +1,5 @@
 import { ArrowLeft, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
@@ -14,6 +14,39 @@ import { useUpdateTome } from "../hooks/useUpdateTome";
 import { ComicStatus, ComicStatusColor, ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
+
+type BooleanField = "bought" | "downloaded" | "onNas" | "read";
+
+const FIELD_LABELS: Record<BooleanField, string> = {
+  bought: "acheté",
+  downloaded: "téléchargé",
+  onNas: "NAS",
+  read: "lu",
+};
+
+function HeaderCheckbox({ field, onChange, tomes }: { field: BooleanField; onChange: () => void; tomes: Tome[] }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const checkedCount = tomes.filter((t) => t[field]).length;
+  const allChecked = checkedCount === tomes.length;
+  const someChecked = checkedCount > 0 && !allChecked;
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.indeterminate = someChecked;
+    }
+  }, [someChecked]);
+
+  return (
+    <input
+      aria-label={`Tout cocher ${FIELD_LABELS[field]}`}
+      checked={allChecked}
+      className="h-4 w-4 cursor-pointer accent-primary-600"
+      onChange={onChange}
+      ref={ref}
+      type="checkbox"
+    />
+  );
+}
 
 function formatRelativeDate(isoDate: string): string {
   const date = new Date(isoDate);
@@ -83,6 +116,37 @@ export default function ComicDetail() {
       );
     },
     [updateTome],
+  );
+
+  const handleToggleAllTomes = useCallback(
+    (field: "bought" | "downloaded" | "onNas" | "read") => {
+      const allChecked = optimisticTomes.every((t) => t[field]);
+      const targetValue = !allChecked;
+
+      const tomesToUpdate = optimisticTomes.filter((t) => t[field] !== targetValue);
+      if (tomesToUpdate.length === 0) return;
+
+      // Optimistic update: batch all tomes at once
+      setOptimisticTomes((prev) =>
+        prev.map((t) => ({ ...t, [field]: targetValue })),
+      );
+
+      // Fire individual PATCH mutations for tomes that need changing
+      for (const tome of tomesToUpdate) {
+        updateTome.mutate(
+          { id: tome.id, [field]: targetValue },
+          {
+            onError: () => {
+              setOptimisticTomes((prev) =>
+                prev.map((t) => (t.id === tome.id ? { ...t, [field]: tome[field] } : t)),
+              );
+              toast.error("Erreur lors de la mise à jour du tome");
+            },
+          },
+        );
+      }
+    },
+    [optimisticTomes, updateTome],
   );
 
   if (isLoading) {
@@ -243,10 +307,14 @@ export default function ComicDetail() {
                 <tr>
                   <th className="px-4 py-2 text-left font-medium text-text-secondary">#</th>
                   <th className="px-4 py-2 text-left font-medium text-text-secondary">Titre</th>
-                  <th className="px-4 py-2 text-center font-medium text-text-secondary">Acheté</th>
-                  <th className="px-4 py-2 text-center font-medium text-text-secondary">Téléchargé</th>
-                  <th className="px-4 py-2 text-center font-medium text-text-secondary">Lu</th>
-                  <th className="px-4 py-2 text-center font-medium text-text-secondary">NAS</th>
+                  {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
+                    <th className="px-4 py-2 text-center font-medium text-text-secondary" key={field}>
+                      <div className="flex flex-col items-center gap-1">
+                        <span>{field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS"}</span>
+                        <HeaderCheckbox field={field} onChange={() => handleToggleAllTomes(field)} tomes={optimisticTomes} />
+                      </div>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
