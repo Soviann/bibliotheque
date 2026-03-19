@@ -1,4 +1,5 @@
-import { BookOpen, Filter, Heart, Loader2, Search } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { BookOpen, Filter, Heart, Loader2, RefreshCw, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useRestoreComic } from "../hooks/useTrash";
 import type { ComicSeries } from "../types/api";
 import { searchComics } from "../utils/searchComics";
@@ -84,6 +86,12 @@ export default function Home() {
   const { data, isFetching, isLoading } = useComics();
   const deleteComic = useDeleteComic();
   const restoreComic = useRestoreComic();
+  const queryClient = useQueryClient();
+  const handleRefresh = useCallback(
+    () => queryClient.invalidateQueries().then(() => undefined),
+    [queryClient],
+  );
+  const { isRefreshing, pullDistance } = usePullToRefresh({ onRefresh: handleRefresh });
   const allComics = data?.member ?? [];
 
   const handleDelete = useCallback((c: ComicSeries) => {
@@ -128,8 +136,24 @@ export default function Home() {
     );
   }, [setSearchParams]);
 
+  const pullIndicatorHeight = isRefreshing ? 48 : Math.min(pullDistance, 80);
+  const pullProgress = Math.min(pullDistance / 80, 1);
+
   return (
     <div className="space-y-4">
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          aria-label={isRefreshing ? "Actualisation en cours" : "Tirer pour actualiser"}
+          className="flex items-center justify-center overflow-hidden transition-[height] duration-200"
+          data-testid="pull-to-refresh-indicator"
+          style={{ height: pullIndicatorHeight }}
+        >
+          <RefreshCw
+            className={`h-5 w-5 text-primary-500 ${isRefreshing ? "animate-spin" : ""}`}
+            style={{ opacity: pullProgress, transform: `rotate(${pullProgress * 360}deg)` }}
+          />
+        </div>
+      )}
       <h1 className="text-xl font-bold text-text-primary">Ma bibliothèque</h1>
       {/* Search bar + filter button (mobile) + count */}
       <div className="flex items-center gap-2">

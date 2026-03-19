@@ -13,6 +13,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Home** : Pull-to-refresh sur la page d'accueil — geste tactile (tirer vers le bas) pour rafraîchir les données, avec indicateur visuel rotatif et `overscroll-behavior-y: contain` pour éviter le conflit avec le pull-to-refresh natif du navigateur
 - **TomeTable** : Cartes de tomes dépliables sur mobile — vue repliée `#N - Titre` avec chevron, déplier pour éditer (ISBN, checkboxes, supprimer). Les nouveaux tomes sont dépliés par défaut
 - **FilterChips** : Chips de filtre rapide (type + statut) scrollables horizontalement au-dessus de la grille sur la page d'accueil — complètent les dropdowns existants
 - **ComicForm** : Sections repliables (Info générale, Publication, Média) — les champs restent dans le DOM pour que le lookup autofill fonctionne même replié
