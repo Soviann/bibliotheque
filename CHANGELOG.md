@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **ComicDetail** : Actions en masse sur la table des tomes — checkbox dans les en-têtes pour cocher/décocher tous les tomes par colonne (état indeterminate, PATCH optimiste)
 - **CoverSearchModal** : Indicateur de scroll (dégradé) en bas de la grille d'images
 - **EmptyState** : Animation fade-in + slide-up à l'apparition (respecte `prefers-reduced-motion`)
 
