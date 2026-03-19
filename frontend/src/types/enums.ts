@@ -21,6 +21,13 @@ export const ComicStatusLabel: Record<ComicStatus, string> = {
   [ComicStatus.WISHLIST]: "Liste de souhaits",
 };
 
+export const ComicStatusShortLabel: Record<ComicStatus, string> = {
+  [ComicStatus.BUYING]: "En cours",
+  [ComicStatus.FINISHED]: "Terminé",
+  [ComicStatus.STOPPED]: "Arrêté",
+  [ComicStatus.WISHLIST]: "Souhaits",
+};
+
 export const ComicType = {
   BD: "bd",
   COMICS: "comics",
