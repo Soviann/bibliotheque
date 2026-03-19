@@ -116,8 +116,8 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
           <span className="text-xs text-red-500">Max {maxBatchSize} tomes</span>
         )}
       </div>
-      {/* Mobile: collapsible card layout */}
-      <div className="space-y-2 sm:hidden" data-testid="tomes-cards">
+      {/* Mobile/tablet: collapsible card layout */}
+      <div className="space-y-2 md:hidden" data-testid="tomes-cards">
         {form.tomes
           .map((tome, i) => ({ tome, originalIndex: i }))
           .sort((a, b) => compareTomes(a.tome, b.tome))
@@ -251,7 +251,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
       </div>
 
       {/* Desktop: table layout */}
-      <div className="hidden overflow-x-auto rounded-lg border border-surface-border sm:block" data-testid="tomes-table">
+      <div className="hidden overflow-x-auto rounded-lg border border-surface-border md:block" data-testid="tomes-table">
         <table className="w-full text-sm">
           <thead className="bg-surface-tertiary">
             <tr>
