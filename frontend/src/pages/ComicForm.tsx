@@ -1,5 +1,6 @@
 import { ArrowLeft, Image, Loader2 } from "lucide-react";
 import AuthorAutocomplete from "../components/AuthorAutocomplete";
+import CollapsibleSection from "../components/CollapsibleSection";
 import CoverSearchModal from "../components/CoverSearchModal";
 import DatePartialSelect from "../components/DatePartialSelect";
 import LookupSection from "../components/LookupSection";
@@ -135,187 +136,187 @@ export default function ComicForm() {
 
       {/* Form */}
       <form className="space-y-5" onSubmit={handleSubmit}>
-        {/* Title */}
-        <div>
-          <label className={formLabelClassName} htmlFor="title">
-            Titre *
-          </label>
-          <input
-            className={`w-full ${formInputClassName}`}
-            id="title"
-            onChange={(e) => update("title", e.target.value)}
-            required
-            value={form.title}
-          />
-        </div>
-
-        {/* Type + Status */}
-        <div className="grid grid-cols-2 gap-4">
-          <SelectListbox
-            buttonClassName={formListboxButtonClassName}
-            label="Type *"
-            onChange={(v) => update("type", v)}
-            options={typeOptions}
-            value={form.type}
-          />
-          <SelectListbox
-            buttonClassName={formListboxButtonClassName}
-            label="Statut *"
-            onChange={(v) => update("status", v)}
-            options={statusOptions}
-            value={form.status}
-          />
-        </div>
-
-        {/* One-shot toggle */}
-        <label className="flex items-center gap-2">
-          <input
-            checked={form.isOneShot}
-            className={formCheckboxClassName}
-            onChange={(e) => update("isOneShot", e.target.checked)}
-            type="checkbox"
-          />
-          <span className="text-sm font-medium text-text-secondary">One-shot (pas de tomes)</span>
-        </label>
-
-        {/* Publisher */}
-        <div>
-          <label className={formLabelClassName} htmlFor="publisher">
-            Éditeur
-          </label>
-          <input
-            className={`w-full ${formInputClassName}`}
-            id="publisher"
-            onChange={(e) => update("publisher", e.target.value)}
-            value={form.publisher}
-          />
-        </div>
-
-        {/* Published date */}
-        <DatePartialSelect
-          label="Date de parution"
-          onChange={(v) => update("publishedDate", v)}
-          value={form.publishedDate}
-        />
-
-        {/* Cover URL */}
-        <div>
-          <label className={formLabelClassName} htmlFor="coverUrl">
-            URL de couverture
-          </label>
-          <div className="flex gap-2">
-            <input
-              className={`min-w-0 flex-1 ${formInputClassName}`}
-              id="coverUrl"
-              onChange={(e) => update("coverUrl", e.target.value)}
-              placeholder="https://..."
-              type="url"
-              value={form.coverUrl}
-            />
-            <button
-              className="shrink-0 rounded-lg border border-surface-border px-3 py-2 text-sm text-text-secondary hover:bg-surface-tertiary disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!isOnline}
-              onClick={() => setCoverSearchOpen(true)}
-              title="Rechercher une couverture"
-              type="button"
-            >
-              <Image className="h-4 w-4" />
-            </button>
-          </div>
-          {form.coverUrl && (
-            <img alt="Aperçu" className="mt-2 h-32 rounded-lg shadow" src={form.coverUrl} />
-          )}
-        </div>
-        <CoverSearchModal
-          defaultQuery={form.title}
-          onClose={() => setCoverSearchOpen(false)}
-          onSelect={(url) => {
-            update("coverUrl", url);
-            setCoverSearchOpen(false);
-          }}
-          open={coverSearchOpen}
-          type={form.type}
-        />
-
-        {/* Authors */}
-        <AuthorAutocomplete
-          addAuthor={addAuthor}
-          authorOptions={authorOptions}
-          authorSearch={authorSearch}
-          authors={form.authors}
-          removeAuthor={removeAuthor}
-          setAuthorSearch={setAuthorSearch}
-        />
-
-        {/* Description */}
-        <div>
-          <label className={formLabelClassName} htmlFor="description">
-            Description
-          </label>
-          <textarea
-            className={`w-full ${formInputClassName}`}
-            id="description"
-            onChange={(e) => update("description", e.target.value)}
-            rows={3}
-            value={form.description}
-          />
-        </div>
-
-        {/* Latest published issue + publication complete + default flags */}
-        <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+        {/* Info générale */}
+        <CollapsibleSection title="Info générale">
           <div>
-            <label className={formLabelClassName} htmlFor="latestPublishedIssue">
-              Dernier tome paru
+            <label className={formLabelClassName} htmlFor="title">
+              Titre *
             </label>
             <input
-              className={`w-32 ${formInputClassName}`}
-              id="latestPublishedIssue"
-              min="0"
-              onChange={(e) => update("latestPublishedIssue", e.target.value)}
-              type="number"
-              value={form.latestPublishedIssue}
+              className={`w-full ${formInputClassName}`}
+              id="title"
+              onChange={(e) => update("title", e.target.value)}
+              required
+              value={form.title}
             />
           </div>
-          <label className="flex items-center gap-2 pb-2">
+
+          <div className="grid grid-cols-2 gap-4">
+            <SelectListbox
+              buttonClassName={formListboxButtonClassName}
+              label="Type *"
+              onChange={(v) => update("type", v)}
+              options={typeOptions}
+              value={form.type}
+            />
+            <SelectListbox
+              buttonClassName={formListboxButtonClassName}
+              label="Statut *"
+              onChange={(v) => update("status", v)}
+              options={statusOptions}
+              value={form.status}
+            />
+          </div>
+
+          <label className="flex items-center gap-2">
             <input
-              checked={form.latestPublishedIssueComplete}
+              checked={form.isOneShot}
               className={formCheckboxClassName}
-              onChange={(e) => update("latestPublishedIssueComplete", e.target.checked)}
+              onChange={(e) => update("isOneShot", e.target.checked)}
               type="checkbox"
             />
-            <span className="text-sm font-medium text-text-secondary">Parution terminée</span>
+            <span className="text-sm font-medium text-text-secondary">One-shot (pas de tomes)</span>
           </label>
-          <div className="flex items-center gap-4 pb-2">
-            <span className="text-sm font-medium text-text-secondary">Flags par défaut :</span>
-            <label className="flex items-center gap-1.5">
-              <input
-                checked={form.defaultTomeBought}
-                className={formCheckboxClassName}
-                onChange={(e) => update("defaultTomeBought", e.target.checked)}
-                type="checkbox"
-              />
-              <span className="text-sm text-text-secondary">Achetés</span>
+        </CollapsibleSection>
+
+        {/* Publication */}
+        <CollapsibleSection title="Publication">
+          <div>
+            <label className={formLabelClassName} htmlFor="publisher">
+              Éditeur
             </label>
-            <label className="flex items-center gap-1.5">
-              <input
-                checked={form.defaultTomeDownloaded}
-                className={formCheckboxClassName}
-                onChange={(e) => update("defaultTomeDownloaded", e.target.checked)}
-                type="checkbox"
-              />
-              <span className="text-sm text-text-secondary">Téléchargés</span>
-            </label>
-            <label className="flex items-center gap-1.5">
-              <input
-                checked={form.defaultTomeRead}
-                className={formCheckboxClassName}
-                onChange={(e) => update("defaultTomeRead", e.target.checked)}
-                type="checkbox"
-              />
-              <span className="text-sm text-text-secondary">Lus</span>
-            </label>
+            <input
+              className={`w-full ${formInputClassName}`}
+              id="publisher"
+              onChange={(e) => update("publisher", e.target.value)}
+              value={form.publisher}
+            />
           </div>
-        </div>
+
+          <DatePartialSelect
+            label="Date de parution"
+            onChange={(v) => update("publishedDate", v)}
+            value={form.publishedDate}
+          />
+
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+            <div>
+              <label className={formLabelClassName} htmlFor="latestPublishedIssue">
+                Dernier tome paru
+              </label>
+              <input
+                className={`w-32 ${formInputClassName}`}
+                id="latestPublishedIssue"
+                min="0"
+                onChange={(e) => update("latestPublishedIssue", e.target.value)}
+                type="number"
+                value={form.latestPublishedIssue}
+              />
+            </div>
+            <label className="flex items-center gap-2 pb-2">
+              <input
+                checked={form.latestPublishedIssueComplete}
+                className={formCheckboxClassName}
+                onChange={(e) => update("latestPublishedIssueComplete", e.target.checked)}
+                type="checkbox"
+              />
+              <span className="text-sm font-medium text-text-secondary">Parution terminée</span>
+            </label>
+            <div className="flex items-center gap-4 pb-2">
+              <span className="text-sm font-medium text-text-secondary">Flags par défaut :</span>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={form.defaultTomeBought}
+                  className={formCheckboxClassName}
+                  onChange={(e) => update("defaultTomeBought", e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Achetés</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={form.defaultTomeDownloaded}
+                  className={formCheckboxClassName}
+                  onChange={(e) => update("defaultTomeDownloaded", e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Téléchargés</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={form.defaultTomeRead}
+                  className={formCheckboxClassName}
+                  onChange={(e) => update("defaultTomeRead", e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Lus</span>
+              </label>
+            </div>
+          </div>
+        </CollapsibleSection>
+
+        {/* Média */}
+        <CollapsibleSection title="Média">
+          <div>
+            <label className={formLabelClassName} htmlFor="coverUrl">
+              URL de couverture
+            </label>
+            <div className="flex gap-2">
+              <input
+                className={`min-w-0 flex-1 ${formInputClassName}`}
+                id="coverUrl"
+                onChange={(e) => update("coverUrl", e.target.value)}
+                placeholder="https://..."
+                type="url"
+                value={form.coverUrl}
+              />
+              <button
+                className="shrink-0 rounded-lg border border-surface-border px-3 py-2 text-sm text-text-secondary hover:bg-surface-tertiary disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!isOnline}
+                onClick={() => setCoverSearchOpen(true)}
+                title="Rechercher une couverture"
+                type="button"
+              >
+                <Image className="h-4 w-4" />
+              </button>
+            </div>
+            {form.coverUrl && (
+              <img alt="Aperçu" className="mt-2 h-32 rounded-lg shadow" src={form.coverUrl} />
+            )}
+          </div>
+          <CoverSearchModal
+            defaultQuery={form.title}
+            onClose={() => setCoverSearchOpen(false)}
+            onSelect={(url) => {
+              update("coverUrl", url);
+              setCoverSearchOpen(false);
+            }}
+            open={coverSearchOpen}
+            type={form.type}
+          />
+
+          <AuthorAutocomplete
+            addAuthor={addAuthor}
+            authorOptions={authorOptions}
+            authorSearch={authorSearch}
+            authors={form.authors}
+            removeAuthor={removeAuthor}
+            setAuthorSearch={setAuthorSearch}
+          />
+
+          <div>
+            <label className={formLabelClassName} htmlFor="description">
+              Description
+            </label>
+            <textarea
+              className={`w-full ${formInputClassName}`}
+              id="description"
+              onChange={(e) => update("description", e.target.value)}
+              rows={3}
+              value={form.description}
+            />
+          </div>
+        </CollapsibleSection>
 
         {/* Tomes */}
         {!form.isOneShot && (

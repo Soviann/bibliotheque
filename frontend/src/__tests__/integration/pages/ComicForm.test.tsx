@@ -1648,6 +1648,108 @@ describe("ComicForm", () => {
     });
   });
 
+  describe("Collapsible sections", () => {
+    it("renders section headers for all four groups", () => {
+      renderCreateForm();
+
+      expect(screen.getByRole("button", { name: /Info générale/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Publication/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Média/ })).toBeInTheDocument();
+    });
+
+    it("sections are expanded by default", () => {
+      renderCreateForm();
+
+      // Fields in each section should be visible
+      expect(screen.getByLabelText("Titre *")).toBeVisible();
+      expect(screen.getByLabelText("Éditeur")).toBeVisible();
+      expect(screen.getByLabelText("URL de couverture")).toBeVisible();
+    });
+
+    it("collapses a section when clicking its header", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      const publicationHeader = screen.getByRole("button", { name: /Publication/ });
+      await user.click(publicationHeader);
+
+      // Publisher field should be hidden but still in DOM
+      const publisherInput = screen.getByLabelText("Éditeur");
+      expect(publisherInput).not.toBeVisible();
+    });
+
+    it("keeps collapsed section fields in DOM for lookup autofill", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      // Collapse all sections
+      await user.click(screen.getByRole("button", { name: /Publication/ }));
+      await user.click(screen.getByRole("button", { name: /Média/ }));
+
+      // Fields should still be in the DOM (unmount={false})
+      expect(screen.getByLabelText("Éditeur")).toBeInTheDocument();
+      expect(screen.getByLabelText("URL de couverture")).toBeInTheDocument();
+      expect(screen.getByLabelText("Description")).toBeInTheDocument();
+    });
+
+    it("lookup autofill fills fields in collapsed sections", async () => {
+      const user = userEvent.setup();
+
+      const lookupResult = createMockLookupResult({
+        authors: "Test Author",
+        description: "A great description",
+        publisher: "TestPub",
+        thumbnail: "https://example.com/cover.jpg",
+        title: "Lookup Title",
+      });
+
+      server.use(mockTitleLookup(lookupResult));
+
+      renderCreateForm();
+
+      // Collapse Publication and Média sections
+      await user.click(screen.getByRole("button", { name: /Publication/ }));
+      await user.click(screen.getByRole("button", { name: /Média/ }));
+
+      // Perform lookup
+      const lookupInput = screen.getByPlaceholderText("Titre de la série");
+      await user.type(lookupInput, "Lookup Title");
+
+      await waitFor(() => {
+        expect(screen.getByText("Lookup Title")).toBeInTheDocument();
+      });
+      await user.click(screen.getByText("Lookup Title"));
+
+      await waitFor(() => {
+        expect(screen.getByText("Appliquer")).toBeInTheDocument();
+      });
+      await user.click(screen.getByText("Appliquer"));
+
+      // Fields in collapsed sections should still be filled
+      await waitFor(() => {
+        expect(screen.getByLabelText("Titre *")).toHaveValue("Lookup Title");
+      });
+      expect(screen.getByLabelText("Éditeur")).toHaveValue("TestPub");
+      expect(screen.getByLabelText("Description")).toHaveValue("A great description");
+      expect(screen.getByLabelText("URL de couverture")).toHaveValue("https://example.com/cover.jpg");
+    });
+
+    it("expands a collapsed section when clicking its header again", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      const publicationHeader = screen.getByRole("button", { name: /Publication/ });
+
+      // Collapse
+      await user.click(publicationHeader);
+      expect(screen.getByLabelText("Éditeur")).not.toBeVisible();
+
+      // Expand
+      await user.click(publicationHeader);
+      expect(screen.getByLabelText("Éditeur")).toBeVisible();
+    });
+  });
+
   describe("Navigation", () => {
     it("navigates back when clicking the back arrow", async () => {
       const user = userEvent.setup();
