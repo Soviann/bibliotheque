@@ -107,7 +107,7 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
               {/* Mobile: simple button → CardActionBar */}
               <button
                 aria-label="Actions"
-                className="shrink-0 rounded-lg p-1 text-text-muted hover:bg-surface-tertiary lg:hidden"
+                className="shrink-0 rounded-lg p-2.5 text-text-muted hover:bg-surface-tertiary lg:hidden"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -123,7 +123,7 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
               <Menu as="div" className="relative hidden shrink-0 lg:block">
                 <MenuButton
                   aria-label="Actions"
-                  className="rounded-lg p-1 text-text-muted hover:bg-surface-tertiary"
+                  className="rounded-lg p-2.5 text-text-muted hover:bg-surface-tertiary"
                   onClick={(e: React.MouseEvent) => {
                     e.preventDefault();
                     e.stopPropagation();

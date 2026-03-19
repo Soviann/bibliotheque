@@ -17,6 +17,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **ComicCard / ComicDetail / ComicForm** : Cibles tactiles augmentées à 44px minimum (menu 3-dot, flèche retour) pour conformité accessibilité mobile
 - **ComicDetail** : Réordonne la barre d'actions (Modifier → Amazon → Supprimer) et passe le bouton Supprimer en style outline rouge
 - **ComicDetail / Home** : Toast undo (5s) au lieu de modale de confirmation pour la suppression — permet d'annuler via le bouton « Annuler »
 - **ComicDetail** : Toasts de toggle de tomes regroupés — attend 1s après le dernier toggle, affiche un seul « N tomes mis à jour »
