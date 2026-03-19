@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import CoverSearchModal from "../../../components/CoverSearchModal";
@@ -129,5 +129,32 @@ describe("CoverSearchModal", () => {
     await user.click(closeButton);
 
     expect(defaultProps.onClose).toHaveBeenCalledOnce();
+  });
+
+  it("shows scroll indicator when content overflows", async () => {
+    server.use(
+      http.get("/api/lookup/covers", () => HttpResponse.json(mockResults)),
+    );
+
+    renderWithProviders(<CoverSearchModal {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByAltText("Naruto Vol. 1")).toBeInTheDocument();
+    });
+
+    // Simulate overflow: scrollHeight > clientHeight
+    const scrollContainer = screen.getByAltText("Naruto Vol. 1").closest(".overflow-y-auto")!;
+    Object.defineProperty(scrollContainer, "scrollHeight", { value: 800, configurable: true });
+    Object.defineProperty(scrollContainer, "clientHeight", { value: 400, configurable: true });
+    Object.defineProperty(scrollContainer, "scrollTop", { value: 0, configurable: true });
+
+    // Trigger scroll event to update state
+    act(() => {
+      scrollContainer.dispatchEvent(new Event("scroll"));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("scroll-indicator")).toBeInTheDocument();
+    });
   });
 });

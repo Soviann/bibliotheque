@@ -21,7 +21,7 @@ export default function EmptyState({
   const ctaClassName = "mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700";
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
+    <div className="flex animate-fade-in-up flex-col items-center justify-center py-16 text-center motion-reduce:animate-none">
       <Icon
         className="mb-4 h-16 w-16 text-text-muted/40"
         data-testid="empty-state-icon"
