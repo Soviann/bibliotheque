@@ -1648,6 +1648,38 @@ describe("ComicForm", () => {
     });
   });
 
+  describe("Default tome flags", () => {
+    it("renders flags with label 'État par défaut des nouveaux tomes'", () => {
+      renderCreateForm();
+
+      expect(screen.getByText("État par défaut des nouveaux tomes")).toBeInTheDocument();
+      expect(screen.queryByText("Flags par défaut :")).not.toBeInTheDocument();
+    });
+
+    it("keeps default flags visible when Publication section is collapsed", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      // Collapse Publication section
+      await user.click(screen.getByRole("button", { name: /Publication/ }));
+
+      // Flags should still be visible (they are outside Publication)
+      expect(screen.getByText("État par défaut des nouveaux tomes")).toBeVisible();
+    });
+
+    it("hides default flags when oneshot is checked", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      expect(screen.getByText("État par défaut des nouveaux tomes")).toBeInTheDocument();
+
+      const checkbox = screen.getByRole("checkbox", { name: /One-shot/ });
+      await user.click(checkbox);
+
+      expect(screen.queryByText("État par défaut des nouveaux tomes")).not.toBeInTheDocument();
+    });
+  });
+
   describe("Collapsible sections", () => {
     it("renders section headers for all four groups", () => {
       renderCreateForm();

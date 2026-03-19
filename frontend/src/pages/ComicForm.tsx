@@ -222,36 +222,6 @@ export default function ComicForm() {
               />
               <span className="text-sm font-medium text-text-secondary">Parution terminée</span>
             </label>
-            <div className="flex items-center gap-4 pb-2">
-              <span className="text-sm font-medium text-text-secondary">Flags par défaut :</span>
-              <label className="flex items-center gap-1.5">
-                <input
-                  checked={form.defaultTomeBought}
-                  className={formCheckboxClassName}
-                  onChange={(e) => update("defaultTomeBought", e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-sm text-text-secondary">Achetés</span>
-              </label>
-              <label className="flex items-center gap-1.5">
-                <input
-                  checked={form.defaultTomeDownloaded}
-                  className={formCheckboxClassName}
-                  onChange={(e) => update("defaultTomeDownloaded", e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-sm text-text-secondary">Téléchargés</span>
-              </label>
-              <label className="flex items-center gap-1.5">
-                <input
-                  checked={form.defaultTomeRead}
-                  className={formCheckboxClassName}
-                  onChange={(e) => update("defaultTomeRead", e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-sm text-text-secondary">Lus</span>
-              </label>
-            </div>
           </div>
         </CollapsibleSection>
 
@@ -320,10 +290,42 @@ export default function ComicForm() {
 
         {/* Tomes */}
         {!form.isOneShot && (
-          <TomeTable
-            form={form}
-            tomeManager={tomeManager}
-          />
+          <>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium text-text-secondary">État par défaut des nouveaux tomes</span>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={form.defaultTomeBought}
+                  className={formCheckboxClassName}
+                  onChange={(e) => update("defaultTomeBought", e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Achetés</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={form.defaultTomeDownloaded}
+                  className={formCheckboxClassName}
+                  onChange={(e) => update("defaultTomeDownloaded", e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Téléchargés</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  checked={form.defaultTomeRead}
+                  className={formCheckboxClassName}
+                  onChange={(e) => update("defaultTomeRead", e.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-sm text-text-secondary">Lus</span>
+              </label>
+            </div>
+            <TomeTable
+              form={form}
+              tomeManager={tomeManager}
+            />
+          </>
         )}
       </form>
 
