@@ -64,12 +64,14 @@ logs/
 ###> local ###
 .DS_Store
 .claude/
+.superpowers/
 .worktrees/
 docs/plans/
 .ddev/share-providers/
 .phpunit.cache/
 .playwright-mcp/
 assets/
+backend/phpstan-baseline-new.neon
 public/
 test-results/
 var/
