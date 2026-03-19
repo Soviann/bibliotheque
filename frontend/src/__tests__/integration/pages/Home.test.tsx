@@ -254,7 +254,7 @@ describe("Home", () => {
     expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
   });
 
-  it("shows delete confirmation and fires API call", async () => {
+  it("immediately deletes when clicking delete from menu", async () => {
     const user = userEvent.setup();
     let deleteCalled = false;
 
@@ -282,15 +282,8 @@ describe("Home", () => {
     const menuButtons = screen.getAllByTitle("Actions");
     await user.click(menuButtons[menuButtons.length - 1]);
 
-    // Click "Supprimer" in the dropdown
+    // Click "Supprimer" in the dropdown — no confirmation modal
     await user.click(screen.getByText("Supprimer"));
-
-    // Confirm modal should appear
-    expect(screen.getByText(/Supprimer Delete Me/)).toBeInTheDocument();
-
-    // Click the confirm button in the modal
-    const confirmButton = screen.getByRole("button", { name: "Supprimer" });
-    await user.click(confirmButton);
 
     await waitFor(() => {
       expect(deleteCalled).toBe(true);
@@ -323,7 +316,7 @@ describe("Home", () => {
     expect(screen.queryByText("Finished Comic")).not.toBeInTheDocument();
   });
 
-  it("shows success toast after delete confirmation", async () => {
+  it("shows undo toast after delete from menu", async () => {
     const user = userEvent.setup();
 
     const comics = [
@@ -352,12 +345,11 @@ describe("Home", () => {
     // Click "Supprimer" in the dropdown
     await user.click(screen.getByText("Supprimer"));
 
-    // Click the confirm button in the modal
-    const confirmButton = screen.getByRole("button", { name: "Supprimer" });
-    await user.click(confirmButton);
-
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Toast Delete supprimée");
+      expect(toast.success).toHaveBeenCalledWith(
+        "Toast Delete supprimée",
+        expect.objectContaining({ action: expect.objectContaining({ label: "Annuler" }) }),
+      );
     });
   });
 

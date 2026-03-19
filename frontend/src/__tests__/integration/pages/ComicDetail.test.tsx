@@ -241,13 +241,18 @@ describe("ComicDetail", () => {
     expect(editLink).toHaveAttribute("href", "/comic/1/edit");
   });
 
-  it("shows confirm modal when delete is clicked", async () => {
+  it("immediately deletes and shows undo toast when clicking delete", async () => {
     const user = userEvent.setup();
+    let deleteCalled = false;
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(createMockComicSeries({ id: 1, title: "Test" })),
       ),
+      http.delete("/api/comic_series/1", () => {
+        deleteCalled = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
     );
 
     renderComicDetail();
@@ -258,7 +263,12 @@ describe("ComicDetail", () => {
 
     await user.click(screen.getByText("Supprimer"));
 
-    expect(screen.getByText("Supprimer cette série ?")).toBeInTheDocument();
+    // No confirmation modal — direct delete
+    expect(screen.queryByText("Supprimer cette série ?")).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(deleteCalled).toBe(true);
+    });
   });
 
   it("renders cover image", async () => {
@@ -282,18 +292,16 @@ describe("ComicDetail", () => {
     });
   });
 
-  it("fires DELETE request and navigates to / when confirming delete", async () => {
+  it("navigates to / after clicking delete", async () => {
     const user = userEvent.setup();
-    let deleteCalled = false;
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(createMockComicSeries({ id: 1, title: "To Delete" })),
       ),
-      http.delete("/api/comic_series/1", () => {
-        deleteCalled = true;
-        return new HttpResponse(null, { status: 204 });
-      }),
+      http.delete("/api/comic_series/1", () =>
+        new HttpResponse(null, { status: 204 }),
+      ),
     );
 
     renderComicDetail();
@@ -302,19 +310,9 @@ describe("ComicDetail", () => {
       expect(screen.getByText("To Delete")).toBeInTheDocument();
     });
 
-    // Click Supprimer to open modal
     await user.click(screen.getByText("Supprimer"));
 
-    // Confirm button in modal has confirmLabel "Supprimer"
-    const confirmButton = screen.getByText("Supprimer cette série ?").closest("[role='dialog']")?.querySelector("button.bg-red-600");
-    expect(confirmButton).toBeInTheDocument();
-    await user.click(confirmButton!);
-
-    await waitFor(() => {
-      expect(deleteCalled).toBe(true);
-    });
-
-    // After success, navigates to /
+    // After delete, navigates to /
     await waitFor(() => {
       expect(screen.getByText("Home Page")).toBeInTheDocument();
     });
@@ -968,6 +966,59 @@ describe("ComicDetail", () => {
     expect(buttons[2]).toHaveTextContent("Supprimer");
   });
 
+  it("opens lightbox when clicking on cover image", async () => {
+    const user = userEvent.setup();
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            coverUrl: "https://example.com/cover.jpg",
+            id: 1,
+            title: "Lightbox Test",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByAltText("Lightbox Test")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByAltText("Lightbox Test"));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("does not open lightbox when clicking on placeholder cover", async () => {
+    const user = userEvent.setup();
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({
+            coverImage: null,
+            coverUrl: null,
+            id: 1,
+            title: "No Cover Lightbox",
+          }),
+        ),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByAltText("No Cover Lightbox")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByAltText("No Cover Lightbox"));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("renders delete button with outline/ghost red style instead of solid red", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
@@ -987,7 +1038,7 @@ describe("ComicDetail", () => {
     expect(deleteButton.className).toContain("text-red-600");
   });
 
-  it("shows success toast after delete confirmation", async () => {
+  it("shows undo toast after delete", async () => {
     const user = userEvent.setup();
 
     server.use(
@@ -1007,11 +1058,11 @@ describe("ComicDetail", () => {
 
     await user.click(screen.getByText("Supprimer"));
 
-    const confirmButton = screen.getByText("Supprimer cette série ?").closest("[role='dialog']")?.querySelector("button.bg-red-600");
-    await user.click(confirmButton!);
-
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Série supprimée");
+      expect(toast.success).toHaveBeenCalledWith(
+        "Série supprimée",
+        expect.objectContaining({ action: expect.objectContaining({ label: "Annuler" }) }),
+      );
     });
   });
 });
