@@ -15,6 +15,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 - **ComicDetail** : Lightbox plein écran au clic sur la couverture (ne s'active pas sur les placeholders)
 - **CoverSearchModal** : Indicateur de scroll (dégradé) en bas de la grille d'images
 - **EmptyState** : Animation fade-in + slide-up à l'apparition (respecte `prefers-reduced-motion`)
+- **ComicForm** : Flags par défaut des tomes déplacés près de la section Tomes et relabellés « État par défaut des nouveaux tomes » — masqués quand one-shot est coché
 
 ### Changed
 
