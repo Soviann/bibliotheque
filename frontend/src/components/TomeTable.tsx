@@ -1,4 +1,5 @@
-import { Layers, Loader2, Plus, Search, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ChevronRight, Layers, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { compareTomes } from "../hooks/useComicForm";
 import type { FormData } from "../hooks/useComicForm";
 import type { TomeManager } from "../hooks/useTomeManagement";
@@ -9,7 +10,47 @@ interface TomeTableProps {
   tomeManager: TomeManager;
 }
 
+/** Stable key: saved tomes use DB id, unsaved tomes use their array index. */
+function tomeKey(tome: FormData["tomes"][number], index: number): string {
+  return tome.id ? `s${tome.id}` : `n${index}`;
+}
+
 export default function TomeTable({ form, tomeManager }: TomeTableProps) {
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    form.tomes.forEach((tome, i) => {
+      if (!tome.id) initial.add(tomeKey(tome, i));
+    });
+    return initial;
+  });
+
+  // Auto-expand newly added unsaved tomes
+  const prevTomesLenRef = useRef(form.tomes.length);
+  useEffect(() => {
+    if (form.tomes.length > prevTomesLenRef.current) {
+      setExpandedCards((prev) => {
+        const next = new Set(prev);
+        form.tomes.forEach((tome, i) => {
+          if (!tome.id) next.add(tomeKey(tome, i));
+        });
+        return next;
+      });
+    }
+    prevTomesLenRef.current = form.tomes.length;
+  }, [form.tomes.length]);
+
+  const toggleCard = (key: string) => {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
   const {
     addBatchTomes,
     addTome,
@@ -75,117 +116,138 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
           <span className="text-xs text-red-500">Max {maxBatchSize} tomes</span>
         )}
       </div>
-      {/* Mobile: card layout */}
-      <div className="space-y-3 sm:hidden" data-testid="tomes-cards">
+      {/* Mobile: collapsible card layout */}
+      <div className="space-y-2 sm:hidden" data-testid="tomes-cards">
         {form.tomes
           .map((tome, i) => ({ tome, originalIndex: i }))
           .sort((a, b) => compareTomes(a.tome, b.tome))
-          .map(({ tome, originalIndex: i }) => (
-          <div className={`rounded-lg border p-3 space-y-2 ${tome.id ? "border-surface-border bg-surface-primary" : "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30"}`} key={i}>
-            <div className="flex items-center gap-2">
-              {!tome.id && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Nouveau</span>}
-              <label className="flex items-center gap-1 text-xs font-medium text-text-muted">
-                <input
-                  checked={tome.isHorsSerie}
-                  className="h-3.5 w-3.5 rounded border-surface-border text-amber-600"
-                  onChange={(e) => updateTome(i, "isHorsSerie", e.target.checked)}
-                  type="checkbox"
-                />
-                HS
-              </label>
-              <input
-                aria-label="Numéro"
-                className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm font-medium text-text-primary"
-                min="0"
-                onChange={(e) => updateTome(i, "number", Number(e.target.value))}
-                type="number"
-                value={tome.number}
-              />
-              <input
-                aria-label="Fin"
-                className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm text-text-primary"
-                min="0"
-                onChange={(e) => updateTome(i, "tomeEnd", e.target.value)}
-                placeholder="Fin"
-                type="number"
-                value={tome.tomeEnd}
-              />
-              <input
-                aria-label="Titre"
-                className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
-                onChange={(e) => updateTome(i, "title", e.target.value)}
-                placeholder="Titre"
-                value={tome.title}
-              />
+          .map(({ tome, originalIndex: i }) => {
+            const key = tomeKey(tome, i);
+            const isExpanded = expandedCards.has(key);
+            const summary = tome.title ? `#${tome.number} - ${tome.title}` : `#${tome.number}`;
+            return (
+            <div className={`rounded-lg border ${tome.id ? "border-surface-border bg-surface-primary" : "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30"}`} key={i}>
               <button
-                aria-label={`Supprimer tome ${tome.number}`}
-                className="shrink-0 rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
-                onClick={() => removeTome(i)}
+                aria-expanded={isExpanded}
+                className="flex w-full items-center gap-2 px-3 py-3 text-left"
+                data-testid={`tome-header-${i}`}
+                onClick={() => toggleCard(key)}
                 type="button"
               >
-                <Trash2 className="h-4 w-4" />
+                {isExpanded
+                  ? <ChevronDown className="h-4 w-4 shrink-0 text-text-muted" />
+                  : <ChevronRight className="h-4 w-4 shrink-0 text-text-muted" />}
+                {!tome.id && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Nouveau</span>}
+                <span className="flex-1 truncate text-sm font-medium text-text-primary">{summary}</span>
               </button>
+              {isExpanded && (
+                <div className="space-y-2 px-3 pb-3">
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1 text-xs font-medium text-text-muted">
+                      <input
+                        checked={tome.isHorsSerie}
+                        className="h-3.5 w-3.5 rounded border-surface-border text-amber-600"
+                        onChange={(e) => updateTome(i, "isHorsSerie", e.target.checked)}
+                        type="checkbox"
+                      />
+                      HS
+                    </label>
+                    <input
+                      aria-label="Numéro"
+                      className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm font-medium text-text-primary"
+                      min="0"
+                      onChange={(e) => updateTome(i, "number", Number(e.target.value))}
+                      type="number"
+                      value={tome.number}
+                    />
+                    <input
+                      aria-label="Fin"
+                      className="w-14 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-center text-sm text-text-primary"
+                      min="0"
+                      onChange={(e) => updateTome(i, "tomeEnd", e.target.value)}
+                      placeholder="Fin"
+                      type="number"
+                      value={tome.tomeEnd}
+                    />
+                    <input
+                      aria-label="Titre"
+                      className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
+                      onChange={(e) => updateTome(i, "title", e.target.value)}
+                      placeholder="Titre"
+                      value={tome.title}
+                    />
+                    <button
+                      aria-label={`Supprimer tome ${tome.number}`}
+                      className="shrink-0 rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+                      onClick={() => removeTome(i)}
+                      type="button"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <input
+                      aria-label="ISBN"
+                      className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
+                      onChange={(e) => updateTome(i, "isbn", e.target.value)}
+                      placeholder="ISBN"
+                      value={tome.isbn}
+                    />
+                    <button
+                      className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
+                      disabled={tome.isbn.length < 10 || tomeLookupLoading === i}
+                      onClick={() => lookupTomeIsbn(i)}
+                      title="Rechercher par ISBN"
+                      type="button"
+                    >
+                      {tomeLookupLoading === i
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <Search className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.bought}
+                        className={formCheckboxClassName}
+                        onChange={(e) => updateTome(i, "bought", e.target.checked)}
+                        type="checkbox"
+                      />
+                      Acheté
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.downloaded}
+                        className={formCheckboxClassName}
+                        onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
+                        type="checkbox"
+                      />
+                      DL
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.read}
+                        className={formCheckboxClassName}
+                        onChange={(e) => updateTome(i, "read", e.target.checked)}
+                        type="checkbox"
+                      />
+                      Lu
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        checked={tome.onNas}
+                        className={formCheckboxClassName}
+                        onChange={(e) => updateTome(i, "onNas", e.target.checked)}
+                        type="checkbox"
+                      />
+                      NAS
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-1">
-              <input
-                aria-label="ISBN"
-                className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
-                onChange={(e) => updateTome(i, "isbn", e.target.value)}
-                placeholder="ISBN"
-                value={tome.isbn}
-              />
-              <button
-                className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
-                disabled={tome.isbn.length < 10 || tomeLookupLoading === i}
-                onClick={() => lookupTomeIsbn(i)}
-                title="Rechercher par ISBN"
-                type="button"
-              >
-                {tomeLookupLoading === i
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <Search className="h-4 w-4" />}
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <label className="flex items-center gap-2 text-sm text-text-secondary">
-                <input
-                  checked={tome.bought}
-                  className={formCheckboxClassName}
-                  onChange={(e) => updateTome(i, "bought", e.target.checked)}
-                  type="checkbox"
-                />
-                Acheté
-              </label>
-              <label className="flex items-center gap-2 text-sm text-text-secondary">
-                <input
-                  checked={tome.downloaded}
-                  className={formCheckboxClassName}
-                  onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
-                  type="checkbox"
-                />
-                DL
-              </label>
-              <label className="flex items-center gap-2 text-sm text-text-secondary">
-                <input
-                  checked={tome.read}
-                  className={formCheckboxClassName}
-                  onChange={(e) => updateTome(i, "read", e.target.checked)}
-                  type="checkbox"
-                />
-                Lu
-              </label>
-              <label className="flex items-center gap-2 text-sm text-text-secondary">
-                <input
-                  checked={tome.onNas}
-                  className={formCheckboxClassName}
-                  onChange={(e) => updateTome(i, "onNas", e.target.checked)}
-                  type="checkbox"
-                />
-                NAS
-              </label>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Desktop: table layout */}

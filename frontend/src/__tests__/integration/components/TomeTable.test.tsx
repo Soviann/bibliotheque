@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import TomeTable from "../../../components/TomeTable";
 import type { FormData } from "../../../hooks/useComicForm";
 import type { TomeManager } from "../../../hooks/useTomeManagement";
@@ -60,7 +61,8 @@ describe("TomeTable", () => {
     expect(generateButton).toHaveAttribute("title", "Maximum 100 tomes à la fois");
   });
 
-  it("adds aria-labels on mobile card inputs", () => {
+  it("adds aria-labels on mobile card inputs when expanded", async () => {
+    const user = userEvent.setup();
     const tomeManager = createMockTomeManager();
     const form = createMockForm({
       tomes: [
@@ -79,10 +81,14 @@ describe("TomeTable", () => {
       ],
     });
 
-    // Simulate mobile by checking the cards container
     renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
 
     const cards = screen.getByTestId("tomes-cards");
+
+    // Expand the card first (saved tomes are collapsed by default)
+    const header = cards.querySelector("[data-testid='tome-header-0']")!;
+    await user.click(header);
+
     const numberInput = cards.querySelector("input[type='number'][aria-label='Numéro']");
     expect(numberInput).toBeInTheDocument();
 
@@ -133,6 +139,153 @@ describe("TomeTable", () => {
     // Desktop delete button should have aria-label
     const deleteButton = table.querySelector("button[aria-label]");
     expect(deleteButton).toHaveAttribute("aria-label", "Supprimer tome 1");
+  });
+
+  it("renders mobile cards collapsed by default with tome summary", () => {
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: true,
+          downloaded: false,
+          id: 1,
+          isbn: "978-2-1234-5678-0",
+          isHorsSerie: false,
+          number: 3,
+          onNas: false,
+          read: false,
+          title: "Le Grand Voyage",
+          tomeEnd: "",
+        },
+        {
+          bought: false,
+          downloaded: false,
+          id: 2,
+          isbn: "",
+          isHorsSerie: false,
+          number: 4,
+          onNas: false,
+          read: false,
+          title: "",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const cards = screen.getByTestId("tomes-cards");
+
+    // Collapsed cards show summary text
+    expect(cards).toHaveTextContent("#3 - Le Grand Voyage");
+    expect(cards).toHaveTextContent("#4");
+
+    // Edit fields should be hidden when collapsed
+    const isbnInputs = cards.querySelectorAll("input[aria-label='ISBN']");
+    expect(isbnInputs).toHaveLength(0);
+
+    // Checkboxes should be hidden when collapsed
+    const checkboxes = cards.querySelectorAll("input[type='checkbox']");
+    expect(checkboxes).toHaveLength(0);
+  });
+
+  it("expands a mobile card when clicking the header", async () => {
+    const user = userEvent.setup();
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: true,
+          downloaded: false,
+          id: 1,
+          isbn: "978-2-1234-5678-0",
+          isHorsSerie: false,
+          number: 3,
+          onNas: false,
+          read: false,
+          title: "Le Grand Voyage",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const cards = screen.getByTestId("tomes-cards");
+
+    // Click the collapsed card header to expand
+    const header = cards.querySelector("[data-testid='tome-header-0']")!;
+    await user.click(header);
+
+    // Now edit fields should be visible
+    const isbnInput = cards.querySelector("input[aria-label='ISBN']");
+    expect(isbnInput).toBeInTheDocument();
+
+    // Checkboxes should be visible
+    const boughtCheckbox = cards.querySelector("input[type='checkbox']");
+    expect(boughtCheckbox).toBeInTheDocument();
+  });
+
+  it("collapses an expanded mobile card when clicking the header again", async () => {
+    const user = userEvent.setup();
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          downloaded: false,
+          id: 1,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "Test",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const cards = screen.getByTestId("tomes-cards");
+    const header = cards.querySelector("[data-testid='tome-header-0']")!;
+
+    // Expand
+    await user.click(header);
+    expect(cards.querySelector("input[aria-label='ISBN']")).toBeInTheDocument();
+
+    // Collapse
+    await user.click(header);
+    expect(cards.querySelector("input[aria-label='ISBN']")).not.toBeInTheDocument();
+  });
+
+  it("auto-expands new (unsaved) tome cards on mobile", () => {
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          downloaded: false,
+          id: undefined,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const cards = screen.getByTestId("tomes-cards");
+
+    // New tome should be expanded by default — edit fields visible
+    const isbnInput = cards.querySelector("input[aria-label='ISBN']");
+    expect(isbnInput).toBeInTheDocument();
   });
 
   it("does not show tooltip when batch is within limit", () => {
