@@ -11,12 +11,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **ComicForm** : Sections repliables (Info générale, Publication, Média) — les champs restent dans le DOM pour que le lookup autofill fonctionne même replié
 - **ComicDetail** : Actions en masse sur la table des tomes — checkbox dans les en-têtes pour cocher/décocher tous les tomes par colonne (état indeterminate, PATCH optimiste)
+- **ComicDetail** : Lightbox plein écran au clic sur la couverture (ne s'active pas sur les placeholders)
 - **CoverSearchModal** : Indicateur de scroll (dégradé) en bas de la grille d'images
 - **EmptyState** : Animation fade-in + slide-up à l'apparition (respecte `prefers-reduced-motion`)
 
 ### Changed
 
 - **ComicDetail** : Réordonne la barre d'actions (Modifier → Amazon → Supprimer) et passe le bouton Supprimer en style outline rouge
+- **ComicDetail / Home** : Toast undo (5s) au lieu de modale de confirmation pour la suppression — permet d'annuler via le bouton « Annuler »
+- **ComicDetail** : Toasts de toggle de tomes regroupés — attend 1s après le dernier toggle, affiche un seul « N tomes mis à jour »
 - **ComicDetail** : Badges de statut colorés (bleu En cours, vert Terminé, orange Arrêté, violet Wishlist) au lieu du gris uniforme
 - **Layout** : Séparateur visuel avant le bouton Déconnexion dans le header
 - **Tools** : Uniformise la taille du titre de page (`text-xl` comme les autres pages)

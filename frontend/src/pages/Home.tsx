@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import CardActionBar from "../components/CardActionBar";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
-import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import Filters from "../components/Filters";
 import VirtualGrid from "../components/VirtualGrid";
@@ -13,6 +12,7 @@ import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { useRestoreComic } from "../hooks/useTrash";
 import type { ComicSeries } from "../types/api";
 import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
@@ -38,7 +38,6 @@ export default function Home() {
   const navigate = useNavigate();
   const [search, setSearch] = useState(searchParam);
   const debouncedSearch = useDebounce(search, 300);
-  const [deleteTarget, setDeleteTarget] = useState<ComicSeries | null>(null);
   const [menuComic, setMenuComic] = useState<ComicSeries | null>(null);
 
   useEffect(() => {
@@ -71,10 +70,6 @@ export default function Home() {
   );
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
   const handleMenuClose = useCallback(() => setMenuComic(null), []);
-  const handleMenuDelete = useCallback((c: ComicSeries) => {
-    setMenuComic(null);
-    setDeleteTarget(c);
-  }, []);
   const handleMenuEdit = useCallback((c: ComicSeries) => {
     setMenuComic(null);
     navigate(`/comic/${c.id}/edit`, { viewTransition: true });
@@ -87,7 +82,28 @@ export default function Home() {
   const isMobile = useMediaQuery("(max-width: 639px)");
   const { data, isFetching, isLoading } = useComics();
   const deleteComic = useDeleteComic();
+  const restoreComic = useRestoreComic();
   const allComics = data?.member ?? [];
+
+  const handleDelete = useCallback((c: ComicSeries) => {
+    deleteComic.mutate({ id: c.id }, {
+      onError: () => toast.error(`Erreur lors de la suppression de ${c.title}`),
+      onSuccess: () => {
+        toast.success(`${c.title} supprimée`, {
+          action: {
+            label: "Annuler",
+            onClick: () => restoreComic.mutate({ id: c.id }),
+          },
+          duration: 5000,
+        });
+      },
+    });
+  }, [deleteComic, restoreComic]);
+
+  const handleMenuDelete = useCallback((c: ComicSeries) => {
+    setMenuComic(null);
+    handleDelete(c);
+  }, [handleDelete]);
 
   const filtered = useMemo(() => {
     const preFiltered = allComics.filter((c) => {
@@ -199,7 +215,7 @@ export default function Home() {
         <VirtualGrid
           items={filtered}
           renderItem={(comic) => (
-            <ComicCard comic={comic} onDelete={setDeleteTarget} onMenuOpen={setMenuComic} />
+            <ComicCard comic={comic} onDelete={handleDelete} onMenuOpen={setMenuComic} />
           )}
           testId="comics-grid"
         />
@@ -212,21 +228,6 @@ export default function Home() {
         onEdit={handleMenuEdit}
       />
 
-      <ConfirmModal
-        confirmLabel="Supprimer"
-        description="Cette série sera déplacée vers la corbeille."
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
-          if (deleteTarget) {
-            deleteComic.mutate({ id: deleteTarget.id }, {
-              onError: () => toast.error(`Erreur lors de la suppression de ${deleteTarget.title}`),
-              onSuccess: () => toast.success(`${deleteTarget.title} supprimée`),
-            });
-          }
-        }}
-        open={deleteTarget !== null}
-        title={`Supprimer ${deleteTarget?.title} ?`}
-      />
     </div>
   );
 }

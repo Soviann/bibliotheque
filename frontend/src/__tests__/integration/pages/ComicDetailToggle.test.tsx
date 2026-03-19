@@ -186,7 +186,7 @@ describe("ComicDetail — inline tome toggle", () => {
     expect(toast.error).toHaveBeenCalled();
   });
 
-  it("shows success toast after toggling a tome", async () => {
+  it("shows grouped success toast after toggling a tome (debounced)", async () => {
     const user = userEvent.setup();
 
     const tomes = [
@@ -215,12 +215,55 @@ describe("ComicDetail — inline tome toggle", () => {
 
     await user.click(readCheckbox);
 
+    // Wait for debounced toast (1s after last toggle)
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
-        expect.stringContaining("Tome 3"),
+        "1 tome mis à jour",
         expect.objectContaining({ duration: 1500 }),
       );
+    }, { timeout: 2000 });
+  });
+
+  it("groups multiple rapid toggle toasts into one", async () => {
+    const user = userEvent.setup();
+
+    const tomes = [
+      createMockTome({ bought: false, id: 10, number: 1, read: false }),
+      createMockTome({ bought: false, id: 11, number: 2, read: false }),
+      createMockTome({ bought: false, id: 12, number: 3, read: false }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series/1", () =>
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+        ),
+      ),
+      http.patch("/api/tomes/:id", ({ params }) =>
+        HttpResponse.json(createMockTome({ id: Number(params.id), read: true })),
+      ),
+    );
+
+    renderComicDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
     });
+
+    // Toggle 3 tomes rapidly
+    const rows = screen.getAllByRole("row").slice(1);
+    for (const row of rows) {
+      const readCheckbox = within(row).getAllByRole("checkbox")[2];
+      await user.click(readCheckbox);
+    }
+
+    // Wait for the debounced grouped toast (1s after last toggle)
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "3 tomes mis à jour",
+        expect.objectContaining({ duration: 1500 }),
+      );
+    }, { timeout: 3000 });
   });
 
   it("renders header checkboxes for bulk toggle", async () => {

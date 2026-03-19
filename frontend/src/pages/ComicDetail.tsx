@@ -2,7 +2,7 @@ import { ArrowLeft, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import ConfirmModal from "../components/ConfirmModal";
+import CoverLightbox from "../components/CoverLightbox";
 import EmptyState from "../components/EmptyState";
 import ProgressBar from "../components/ProgressBar";
 import SkeletonBox from "../components/SkeletonBox";
@@ -10,6 +10,7 @@ import SyncPendingIndicator from "../components/SyncPendingIndicator";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
+import { useRestoreComic } from "../hooks/useTrash";
 import { useUpdateTome } from "../hooks/useUpdateTome";
 import { ComicStatus, ComicStatusColor, ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
@@ -70,9 +71,12 @@ export default function ComicDetail() {
   const navigate = useNavigate();
   const { data: comic, isLoading } = useComic(id ? Number(id) : undefined);
   const deleteComic = useDeleteComic();
+  const restoreComic = useRestoreComic();
   const updateTome = useUpdateTome(id ? Number(id) : undefined);
-  const [showDelete, setShowDelete] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [optimisticTomes, setOptimisticTomes] = useState<Tome[]>([]);
+  const toggleCountRef = useRef(0);
+  const toggleTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const { boughtCount, downloadedCount, progressTotal, readCount } = useMemo(() => ({
     boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
@@ -90,7 +94,6 @@ export default function ComicDetail() {
   const handleToggleTome = useCallback(
     (tome: Tome, field: "bought" | "downloaded" | "onNas" | "read") => {
       const newValue = !tome[field];
-      const fieldLabel = field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS";
 
       // Optimistic update
       setOptimisticTomes((prev) =>
@@ -109,7 +112,16 @@ export default function ComicDetail() {
           },
           onSuccess: () => {
             if (navigator.onLine) {
-              toast.success(`Tome ${tome.number} — ${fieldLabel} ${newValue ? "activé" : "désactivé"}`, { duration: 1500 });
+              toggleCountRef.current += 1;
+              clearTimeout(toggleTimerRef.current);
+              toggleTimerRef.current = setTimeout(() => {
+                const count = toggleCountRef.current;
+                toggleCountRef.current = 0;
+                toast.success(
+                  count === 1 ? "1 tome mis à jour" : `${count} tomes mis à jour`,
+                  { duration: 1500 },
+                );
+              }, 1000);
             }
           },
         },
@@ -216,7 +228,8 @@ export default function ComicDetail() {
         <div className="w-full md:w-48">
           <img
             alt={comic.title}
-            className="w-full rounded-lg shadow"
+            className={`w-full rounded-lg shadow${coverSrc ? " cursor-pointer" : ""}`}
+            onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
           />
         </div>
@@ -369,7 +382,22 @@ export default function ComicDetail() {
         )}
         <button
           className="flex items-center gap-2 rounded-lg border border-red-600 px-5 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-950/30"
-          onClick={() => setShowDelete(true)}
+          onClick={() => {
+            const seriesId = comic.id;
+            deleteComic.mutate({ id: seriesId }, {
+              onError: () => toast.error("Erreur lors de la suppression"),
+              onSuccess: () => {
+                toast.success("Série supprimée", {
+                  action: {
+                    label: "Annuler",
+                    onClick: () => restoreComic.mutate({ id: seriesId }),
+                  },
+                  duration: 5000,
+                });
+                navigate("/", { viewTransition: true });
+              },
+            });
+          }}
           type="button"
         >
           <Trash2 className="h-5 w-5" />
@@ -377,22 +405,14 @@ export default function ComicDetail() {
         </button>
       </div>
 
-      <ConfirmModal
-        confirmLabel="Supprimer"
-        description="Cette série sera déplacée vers la corbeille."
-        onClose={() => setShowDelete(false)}
-        onConfirm={() => {
-          deleteComic.mutate({ id: comic.id }, {
-            onError: () => toast.error("Erreur lors de la suppression"),
-            onSuccess: () => {
-              toast.success("Série supprimée");
-              navigate("/", { viewTransition: true });
-            },
-          });
-        }}
-        open={showDelete}
-        title="Supprimer cette série ?"
-      />
+      {coverSrc && (
+        <CoverLightbox
+          onClose={() => setLightboxOpen(false)}
+          open={lightboxOpen}
+          src={coverSrc}
+          title={comic.title}
+        />
+      )}
     </div>
   );
 }
