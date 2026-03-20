@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -118,12 +118,17 @@ export default function ComicDetail() {
     [optimisticTomes, sort.key, sort.direction],
   );
 
-  const { boughtCount, downloadedCount, progressTotal, readCount } = useMemo(() => ({
-    boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
-    downloadedCount: countCoveredTomes(optimisticTomes, (t) => t.downloaded),
-    progressTotal: Math.max(comic?.latestPublishedIssue ?? 0, countCoveredTomes(optimisticTomes)),
-    readCount: countCoveredTomes(optimisticTomes, (t) => t.read),
-  }), [optimisticTomes, comic?.latestPublishedIssue]);
+  const { boughtCount, downloadedCount, missingTomesCount, progressTotal, readCount } = useMemo(() => {
+    const covered = countCoveredTomes(optimisticTomes);
+    const published = comic?.latestPublishedIssue ?? 0;
+    return {
+      boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
+      downloadedCount: countCoveredTomes(optimisticTomes, (t) => t.downloaded),
+      missingTomesCount: published > covered ? published - covered : 0,
+      progressTotal: Math.max(published, covered),
+      readCount: countCoveredTomes(optimisticTomes, (t) => t.read),
+    };
+  }, [optimisticTomes, comic?.latestPublishedIssue]);
 
   useEffect(() => {
     if (comic?.tomes) {
@@ -366,6 +371,25 @@ export default function ComicDetail() {
           <ProgressBar color="bg-primary-600" current={boughtCount} label="Achetés" total={progressTotal} />
           <ProgressBar color="bg-green-500" current={readCount} label="Lus" total={progressTotal} />
           <ProgressBar color="bg-blue-500" current={downloadedCount} label="Téléchargés" total={progressTotal} />
+        </div>
+      )}
+
+      {/* Bannière tomes manquants */}
+      {!comic.isOneShot && missingTomesCount > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <span>
+            {missingTomesCount === 1
+              ? "1 tome paru non ajouté"
+              : `${missingTomesCount} tomes parus non ajoutés`}
+          </span>
+          <Link
+            className="ml-auto shrink-0 font-medium text-amber-700 underline hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-200"
+            to={`/comic/${comic.id}/edit`}
+            viewTransition
+          >
+            Ajouter
+          </Link>
         </div>
       )}
 

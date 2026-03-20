@@ -14,6 +14,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **ComicDetail** : Bannière d'alerte quand des tomes parus ne sont pas encore ajoutés, avec lien vers le formulaire d'édition
 - **TomeTable** : Colonnes triables avec indicateur de tri — cliquer sur un en-tête (#, Titre, Acheté, Téléchargé, Lu, NAS) trie les tomes, un second clic inverse l'ordre
 - **Home** : Pull-to-refresh sur la page d'accueil — geste tactile (tirer vers le bas) pour rafraîchir les données, avec indicateur visuel rotatif et `overscroll-behavior-y: contain` pour éviter le conflit avec le pull-to-refresh natif du navigateur
 - **TomeTable** : Cartes de tomes dépliables sur mobile — vue repliée `#N - Titre` avec chevron, déplier pour éditer (ISBN, checkboxes, supprimer). Les nouveaux tomes sont dépliés par défaut
