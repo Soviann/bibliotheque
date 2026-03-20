@@ -52,6 +52,9 @@ export default function MergeSeries() {
   const [groups, setGroups] = useState<MergeGroup[]>([]);
   const [hasDetected, setHasDetected] = useState(false);
 
+  // Tab state
+  const [selectedTab, setSelectedTab] = useState(0);
+
   // Manual select state
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -148,149 +151,150 @@ export default function MergeSeries() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
-      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Fusion de séries" }]} />
-      <h1 className="text-xl font-bold text-text-primary">
-        Fusion de séries
-      </h1>
+    <>
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Fusion de séries" }]} />
+        <h1 className="text-xl font-bold text-text-primary">
+          Fusion de séries
+        </h1>
 
-      <TabGroup className="mt-4">
-        <TabList className="flex gap-1 rounded-lg bg-surface-secondary p-1">
-          <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
-            Détection automatique
-          </Tab>
-          <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
-            Sélection manuelle
-          </Tab>
-        </TabList>
+        <TabGroup className="mt-4" onChange={setSelectedTab} selectedIndex={selectedTab}>
+          <TabList className="flex gap-1 rounded-lg bg-surface-secondary p-1">
+            <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
+              Détection automatique
+            </Tab>
+            <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
+              Sélection manuelle
+            </Tab>
+          </TabList>
 
-        <TabPanels className="mt-4">
-          {/* Auto detect tab */}
-          <TabPanel>
-            <div className="space-y-4">
-              {/* Filters row */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <SelectListbox
-                    onChange={setSelectedType}
-                    options={typeOptions}
-                    placeholder="Type"
-                    value={selectedType}
-                  />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <SelectListbox
-                    onChange={setSelectedLetter}
-                    options={letterOptions}
-                    placeholder="Lettre"
-                    value={selectedLetter}
-                  />
-                </div>
-
-                <label className="flex items-center gap-2 text-sm text-text-secondary">
-                  <Switch
-                    checked={includeChecked}
-                    className="group relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-surface-tertiary transition-colors data-[checked]:bg-primary-600"
-                    onChange={setIncludeChecked}
-                  >
-                    <span className="pointer-events-none inline-block h-4 w-4 translate-x-0 rounded-full bg-white shadow-sm transition-transform group-data-[checked]:translate-x-4" />
-                  </Switch>
-                  Inclure les déjà vérifiées
-                </label>
-              </div>
-
-              {/* Detect button — sticky */}
-              <div
-                className="sticky bottom-[var(--bottom-nav-h)] z-40 -mx-4 border-t border-surface-border bg-surface-primary px-4 py-3"
-                data-testid="sticky-action-bar"
-              >
-                <button
-                  className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-                  disabled={detectMutation.isPending || !selectedType || !selectedLetter}
-                  onClick={handleDetect}
-                  type="button"
-                >
-                  {detectMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <SearchIcon className="h-4 w-4" />
-                  )}
-                  Détecter les groupes
-                </button>
-              </div>
-
-              {/* Loading state for preview */}
-              {previewMutation.isPending && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
-                  <span className="ml-2 text-sm text-text-secondary">
-                    Génération de l'aperçu...
-                  </span>
-                </div>
-              )}
-
-              {/* Results */}
-              {hasDetected && groups.length === 0 && (
-                <EmptyState
-                  description="Aucun groupe de séries à fusionner n'a été détecté"
-                  icon={Merge}
-                  title="Aucun groupe détecté"
-                />
-              )}
-
-              {groups.length > 0 && (
-                <div className="space-y-3">
-                  {groups.map((group, index) => (
-                    <MergeGroupCard
-                      group={group}
-                      key={`${group.suggestedTitle}-${index}`}
-                      onPreview={handlePreviewGroup}
-                      onSkip={handleSkipGroup}
+          <TabPanels className="mt-4">
+            {/* Auto detect tab */}
+            <TabPanel>
+              <div className="space-y-4">
+                {/* Filters row */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                  <div className="min-w-[140px] sm:flex-1">
+                    <SelectListbox
+                      onChange={setSelectedType}
+                      options={typeOptions}
+                      placeholder="Type"
+                      value={selectedType}
                     />
-                  ))}
+                  </div>
+
+                  <div className="min-w-[140px] sm:flex-1">
+                    <SelectListbox
+                      onChange={setSelectedLetter}
+                      options={letterOptions}
+                      placeholder="Lettre"
+                      value={selectedLetter}
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2 text-sm text-text-secondary">
+                    <Switch
+                      checked={includeChecked}
+                      className="group relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-surface-tertiary transition-colors data-[checked]:bg-primary-600"
+                      onChange={setIncludeChecked}
+                    >
+                      <span className="pointer-events-none inline-block h-4 w-4 translate-x-0 rounded-full bg-white shadow-sm transition-transform group-data-[checked]:translate-x-4" />
+                    </Switch>
+                    Inclure les déjà vérifiées
+                  </label>
                 </div>
+
+                {/* Loading state for preview */}
+                {previewMutation.isPending && (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+                    <span className="ml-2 text-sm text-text-secondary">
+                      Génération de l'aperçu...
+                    </span>
+                  </div>
+                )}
+
+                {/* Results */}
+                {hasDetected && groups.length === 0 && (
+                  <EmptyState
+                    description="Aucun groupe de séries à fusionner n'a été détecté"
+                    icon={Merge}
+                    title="Aucun groupe détecté"
+                  />
+                )}
+
+                {groups.length > 0 && (
+                  <div className="space-y-3">
+                    {groups.map((group, index) => (
+                      <MergeGroupCard
+                        group={group}
+                        key={`${group.suggestedTitle}-${index}`}
+                        onPreview={handlePreviewGroup}
+                        onSkip={handleSkipGroup}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabPanel>
+
+            {/* Manual select tab */}
+            <TabPanel>
+              <div className="space-y-4">
+                <SeriesMultiSelect
+                  onSelectionChange={setSelectedIds}
+                  selectedIds={selectedIds}
+                />
+              </div>
+            </TabPanel>
+          </TabPanels>
+        </TabGroup>
+      </div>
+
+      {/* Fixed action bar — above bottom nav */}
+      <div
+        className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-40 border-t border-surface-border bg-surface-primary px-4 py-3"
+        data-testid="sticky-action-bar"
+      >
+        <div className="mx-auto flex max-w-4xl justify-center">
+          {selectedTab === 0 ? (
+            <button
+              className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+              disabled={detectMutation.isPending || !selectedType || !selectedLetter}
+              onClick={handleDetect}
+              type="button"
+            >
+              {detectMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <SearchIcon className="h-4 w-4" />
+              )}
+              Détecter les groupes
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <button
+                className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+                disabled={selectedIds.length < 2 || previewMutation.isPending}
+                onClick={handleManualPreview}
+                type="button"
+              >
+                {previewMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Merge className="h-4 w-4" />
+                )}
+                Aperçu de la fusion
+              </button>
+              {selectedIds.length > 0 && selectedIds.length < 2 && (
+                <span className="text-sm text-text-muted">
+                  Sélectionnez au moins 2 séries
+                </span>
               )}
             </div>
-          </TabPanel>
-
-          {/* Manual select tab */}
-          <TabPanel>
-            <div className="space-y-4">
-              <SeriesMultiSelect
-                onSelectionChange={setSelectedIds}
-                selectedIds={selectedIds}
-              />
-
-              <div
-                className="sticky bottom-[var(--bottom-nav-h)] z-40 -mx-4 border-t border-surface-border bg-surface-primary px-4 py-3"
-                data-testid="sticky-action-bar"
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-                    disabled={selectedIds.length < 2 || previewMutation.isPending}
-                    onClick={handleManualPreview}
-                    type="button"
-                  >
-                    {previewMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Merge className="h-4 w-4" />
-                    )}
-                    Aperçu de la fusion
-                  </button>
-                  {selectedIds.length > 0 && selectedIds.length < 2 && (
-                    <span className="text-sm text-text-muted">
-                      Sélectionnez au moins 2 séries
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </TabPanel>
-        </TabPanels>
-      </TabGroup>
+          )}
+        </div>
+      </div>
 
       <MergeSeriesConfirmModal
         entries={confirmEntries}
@@ -312,6 +316,6 @@ export default function MergeSeries() {
         preview={previewData}
         suggestion={suggestion}
       />
-    </div>
+    </>
   );
 }
