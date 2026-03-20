@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **ComicDetail** : Barre d'actions inline sur desktop (`lg:static`) au lieu de sticky en bas — les boutons Modifier/Amazon/Supprimer s'intègrent dans le flux de la page
 - **ProgressBar** : Affiche le pourcentage à côté du compteur : « 8 / 12 (67%) »
 - **VirtualGrid** : Gap de la grille augmenté de `gap-3` (12px) à `gap-4` (16px) pour plus d'espace entre les cartes sur mobile
 - **ComicForm** : Aperçu couverture agrandi (`h-48` au lieu de `h-32`) et cliquable pour voir en plein écran via CoverLightbox
