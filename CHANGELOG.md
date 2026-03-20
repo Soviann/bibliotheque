@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **ProgressBar** : Affiche le pourcentage à côté du compteur : « 8 / 12 (67%) »
 - **VirtualGrid** : Gap de la grille augmenté de `gap-3` (12px) à `gap-4` (16px) pour plus d'espace entre les cartes sur mobile
 - **ComicForm** : Aperçu couverture agrandi (`h-48` au lieu de `h-32`) et cliquable pour voir en plein écran via CoverLightbox
 - **Navigation retour** : Le bouton retour redirige vers `/` au lieu de quitter l'app quand il n'y a pas d'historique in-app ; les redirections post-soumission remplacent l'entrée formulaire dans l'historique

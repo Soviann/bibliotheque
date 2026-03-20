@@ -615,12 +615,12 @@ describe("ComicDetail", () => {
     expect(progressBars.length).toBe(3);
 
     // Achetés: 2/5
-    expect(screen.getByText("2 / 5")).toBeInTheDocument();
+    expect(screen.getByText("2 / 5 (40%)")).toBeInTheDocument();
 
     // Lus: 1/5, Téléchargés: 1/5
     expect(screen.getByText("Lus")).toBeInTheDocument();
     expect(screen.getByText("Téléchargés")).toBeInTheDocument();
-    expect(screen.getAllByText("1 / 5")).toHaveLength(2);
+    expect(screen.getAllByText("1 / 5 (20%)")).toHaveLength(2);
   });
 
   it("uses tome count as total when latestPublishedIssue is null", async () => {
@@ -648,7 +648,7 @@ describe("ComicDetail", () => {
 
     // Achetés: 2/3 (covered tome count as total since latestPublishedIssue is null)
     await waitFor(() => {
-      expect(screen.getByText("2 / 3")).toBeInTheDocument();
+      expect(screen.getByText("2 / 3 (67%)")).toBeInTheDocument();
     });
   });
 
@@ -679,10 +679,10 @@ describe("ComicDetail", () => {
     });
 
     // Achetés: tome 1-2 (bought) + tome 3 (bought) = 3 covered / 5 total
-    expect(screen.getByText("3 / 5")).toBeInTheDocument();
+    expect(screen.getByText("3 / 5 (60%)")).toBeInTheDocument();
     // Lus: only tome 1-2 (read) = 2 covered / 5 total
     // Téléchargés: only tome 1-2 (downloaded) = 2 covered / 5 total
-    expect(screen.getAllByText("2 / 5")).toHaveLength(2);
+    expect(screen.getAllByText("2 / 5 (40%)")).toHaveLength(2);
   });
 
   it("uses covered tome count as fallback total when latestPublishedIssue is null", async () => {
@@ -710,7 +710,7 @@ describe("ComicDetail", () => {
     // Total should be 4 (covered tomes), not 2 (entries count)
     // Achetés: 3 / 4
     await waitFor(() => {
-      expect(screen.getByText("3 / 4")).toBeInTheDocument();
+      expect(screen.getByText("3 / 4 (75%)")).toBeInTheDocument();
     });
   });
 
