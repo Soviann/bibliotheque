@@ -1279,6 +1279,201 @@ describe("ComicDetail", () => {
     });
   });
 
+  describe("missing tomes banner", () => {
+    it("shows banner when latestPublishedIssue > covered tomes count", async () => {
+      const tomes = [
+        createMockTome({ id: 1, number: 1 }),
+        createMockTome({ id: 2, number: 2 }),
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: 5,
+              title: "Missing Tomes",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText(/3 tomes parus non ajoutés/)).toBeInTheDocument();
+      });
+    });
+
+    it("does not show banner when all published tomes are covered", async () => {
+      const tomes = [
+        createMockTome({ id: 1, number: 1 }),
+        createMockTome({ id: 2, number: 2 }),
+        createMockTome({ id: 3, number: 3 }),
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: 3,
+              title: "All Covered",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("All Covered")).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/tomes? parus? non ajoutés?/)).not.toBeInTheDocument();
+    });
+
+    it("does not show banner when latestPublishedIssue is null", async () => {
+      const tomes = [
+        createMockTome({ id: 1, number: 1 }),
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: null,
+              title: "No Published Info",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("No Published Info")).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/tomes? parus? non ajoutés?/)).not.toBeInTheDocument();
+    });
+
+    it("does not show banner for oneshot series", async () => {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: true,
+              latestPublishedIssue: 1,
+              title: "Oneshot Banner",
+              tomes: [],
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Oneshot Banner")).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/tomes? parus? non ajoutés?/)).not.toBeInTheDocument();
+    });
+
+    it("accounts for tome ranges in missing count", async () => {
+      const tomes = [
+        createMockTome({ id: 1, number: 1, tomeEnd: 3 }), // covers 3
+        createMockTome({ id: 2, number: 4 }),               // covers 1
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: 10,
+              title: "Range Banner",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      // 10 published - 4 covered = 6 missing
+      await waitFor(() => {
+        expect(screen.getByText(/6 tomes parus non ajoutés/)).toBeInTheDocument();
+      });
+    });
+
+    it("shows singular form for 1 missing tome", async () => {
+      const tomes = [
+        createMockTome({ id: 1, number: 1 }),
+        createMockTome({ id: 2, number: 2 }),
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: 3,
+              title: "One Missing",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText(/1 tome paru non ajouté/)).toBeInTheDocument();
+      });
+    });
+
+    it("links to the edit form", async () => {
+      const tomes = [
+        createMockTome({ id: 1, number: 1 }),
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: 5,
+              title: "Link Banner",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText(/tomes parus non ajoutés/)).toBeInTheDocument();
+      });
+
+      const link = screen.getByRole("link", { name: /ajouter/i });
+      expect(link).toHaveAttribute("href", "/comic/1/edit");
+    });
+  });
+
   it("shows undo toast after delete", async () => {
     const user = userEvent.setup();
 
