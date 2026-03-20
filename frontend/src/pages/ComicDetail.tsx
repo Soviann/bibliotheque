@@ -265,10 +265,59 @@ export default function ComicDetail() {
   const coverSrc = getCoverSrc(comic);
   const showProgress = !comic.isOneShot && optimisticTomes.length > 0;
 
+  const handleDelete = () => {
+    const seriesId = comic.id;
+    deleteComic.mutate({ id: seriesId }, {
+      onError: () => toast.error("Erreur lors de la suppression"),
+      onSuccess: () => {
+        toast.success("Série supprimée", {
+          action: {
+            label: "Annuler",
+            onClick: () => restoreComic.mutate({ id: seriesId }),
+          },
+          duration: 5000,
+        });
+        navigate("/", { viewTransition: true });
+      },
+    });
+  };
+
+  const actionButtons = (
+    <>
+      <Link
+        className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
+        to={`/comic/${comic.id}/edit`}
+        viewTransition
+      >
+        <Edit className="h-5 w-5" />
+        Modifier
+      </Link>
+      {comic.status === ComicStatus.BUYING && comic.amazonUrl && (
+        <a
+          className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-base font-medium text-white hover:bg-amber-700"
+          href={comic.amazonUrl}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <ExternalLink className="h-5 w-5" />
+          Amazon
+        </a>
+      )}
+      <button
+        className="flex items-center gap-2 rounded-lg border border-red-600 px-5 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-950/30"
+        onClick={handleDelete}
+        type="button"
+      >
+        <Trash2 className="h-5 w-5" />
+        Supprimer
+      </button>
+    </>
+  );
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary" onClick={goBack} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -462,50 +511,9 @@ export default function ComicDetail() {
         </ComponentErrorBoundary>
       )}
 
-      {/* Sticky action bar */}
-      <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
-        <Link
-          className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
-          to={`/comic/${comic.id}/edit`}
-          viewTransition
-        >
-          <Edit className="h-5 w-5" />
-          Modifier
-        </Link>
-        {comic.status === ComicStatus.BUYING && comic.amazonUrl && (
-          <a
-            className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-base font-medium text-white hover:bg-amber-700"
-            href={comic.amazonUrl}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <ExternalLink className="h-5 w-5" />
-            Amazon
-          </a>
-        )}
-        <button
-          className="flex items-center gap-2 rounded-lg border border-red-600 px-5 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-950/30"
-          onClick={() => {
-            const seriesId = comic.id;
-            deleteComic.mutate({ id: seriesId }, {
-              onError: () => toast.error("Erreur lors de la suppression"),
-              onSuccess: () => {
-                toast.success("Série supprimée", {
-                  action: {
-                    label: "Annuler",
-                    onClick: () => restoreComic.mutate({ id: seriesId }),
-                  },
-                  duration: 5000,
-                });
-                navigate("/", { viewTransition: true });
-              },
-            });
-          }}
-          type="button"
-        >
-          <Trash2 className="h-5 w-5" />
-          Supprimer
-        </button>
+      {/* Action bar: sticky on mobile, inline on desktop */}
+      <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3 lg:static lg:justify-start lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0">
+        {actionButtons}
       </div>
 
       {coverSrc && (
