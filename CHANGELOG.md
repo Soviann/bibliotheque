@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **NotFound** : Page 404 plus chaleureuse avec icône BookX dans un conteneur dégradé, grand « 404 » stylisé, et sous-titre thématique « disparu de la collection »
 - **OfflineBanner** : Bouton dépliable pour voir la liste des opérations en attente (type + ressource) quand il y a des opérations en file d'attente
 - **EmptyState** : Icône enveloppée dans un conteneur arrondi avec fond dégradé primary pour plus de chaleur visuelle
 - **ComicDetail** : Barre d'actions inline sur desktop (`lg:static`) au lieu de sticky en bas — les boutons Modifier/Amazon/Supprimer s'intègrent dans le flux de la page
