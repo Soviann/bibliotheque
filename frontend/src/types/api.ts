@@ -163,6 +163,7 @@ export interface BatchLookupSummary {
 
 export interface CreateComicPayload {
   _pendingAuthors?: string[];
+  amazonUrl: string | null;
   authors: string[];
   coverUrl: string | null;
   defaultTomeBought: boolean;

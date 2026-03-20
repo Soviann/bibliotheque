@@ -17,6 +17,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **ComicForm** : Champ URL Amazon dans la section Publication — peuple `amazonUrl` utilisé par le bouton Amazon de ComicDetail
 - **Layout** : Recherche globale dans le header — icône loupe qui ouvre un champ de recherche, Enter navigue vers la page d'accueil avec le paramètre `?search=`, Escape ferme
 - **Breadcrumb** : Fil d'Ariane « Outils / Nom de la page » dans les sous-pages Tools (Import, Lookup, Merge, Purge) avec lien retour et `aria-current="page"`
 - **ComponentErrorBoundary** : Error boundaries au niveau composant autour de TomeTable, VirtualGrid et LookupSection avec bouton « Réessayer » contextuel — le boundary app-level reste en dernier recours

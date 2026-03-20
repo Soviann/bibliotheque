@@ -28,6 +28,7 @@ export interface TomeFormData {
 }
 
 export interface FormData {
+  amazonUrl: string;
   authors: Author[];
   coverUrl: string;
   defaultTomeBought: boolean;
@@ -53,6 +54,7 @@ export function compareTomes(a: TomeFormData, b: TomeFormData): number {
 function buildInitialForm(comic?: ComicSeries): FormData {
   if (comic) {
     return {
+      amazonUrl: comic.amazonUrl ?? "",
       authors: comic.authors,
       coverUrl: comic.coverUrl ?? "",
       defaultTomeBought: comic.defaultTomeBought,
@@ -82,6 +84,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     };
   }
   return {
+    amazonUrl: "",
     authors: [],
     coverUrl: "",
     defaultTomeBought: false,
@@ -177,6 +180,7 @@ export function useComicForm() {
 
     const basePayload: CreateComicPayload = {
       ...(pendingAuthors.length > 0 ? { _pendingAuthors: pendingAuthors } : {}),
+      amazonUrl: form.amazonUrl || null,
       authors: authorIris,
       coverUrl: form.coverUrl || null,
       defaultTomeBought: form.defaultTomeBought,
