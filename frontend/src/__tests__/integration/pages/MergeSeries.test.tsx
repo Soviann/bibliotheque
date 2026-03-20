@@ -100,7 +100,7 @@ describe("MergeSeries", () => {
     const detectButton = screen.getByRole("button", { name: /Détecter les groupes/ });
     const stickyBar = detectButton.closest("[data-testid='sticky-action-bar']");
     expect(stickyBar).toBeInTheDocument();
-    expect(stickyBar).toHaveClass("sticky");
+    expect(stickyBar).toHaveClass("fixed");
   });
 
   it("manual preview button is in a sticky action bar", async () => {
@@ -112,7 +112,7 @@ describe("MergeSeries", () => {
     const previewButton = screen.getByRole("button", { name: /Aperçu de la fusion/ });
     const stickyBar = previewButton.closest("[data-testid='sticky-action-bar']");
     expect(stickyBar).toBeInTheDocument();
-    expect(stickyBar).toHaveClass("sticky");
+    expect(stickyBar).toHaveClass("fixed");
   });
 
   it("manual tab has search input", async () => {
