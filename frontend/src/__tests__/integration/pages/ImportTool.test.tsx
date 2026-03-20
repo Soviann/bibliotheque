@@ -11,7 +11,7 @@ describe("ImportTool", () => {
   it("renders the page title and tabs", () => {
     renderWithProviders(<ImportTool />);
 
-    expect(screen.getByText("Import Excel")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Import Excel" })).toBeInTheDocument();
     expect(screen.getByText("Excel suivi")).toBeInTheDocument();
     expect(screen.getByText("Livres")).toBeInTheDocument();
   });

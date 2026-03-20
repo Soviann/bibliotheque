@@ -16,6 +16,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Breadcrumb** : Fil d'Ariane « Outils / Nom de la page » dans les sous-pages Tools (Import, Lookup, Merge, Purge) avec lien retour et `aria-current="page"`
 - **ComponentErrorBoundary** : Error boundaries au niveau composant autour de TomeTable, VirtualGrid et LookupSection avec bouton « Réessayer » contextuel — le boundary app-level reste en dernier recours
 - **ComicDetail** : Bannière d'alerte quand des tomes parus ne sont pas encore ajoutés, avec lien vers le formulaire d'édition
 - **TomeTable** : Colonnes triables avec indicateur de tri — cliquer sur un en-tête (#, Titre, Acheté, Téléchargé, Lu, NAS) trie les tomes, un second clic inverse l'ordre
