@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.14.2] - 2026-03-20
+
+### Fixed
+
+- **Fusion** : Corrige le layout mobile de la page de fusion — tableau des tomes scrollable horizontalement, dropdowns empilés, barre d'action fixée en bas
+
 ## [v2.14.1] - 2026-03-20
 
 ### Fixed
