@@ -1227,9 +1227,8 @@ describe("ComicDetail", () => {
       await user.click(readHeader.querySelector("button")!);
 
       const rows = screen.getAllByRole("row").slice(1);
-      // Tomes 1 and 3 are unread, tome 2 is read
-      // Ascending boolean: false first (unread), then true (read)
-      // Among unread (1 and 3): sorted by number
+      // Ascending boolean: false (unread) first, then true (read)
+      // Among unread (#1 and #2): sorted by number
       expect(rows[0]).toHaveTextContent("1"); // unread
       expect(rows[1]).toHaveTextContent("2"); // unread
       expect(rows[2]).toHaveTextContent("3"); // read
