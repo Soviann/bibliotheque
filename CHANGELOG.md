@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Navigation retour** : Le bouton retour redirige vers `/` au lieu de quitter l'app quand il n'y a pas d'historique in-app ; les redirections post-soumission remplacent l'entrée formulaire dans l'historique
 - **Suspense fallback** : Spinner centré (Loader2 animate-spin) au lieu du texte brut « Chargement… »
 - **ComicDetail** : Métadonnées affichées en grille clé-valeur (dl/dt/dd) au lieu de paragraphes séquentiels, description séparée dans sa propre section
 - **TomeTable** : Breakpoint carte/table relevé de `sm` (640px) à `md` (768px) — les tablettes et desktops étroits utilisent le layout carte dépliable au lieu de la table qui déborde

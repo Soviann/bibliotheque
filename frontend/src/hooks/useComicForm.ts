@@ -201,7 +201,7 @@ export function useComicForm() {
           if (!data) return;
           if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
           toast.success("Série mise à jour");
-          navigate(`/comic/${id}`, { viewTransition: true });
+          navigate(`/comic/${id}`, { replace: true, viewTransition: true });
         },
         onError: (err) => toast.error(getErrorMessage(err)),
       });
@@ -211,7 +211,7 @@ export function useComicForm() {
           if (!created) return;
           if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
           toast.success("Série créée");
-          navigate(`/comic/${created.id}`, { viewTransition: true });
+          navigate(`/comic/${created.id}`, { replace: true, viewTransition: true });
         },
         onError: (err) => toast.error(getErrorMessage(err)),
       });
@@ -241,7 +241,6 @@ export function useComicForm() {
     isEdit,
     isOnline,
     isSaving,
-    navigate,
     resolveSyncFailure,
     syncFailure,
     update,
