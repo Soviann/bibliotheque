@@ -16,6 +16,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Layout** : Recherche globale dans le header — icône loupe qui ouvre un champ de recherche, Enter navigue vers la page d'accueil avec le paramètre `?search=`, Escape ferme
 - **Breadcrumb** : Fil d'Ariane « Outils / Nom de la page » dans les sous-pages Tools (Import, Lookup, Merge, Purge) avec lien retour et `aria-current="page"`
 - **ComponentErrorBoundary** : Error boundaries au niveau composant autour de TomeTable, VirtualGrid et LookupSection avec bouton « Réessayer » contextuel — le boundary app-level reste en dernier recours
 - **ComicDetail** : Bannière d'alerte quand des tomes parus ne sont pas encore ajoutés, avec lien vers le formulaire d'édition

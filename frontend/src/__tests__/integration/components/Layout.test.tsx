@@ -176,6 +176,57 @@ describe("Layout", () => {
     expect(homeLink).toHaveAttribute("href", "/");
   });
 
+  describe("global search", () => {
+    it("renders search button in header", () => {
+      renderLayout();
+      expect(screen.getByLabelText("Rechercher")).toBeInTheDocument();
+    });
+
+    it("opens search input when clicking search button", async () => {
+      const user = userEvent.setup();
+      renderLayout();
+
+      await user.click(screen.getByLabelText("Rechercher"));
+
+      expect(screen.getByPlaceholderText("Rechercher…")).toBeInTheDocument();
+    });
+
+    it("navigates to /?search=value on Enter", async () => {
+      const user = userEvent.setup();
+
+      renderWithProviders(
+        <Routes>
+          <Route element={<Layout />} path="/">
+            <Route element={<div>Home Content</div>} index />
+          </Route>
+          <Route element={<Layout />} path="/tools">
+            <Route element={<div>Tools Content</div>} index />
+          </Route>
+        </Routes>,
+        { initialEntries: ["/tools"] },
+      );
+
+      await user.click(screen.getByLabelText("Rechercher"));
+      await user.type(screen.getByPlaceholderText("Rechercher…"), "naruto{Enter}");
+
+      await waitFor(() => {
+        expect(screen.getByText("Home Content")).toBeInTheDocument();
+      });
+    });
+
+    it("closes search input on Escape", async () => {
+      const user = userEvent.setup();
+      renderLayout();
+
+      await user.click(screen.getByLabelText("Rechercher"));
+      expect(screen.getByPlaceholderText("Rechercher…")).toBeInTheDocument();
+
+      await user.keyboard("{Escape}");
+
+      expect(screen.queryByPlaceholderText("Rechercher…")).not.toBeInTheDocument();
+    });
+  });
+
   describe("sync feedback toasts", () => {
     // The useEffect uses a prevStatus ref initialized to the first status value.
     // To trigger the effect, we must render with "idle" first, then change the mock
