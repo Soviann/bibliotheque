@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **EmptyState** : Icône enveloppée dans un conteneur arrondi avec fond dégradé primary pour plus de chaleur visuelle
 - **ComicDetail** : Barre d'actions inline sur desktop (`lg:static`) au lieu de sticky en bas — les boutons Modifier/Amazon/Supprimer s'intègrent dans le flux de la page
 - **ProgressBar** : Affiche le pourcentage à côté du compteur : « 8 / 12 (67%) »
 - **VirtualGrid** : Gap de la grille augmenté de `gap-3` (12px) à `gap-4` (16px) pour plus d'espace entre les cartes sur mobile
