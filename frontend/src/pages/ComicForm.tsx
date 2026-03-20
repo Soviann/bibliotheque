@@ -1,7 +1,9 @@
 import { ArrowLeft, Image, Loader2 } from "lucide-react";
+import { useState } from "react";
 import AuthorAutocomplete from "../components/AuthorAutocomplete";
 import CollapsibleSection from "../components/CollapsibleSection";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
+import CoverLightbox from "../components/CoverLightbox";
 import CoverSearchModal from "../components/CoverSearchModal";
 import DatePartialSelect from "../components/DatePartialSelect";
 import LookupSection from "../components/LookupSection";
@@ -21,6 +23,7 @@ import { statusOptions, typeOptions } from "../types/enums";
 
 export default function ComicForm() {
   const goBack = useGoBack();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const {
     addAuthor,
     applyLookup,
@@ -255,7 +258,20 @@ export default function ComicForm() {
               </button>
             </div>
             {form.coverUrl && (
-              <img alt="Aperçu" className="mt-2 h-32 rounded-lg shadow" src={form.coverUrl} />
+              <>
+                <img
+                  alt="Aperçu"
+                  className="mt-2 h-48 cursor-pointer rounded-lg shadow"
+                  onClick={() => setLightboxOpen(true)}
+                  src={form.coverUrl}
+                />
+                <CoverLightbox
+                  onClose={() => setLightboxOpen(false)}
+                  open={lightboxOpen}
+                  src={form.coverUrl}
+                  title={form.title || "Aperçu"}
+                />
+              </>
             )}
           </div>
           <CoverSearchModal

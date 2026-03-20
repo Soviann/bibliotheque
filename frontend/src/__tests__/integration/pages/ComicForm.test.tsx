@@ -629,6 +629,23 @@ describe("ComicForm", () => {
       const preview = screen.getByAltText("Aperçu");
       expect(preview).toHaveAttribute("src", "https://example.com/cover.jpg");
     });
+
+    it("cover preview is clickable and opens lightbox", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("URL de couverture"), "https://example.com/cover.jpg");
+
+      const preview = screen.getByAltText("Aperçu");
+      expect(preview).toHaveClass("cursor-pointer");
+
+      await user.click(preview);
+
+      // CoverLightbox uses a dialog
+      await waitFor(() => {
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+      });
+    });
   });
 
   describe("Latest published issue field", () => {
