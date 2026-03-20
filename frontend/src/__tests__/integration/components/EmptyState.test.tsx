@@ -65,6 +65,16 @@ describe("EmptyState", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
+  it("wraps icon in a styled container", () => {
+    renderWithProviders(
+      <EmptyState icon={Heart} title="Liste vide" />,
+    );
+
+    const iconWrapper = screen.getByTestId("empty-state-icon-wrapper");
+    expect(iconWrapper).toBeInTheDocument();
+    expect(iconWrapper.className).toContain("rounded-2xl");
+  });
+
   it("has fade-in-up animation class", () => {
     renderWithProviders(
       <EmptyState icon={Heart} title="Liste vide" />,

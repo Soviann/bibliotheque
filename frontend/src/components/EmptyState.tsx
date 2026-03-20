@@ -22,11 +22,16 @@ export default function EmptyState({
 
   return (
     <div className="flex animate-fade-in-up flex-col items-center justify-center py-16 text-center motion-reduce:animate-none">
-      <Icon
-        className="mb-4 h-16 w-16 text-text-muted/40"
-        data-testid="empty-state-icon"
-        strokeWidth={1.5}
-      />
+      <div
+        className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-950/40 dark:to-primary-900/30"
+        data-testid="empty-state-icon-wrapper"
+      >
+        <Icon
+          className="h-10 w-10 text-primary-500 dark:text-primary-400"
+          data-testid="empty-state-icon"
+          strokeWidth={1.5}
+        />
+      </div>
       <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
       {description && (
         <p className="mt-1 text-sm text-text-muted" data-testid="empty-state-description">
