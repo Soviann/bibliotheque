@@ -293,7 +293,8 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 | `FilterChips` | Chips de filtre rapide (type, statut) scrollables |
 | `Filters` | Menus déroulants de filtrage (type, statut) |
 | `ConfirmModal` | Modal de confirmation (Headless UI Dialog) |
-| `ErrorFallback` | Fallback pour ErrorBoundary |
+| `ComponentErrorBoundary` | Error boundary contextuel (label + retry) pour sections de page |
+| `ErrorFallback` | Fallback pour ErrorBoundary app-level |
 | `BarcodeScanner` | Scanner de codes-barres (html5-qrcode) |
 
 ---

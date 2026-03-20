@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CardActionBar from "../components/CardActionBar";
 import ComicCard from "../components/ComicCard";
+import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import EmptyState from "../components/EmptyState";
 import FilterChips from "../components/FilterChips";
@@ -245,13 +246,15 @@ export default function Home() {
           />
         )
       ) : (
-        <VirtualGrid
-          items={filtered}
-          renderItem={(comic) => (
-            <ComicCard comic={comic} onDelete={handleDelete} onMenuOpen={setMenuComic} />
-          )}
-          testId="comics-grid"
-        />
+        <ComponentErrorBoundary label="la grille">
+          <VirtualGrid
+            items={filtered}
+            renderItem={(comic) => (
+              <ComicCard comic={comic} onDelete={handleDelete} onMenuOpen={setMenuComic} />
+            )}
+            testId="comics-grid"
+          />
+        </ComponentErrorBoundary>
       )}
 
       <CardActionBar

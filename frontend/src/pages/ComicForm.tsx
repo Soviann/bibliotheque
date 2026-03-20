@@ -1,6 +1,7 @@
 import { ArrowLeft, Image, Loader2 } from "lucide-react";
 import AuthorAutocomplete from "../components/AuthorAutocomplete";
 import CollapsibleSection from "../components/CollapsibleSection";
+import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import CoverSearchModal from "../components/CoverSearchModal";
 import DatePartialSelect from "../components/DatePartialSelect";
 import LookupSection from "../components/LookupSection";
@@ -116,23 +117,25 @@ export default function ComicForm() {
       )}
 
       {/* Lookup section */}
-      <LookupSection
-        applyLookup={applyLookup}
-        clearCandidate={clearCandidate}
-        formTitle={form.title}
-        isApplying={isApplying}
-        isOnline={isOnline}
-        lookupIsbn={lookupIsbn}
-        lookupMode={lookupMode}
-        lookupResult={lookupResult}
-        lookupTitle={lookupTitle}
-        selectCandidate={selectCandidate}
-        selectedCandidateTitle={selectedCandidateTitle}
-        setLookupIsbn={setLookupIsbn}
-        setLookupMode={setLookupMode}
-        setLookupTitle={setLookupTitle}
-        titleCandidates={titleCandidates}
-      />
+      <ComponentErrorBoundary label="la recherche">
+        <LookupSection
+          applyLookup={applyLookup}
+          clearCandidate={clearCandidate}
+          formTitle={form.title}
+          isApplying={isApplying}
+          isOnline={isOnline}
+          lookupIsbn={lookupIsbn}
+          lookupMode={lookupMode}
+          lookupResult={lookupResult}
+          lookupTitle={lookupTitle}
+          selectCandidate={selectCandidate}
+          selectedCandidateTitle={selectedCandidateTitle}
+          setLookupIsbn={setLookupIsbn}
+          setLookupMode={setLookupMode}
+          setLookupTitle={setLookupTitle}
+          titleCandidates={titleCandidates}
+        />
+      </ComponentErrorBoundary>
 
       {/* Form */}
       <form className="space-y-5" onSubmit={handleSubmit}>
@@ -321,10 +324,12 @@ export default function ComicForm() {
                 <span className="text-sm text-text-secondary">Lus</span>
               </label>
             </div>
-            <TomeTable
-              form={form}
-              tomeManager={tomeManager}
-            />
+            <ComponentErrorBoundary label="les tomes">
+              <TomeTable
+                form={form}
+                tomeManager={tomeManager}
+              />
+            </ComponentErrorBoundary>
           </>
         )}
       </form>
