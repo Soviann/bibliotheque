@@ -2,6 +2,7 @@ import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Ed
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import CoverLightbox from "../components/CoverLightbox";
 import EmptyState from "../components/EmptyState";
 import ProgressBar from "../components/ProgressBar";
@@ -395,66 +396,68 @@ export default function ComicDetail() {
 
       {/* Tomes */}
       {!comic.isOneShot && optimisticTomes.length > 0 && (
-        <div>
-          <h2 className="mb-3 text-lg font-semibold text-text-primary">
-            Tomes ({optimisticTomes.length})
-          </h2>
-          <div className="overflow-x-auto rounded-lg border border-surface-border">
-            <table className="w-full text-sm">
-              <thead className="bg-surface-tertiary">
-                <tr>
-                  <th className="px-4 py-2 text-left font-medium text-text-secondary">
-                    <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("number")} type="button">
-                      #
-                      <SortIcon active={sort.key === "number"} direction={sort.direction} />
-                    </button>
-                  </th>
-                  <th className="px-4 py-2 text-left font-medium text-text-secondary">
-                    <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("title")} type="button">
-                      Titre
-                      <SortIcon active={sort.key === "title"} direction={sort.direction} />
-                    </button>
-                  </th>
-                  {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
-                    <th className="px-4 py-2 text-center font-medium text-text-secondary" key={field}>
-                      <div className="flex flex-col items-center gap-1">
-                        <button className="inline-flex items-center gap-1" onClick={() => dispatchSort(field)} type="button">
-                          <span>{field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS"}</span>
-                          <SortIcon active={sort.key === field} direction={sort.direction} />
-                        </button>
-                        <HeaderCheckbox field={field} onChange={() => handleToggleAllTomes(field)} tomes={optimisticTomes} />
-                      </div>
+        <ComponentErrorBoundary label="les tomes">
+          <div>
+            <h2 className="mb-3 text-lg font-semibold text-text-primary">
+              Tomes ({optimisticTomes.length})
+            </h2>
+            <div className="overflow-x-auto rounded-lg border border-surface-border">
+              <table className="w-full text-sm">
+                <thead className="bg-surface-tertiary">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium text-text-secondary">
+                      <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("number")} type="button">
+                        #
+                        <SortIcon active={sort.key === "number"} direction={sort.direction} />
+                      </button>
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-surface-border">
-                {sortedTomes.map((tome) => (
-                  <tr className="hover:bg-surface-tertiary/50" key={tome.id}>
-                    <td className="px-4 py-2 font-medium text-text-primary">
-                      {tome._syncPending && <SyncPendingIndicator className="mr-1" />}
-                      {tome.isHorsSerie ? "HS" : ""}{tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
-                    </td>
-                    <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
+                    <th className="px-4 py-2 text-left font-medium text-text-secondary">
+                      <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("title")} type="button">
+                        Titre
+                        <SortIcon active={sort.key === "title"} direction={sort.direction} />
+                      </button>
+                    </th>
                     {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
-                      <td className="px-4 py-2 text-center" key={field}>
-                        <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
-                          <input
-                            aria-label={`Tome ${tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number} ${field === "bought" ? "acheté" : field === "downloaded" ? "téléchargé" : field === "read" ? "lu" : "NAS"}`}
-                            checked={tome[field]}
-                            className="h-5 w-5 cursor-pointer accent-primary-600"
-                            onChange={() => handleToggleTome(tome, field)}
-                            type="checkbox"
-                          />
-                        </label>
-                      </td>
+                      <th className="px-4 py-2 text-center font-medium text-text-secondary" key={field}>
+                        <div className="flex flex-col items-center gap-1">
+                          <button className="inline-flex items-center gap-1" onClick={() => dispatchSort(field)} type="button">
+                            <span>{field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS"}</span>
+                            <SortIcon active={sort.key === field} direction={sort.direction} />
+                          </button>
+                          <HeaderCheckbox field={field} onChange={() => handleToggleAllTomes(field)} tomes={optimisticTomes} />
+                        </div>
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-surface-border">
+                  {sortedTomes.map((tome) => (
+                    <tr className="hover:bg-surface-tertiary/50" key={tome.id}>
+                      <td className="px-4 py-2 font-medium text-text-primary">
+                        {tome._syncPending && <SyncPendingIndicator className="mr-1" />}
+                        {tome.isHorsSerie ? "HS" : ""}{tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
+                      </td>
+                      <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
+                      {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
+                        <td className="px-4 py-2 text-center" key={field}>
+                          <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
+                            <input
+                              aria-label={`Tome ${tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number} ${field === "bought" ? "acheté" : field === "downloaded" ? "téléchargé" : field === "read" ? "lu" : "NAS"}`}
+                              checked={tome[field]}
+                              className="h-5 w-5 cursor-pointer accent-primary-600"
+                              onChange={() => handleToggleTome(tome, field)}
+                              type="checkbox"
+                            />
+                          </label>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </ComponentErrorBoundary>
       )}
 
       {/* Sticky action bar */}
