@@ -1,7 +1,7 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { WifiOff } from "lucide-react";
+import { Loader2, WifiOff } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import type { ComponentType } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -64,7 +64,12 @@ const Tools = lazyWithRetry(() => import("./pages/Tools"));
 const Trash = lazyWithRetry(() => import("./pages/Trash"));
 
 function Loading() {
-  return <div className="py-12 text-center text-text-muted">Chargement…</div>;
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center" role="status">
+      <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      <span className="sr-only">Chargement…</span>
+    </div>
+  );
 }
 
 function ScrollToTop() {
