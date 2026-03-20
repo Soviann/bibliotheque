@@ -8,7 +8,7 @@ function ComponentErrorFallback({ error, label, resetErrorBoundary }: FallbackPr
   return (
     <div
       className="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-6 text-center dark:border-red-900 dark:bg-red-950/20"
-      data-testid="component-error-boundary"
+      data-testid="component-error-fallback"
     >
       <AlertTriangle className="h-8 w-8 text-red-500" />
       <p className="text-sm font-medium text-red-700 dark:text-red-400">
@@ -27,10 +27,19 @@ function ComponentErrorFallback({ error, label, resetErrorBoundary }: FallbackPr
   );
 }
 
-export default function ComponentErrorBoundary({ children, label }: { children: ReactNode; label: string }) {
+interface ComponentErrorBoundaryProps {
+  children: ReactNode;
+  label: string;
+  onReset?: () => void;
+  resetKeys?: unknown[];
+}
+
+export default function ComponentErrorBoundary({ children, label, onReset, resetKeys }: ComponentErrorBoundaryProps) {
   return (
     <ErrorBoundary
       fallbackRender={(props) => <ComponentErrorFallback {...props} label={label} />}
+      onReset={onReset}
+      resetKeys={resetKeys}
     >
       {children}
     </ErrorBoundary>

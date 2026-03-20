@@ -74,6 +74,28 @@ describe("ComponentErrorBoundary", () => {
     expect(screen.getByText("Récupéré")).toBeInTheDocument();
   });
 
+  it("calls onReset callback on retry click", async () => {
+    const user = userEvent.setup();
+    const onReset = vi.fn();
+    let shouldThrow = true;
+
+    function ConditionallyBroken() {
+      if (shouldThrow) throw new Error("Erreur");
+      return <div>OK</div>;
+    }
+
+    renderWithProviders(
+      <ComponentErrorBoundary label="la section" onReset={onReset}>
+        <ConditionallyBroken />
+      </ComponentErrorBoundary>,
+    );
+
+    shouldThrow = false;
+    await user.click(screen.getByRole("button", { name: "Réessayer" }));
+
+    expect(onReset).toHaveBeenCalledOnce();
+  });
+
   it("uses compact inline layout, not full-page", () => {
     renderWithProviders(
       <ComponentErrorBoundary label="les tomes">
@@ -81,7 +103,7 @@ describe("ComponentErrorBoundary", () => {
       </ComponentErrorBoundary>,
     );
 
-    const container = screen.getByTestId("component-error-boundary");
+    const container = screen.getByTestId("component-error-fallback");
     expect(container).toBeInTheDocument();
     // Should NOT contain the full-page "Une erreur est survenue" title
     expect(screen.queryByText("Une erreur est survenue")).not.toBeInTheDocument();
