@@ -8,18 +8,20 @@ interface ProgressBarProps {
 
 export default function ProgressBar({ color = "bg-primary-600", compact = false, current, label, total }: ProgressBarProps) {
   const percentage = total > 0 ? (current / total) * 100 : 0;
+  const percentRounded = Math.round(percentage);
+  const countText = `${current} / ${total} (${percentRounded}%)`;
 
   return (
     <div className="space-y-1">
       {!compact && (
         <div className="flex items-center justify-between text-xs text-text-secondary">
           <span>{label}</span>
-          <span>{current} / {total}</span>
+          <span>{countText}</span>
         </div>
       )}
       {compact && (
         <div className="flex items-center justify-between text-xs text-text-muted">
-          <span>{current} / {total}</span>
+          <span>{countText}</span>
         </div>
       )}
       <div
