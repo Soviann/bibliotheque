@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.14.1] - 2026-03-20
+
+### Fixed
+
+- **API** : Retire les tomes de la collection `GET /comic_series` pour éviter les OOM — ajoute des propriétés virtuelles calculées (`tomesCount`, `coveredCount`, `boughtCount`, `readCount`, `downloadedCount`, `maxTomeNumber`, `unboughtTomeNumbers`) et sépare les groupes de sérialisation `comic:list` / `comic:read`
+
 ## [v2.14.0] - 2026-03-20
 
 ### Changed
