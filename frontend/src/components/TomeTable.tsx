@@ -217,16 +217,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                         : <Search className="h-4 w-4" />}
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <label className="flex items-center gap-2 text-sm text-text-secondary">
-                      <input
-                        checked={tome.bought}
-                        className={formCheckboxClassName}
-                        onChange={(e) => updateTome(i, "bought", e.target.checked)}
-                        type="checkbox"
-                      />
-                      Acheté
-                    </label>
+                  <div className="grid grid-cols-3 gap-x-4 gap-y-1">
                     <label className="flex items-center gap-2 text-sm text-text-secondary">
                       <input
                         checked={tome.downloaded}
