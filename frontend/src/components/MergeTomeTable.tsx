@@ -26,6 +26,7 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
       )}
 
       {/* Tome table */}
+      <div className="-mx-6 overflow-x-auto px-6">
       <table className="w-full text-left text-sm">
         <thead className="sticky top-0 z-10 bg-surface-primary">
           <tr className="border-b border-surface-border text-text-muted">
@@ -139,6 +140,7 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
           })}
         </tbody>
       </table>
+      </div>
       <button
         className="mt-2 flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-950/30"
         onClick={() => dispatch({ type: "ADD_TOME" })}
