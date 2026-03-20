@@ -68,7 +68,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
       publisher: comic.publisher ?? "",
       status: comic.status,
       title: comic.title,
-      tomes: comic.tomes.map((t) => ({
+      tomes: (comic.tomes ?? []).map((t) => ({
         bought: t.bought,
         downloaded: t.downloaded,
         id: t.id,

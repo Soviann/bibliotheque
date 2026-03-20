@@ -44,6 +44,8 @@ export interface ComicSeries {
   _syncPending?: boolean;
   amazonUrl: string | null;
   authors: Author[];
+  boughtCount: number;
+  coveredCount: number;
   coverImage: string | null;
   coverUrl: string | null;
   createdAt: string;
@@ -51,8 +53,10 @@ export interface ComicSeries {
   defaultTomeDownloaded: boolean;
   defaultTomeRead: boolean;
   description: string | null;
+  downloadedCount: number;
   id: number;
   isOneShot: boolean;
+  maxTomeNumber: number | null;
   notInterestedBuy: boolean;
   notInterestedNas: boolean;
   latestPublishedIssue: number | null;
@@ -60,10 +64,13 @@ export interface ComicSeries {
   latestPublishedIssueUpdatedAt: string | null;
   publishedDate: string | null;
   publisher: string | null;
+  readCount: number;
   status: ComicStatus;
   title: string;
-  tomes: Tome[];
+  tomes?: Tome[];
+  tomesCount: number;
   type: ComicType;
+  unboughtTomeNumbers: number[];
   updatedAt: string;
 }
 

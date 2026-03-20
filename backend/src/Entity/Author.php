@@ -34,13 +34,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author implements \Stringable
 {
-    #[Groups(['author:read', 'comic:read'])]
+    #[Groups(['author:read', 'comic:list', 'comic:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['author:read', 'author:write', 'comic:read'])]
+    #[Groups(['author:read', 'author:write', 'comic:list', 'comic:read'])]
     #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotBlank]
     private string $name = '';

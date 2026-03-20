@@ -131,7 +131,7 @@ export default function SeriesMultiSelect({
                   <Eye className="h-3.5 w-3.5" />
                 </button>
                 <span className="text-xs text-text-muted">
-                  {comic.tomes.length} tome{comic.tomes.length !== 1 ? "s" : ""}
+                  {comic.tomesCount} tome{comic.tomesCount !== 1 ? "s" : ""}
                 </span>
               </label>
             );
@@ -164,7 +164,7 @@ export default function SeriesMultiSelect({
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-text-muted">Tomes</dt>
-                    <dd className="text-text-primary">{detailComic.tomes.length}</dd>
+                    <dd className="text-text-primary">{detailComic.tomesCount}</dd>
                   </div>
                   {detailComic.authors.length > 0 && (
                     <div className="flex justify-between">

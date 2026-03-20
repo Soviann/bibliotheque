@@ -7,7 +7,6 @@ import {
   createMockAuthor,
   createMockComicSeries,
   createMockHydraCollection,
-  createMockTome,
 } from "../../helpers/factories";
 import { server } from "../../helpers/server";
 import { renderWithProviders } from "../../helpers/test-utils";
@@ -450,9 +449,9 @@ describe("Home", () => {
   it("sorts comics by most tomes first", async () => {
     const user = userEvent.setup();
     const comics = [
-      createMockComicSeries({ id: 1, title: "Few", tomes: [createMockTome()] }),
-      createMockComicSeries({ id: 2, title: "Many", tomes: [createMockTome(), createMockTome(), createMockTome()] }),
-      createMockComicSeries({ id: 3, title: "None", tomes: [] }),
+      createMockComicSeries({ id: 1, title: "Few", tomesCount: 1 }),
+      createMockComicSeries({ id: 2, title: "Many", tomesCount: 3 }),
+      createMockComicSeries({ id: 3, title: "None", tomesCount: 0 }),
     ];
 
     server.use(

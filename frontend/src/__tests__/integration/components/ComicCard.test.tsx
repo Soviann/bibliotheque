@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ComicCard from "../../../components/ComicCard";
-import { createMockComicSeries, createMockTome } from "../../helpers/factories";
+import { createMockComicSeries } from "../../helpers/factories";
 import { renderWithProviders } from "../../helpers/test-utils";
 import { ComicStatus, ComicType } from "../../../types/enums";
 
@@ -75,7 +75,7 @@ describe("ComicCard", () => {
     const comic = createMockComicSeries({
       isOneShot: false,
       title: "Bleach",
-      tomes: [createMockTome(), createMockTome(), createMockTome()],
+      tomesCount: 3,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -87,7 +87,6 @@ describe("ComicCard", () => {
     const comic = createMockComicSeries({
       isOneShot: true,
       title: "Akira",
-      tomes: [],
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -161,14 +160,12 @@ describe("ComicCard", () => {
 
   it("shows progress text when latestPublishedIssue is set", () => {
     const comic = createMockComicSeries({
+      boughtCount: 2,
+      coveredCount: 3,
       isOneShot: false,
       latestPublishedIssue: 24,
       title: "Naruto",
-      tomes: [
-        createMockTome({ bought: true }),
-        createMockTome({ bought: true }),
-        createMockTome({ bought: false }),
-      ],
+      tomesCount: 3,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -178,14 +175,14 @@ describe("ComicCard", () => {
 
   it("shows all three stat counters", () => {
     const comic = createMockComicSeries({
+      boughtCount: 2,
+      coveredCount: 3,
+      downloadedCount: 1,
       isOneShot: false,
       latestPublishedIssue: 10,
+      readCount: 1,
       title: "One Piece",
-      tomes: [
-        createMockTome({ bought: true, downloaded: true, read: true }),
-        createMockTome({ bought: true, downloaded: false, read: false }),
-        createMockTome({ bought: false, downloaded: false, read: false }),
-      ],
+      tomesCount: 3,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -197,13 +194,12 @@ describe("ComicCard", () => {
 
   it("uses tome count as total when latestPublishedIssue is null", () => {
     const comic = createMockComicSeries({
+      boughtCount: 1,
+      coveredCount: 2,
       isOneShot: false,
       latestPublishedIssue: null,
       title: "Unknown Total",
-      tomes: [
-        createMockTome({ bought: true }),
-        createMockTome({ bought: false }),
-      ],
+      tomesCount: 2,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -213,14 +209,12 @@ describe("ComicCard", () => {
 
   it("uses coveredCount when it exceeds latestPublishedIssue", () => {
     const comic = createMockComicSeries({
+      boughtCount: 3,
+      coveredCount: 3,
       isOneShot: false,
       latestPublishedIssue: 2,
       title: "Overflow",
-      tomes: [
-        createMockTome({ bought: true }),
-        createMockTome({ bought: true }),
-        createMockTome({ bought: true }),
-      ],
+      tomesCount: 3,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -233,7 +227,7 @@ describe("ComicCard", () => {
       isOneShot: true,
       latestPublishedIssue: 1,
       title: "Single",
-      tomes: [createMockTome({ bought: true })],
+      tomesCount: 1,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -246,7 +240,7 @@ describe("ComicCard", () => {
       isOneShot: false,
       latestPublishedIssue: null,
       title: "Empty",
-      tomes: [],
+      tomesCount: 0,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -261,9 +255,10 @@ describe("ComicCard", () => {
     const comic = createMockComicSeries({
       latestPublishedIssue: 10,
       latestPublishedIssueUpdatedAt: recentDate.toISOString(),
+      maxTomeNumber: 2,
       status: ComicStatus.BUYING,
       title: "Naruto",
-      tomes: [createMockTome({ number: 1 }), createMockTome({ number: 2 })],
+      tomesCount: 2,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
@@ -290,9 +285,10 @@ describe("ComicCard", () => {
     const comic = createMockComicSeries({
       latestPublishedIssue: 10,
       latestPublishedIssueUpdatedAt: recentDate.toISOString(),
+      maxTomeNumber: 1,
       status: ComicStatus.FINISHED,
       title: "Complete",
-      tomes: [createMockTome({ number: 1 })],
+      tomesCount: 1,
     });
 
     renderWithProviders(<ComicCard comic={comic} />);
