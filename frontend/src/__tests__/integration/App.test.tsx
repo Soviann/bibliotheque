@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Suspense, useEffect } from "react";
@@ -39,6 +40,17 @@ function OfflineFallback() {
       >
         Retour
       </button>
+    </div>
+  );
+}
+
+// --- Loading (replicated from App.tsx) ----------------------------------------
+
+function Loading() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center" role="status">
+      <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      <span className="sr-only">Chargement…</span>
     </div>
   );
 }
@@ -109,7 +121,7 @@ describe("lazyWithRetry", () => {
 
     render(
       <MemoryRouter>
-        <Suspense fallback={<div>Chargement...</div>}>
+        <Suspense fallback={<Loading />}>
           <FailingPage />
         </Suspense>
       </MemoryRouter>,
@@ -318,7 +330,7 @@ describe("Route rendering", () => {
     return render(
       <QueryClientProvider client={qc}>
         <MemoryRouter initialEntries={[route]}>
-          <Suspense fallback={<div>Chargement...</div>}>
+          <Suspense fallback={<Loading />}>
             <Routes>
               <Route
                 element={<LoginPage />}
@@ -381,7 +393,7 @@ describe("Route rendering", () => {
 });
 
 describe("Suspense fallback", () => {
-  it("shows 'Chargement...' while lazy pages load", async () => {
+  it("shows a centered spinner while lazy pages load", async () => {
     let resolveImport: (mod: { default: ComponentType }) => void;
     const importPromise = new Promise<{ default: ComponentType }>((resolve) => {
       resolveImport = resolve;
@@ -392,14 +404,15 @@ describe("Suspense fallback", () => {
 
     render(
       <MemoryRouter>
-        <Suspense fallback={<div>Chargement...</div>}>
+        <Suspense fallback={<Loading />}>
           <LazyPage />
         </Suspense>
       </MemoryRouter>,
     );
 
-    // Should show fallback while loading
-    expect(screen.getByText("Chargement...")).toBeInTheDocument();
+    // Should show spinner fallback while loading
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByText("Chargement…")).toBeInTheDocument();
 
     // Resolve the import
     resolveImport!({ default: () => <div>Loaded Page</div> });
