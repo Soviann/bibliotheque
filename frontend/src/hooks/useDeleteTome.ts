@@ -18,7 +18,7 @@ export function useDeleteTome(seriesId: number) {
         if (!old) return old;
         return {
           ...old,
-          tomes: old.tomes.filter((t) => t.id !== variables.id),
+          tomes: (old.tomes ?? []).filter((t) => t.id !== variables.id),
         };
       });
     },

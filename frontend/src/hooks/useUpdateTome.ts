@@ -25,7 +25,7 @@ export function useUpdateTome(seriesId?: number) {
         if (!old) return old;
         return {
           ...old,
-          tomes: old.tomes.map((t) =>
+          tomes: (old.tomes ?? []).map((t) =>
             t.id === variables.id ? { ...t, ...variables, _syncPending: true } : t,
           ),
         };

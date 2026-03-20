@@ -1,5 +1,5 @@
 import { sortComics, type SortOption } from "../../../utils/sortComics";
-import { createMockComicSeries, createMockTome } from "../../helpers/factories";
+import { createMockComicSeries } from "../../helpers/factories";
 
 describe("sortComics", () => {
   it("sorts by title ascending by default", () => {
@@ -50,9 +50,9 @@ describe("sortComics", () => {
 
   it("sorts by tomes count descending", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "Few", tomes: [createMockTome()] }),
-      createMockComicSeries({ id: 2, title: "Many", tomes: [createMockTome(), createMockTome(), createMockTome()] }),
-      createMockComicSeries({ id: 3, title: "None", tomes: [] }),
+      createMockComicSeries({ id: 1, title: "Few", tomesCount: 1 }),
+      createMockComicSeries({ id: 2, title: "Many", tomesCount: 3 }),
+      createMockComicSeries({ id: 3, title: "None", tomesCount: 0 }),
     ];
 
     const result = sortComics(comics, "tomes-desc");
@@ -62,8 +62,8 @@ describe("sortComics", () => {
 
   it("sorts by tomes count ascending", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "Many", tomes: [createMockTome(), createMockTome()] }),
-      createMockComicSeries({ id: 2, title: "None", tomes: [] }),
+      createMockComicSeries({ id: 1, title: "Many", tomesCount: 2 }),
+      createMockComicSeries({ id: 2, title: "None", tomesCount: 0 }),
     ];
 
     const result = sortComics(comics, "tomes-asc");

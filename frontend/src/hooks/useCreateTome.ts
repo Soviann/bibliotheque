@@ -37,7 +37,7 @@ export function useCreateTome(seriesId: number) {
         };
         return {
           ...old,
-          tomes: [...old.tomes, tempTome].sort((a, b) => {
+          tomes: [...(old.tomes ?? []), tempTome].sort((a, b) => {
             if (a.isHorsSerie !== b.isHorsSerie) return a.isHorsSerie ? 1 : -1;
             return a.number - b.number;
           }),

@@ -6,7 +6,6 @@ import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
 import { hasNewRelease } from "../utils/releaseUtils";
-import { countCoveredTomes } from "../utils/tomeUtils";
 import SyncPendingIndicator from "./SyncPendingIndicator";
 
 interface ComicCardProps {
@@ -18,13 +17,8 @@ interface ComicCardProps {
 export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
   const navigate = useNavigate();
   const coverSrc = getCoverSrc(comic);
-  const tomes = comic.tomes ?? [];
-  const coveredCount = countCoveredTomes(tomes);
-  const boughtCount = countCoveredTomes(tomes, (t) => t.bought);
-  const readCount = countCoveredTomes(tomes, (t) => t.read);
-  const downloadedCount = countCoveredTomes(tomes, (t) => t.downloaded);
-  const total = Math.max(comic.latestPublishedIssue ?? 0, coveredCount);
-  const showStats = !comic.isOneShot && tomes.length > 0;
+  const total = Math.max(comic.latestPublishedIssue ?? 0, comic.coveredCount);
+  const showStats = !comic.isOneShot && comic.tomesCount > 0;
   const hasActions = !!onDelete;
   const isNewRelease = hasNewRelease(comic);
 
@@ -51,7 +45,7 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
               </h3>
               <p className="truncate text-xs text-text-muted">
                 {ComicTypeLabel[comic.type]}
-                {!comic.isOneShot && ` · ${tomes.length} t.`}
+                {!comic.isOneShot && ` · ${comic.tomesCount} t.`}
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 En attente de synchronisation
@@ -98,7 +92,7 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
             </h3>
             <p className="truncate text-xs text-text-muted">
               {ComicTypeLabel[comic.type]}
-              {!comic.isOneShot && ` · ${tomes.length} t.`}
+              {!comic.isOneShot && ` · ${comic.tomesCount} t.`}
             </p>
           </div>
 
@@ -171,15 +165,15 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
           <div className="mt-1.5 flex items-center justify-between text-xs text-text-muted">
             <span className="flex items-center gap-0.5" title="Achetés">
               <Euro className="h-3 w-3" />
-              {boughtCount}/{total}
+              {comic.boughtCount}/{total}
             </span>
             <span className="flex items-center gap-0.5" title="Lus">
               <Eye className="h-3 w-3" />
-              {readCount}/{total}
+              {comic.readCount}/{total}
             </span>
             <span className="flex items-center gap-0.5" title="Téléchargés">
               <HardDrive className="h-3 w-3" />
-              {downloadedCount}/{total}
+              {comic.downloadedCount}/{total}
             </span>
           </div>
         )}

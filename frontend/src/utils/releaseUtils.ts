@@ -22,10 +22,5 @@ export function hasNewRelease(comic: ComicSeries): boolean {
 
   if (updatedAt < cutoff) return false;
 
-  const maxOwned = (comic.tomes ?? []).reduce(
-    (max, t) => Math.max(max, t.number),
-    0,
-  );
-
-  return comic.latestPublishedIssue > maxOwned;
+  return comic.latestPublishedIssue > (comic.maxTomeNumber ?? 0);
 }

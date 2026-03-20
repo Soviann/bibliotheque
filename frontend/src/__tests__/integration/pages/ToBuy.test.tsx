@@ -4,27 +4,12 @@ import type { ComicSeries } from "../../../types/api";
 import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
 import ToBuy from "../../../pages/ToBuy";
 
-function makeTome(number: number, bought: boolean) {
-  return {
-    "@id": `/api/tomes/${number}`,
-    bought,
-    createdAt: "",
-    downloaded: false,
-    id: number,
-    isbn: null,
-    number,
-    onNas: false,
-    read: false,
-    title: null,
-    tomeEnd: null,
-    updatedAt: "",
-  };
-}
-
 function makeSeries(id: number, title: string, overrides: Partial<ComicSeries> = {}): ComicSeries {
   return {
     "@id": `/api/comics/${id}`,
     authors: [],
+    boughtCount: 0,
+    coveredCount: 0,
     coverImage: null,
     coverUrl: null,
     createdAt: "2024-01-01T00:00:00+00:00",
@@ -32,17 +17,21 @@ function makeSeries(id: number, title: string, overrides: Partial<ComicSeries> =
     defaultTomeDownloaded: false,
     defaultTomeRead: false,
     description: null,
+    downloadedCount: 0,
     id,
     isOneShot: false,
     latestPublishedIssue: null,
     latestPublishedIssueComplete: false,
     latestPublishedIssueUpdatedAt: null,
+    maxTomeNumber: null,
     publishedDate: null,
     publisher: null,
+    readCount: 0,
     status: "buying",
     title,
-    tomes: [],
+    tomesCount: 0,
     type: "manga",
+    unboughtTomeNumbers: [],
     updatedAt: "2024-01-01T00:00:00+00:00",
     ...overrides,
   };
@@ -68,7 +57,7 @@ describe("ToBuy", () => {
 
   it("shows buying series with unbought tomes", () => {
     const series = makeSeries(1, "One Piece", {
-      tomes: [makeTome(1, true), makeTome(2, false), makeTome(3, false)],
+      unboughtTomeNumbers: [2, 3],
     });
     renderWithComics([series]);
     expect(screen.getByText("One Piece")).toBeInTheDocument();
@@ -78,7 +67,7 @@ describe("ToBuy", () => {
   it("excludes finished series", () => {
     const series = makeSeries(1, "Naruto", {
       status: "finished",
-      tomes: [makeTome(1, false)],
+      unboughtTomeNumbers: [1],
     });
     renderWithComics([series]);
     expect(screen.queryByText("Naruto")).not.toBeInTheDocument();
@@ -88,7 +77,7 @@ describe("ToBuy", () => {
   it("excludes one-shots", () => {
     const series = makeSeries(1, "Akira", {
       isOneShot: true,
-      tomes: [makeTome(1, false)],
+      unboughtTomeNumbers: [1],
     });
     renderWithComics([series]);
     expect(screen.queryByText("Akira")).not.toBeInTheDocument();
@@ -96,7 +85,7 @@ describe("ToBuy", () => {
 
   it("excludes series with all tomes bought", () => {
     const series = makeSeries(1, "Bleach", {
-      tomes: [makeTome(1, true), makeTome(2, true)],
+      unboughtTomeNumbers: [],
     });
     renderWithComics([series]);
     expect(screen.queryByText("Bleach")).not.toBeInTheDocument();
@@ -104,8 +93,8 @@ describe("ToBuy", () => {
 
   it("sorts series by title", () => {
     const series = [
-      makeSeries(1, "Zetman", { tomes: [makeTome(1, false)] }),
-      makeSeries(2, "Akira Toriyama", { tomes: [makeTome(1, false)] }),
+      makeSeries(1, "Zetman", { unboughtTomeNumbers: [1] }),
+      makeSeries(2, "Akira Toriyama", { unboughtTomeNumbers: [1] }),
     ];
     renderWithComics(series);
     const cards = screen.getAllByRole("link");
@@ -115,7 +104,7 @@ describe("ToBuy", () => {
 
   it("shows single tome as 'Prochain : T.X'", () => {
     const series = makeSeries(1, "Solo", {
-      tomes: [makeTome(1, true), makeTome(2, false)],
+      unboughtTomeNumbers: [2],
     });
     renderWithComics([series]);
     expect(screen.getByText("Prochain : T.2")).toBeInTheDocument();

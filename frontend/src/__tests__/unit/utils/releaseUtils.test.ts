@@ -8,6 +8,8 @@ function makeComic(overrides: Partial<ComicSeries> = {}): ComicSeries {
     "@id": "/api/comic_series/1",
     amazonUrl: null,
     authors: [],
+    boughtCount: 0,
+    coveredCount: 0,
     coverImage: null,
     coverUrl: null,
     createdAt: "2024-01-01T00:00:00+00:00",
@@ -15,17 +17,21 @@ function makeComic(overrides: Partial<ComicSeries> = {}): ComicSeries {
     defaultTomeDownloaded: false,
     defaultTomeRead: false,
     description: null,
+    downloadedCount: 0,
     id: 1,
     isOneShot: false,
     latestPublishedIssue: null,
     latestPublishedIssueComplete: false,
     latestPublishedIssueUpdatedAt: null,
+    maxTomeNumber: null,
     publishedDate: null,
     publisher: null,
+    readCount: 0,
     status: ComicStatus.BUYING,
     title: "Test",
-    tomes: [],
+    tomesCount: 0,
     type: ComicType.MANGA,
+    unboughtTomeNumbers: [],
     updatedAt: "2024-01-01T00:00:00+00:00",
     ...overrides,
   };
@@ -35,23 +41,6 @@ function recentDate(daysAgo: number): string {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
   return date.toISOString();
-}
-
-function makeTome(number: number) {
-  return {
-    "@id": `/api/tomes/${number}`,
-    bought: true,
-    createdAt: "2024-01-01T00:00:00+00:00",
-    downloaded: false,
-    id: number,
-    isbn: null,
-    number,
-    onNas: false,
-    read: false,
-    title: null,
-    tomeEnd: null,
-    updatedAt: "2024-01-01T00:00:00+00:00",
-  };
 }
 
 describe("hasNewRelease", () => {
@@ -68,7 +57,7 @@ describe("hasNewRelease", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
       latestPublishedIssueUpdatedAt: recentDate(3),
-      tomes: [makeTome(1), makeTome(2), makeTome(3)],
+      maxTomeNumber: 3,
     });
     expect(hasNewRelease(comic)).toBe(true);
   });
@@ -77,8 +66,8 @@ describe("hasNewRelease", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
       latestPublishedIssueUpdatedAt: recentDate(3),
+      maxTomeNumber: 2,
       status: ComicStatus.FINISHED,
-      tomes: [makeTome(1), makeTome(2)],
     });
     expect(hasNewRelease(comic)).toBe(false);
   });
@@ -87,7 +76,7 @@ describe("hasNewRelease", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
       latestPublishedIssueUpdatedAt: recentDate(10),
-      tomes: [makeTome(1), makeTome(2)],
+      maxTomeNumber: 2,
     });
     expect(hasNewRelease(comic)).toBe(false);
   });
@@ -96,7 +85,7 @@ describe("hasNewRelease", () => {
     const comic = makeComic({
       latestPublishedIssue: 3,
       latestPublishedIssueUpdatedAt: recentDate(1),
-      tomes: [makeTome(1), makeTome(2), makeTome(3)],
+      maxTomeNumber: 3,
     });
     expect(hasNewRelease(comic)).toBe(false);
   });
@@ -113,7 +102,7 @@ describe("hasNewRelease", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
       latestPublishedIssueUpdatedAt: null,
-      tomes: [makeTome(1)],
+      maxTomeNumber: 1,
     });
     expect(hasNewRelease(comic)).toBe(false);
   });
@@ -122,7 +111,7 @@ describe("hasNewRelease", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
       latestPublishedIssueUpdatedAt: recentDate(1),
-      tomes: [],
+      maxTomeNumber: null,
     });
     expect(hasNewRelease(comic)).toBe(true);
   });
@@ -131,7 +120,7 @@ describe("hasNewRelease", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
       latestPublishedIssueUpdatedAt: recentDate(7),
-      tomes: [makeTome(1)],
+      maxTomeNumber: 1,
     });
     // At exactly 7 days, updatedAt will be within the cutoff window
     // (cutoff = now - 7 days, and updatedAt >= cutoff since same date)
