@@ -10,6 +10,7 @@ import SkeletonBox from "../components/SkeletonBox";
 import SyncFailureSection from "../components/SyncFailureSection";
 import TomeTable from "../components/TomeTable";
 import { useComicForm } from "../hooks/useComicForm";
+import { useGoBack } from "../hooks/useGoBack";
 import {
   formCheckboxClassName,
   formInputClassName,
@@ -19,6 +20,7 @@ import {
 import { statusOptions, typeOptions } from "../types/enums";
 
 export default function ComicForm() {
+  const goBack = useGoBack();
   const {
     addAuthor,
     applyLookup,
@@ -37,7 +39,6 @@ export default function ComicForm() {
     lookupMode,
     lookupResult,
     lookupTitle,
-    navigate,
     removeAuthor,
     resolveSyncFailure,
     selectCandidate,
@@ -100,7 +101,7 @@ export default function ComicForm() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" onClick={() => navigate(-1)} type="button">
+        <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" onClick={() => goBack()} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-xl font-bold text-text-primary">
@@ -338,7 +339,7 @@ export default function ComicForm() {
       <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
         <button
           className="rounded-lg px-5 py-2.5 text-base font-medium text-text-secondary hover:bg-surface-tertiary"
-          onClick={() => navigate(-1)}
+          onClick={() => goBack()}
           type="button"
         >
           Annuler

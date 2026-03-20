@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../hooks/useGoBack";
 import { toast } from "sonner";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import CoverLightbox from "../components/CoverLightbox";
@@ -97,6 +98,7 @@ function formatRelativeDate(isoDate: string): string {
 
 export default function ComicDetail() {
   const { id } = useParams<{ id: string }>();
+  const goBack = useGoBack();
   const navigate = useNavigate();
   const { data: comic, isLoading } = useComic(id ? Number(id) : undefined);
   const deleteComic = useDeleteComic();
@@ -267,7 +269,7 @@ export default function ComicDetail() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary" onClick={() => navigate(-1)} type="button">
+        <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary" onClick={goBack} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="flex-1 text-xl font-bold text-text-primary">
