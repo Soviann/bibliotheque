@@ -21,7 +21,7 @@ export function useCreateComic() {
         const tempSeries: ComicSeries = {
           "@id": `/api/comic_series/${tempId}`,
           _syncPending: true,
-          amazonUrl: null,
+          amazonUrl: variables.amazonUrl ?? null,
           authors: [],
           coverImage: null,
           coverUrl: variables.coverUrl ?? null,

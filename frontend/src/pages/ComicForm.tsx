@@ -230,6 +230,20 @@ export default function ComicForm() {
               <span className="text-sm font-medium text-text-secondary">Parution terminée</span>
             </label>
           </div>
+
+          <div>
+            <label className={formLabelClassName} htmlFor="amazonUrl">
+              URL Amazon
+            </label>
+            <input
+              className={`w-full ${formInputClassName}`}
+              id="amazonUrl"
+              onChange={(e) => update("amazonUrl", e.target.value)}
+              placeholder="https://www.amazon.fr/dp/..."
+              type="url"
+              value={form.amazonUrl}
+            />
+          </div>
         </CollapsibleSection>
 
         {/* Média */}

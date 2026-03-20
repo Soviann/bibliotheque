@@ -661,6 +661,66 @@ describe("ComicForm", () => {
     });
   });
 
+  describe("Amazon URL field", () => {
+    it("renders and accepts URL input in Publication section", async () => {
+      const user = userEvent.setup();
+      renderCreateForm();
+
+      const field = screen.getByLabelText("URL Amazon");
+      expect(field).toBeInTheDocument();
+
+      await user.type(field, "https://www.amazon.fr/dp/B08N5WRWNW");
+      expect(field).toHaveValue("https://www.amazon.fr/dp/B08N5WRWNW");
+    });
+
+    it("includes amazonUrl in create payload", async () => {
+      const user = userEvent.setup();
+      let capturedPayload: Record<string, unknown> | null = null;
+
+      server.use(
+        http.post("/api/comic_series", async ({ request }) => {
+          capturedPayload = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(
+            createMockComicSeries({ id: 99, title: "Amazon Test" }),
+            { status: 201 },
+          );
+        }),
+      );
+
+      renderCreateForm();
+
+      await user.type(screen.getByLabelText("Titre *"), "Amazon Test");
+      await user.type(screen.getByLabelText("URL Amazon"), "https://www.amazon.fr/dp/B08N5WRWNW");
+      await user.click(screen.getByText("Créer"));
+
+      await waitFor(() => {
+        expect(capturedPayload).not.toBeNull();
+      });
+
+      expect(capturedPayload!.amazonUrl).toBe("https://www.amazon.fr/dp/B08N5WRWNW");
+    });
+
+    it("populates amazonUrl from existing comic in edit mode", async () => {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              amazonUrl: "https://www.amazon.fr/dp/EXISTING",
+              id: 1,
+              title: "Edit Amazon",
+            }),
+          ),
+        ),
+      );
+
+      renderEditForm();
+
+      await waitFor(() => {
+        expect(screen.getByLabelText("URL Amazon")).toHaveValue("https://www.amazon.fr/dp/EXISTING");
+      });
+    });
+  });
+
   describe("Author management", () => {
     it("creates new author during submit via POST /api/authors", async () => {
       const user = userEvent.setup();
