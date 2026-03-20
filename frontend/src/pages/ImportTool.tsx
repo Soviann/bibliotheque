@@ -8,6 +8,7 @@ import {
 import { CheckCircle, Loader2, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Breadcrumb from "../components/Breadcrumb";
 import FileDropZone from "../components/FileDropZone";
 import { useImportBooks, useImportExcel } from "../hooks/useImport";
 import type { ImportBooksResult, ImportExcelResult } from "../types/api";
@@ -182,6 +183,7 @@ function BooksTab() {
 export default function ImportTool() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Import Excel" }]} />
       <h1 className="text-xl font-bold text-text-primary">Import Excel</h1>
 
       <TabGroup className="mt-4">

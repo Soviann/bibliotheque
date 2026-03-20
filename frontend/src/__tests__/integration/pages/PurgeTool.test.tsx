@@ -11,7 +11,7 @@ describe("PurgeTool", () => {
   it("renders the page title and days input", () => {
     renderWithProviders(<PurgeTool />);
 
-    expect(screen.getByText("Purge de la corbeille")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Purge de la corbeille" })).toBeInTheDocument();
     expect(screen.getByRole("spinbutton")).toBeInTheDocument();
   });
 

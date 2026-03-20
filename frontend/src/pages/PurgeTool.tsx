@@ -1,6 +1,7 @@
 import { Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Breadcrumb from "../components/Breadcrumb";
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import { useExecutePurge, usePurgePreview } from "../hooks/usePurge";
@@ -26,6 +27,7 @@ export default function PurgeTool() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Purge de la corbeille" }]} />
       <h1 className="text-xl font-bold text-text-primary">
         Purge de la corbeille
       </h1>

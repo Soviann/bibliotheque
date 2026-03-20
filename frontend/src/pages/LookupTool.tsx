@@ -1,6 +1,7 @@
 import { CheckCircle, Loader2, Search, Square } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Breadcrumb from "../components/Breadcrumb";
 import ProgressLog from "../components/ProgressLog";
 import {
   useBatchLookup,
@@ -32,6 +33,7 @@ export default function LookupTool() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Lookup métadonnées" }]} />
       <h1 className="text-xl font-bold text-text-primary">
         Lookup métadonnées
       </h1>

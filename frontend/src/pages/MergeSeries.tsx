@@ -10,6 +10,7 @@ import { Loader2, Merge, Search as SearchIcon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import Breadcrumb from "../components/Breadcrumb";
 import EmptyState from "../components/EmptyState";
 import SelectListbox from "../components/SelectListbox";
 import MergeGroupCard from "../components/MergeGroupCard";
@@ -148,6 +149,7 @@ export default function MergeSeries() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Fusion de séries" }]} />
       <h1 className="text-xl font-bold text-text-primary">
         Fusion de séries
       </h1>

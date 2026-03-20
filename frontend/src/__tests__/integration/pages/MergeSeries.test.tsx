@@ -79,7 +79,7 @@ describe("MergeSeries", () => {
   it("renders with two tabs", () => {
     renderWithProviders(<MergeSeries />);
 
-    expect(screen.getByText("Fusion de séries")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Fusion de séries" })).toBeInTheDocument();
     expect(screen.getByText("Détection automatique")).toBeInTheDocument();
     expect(screen.getByText("Sélection manuelle")).toBeInTheDocument();
   });
