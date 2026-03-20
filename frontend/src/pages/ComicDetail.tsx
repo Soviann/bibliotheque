@@ -1,5 +1,5 @@
-import { ArrowLeft, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import CoverLightbox from "../components/CoverLightbox";
@@ -17,6 +17,8 @@ import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
 
 type BooleanField = "bought" | "downloaded" | "onNas" | "read";
+type SortKey = "number" | "title" | BooleanField;
+type SortDirection = "asc" | "desc";
 
 const FIELD_LABELS: Record<BooleanField, string> = {
   bought: "acheté",
@@ -49,6 +51,32 @@ function HeaderCheckbox({ field, onChange, tomes }: { field: BooleanField; onCha
   );
 }
 
+function SortIcon({ active, direction }: { active: boolean; direction: SortDirection }) {
+  if (!active) return <ArrowUpDown className="h-3.5 w-3.5 text-text-muted" />;
+  return direction === "asc"
+    ? <ArrowUp className="h-3.5 w-3.5" />
+    : <ArrowDown className="h-3.5 w-3.5" />;
+}
+
+function compareTomes(a: Tome, b: Tome, key: SortKey, direction: SortDirection): number {
+  let result: number;
+
+  if (key === "number") {
+    result = a.number - b.number;
+  } else if (key === "title") {
+    const aTitle = a.title ?? "";
+    const bTitle = b.title ?? "";
+    result = aTitle.localeCompare(bTitle, "fr");
+    if (result === 0) result = a.number - b.number;
+  } else {
+    // Boolean fields: false (0) before true (1) in ascending
+    result = Number(a[key]) - Number(b[key]);
+    if (result === 0) result = a.number - b.number;
+  }
+
+  return direction === "asc" ? result : -result;
+}
+
 function formatRelativeDate(isoDate: string): string {
   const date = new Date(isoDate);
   const now = new Date();
@@ -75,8 +103,20 @@ export default function ComicDetail() {
   const updateTome = useUpdateTome(id ? Number(id) : undefined);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [optimisticTomes, setOptimisticTomes] = useState<Tome[]>([]);
+  const [sort, dispatchSort] = useReducer(
+    (state: { direction: SortDirection; key: SortKey }, key: SortKey): { direction: SortDirection; key: SortKey } =>
+      state.key === key
+        ? { ...state, direction: state.direction === "asc" ? "desc" as const : "asc" as const }
+        : { direction: "asc" as const, key },
+    { direction: "asc" as const, key: "number" as SortKey },
+  );
   const toggleCountRef = useRef(0);
   const toggleTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const sortedTomes = useMemo(
+    () => [...optimisticTomes].sort((a, b) => compareTomes(a, b, sort.key, sort.direction)),
+    [optimisticTomes, sort.key, sort.direction],
+  );
 
   const { boughtCount, downloadedCount, progressTotal, readCount } = useMemo(() => ({
     boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
@@ -339,12 +379,25 @@ export default function ComicDetail() {
             <table className="w-full text-sm">
               <thead className="bg-surface-tertiary">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium text-text-secondary">#</th>
-                  <th className="px-4 py-2 text-left font-medium text-text-secondary">Titre</th>
+                  <th className="px-4 py-2 text-left font-medium text-text-secondary">
+                    <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("number")} type="button">
+                      #
+                      <SortIcon active={sort.key === "number"} direction={sort.direction} />
+                    </button>
+                  </th>
+                  <th className="px-4 py-2 text-left font-medium text-text-secondary">
+                    <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("title")} type="button">
+                      Titre
+                      <SortIcon active={sort.key === "title"} direction={sort.direction} />
+                    </button>
+                  </th>
                   {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
                     <th className="px-4 py-2 text-center font-medium text-text-secondary" key={field}>
                       <div className="flex flex-col items-center gap-1">
-                        <span>{field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS"}</span>
+                        <button className="inline-flex items-center gap-1" onClick={() => dispatchSort(field)} type="button">
+                          <span>{field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS"}</span>
+                          <SortIcon active={sort.key === field} direction={sort.direction} />
+                        </button>
                         <HeaderCheckbox field={field} onChange={() => handleToggleAllTomes(field)} tomes={optimisticTomes} />
                       </div>
                     </th>
@@ -352,7 +405,7 @@ export default function ComicDetail() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
-                {optimisticTomes.map((tome) => (
+                {sortedTomes.map((tome) => (
                   <tr className="hover:bg-surface-tertiary/50" key={tome.id}>
                     <td className="px-4 py-2 font-medium text-text-primary">
                       {tome._syncPending && <SyncPendingIndicator className="mr-1" />}

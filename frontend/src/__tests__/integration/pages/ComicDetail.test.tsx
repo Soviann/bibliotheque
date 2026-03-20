@@ -1128,6 +1128,157 @@ describe("ComicDetail", () => {
     expect(deleteButton.className).toContain("text-red-600");
   });
 
+  describe("tomes table sorting", () => {
+    const sortableTomes = [
+      createMockTome({ bought: true, downloaded: false, id: 1, number: 1, read: false, title: "Alpha" }),
+      createMockTome({ bought: false, downloaded: true, id: 2, number: 3, read: true, title: "Gamma" }),
+      createMockTome({ bought: true, downloaded: true, id: 3, number: 2, read: false, title: "Beta" }),
+    ];
+
+    function setupSortableTable() {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({ id: 1, isOneShot: false, title: "Sort Test", tomes: sortableTomes }),
+          ),
+        ),
+      );
+    }
+
+    it("renders clickable column headers with sort indicators", async () => {
+      setupSortableTable();
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      // The # column header should be clickable and show a sort indicator (ascending by default)
+      const numberHeader = screen.getByRole("columnheader", { name: /^#/ });
+      expect(numberHeader).toBeInTheDocument();
+      const sortButton = numberHeader.querySelector("button");
+      expect(sortButton).toBeInTheDocument();
+    });
+
+    it("sorts tomes by number ascending by default", async () => {
+      setupSortableTable();
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      // Default sort: by number ascending (1, 2, 3)
+      const rows = screen.getAllByRole("row").slice(1); // skip header
+      expect(rows[0]).toHaveTextContent("1");
+      expect(rows[1]).toHaveTextContent("2");
+      expect(rows[2]).toHaveTextContent("3");
+    });
+
+    it("sorts tomes by number descending when clicking # header", async () => {
+      const user = userEvent.setup();
+      setupSortableTable();
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      // Click # header to toggle to descending
+      const numberHeader = screen.getByRole("columnheader", { name: /^#/ });
+      await user.click(numberHeader.querySelector("button")!);
+
+      const rows = screen.getAllByRole("row").slice(1);
+      expect(rows[0]).toHaveTextContent("3");
+      expect(rows[1]).toHaveTextContent("2");
+      expect(rows[2]).toHaveTextContent("1");
+    });
+
+    it("sorts tomes by title when clicking Titre header", async () => {
+      const user = userEvent.setup();
+      setupSortableTable();
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      const titleHeader = screen.getByRole("columnheader", { name: /Titre/ });
+      await user.click(titleHeader.querySelector("button")!);
+
+      const rows = screen.getAllByRole("row").slice(1);
+      // Ascending by title: Alpha, Beta, Gamma
+      expect(rows[0]).toHaveTextContent("Alpha");
+      expect(rows[1]).toHaveTextContent("Beta");
+      expect(rows[2]).toHaveTextContent("Gamma");
+    });
+
+    it("sorts unread tomes first when clicking Lu header", async () => {
+      const user = userEvent.setup();
+      setupSortableTable();
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      // Click Lu header to sort by read status (unread first = ascending: false before true)
+      const readHeader = screen.getByRole("columnheader", { name: /Lu/ });
+      await user.click(readHeader.querySelector("button")!);
+
+      const rows = screen.getAllByRole("row").slice(1);
+      // Ascending boolean: false (unread) first, then true (read)
+      // Among unread (#1 and #2): sorted by number
+      expect(rows[0]).toHaveTextContent("1"); // unread
+      expect(rows[1]).toHaveTextContent("2"); // unread
+      expect(rows[2]).toHaveTextContent("3"); // read
+    });
+
+    it("toggles sort direction when clicking the same column twice", async () => {
+      const user = userEvent.setup();
+      setupSortableTable();
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      const numberHeader = screen.getByRole("columnheader", { name: /^#/ });
+      // First click: descending (was already ascending by default)
+      await user.click(numberHeader.querySelector("button")!);
+      // Second click: back to ascending
+      await user.click(numberHeader.querySelector("button")!);
+
+      const rows = screen.getAllByRole("row").slice(1);
+      expect(rows[0]).toHaveTextContent("1");
+      expect(rows[1]).toHaveTextContent("2");
+      expect(rows[2]).toHaveTextContent("3");
+    });
+
+    it("resets to ascending when switching to a different column", async () => {
+      const user = userEvent.setup();
+      setupSortableTable();
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
+      });
+
+      // Click # to go descending
+      const numberHeader = screen.getByRole("columnheader", { name: /^#/ });
+      await user.click(numberHeader.querySelector("button")!);
+
+      // Click Titre → should sort ascending by title
+      const titleHeader = screen.getByRole("columnheader", { name: /Titre/ });
+      await user.click(titleHeader.querySelector("button")!);
+
+      const rows = screen.getAllByRole("row").slice(1);
+      expect(rows[0]).toHaveTextContent("Alpha");
+      expect(rows[1]).toHaveTextContent("Beta");
+      expect(rows[2]).toHaveTextContent("Gamma");
+    });
+  });
+
   it("shows undo toast after delete", async () => {
     const user = userEvent.setup();
 
