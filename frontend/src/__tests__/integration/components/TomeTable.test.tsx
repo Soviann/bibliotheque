@@ -184,9 +184,9 @@ describe("TomeTable", () => {
     const isbnInputs = cards.querySelectorAll("input[aria-label='ISBN']");
     expect(isbnInputs).toHaveLength(0);
 
-    // Checkboxes should be hidden when collapsed
+    // Only the quick-access "Acheté" checkbox should be visible when collapsed
     const checkboxes = cards.querySelectorAll("input[type='checkbox']");
-    expect(checkboxes).toHaveLength(0);
+    expect(checkboxes).toHaveLength(2); // one per collapsed tome
   });
 
   it("expands a mobile card when clicking the header", async () => {

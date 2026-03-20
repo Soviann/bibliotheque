@@ -127,19 +127,30 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
             const summary = tome.title ? `#${tome.number} - ${tome.title}` : `#${tome.number}`;
             return (
             <div className={`rounded-lg border ${tome.id ? "border-surface-border bg-surface-primary" : "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30"}`} key={i}>
-              <button
-                aria-expanded={isExpanded}
-                className="flex w-full items-center gap-2 px-3 py-3 text-left"
-                data-testid={`tome-header-${i}`}
-                onClick={() => toggleCard(key)}
-                type="button"
-              >
-                {isExpanded
-                  ? <ChevronDown className="h-4 w-4 shrink-0 text-text-muted" />
-                  : <ChevronRight className="h-4 w-4 shrink-0 text-text-muted" />}
-                {!tome.id && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Nouveau</span>}
-                <span className="flex-1 truncate text-sm font-medium text-text-primary">{summary}</span>
-              </button>
+              <div className="flex w-full items-center gap-2 px-3 py-3">
+                <button
+                  aria-expanded={isExpanded}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                  data-testid={`tome-header-${i}`}
+                  onClick={() => toggleCard(key)}
+                  type="button"
+                >
+                  {isExpanded
+                    ? <ChevronDown className="h-4 w-4 shrink-0 text-text-muted" />
+                    : <ChevronRight className="h-4 w-4 shrink-0 text-text-muted" />}
+                  {!tome.id && <span className="shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Nouveau</span>}
+                  <span className="truncate text-sm font-medium text-text-primary">{summary}</span>
+                </button>
+                <label className="flex shrink-0 items-center gap-1 text-xs text-text-muted" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    checked={tome.bought}
+                    className={formCheckboxClassName}
+                    onChange={(e) => updateTome(i, "bought", e.target.checked)}
+                    type="checkbox"
+                  />
+                  Acheté
+                </label>
+              </div>
               {isExpanded && (
                 <div className="space-y-2 px-3 pb-3">
                   <div className="flex items-center gap-2">
@@ -169,13 +180,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                       type="number"
                       value={tome.tomeEnd}
                     />
-                    <input
-                      aria-label="Titre"
-                      className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
-                      onChange={(e) => updateTome(i, "title", e.target.value)}
-                      placeholder="Titre"
-                      value={tome.title}
-                    />
+                    <div className="flex-1" />
                     <button
                       aria-label={`Supprimer tome ${tome.number}`}
                       className="shrink-0 rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
@@ -185,6 +190,13 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
+                  <input
+                    aria-label="Titre"
+                    className="w-full rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
+                    onChange={(e) => updateTome(i, "title", e.target.value)}
+                    placeholder="Titre"
+                    value={tome.title}
+                  />
                   <div className="flex items-center gap-1">
                     <input
                       aria-label="ISBN"
@@ -205,16 +217,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                         : <Search className="h-4 w-4" />}
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <label className="flex items-center gap-2 text-sm text-text-secondary">
-                      <input
-                        checked={tome.bought}
-                        className={formCheckboxClassName}
-                        onChange={(e) => updateTome(i, "bought", e.target.checked)}
-                        type="checkbox"
-                      />
-                      Acheté
-                    </label>
+                  <div className="grid grid-cols-3 gap-x-4 gap-y-1">
                     <label className="flex items-center gap-2 text-sm text-text-secondary">
                       <input
                         checked={tome.downloaded}
