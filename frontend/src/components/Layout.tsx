@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, Moon, Sun, Wrench } from "lucide-react";
-import { useEffect, useRef } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { LogOut, Moon, Search, Sun, Wrench, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../hooks/useAuth";
 import { useDarkMode } from "../hooks/useDarkMode";
@@ -14,6 +14,10 @@ import SyncErrorBanner from "./SyncErrorBanner";
 export default function Layout() {
   const { logout } = useAuth();
   const { isDark, toggle } = useDarkMode();
+  const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   useServiceWorker();
 
   // Sync feedback toasts
@@ -45,6 +49,54 @@ export default function Layout() {
           <span className="text-lg font-bold text-text-primary">Bibliothèque</span>
         </Link>
         <div className="flex items-center gap-1">
+          {searchOpen ? (
+            <form
+              className="flex items-center gap-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = searchValue.trim();
+                if (q) {
+                  navigate(`/?search=${encodeURIComponent(q)}`, { viewTransition: true });
+                }
+                setSearchOpen(false);
+                setSearchValue("");
+              }}
+            >
+              <input
+                autoFocus
+                className="w-36 rounded-lg border border-surface-border bg-surface-secondary px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:w-48"
+                onChange={(e) => setSearchValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setSearchOpen(false);
+                    setSearchValue("");
+                  }
+                }}
+                placeholder="Rechercher…"
+                ref={searchInputRef}
+                type="search"
+                value={searchValue}
+              />
+              <button
+                aria-label="Fermer la recherche"
+                className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
+                onClick={() => { setSearchOpen(false); setSearchValue(""); }}
+                type="button"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </form>
+          ) : (
+            <button
+              aria-label="Rechercher"
+              className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
+              onClick={() => setSearchOpen(true)}
+              title="Rechercher"
+              type="button"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          )}
           <Link
             aria-label="Outils"
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
