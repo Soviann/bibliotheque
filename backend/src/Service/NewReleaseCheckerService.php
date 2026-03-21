@@ -7,7 +7,6 @@ namespace App\Service;
 use App\DTO\NewReleaseProgress;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
-use App\Enum\ApiLookupStatus;
 use App\Enum\BatchLookupStatus;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\LookupOrchestrator;
@@ -48,7 +47,7 @@ final readonly class NewReleaseCheckerService
             $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
 
             // Vérifier le rate limiting — arrêt total
-            if ($this->hasRateLimitError()) {
+            if ($this->lookupOrchestrator->hasRateLimitError()) {
                 yield new NewReleaseProgress(
                     current: $index + 1,
                     newLatestIssue: null,
@@ -98,20 +97,6 @@ final readonly class NewReleaseCheckerService
         if (!$dryRun && $total > 0) {
             $this->entityManager->flush();
         }
-    }
-
-    /**
-     * Vérifie si un des messages API indique un rate limit.
-     */
-    private function hasRateLimitError(): bool
-    {
-        foreach ($this->lookupOrchestrator->getLastApiMessages() as $message) {
-            if (ApiLookupStatus::RATE_LIMITED->value === $message->status) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

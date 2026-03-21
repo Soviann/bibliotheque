@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\DTO\BatchLookupProgress;
 use App\Entity\ComicSeries;
-use App\Enum\ApiLookupStatus;
 use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
@@ -104,14 +103,14 @@ final readonly class BatchLookupService
         $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
 
         // Vérifier le rate limiting
-        if ($this->hasRateLimitError()) {
+        if ($this->lookupOrchestrator->hasRateLimitError()) {
             $currentDelay = \min($currentDelay * 2, self::MAX_DELAY);
             \sleep($currentDelay);
 
             // Retry
             $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
 
-            if ($this->hasRateLimitError()) { // @phpstan-ignore if.alwaysTrue (état dépend de l'appel API)
+            if ($this->lookupOrchestrator->hasRateLimitError()) { // @phpstan-ignore if.alwaysTrue (état dépend de l'appel API)
                 return [
                     'delay' => $currentDelay,
                     'progress' => new BatchLookupProgress(
@@ -171,17 +170,4 @@ final readonly class BatchLookupService
         ];
     }
 
-    /**
-     * Vérifie si un des messages API indique un rate limit.
-     */
-    private function hasRateLimitError(): bool
-    {
-        foreach ($this->lookupOrchestrator->getLastApiMessages() as $message) {
-            if (ApiLookupStatus::RATE_LIMITED->value === $message->status) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

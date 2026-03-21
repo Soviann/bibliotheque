@@ -52,6 +52,20 @@ class LookupOrchestrator
     }
 
     /**
+     * Vérifie si un des derniers messages API indique un rate limit.
+     */
+    public function hasRateLimitError(): bool
+    {
+        foreach ($this->apiMessages as $message) {
+            if (ApiLookupStatus::RATE_LIMITED->value === $message->status) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Recherche par ISBN.
      */
     public function lookup(string $isbn, ?ComicType $type = null): ?LookupResult
