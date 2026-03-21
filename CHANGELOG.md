@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.18.0] - 2026-03-21
+
 ### Added
 
 - **Scheduler** : Toutes les tâches récurrentes gérées par Symfony Scheduler (remplace le planificateur NAS)
