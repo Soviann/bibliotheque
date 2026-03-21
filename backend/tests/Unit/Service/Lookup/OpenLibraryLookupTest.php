@@ -84,9 +84,7 @@ final class OpenLibraryLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://openlibrary.org/isbn/9782723489.json',
-                self::callback(static function (array $options): bool {
-                    return 10 === $options['timeout'];
-                }),
+                self::callback(static fn (array $options): bool => 10 === $options['timeout']),
             )
             ->willReturn($response);
 

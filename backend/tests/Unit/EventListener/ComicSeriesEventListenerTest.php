@@ -47,10 +47,8 @@ final class ComicSeriesEventListenerTest extends TestCase
         $this->eventDispatcher
             ->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static function (object $event) use ($comic): bool {
-                return $event instanceof ComicSeriesCreatedEvent
-                    && $event->getComicSeries() === $comic;
-            }));
+            ->with(self::callback(static fn (object $event): bool => $event instanceof ComicSeriesCreatedEvent
+                && $event->getComicSeries() === $comic));
 
         $this->listener->postPersist($args);
     }
@@ -83,10 +81,8 @@ final class ComicSeriesEventListenerTest extends TestCase
         $this->eventDispatcher
             ->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static function (object $event) use ($comic): bool {
-                return $event instanceof ComicSeriesUpdatedEvent
-                    && $event->getComicSeries() === $comic;
-            }));
+            ->with(self::callback(static fn (object $event): bool => $event instanceof ComicSeriesUpdatedEvent
+                && $event->getComicSeries() === $comic));
 
         $this->listener->postUpdate($args);
     }
@@ -110,11 +106,9 @@ final class ComicSeriesEventListenerTest extends TestCase
         $this->eventDispatcher
             ->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static function (object $event): bool {
-                return $event instanceof ComicSeriesDeletedEvent
-                    && 7 === $event->getId()
-                    && 'Bleach' === $event->getTitle();
-            }));
+            ->with(self::callback(static fn (object $event): bool => $event instanceof ComicSeriesDeletedEvent
+                && 7 === $event->getId()
+                && 'Bleach' === $event->getTitle()));
 
         $this->listener->postUpdate($args);
     }
@@ -150,11 +144,9 @@ final class ComicSeriesEventListenerTest extends TestCase
         $this->eventDispatcher
             ->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static function (object $event): bool {
-                return $event instanceof ComicSeriesDeletedEvent
-                    && 42 === $event->getId()
-                    && 'Dragon Ball' === $event->getTitle();
-            }));
+            ->with(self::callback(static fn (object $event): bool => $event instanceof ComicSeriesDeletedEvent
+                && 42 === $event->getId()
+                && 'Dragon Ball' === $event->getTitle()));
 
         $this->listener->postRemove($args);
     }

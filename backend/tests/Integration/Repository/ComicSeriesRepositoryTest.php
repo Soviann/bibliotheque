@@ -28,9 +28,9 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->cache = static::getContainer()->get('comic_series_api.cache');
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
-        $this->repository = static::getContainer()->get(ComicSeriesRepository::class);
+        $this->cache = self::getContainer()->get('comic_series_api.cache');
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->repository = self::getContainer()->get(ComicSeriesRepository::class);
 
         // Vider le cache avant chaque test pour garantir l'isolation
         $this->cache->delete('comic_series_api_all');
@@ -404,7 +404,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $series->setCoverUrl('https://example.com/cover.jpg');
         $series->addAuthor($author);
 
-        $tome1 = EntityFactory::createTome(1, bought: true, read: true, onNas: true);
+        $tome1 = EntityFactory::createTome(1, bought: true, onNas: true, read: true);
         $tome2 = EntityFactory::createTome(2, bought: true, read: false);
         $series->addTome($tome1);
         $series->addTome($tome2);

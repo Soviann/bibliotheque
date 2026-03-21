@@ -21,7 +21,7 @@ final class SoftDeleteFilterTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testFilterEnabledExcludesSoftDeletedSeries(): void

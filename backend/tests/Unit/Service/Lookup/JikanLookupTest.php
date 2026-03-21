@@ -69,11 +69,9 @@ final class JikanLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://api.jikan.moe/v4/manga',
-                self::callback(static function (array $options): bool {
-                    return 'One Piece' === $options['query']['q']
-                        && 'manga' === $options['query']['type']
-                        && 1 === $options['query']['limit'];
-                }),
+                self::callback(static fn (array $options): bool => 'One Piece' === $options['query']['q']
+                    && 'manga' === $options['query']['type']
+                    && 1 === $options['query']['limit']),
             )
             ->willReturn($response);
 
@@ -262,10 +260,8 @@ final class JikanLookupTest extends TestCase
             ->with(
                 'GET',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 5 === $options['query']['limit']
-                        && 'Naruto' === $options['query']['q'];
-                }),
+                self::callback(static fn (array $options): bool => 5 === $options['query']['limit']
+                    && 'Naruto' === $options['query']['q']),
             )
             ->willReturn($response);
 

@@ -52,7 +52,7 @@ final class AniListLookupTest extends TestCase
         self::assertSame(60, $this->provider->getFieldPriority('title', ComicType::MANGA));
         self::assertSame(60, $this->provider->getFieldPriority('authors', ComicType::MANGA));
         self::assertSame(60, $this->provider->getFieldPriority('isOneShot', ComicType::BD));
-        self::assertSame(60, $this->provider->getFieldPriority('thumbnail', null));
+        self::assertSame(60, $this->provider->getFieldPriority('thumbnail'));
         self::assertSame(60, $this->provider->getFieldPriority('description'));
     }
 
@@ -97,13 +97,11 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 'https://graphql.anilist.co',
-                self::callback(static function (array $options): bool {
-                    return 'application/json' === $options['headers']['Content-Type']
-                        && 'application/json' === $options['headers']['Accept']
-                        && isset($options['json']['query'])
-                        && 'One Piece' === $options['json']['variables']['search']
-                        && 10 === $options['timeout'];
-                }),
+                self::callback(static fn (array $options): bool => 'application/json' === $options['headers']['Content-Type']
+                    && 'application/json' === $options['headers']['Accept']
+                    && isset($options['json']['query'])
+                    && 'One Piece' === $options['json']['variables']['search']
+                    && 10 === $options['timeout']),
             )
             ->willReturn($response);
 
@@ -123,9 +121,7 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'One Piece' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'One Piece' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
@@ -504,9 +500,7 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'My Hero Academia' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'My Hero Academia' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
@@ -526,9 +520,7 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'Bleach' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'Bleach' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
@@ -548,9 +540,7 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'Dragon Ball' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'Dragon Ball' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
@@ -570,9 +560,7 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'Naruto' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'Naruto' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
@@ -894,11 +882,9 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 'https://graphql.anilist.co',
-                self::callback(static function (array $options): bool {
-                    return \str_contains($options['json']['query'], 'Page')
-                        && 'Naruto' === $options['json']['variables']['search']
-                        && 5 === $options['json']['variables']['perPage'];
-                }),
+                self::callback(static fn (array $options): bool => \str_contains((string) $options['json']['query'], 'Page')
+                    && 'Naruto' === $options['json']['variables']['search']
+                    && 5 === $options['json']['variables']['perPage']),
             )
             ->willReturn($response);
 

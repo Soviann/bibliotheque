@@ -10,6 +10,7 @@ use App\Service\CoverDownloader;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\UnitOfWork;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -46,7 +47,7 @@ final class CoverUrlChangeListenerTest extends TestCase
         $uow->expects(self::once())->method('recomputeSingleEntityChangeSet');
         $this->entityManager->method('getUnitOfWork')->willReturn($uow);
         $this->entityManager->method('getClassMetadata')->willReturn(
-            new \Doctrine\ORM\Mapping\ClassMetadata(ComicSeries::class)
+            new ClassMetadata(ComicSeries::class)
         );
 
         $this->listener->preUpdate($args);
@@ -68,7 +69,7 @@ final class CoverUrlChangeListenerTest extends TestCase
         $uow->expects(self::once())->method('recomputeSingleEntityChangeSet');
         $this->entityManager->method('getUnitOfWork')->willReturn($uow);
         $this->entityManager->method('getClassMetadata')->willReturn(
-            new \Doctrine\ORM\Mapping\ClassMetadata(ComicSeries::class)
+            new ClassMetadata(ComicSeries::class)
         );
 
         $this->listener->preUpdate($args);

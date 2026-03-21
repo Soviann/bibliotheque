@@ -80,7 +80,7 @@ final class GeminiLookupTest extends TestCase
      */
     public function testPrepareLookupReturnsCachedResult(): void
     {
-        $cachedResult = new LookupResult(title: 'One Piece', source: 'gemini');
+        $cachedResult = new LookupResult(source: 'gemini', title: 'One Piece');
 
         $cacheItem = $this->createCacheItem('test_key', $cachedResult, true);
         $this->cache->method('getItem')->willReturn($cacheItem);
@@ -100,7 +100,7 @@ final class GeminiLookupTest extends TestCase
      */
     public function testResolveLookupReturnsCachedResultDirectly(): void
     {
-        $cachedResult = new LookupResult(title: 'Cached', source: 'gemini');
+        $cachedResult = new LookupResult(source: 'gemini', title: 'Cached');
         $provider = $this->createProvider();
 
         $result = $provider->resolveLookup($cachedResult);
@@ -426,7 +426,7 @@ final class GeminiLookupTest extends TestCase
      */
     public function testPrepareEnrichReturnsNullForEmptyTitle(): void
     {
-        $partial = new LookupResult(title: '', source: 'test');
+        $partial = new LookupResult(source: 'test', title: '');
         $provider = $this->createProvider();
 
         $state = $provider->prepareEnrich($partial, ComicType::MANGA);
@@ -461,7 +461,7 @@ final class GeminiLookupTest extends TestCase
         $cacheItem = $this->createCacheItem('test_key', $cachedResult, true);
         $this->cache->method('getItem')->willReturn($cacheItem);
 
-        $partial = new LookupResult(title: 'One Piece', source: 'other');
+        $partial = new LookupResult(source: 'other', title: 'One Piece');
         $provider = $this->createProvider();
         $state = $provider->prepareEnrich($partial, ComicType::MANGA);
 
@@ -479,7 +479,7 @@ final class GeminiLookupTest extends TestCase
      */
     public function testPrepareEnrichBuildsPreparedState(): void
     {
-        $partial = new LookupResult(title: 'One Piece', authors: 'Oda', source: 'test');
+        $partial = new LookupResult(authors: 'Oda', source: 'test', title: 'One Piece');
 
         $cacheItem = $this->createCacheItem('test_key', null, false);
         $this->cache->method('getItem')->willReturn($cacheItem);
@@ -510,7 +510,7 @@ final class GeminiLookupTest extends TestCase
      */
     public function testResolveEnrichReturnsCachedResult(): void
     {
-        $cachedResult = new LookupResult(title: 'Test', source: 'gemini');
+        $cachedResult = new LookupResult(source: 'gemini', title: 'Test');
         $provider = $this->createProvider();
 
         $result = $provider->resolveEnrich($cachedResult);
@@ -794,7 +794,7 @@ final class GeminiLookupTest extends TestCase
         $realCache = new ArrayAdapter();
 
         if ($isHit && null !== $value) {
-            $realCache->get($key, static fn () => $value);
+            $realCache->get($key, static fn (): mixed => $value);
         }
 
         return $realCache->getItem($key);

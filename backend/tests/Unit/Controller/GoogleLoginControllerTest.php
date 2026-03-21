@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -167,7 +168,7 @@ final class GoogleLoginControllerTest extends TestCase
         ]);
         $this->userRepository->method('findOneBy')->willReturn(null);
 
-        $violation = $this->createStub(\Symfony\Component\Validator\ConstraintViolationInterface::class);
+        $violation = $this->createStub(ConstraintViolationInterface::class);
         $violations = new ConstraintViolationList([$violation]);
         $this->validator->method('validate')->willReturn($violations);
 

@@ -6,6 +6,8 @@ namespace App\Tests\Unit\Service\Import;
 
 use App\DTO\ImportExcelResult;
 use App\Entity\ComicSeries;
+use App\Entity\Tome;
+use App\Enum\ComicStatus;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Import\ImportExcelService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -359,14 +361,14 @@ final class ImportExcelServiceTest extends TestCase
         $tomes = $persisted[0]->getTomes()->toArray();
         self::assertCount(5, $tomes);
 
-        $regular = \array_filter($tomes, static fn ($t) => !$t->isHorsSerie());
-        $hs = \array_filter($tomes, static fn ($t) => $t->isHorsSerie());
+        $regular = \array_filter($tomes, static fn (Tome $t): bool => !$t->isHorsSerie());
+        $hs = \array_filter($tomes, static fn (Tome $t): bool => $t->isHorsSerie());
 
         self::assertCount(3, $regular);
         self::assertCount(2, $hs);
 
         // Les HS ont leurs propres numéros 1 et 2
-        $hsNumbers = \array_map(static fn ($t) => $t->getNumber(), $hs);
+        $hsNumbers = \array_map(static fn (Tome $t): int => $t->getNumber(), $hs);
         \sort($hsNumbers);
         self::assertSame([1, 2], $hsNumbers);
     }
@@ -384,7 +386,7 @@ final class ImportExcelServiceTest extends TestCase
         $tomes = $persisted[0]->getTomes()->toArray();
         self::assertCount(9, $tomes);
 
-        $hs = \array_values(\array_filter($tomes, static fn ($t) => $t->isHorsSerie()));
+        $hs = \array_values(\array_filter($tomes, static fn (Tome $t): bool => $t->isHorsSerie()));
         self::assertCount(1, $hs);
         self::assertSame(1, $hs[0]->getNumber());
     }
@@ -402,7 +404,7 @@ final class ImportExcelServiceTest extends TestCase
         $tomes = $persisted[0]->getTomes()->toArray();
         self::assertCount(5, $tomes);
 
-        $hs = \array_filter($tomes, static fn ($t) => $t->isHorsSerie());
+        $hs = \array_filter($tomes, static fn (Tome $t): bool => $t->isHorsSerie());
         self::assertCount(0, $hs);
     }
 
@@ -420,7 +422,7 @@ final class ImportExcelServiceTest extends TestCase
         self::assertSame(3, $persisted[0]->getLatestPublishedIssue());
 
         $tomes = $persisted[0]->getTomes()->toArray();
-        $hs = \array_filter($tomes, static fn ($t) => $t->isHorsSerie());
+        $hs = \array_filter($tomes, static fn (Tome $t): bool => $t->isHorsSerie());
         self::assertCount(2, $hs);
     }
 
@@ -494,7 +496,7 @@ final class ImportExcelServiceTest extends TestCase
         ]);
 
         // "non" ne doit plus mapper sur STOPPED
-        self::assertNotSame(\App\Enum\ComicStatus::STOPPED, $persisted[0]->getStatus());
+        self::assertNotSame(ComicStatus::STOPPED, $persisted[0]->getStatus());
         self::assertTrue($persisted[0]->isNotInterestedBuy());
     }
 

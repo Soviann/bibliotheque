@@ -28,8 +28,8 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testAddsEtagToGetCollectionResponse(): void
     {
-        $request = Request::create('/api/comic_series', 'GET');
-        $response = new Response('{"member":[]}', 200, ['Content-Type' => 'application/ld+json']);
+        $request = Request::create('/api/comic_series', Request::METHOD_GET);
+        $response = new Response('{"member":[]}', Response::HTTP_OK, ['Content-Type' => 'application/ld+json']);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -39,8 +39,8 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testAddsEtagToGetItemResponse(): void
     {
-        $request = Request::create('/api/comic_series/42', 'GET');
-        $response = new Response('{"title":"Test"}', 200, ['Content-Type' => 'application/ld+json']);
+        $request = Request::create('/api/comic_series/42', Request::METHOD_GET);
+        $response = new Response('{"title":"Test"}', Response::HTTP_OK, ['Content-Type' => 'application/ld+json']);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -53,8 +53,8 @@ final class HttpCacheListenerTest extends TestCase
         $content = '{"member":[]}';
         $etag = '"'.\md5($content).'"';
 
-        $request = Request::create('/api/comic_series', 'GET', server: ['HTTP_IF_NONE_MATCH' => $etag]);
-        $response = new Response($content, 200, ['Content-Type' => 'application/ld+json']);
+        $request = Request::create('/api/comic_series', Request::METHOD_GET, server: ['HTTP_IF_NONE_MATCH' => $etag]);
+        $response = new Response($content, Response::HTTP_OK, ['Content-Type' => 'application/ld+json']);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -64,8 +64,8 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testReturns200WhenEtagDoesNotMatch(): void
     {
-        $request = Request::create('/api/comic_series', 'GET', server: ['HTTP_IF_NONE_MATCH' => '"stale-etag"']);
-        $response = new Response('{"member":[{"title":"Nouveau"}]}', 200, ['Content-Type' => 'application/ld+json']);
+        $request = Request::create('/api/comic_series', Request::METHOD_GET, server: ['HTTP_IF_NONE_MATCH' => '"stale-etag"']);
+        $response = new Response('{"member":[{"title":"Nouveau"}]}', Response::HTTP_OK, ['Content-Type' => 'application/ld+json']);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -76,8 +76,8 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testIgnoresPostRequests(): void
     {
-        $request = Request::create('/api/comic_series', 'POST');
-        $response = new Response('{"title":"Created"}', 201);
+        $request = Request::create('/api/comic_series', Request::METHOD_POST);
+        $response = new Response('{"title":"Created"}', Response::HTTP_CREATED);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -87,8 +87,8 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testIgnoresNonApiRoutes(): void
     {
-        $request = Request::create('/api/authors', 'GET');
-        $response = new Response('[]', 200);
+        $request = Request::create('/api/authors', Request::METHOD_GET);
+        $response = new Response('[]', Response::HTTP_OK);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -98,8 +98,8 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testIgnoresSubRequests(): void
     {
-        $request = Request::create('/api/comic_series', 'GET');
-        $response = new Response('{}', 200);
+        $request = Request::create('/api/comic_series', Request::METHOD_GET);
+        $response = new Response('{}', Response::HTTP_OK);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::SUB_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -109,8 +109,8 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testIgnoresErrorResponses(): void
     {
-        $request = Request::create('/api/comic_series', 'GET');
-        $response = new Response('{"error":"Not found"}', 404);
+        $request = Request::create('/api/comic_series', Request::METHOD_GET);
+        $response = new Response('{"error":"Not found"}', Response::HTTP_NOT_FOUND);
         $event = new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
         $this->listener->onKernelResponse($event);
@@ -120,12 +120,12 @@ final class HttpCacheListenerTest extends TestCase
 
     public function testEtagChangesWithDifferentContent(): void
     {
-        $request1 = Request::create('/api/comic_series', 'GET');
-        $response1 = new Response('{"member":[]}', 200, ['Content-Type' => 'application/ld+json']);
+        $request1 = Request::create('/api/comic_series', Request::METHOD_GET);
+        $response1 = new Response('{"member":[]}', Response::HTTP_OK, ['Content-Type' => 'application/ld+json']);
         $event1 = new ResponseEvent($this->kernel, $request1, HttpKernelInterface::MAIN_REQUEST, $response1);
 
-        $request2 = Request::create('/api/comic_series', 'GET');
-        $response2 = new Response('{"member":[{"title":"New"}]}', 200, ['Content-Type' => 'application/ld+json']);
+        $request2 = Request::create('/api/comic_series', Request::METHOD_GET);
+        $response2 = new Response('{"member":[{"title":"New"}]}', Response::HTTP_OK, ['Content-Type' => 'application/ld+json']);
         $event2 = new ResponseEvent($this->kernel, $request2, HttpKernelInterface::MAIN_REQUEST, $response2);
 
         $this->listener->onKernelResponse($event1);

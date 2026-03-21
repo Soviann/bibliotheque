@@ -68,11 +68,9 @@ final class MangaDexLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://api.mangadex.org/manga',
-                self::callback(static function (array $options): bool {
-                    return 'One Piece' === $options['query']['title']
-                        && 1 === $options['query']['limit']
-                        && ['cover_art', 'author', 'artist'] === $options['query']['includes[]'];
-                }),
+                self::callback(static fn (array $options): bool => 'One Piece' === $options['query']['title']
+                    && 1 === $options['query']['limit']
+                    && ['cover_art', 'author', 'artist'] === $options['query']['includes[]']),
             )
             ->willReturn($response);
 
@@ -324,9 +322,7 @@ final class MangaDexLookupTest extends TestCase
             ->with(
                 'GET',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 5 === $options['query']['limit'];
-                }),
+                self::callback(static fn (array $options): bool => 5 === $options['query']['limit']),
             )
             ->willReturn($response);
 

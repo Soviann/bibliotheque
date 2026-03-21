@@ -29,7 +29,7 @@ final class GoogleLoginTest extends ApiTestCase
     protected function setUp(): void
     {
         // Réinitialiser le rate limiter pour éviter les 429 entre tests
-        static::getContainer()->get('cache.rate_limiter')->clear();
+        self::getContainer()->get('cache.rate_limiter')->clear();
     }
 
     // ---------------------------------------------------------------
@@ -38,7 +38,7 @@ final class GoogleLoginTest extends ApiTestCase
 
     public function testMissingCredentialReturns400(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('POST', '/api/login/google', [
             'headers' => ['Content-Type' => 'application/json'],
@@ -54,7 +54,7 @@ final class GoogleLoginTest extends ApiTestCase
 
     public function testMalformedBodyReturns400(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('POST', '/api/login/google', [
             'headers' => ['Content-Type' => 'application/json'],
@@ -70,7 +70,7 @@ final class GoogleLoginTest extends ApiTestCase
 
     public function testEmptyBodyReturns400(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('POST', '/api/login/google', [
             'headers' => ['Content-Type' => 'application/json'],
@@ -82,7 +82,7 @@ final class GoogleLoginTest extends ApiTestCase
 
     public function testEndpointAcceptsPostOnly(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/api/login/google');
 

@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Service\UploadHandlerInterface;
 use App\Service\VichUploadHandlerAdapter;
 use PHPUnit\Framework\TestCase;
+use Vich\UploaderBundle\Handler\UploadHandler;
 
 /**
  * Tests unitaires pour VichUploadHandlerAdapter.
@@ -50,10 +51,10 @@ final class VichUploadHandlerAdapterTest extends TestCase
      */
     public function testRemoveDelegatesToUploadHandler(): void
     {
-        $uploadHandlerClass = \Vich\UploaderBundle\Handler\UploadHandler::class;
+        $uploadHandlerClass = UploadHandler::class;
         $serialized = 'O:'.\strlen($uploadHandlerClass).':"'.$uploadHandlerClass.'":0:{}';
 
-        /** @var \Vich\UploaderBundle\Handler\UploadHandler $ghost */
+        /** @var UploadHandler $ghost */
         $ghost = \unserialize($serialized);
 
         $adapterReflection = new \ReflectionClass(VichUploadHandlerAdapter::class);

@@ -295,7 +295,7 @@ class MergePreviewBuilderTest extends TestCase
 
     private function createBuilder(?ClientFake $geminiClient = null): MergePreviewBuilder
     {
-        $pool = null !== $geminiClient
+        $pool = $geminiClient instanceof ClientFake
             ? $this->createPoolFromClient($geminiClient)
             : $this->createStub(GeminiClientPool::class);
 

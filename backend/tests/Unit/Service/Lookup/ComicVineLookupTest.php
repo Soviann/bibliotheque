@@ -71,13 +71,11 @@ final class ComicVineLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://comicvine.gamespot.com/api/search/',
-                self::callback(static function (array $options): bool {
-                    return 'test-api-key' === $options['query']['api_key']
-                        && 'json' === $options['query']['format']
-                        && 'volume' === $options['query']['resources']
-                        && 'Batman' === $options['query']['query']
-                        && 1 === $options['query']['limit'];
-                }),
+                self::callback(static fn (array $options): bool => 'test-api-key' === $options['query']['api_key']
+                    && 'json' === $options['query']['format']
+                    && 'volume' === $options['query']['resources']
+                    && 'Batman' === $options['query']['query']
+                    && 1 === $options['query']['limit']),
             )
             ->willReturn($response);
 
@@ -243,9 +241,7 @@ final class ComicVineLookupTest extends TestCase
             ->with(
                 'GET',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 5 === $options['query']['limit'];
-                }),
+                self::callback(static fn (array $options): bool => 5 === $options['query']['limit']),
             )
             ->willReturn($response);
 

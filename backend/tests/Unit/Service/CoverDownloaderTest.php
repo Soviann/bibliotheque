@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Service\CoverDownloader;
 use App\Service\UploadHandlerInterface;
 use App\Tests\Factory\EntityFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -17,7 +18,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
  */
 final class CoverDownloaderTest extends TestCase
 {
-    private UploadHandlerInterface $uploadHandler;
+    private UploadHandlerInterface&MockObject $uploadHandler;
 
     protected function setUp(): void
     {

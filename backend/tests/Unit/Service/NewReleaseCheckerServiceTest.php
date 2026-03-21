@@ -86,7 +86,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         self::assertNotNull($series->getNewReleasesCheckedAt());
 
         // Vérifie que les tomes 71-73 ont été créés
-        $tomeNumbers = $series->getTomes()->map(static fn ($t) => $t->getNumber())->toArray();
+        $tomeNumbers = $series->getTomes()->map(static fn ($t): int => $t->getNumber())->toArray();
         self::assertContains(71, $tomeNumbers);
         self::assertContains(72, $tomeNumbers);
         self::assertContains(73, $tomeNumbers);
@@ -219,7 +219,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         \iterator_to_array($this->service->run(dryRun: false, limit: null));
 
         // Vérifie tomes 3 et 4 créés avec les bons flags
-        $newTomes = $series->getTomes()->filter(static fn ($t) => $t->getNumber() >= 3);
+        $newTomes = $series->getTomes()->filter(static fn ($t): bool => $t->getNumber() >= 3);
         self::assertCount(2, $newTomes);
 
         foreach ($newTomes as $tome) {

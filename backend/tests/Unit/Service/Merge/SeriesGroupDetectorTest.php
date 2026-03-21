@@ -331,7 +331,7 @@ final class SeriesGroupDetectorTest extends TestCase
         ?LoggerInterface $logger = null,
         ?RateLimiterFactory $limiterFactory = null,
     ): SeriesGroupDetector {
-        $pool ??= ($geminiClient ? $this->createPoolFromClient($geminiClient) : $this->createStub(GeminiClientPool::class));
+        $pool ??= ($geminiClient instanceof GeminiClient ? $this->createPoolFromClient($geminiClient) : $this->createStub(GeminiClientPool::class));
         $logger ??= $this->logger;
 
         $limiterFactory ??= new RateLimiterFactory(

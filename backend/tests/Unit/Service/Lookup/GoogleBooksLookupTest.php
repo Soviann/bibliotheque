@@ -86,12 +86,10 @@ final class GoogleBooksLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://www.googleapis.com/books/v1/volumes',
-                self::callback(static function (array $options): bool {
-                    return 'isbn:9782723489' === $options['query']['q']
-                        && 10 === $options['query']['maxResults']
-                        && 'test-api-key' === $options['query']['key']
-                        && 10 === $options['timeout'];
-                }),
+                self::callback(static fn (array $options): bool => 'isbn:9782723489' === $options['query']['q']
+                    && 10 === $options['query']['maxResults']
+                    && 'test-api-key' === $options['query']['key']
+                    && 10 === $options['timeout']),
             )
             ->willReturn($response);
 
@@ -113,10 +111,8 @@ final class GoogleBooksLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://www.googleapis.com/books/v1/volumes',
-                self::callback(static function (array $options): bool {
-                    return 'One Piece' === $options['query']['q']
-                        && 10 === $options['query']['maxResults'];
-                }),
+                self::callback(static fn (array $options): bool => 'One Piece' === $options['query']['q']
+                    && 10 === $options['query']['maxResults']),
             )
             ->willReturn($response);
 
@@ -137,9 +133,7 @@ final class GoogleBooksLookupTest extends TestCase
             ->with(
                 'GET',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return !isset($options['query']['key']);
-                }),
+                self::callback(static fn (array $options): bool => !isset($options['query']['key'])),
             )
             ->willReturn($response);
 
@@ -658,10 +652,8 @@ final class GoogleBooksLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://www.googleapis.com/books/v1/volumes',
-                self::callback(static function (array $options): bool {
-                    return 'Naruto' === $options['query']['q']
-                        && 40 === $options['query']['maxResults'];
-                }),
+                self::callback(static fn (array $options): bool => 'Naruto' === $options['query']['q']
+                    && 40 === $options['query']['maxResults']),
             )
             ->willReturn($response);
 

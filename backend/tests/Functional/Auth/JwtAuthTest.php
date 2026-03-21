@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use App\Tests\Factory\EntityFactory;
 use App\Tests\Trait\AuthenticatedTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 /**
  * Tests fonctionnels pour l'authentification JWT.
@@ -21,10 +22,10 @@ final class JwtAuthTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
 
         if (null === $userRepo->findOneBy(['email' => 'test@example.com'])) {
             $user = EntityFactory::createUser();
@@ -52,7 +53,7 @@ final class JwtAuthTest extends ApiTestCase
 
     public function testNoTokenReturns401(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/api/comic_series');
 
@@ -65,7 +66,7 @@ final class JwtAuthTest extends ApiTestCase
 
     public function testInvalidGarbageTokenReturns401(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/api/comic_series', [
             'headers' => [
@@ -85,19 +86,19 @@ final class JwtAuthTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
 
         // Extraire un vrai token puis le corrompre
-        $container = static::getContainer();
+        $container = self::getContainer();
         /** @var UserRepository $userRepo */
         $userRepo = $container->get(UserRepository::class);
         $user = $userRepo->findOneBy(['email' => 'test@example.com']);
 
-        /** @var \Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface $jwtManager */
+        /** @var JWTTokenManagerInterface $jwtManager */
         $jwtManager = $container->get('lexik_jwt_authentication.jwt_manager');
         $validToken = $jwtManager->create($user);
 
         // Altérer le token en modifiant un caractère
         $tamperedToken = $validToken.'tampered';
 
-        $client = static::createClient();
+        $client = self::createClient();
         $client->request('GET', '/api/comic_series', [
             'headers' => [
                 'Authorization' => 'Bearer '.$tamperedToken,
@@ -113,7 +114,7 @@ final class JwtAuthTest extends ApiTestCase
 
     public function testTokenWithoutBearerPrefixReturns401(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/api/comic_series', [
             'headers' => [

@@ -53,9 +53,7 @@ final class CoverSearchServiceTest extends TestCase
         ]);
 
         $this->httpClient->method('request')
-            ->willReturnCallback(static function (string $method) use ($googleBooksResponse, $serperResponse): ResponseInterface {
-                return 'GET' === $method ? $googleBooksResponse : $serperResponse;
-            });
+            ->willReturnCallback(static fn (string $method): ResponseInterface => 'GET' === $method ? $googleBooksResponse : $serperResponse);
 
         $results = $this->createService()->search('Naruto', ComicType::MANGA);
 
@@ -138,9 +136,7 @@ final class CoverSearchServiceTest extends TestCase
         $serperResponse->method('toArray')->willReturn(['images' => []]);
 
         $this->httpClient->method('request')
-            ->willReturnCallback(static function (string $method) use ($googleBooksResponse, $serperResponse): ResponseInterface {
-                return 'GET' === $method ? $googleBooksResponse : $serperResponse;
-            });
+            ->willReturnCallback(static fn (string $method): ResponseInterface => 'GET' === $method ? $googleBooksResponse : $serperResponse);
 
         $results = $this->createService()->search('Test');
 
@@ -172,9 +168,7 @@ final class CoverSearchServiceTest extends TestCase
         $serperResponse->method('toArray')->willReturn(['images' => []]);
 
         $this->httpClient->method('request')
-            ->willReturnCallback(static function (string $method) use ($googleBooksResponse, $serperResponse): ResponseInterface {
-                return 'GET' === $method ? $googleBooksResponse : $serperResponse;
-            });
+            ->willReturnCallback(static fn (string $method): ResponseInterface => 'GET' === $method ? $googleBooksResponse : $serperResponse);
 
         $results = $this->createService()->search('Test');
 

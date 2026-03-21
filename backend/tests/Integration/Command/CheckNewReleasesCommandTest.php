@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Command;
 
+use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;
@@ -26,7 +27,7 @@ final class CheckNewReleasesCommandTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
         // Mock le LookupOrchestrator pour éviter les vrais appels API
         $orchestrator = $this->createMock(LookupOrchestrator::class);
@@ -35,7 +36,7 @@ final class CheckNewReleasesCommandTest extends KernelTestCase
         );
         $orchestrator->method('getLastApiMessages')->willReturn([]);
 
-        static::getContainer()->set(LookupOrchestrator::class, $orchestrator);
+        self::getContainer()->set(LookupOrchestrator::class, $orchestrator);
 
         self::assertNotNull(self::$kernel);
         $application = new Application(self::$kernel);
@@ -86,7 +87,7 @@ final class CheckNewReleasesCommandTest extends KernelTestCase
 
         // Vérifier que newReleasesCheckedAt n'a pas été mis à jour
         $this->em->clear();
-        $refreshed = $this->em->getRepository(\App\Entity\ComicSeries::class)->find($series->getId());
+        $refreshed = $this->em->getRepository(ComicSeries::class)->find($series->getId());
         self::assertNotNull($refreshed);
         self::assertNull($refreshed->getNewReleasesCheckedAt());
     }

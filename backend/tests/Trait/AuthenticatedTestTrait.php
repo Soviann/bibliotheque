@@ -7,6 +7,7 @@ namespace App\Tests\Trait;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 /**
  * Fournit un client HTTP authentifié par JWT pour les tests fonctionnels.
@@ -26,7 +27,7 @@ trait AuthenticatedTestTrait
             throw new \RuntimeException('L\'utilisateur de test (test@example.com) est introuvable. Chargez les fixtures.');
         }
 
-        /** @var \Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface $jwtManager */
+        /** @var JWTTokenManagerInterface $jwtManager */
         $jwtManager = $container->get('lexik_jwt_authentication.jwt_manager');
         $token = $jwtManager->create($user);
 

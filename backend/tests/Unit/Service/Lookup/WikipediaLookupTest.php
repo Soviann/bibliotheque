@@ -96,7 +96,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testPrepareLookupReturnsCachedResult(): void
     {
-        $cachedResult = new LookupResult(title: 'One Piece', source: 'wikipedia');
+        $cachedResult = new LookupResult(source: 'wikipedia', title: 'One Piece');
 
         $cacheItem = $this->createCacheItem('test_key', $cachedResult, true);
         $this->cache->method('getItem')->willReturn($cacheItem);
@@ -114,7 +114,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupReturnsCachedResultDirectly(): void
     {
-        $cachedResult = new LookupResult(title: 'Cached', source: 'wikipedia');
+        $cachedResult = new LookupResult(source: 'wikipedia', title: 'Cached');
 
         $result = $this->provider->resolveLookup($cachedResult);
 
@@ -137,11 +137,9 @@ final class WikipediaLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://query.wikidata.org/sparql',
-                self::callback(static function (array $options): bool {
-                    return \str_contains($options['query']['query'], 'P212')
-                        && \str_contains($options['query']['query'], '9782723489003')
-                        && 'application/sparql-results+json' === $options['headers']['Accept'];
-                }),
+                self::callback(static fn (array $options): bool => \str_contains((string) $options['query']['query'], 'P212')
+                    && \str_contains((string) $options['query']['query'], '9782723489003')
+                    && 'application/sparql-results+json' === $options['headers']['Accept']),
             )
             ->willReturn($response);
 
@@ -169,9 +167,7 @@ final class WikipediaLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://query.wikidata.org/sparql',
-                self::callback(static function (array $options): bool {
-                    return \str_contains($options['query']['query'], 'P957');
-                }),
+                self::callback(static fn (array $options): bool => \str_contains((string) $options['query']['query'], 'P957')),
             )
             ->willReturn($response);
 
@@ -194,12 +190,10 @@ final class WikipediaLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://www.wikidata.org/w/api.php',
-                self::callback(static function (array $options): bool {
-                    return 'wbsearchentities' === $options['query']['action']
-                        && 'One Piece' === $options['query']['search']
-                        && 'fr' === $options['query']['language']
-                        && 'json' === $options['query']['format'];
-                }),
+                self::callback(static fn (array $options): bool => 'wbsearchentities' === $options['query']['action']
+                    && 'One Piece' === $options['query']['search']
+                    && 'fr' === $options['query']['language']
+                    && 'json' === $options['query']['format']),
             )
             ->willReturn($response);
 
@@ -877,7 +871,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testPrepareEnrichReturnsNullForEmptyTitle(): void
     {
-        $partial = new LookupResult(title: '', source: 'test');
+        $partial = new LookupResult(source: 'test', title: '');
 
         $state = $this->provider->prepareEnrich($partial, ComicType::MANGA);
 
@@ -1495,7 +1489,7 @@ final class WikipediaLookupTest extends TestCase
         $realCache = new ArrayAdapter();
 
         if ($isHit && null !== $value) {
-            $realCache->get($key, static fn () => $value);
+            $realCache->get($key, static fn (): mixed => $value);
         }
 
         return $realCache->getItem($key);

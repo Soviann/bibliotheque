@@ -22,8 +22,8 @@ final class TomeRepositoryTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
-        $this->repository = static::getContainer()->get(TomeRepository::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->repository = self::getContainer()->get(TomeRepository::class);
     }
 
     public function testPersistAndFindTome(): void

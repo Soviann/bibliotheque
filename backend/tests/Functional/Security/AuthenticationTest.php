@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use App\Tests\Factory\EntityFactory;
 use App\Tests\Trait\AuthenticatedTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 /**
  * Tests fonctionnels pour la sécurité générale de l'API.
@@ -21,7 +22,7 @@ final class AuthenticationTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $container = static::getContainer();
+        $container = self::getContainer();
         $em = $container->get(EntityManagerInterface::class);
 
         // Réinitialiser le rate limiter pour éviter les 429 entre tests
@@ -56,7 +57,7 @@ final class AuthenticationTest extends ApiTestCase
 
     public function testNoTokenReturns401(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/api/comic_series');
 
@@ -98,7 +99,7 @@ final class AuthenticationTest extends ApiTestCase
 
     public function testInvalidGarbageTokenReturns401(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/api/comic_series', [
             'headers' => [
@@ -118,19 +119,19 @@ final class AuthenticationTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
 
         // Extraire un vrai token puis le corrompre
-        $container = static::getContainer();
+        $container = self::getContainer();
         /** @var UserRepository $userRepo */
         $userRepo = $container->get(UserRepository::class);
         $user = $userRepo->findOneBy(['email' => 'test@example.com']);
 
-        /** @var \Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface $jwtManager */
+        /** @var JWTTokenManagerInterface $jwtManager */
         $jwtManager = $container->get('lexik_jwt_authentication.jwt_manager');
         $validToken = $jwtManager->create($user);
 
         // Altérer le token en ajoutant du bruit
         $tamperedToken = $validToken.'tampered';
 
-        $client = static::createClient();
+        $client = self::createClient();
         $client->request('GET', '/api/comic_series', [
             'headers' => [
                 'Authorization' => 'Bearer '.$tamperedToken,
@@ -146,7 +147,7 @@ final class AuthenticationTest extends ApiTestCase
 
     public function testTokenWithoutBearerPrefixReturns401(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/api/comic_series', [
             'headers' => [
@@ -163,7 +164,7 @@ final class AuthenticationTest extends ApiTestCase
 
     public function testPublicEndpointsAccessible(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         // Le endpoint de login Google est public (pas besoin de JWT)
         $client->request('POST', '/api/login/google', [

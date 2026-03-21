@@ -25,7 +25,7 @@ final class LookupApiTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $container = static::getContainer();
+        $container = self::getContainer();
         $em = $container->get(EntityManagerInterface::class);
 
         // Réinitialiser le rate limiter pour éviter les 429 entre tests

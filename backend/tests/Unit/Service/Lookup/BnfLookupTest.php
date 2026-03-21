@@ -94,13 +94,11 @@ final class BnfLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://catalogue.bnf.fr/api/SRU',
-                self::callback(static function (array $options): bool {
-                    return 'bib.isbn adj "9782723489"' === $options['query']['query']
-                        && 'searchRetrieve' === $options['query']['operation']
-                        && 'dublincore' === $options['query']['recordSchema']
-                        && '1.2' === $options['query']['version']
-                        && 1 === $options['query']['maximumRecords'];
-                }),
+                self::callback(static fn (array $options): bool => 'bib.isbn adj "9782723489"' === $options['query']['query']
+                    && 'searchRetrieve' === $options['query']['operation']
+                    && 'dublincore' === $options['query']['recordSchema']
+                    && '1.2' === $options['query']['version']
+                    && 1 === $options['query']['maximumRecords']),
             )
             ->willReturn($response);
 
@@ -120,9 +118,7 @@ final class BnfLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://catalogue.bnf.fr/api/SRU',
-                self::callback(static function (array $options): bool {
-                    return 'bib.title all "One Piece"' === $options['query']['query'];
-                }),
+                self::callback(static fn (array $options): bool => 'bib.title all "One Piece"' === $options['query']['query']),
             )
             ->willReturn($response);
 
@@ -194,8 +190,8 @@ final class BnfLookupTest extends TestCase
     public function testResolveLookupReversesAuthorName(): void
     {
         $xml = $this->buildXml(
-            creator: 'Toriyama, Akira (1955-2024)',
             title: 'Dragon Ball',
+            creator: 'Toriyama, Akira (1955-2024)',
         );
 
         $response = $this->createStub(ResponseInterface::class);
@@ -291,8 +287,8 @@ final class BnfLookupTest extends TestCase
     public function testResolveLookupCleansPublisher(): void
     {
         $xml = $this->buildXml(
-            publisher: 'Kana (Bruxelles)',
             title: 'Naruto',
+            publisher: 'Kana (Bruxelles)',
         );
 
         $response = $this->createStub(ResponseInterface::class);
@@ -376,8 +372,8 @@ final class BnfLookupTest extends TestCase
     public function testResolveLookupStripsRoleSuffix(): void
     {
         $xml = $this->buildXml(
-            creator: 'Oda, Eiichirō (1975-....). Auteur du texte',
             title: 'One Piece',
+            creator: 'Oda, Eiichirō (1975-....). Auteur du texte',
         );
 
         $response = $this->createStub(ResponseInterface::class);
@@ -395,8 +391,8 @@ final class BnfLookupTest extends TestCase
     public function testResolveLookupStripsVariousRoleSuffixes(): void
     {
         $xml = $this->buildXml(
-            creator: 'Uderzo, Albert (1927-2020). Illustrateur',
             title: 'Astérix',
+            creator: 'Uderzo, Albert (1927-2020). Illustrateur',
         );
 
         $response = $this->createStub(ResponseInterface::class);
@@ -432,8 +428,8 @@ final class BnfLookupTest extends TestCase
     public function testResolveLookupSingleNameAuthor(): void
     {
         $xml = $this->buildXml(
-            creator: 'Moebius',
             title: 'Arzach',
+            creator: 'Moebius',
         );
 
         $response = $this->createStub(ResponseInterface::class);

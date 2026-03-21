@@ -29,7 +29,7 @@ final class ImportExcelCommandTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
         $application = new Application(self::$kernel);
         $command = $application->find('app:import-excel');
@@ -351,7 +351,7 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testDetermineStatusWithEmptyStringReturnsBuying(): void
     {
-        $service = static::getContainer()->get(ImportExcelService::class);
+        $service = self::getContainer()->get(ImportExcelService::class);
         $method = new \ReflectionMethod($service, 'determineStatus');
 
         self::assertSame(ComicStatus::BUYING, $method->invoke($service, ''));
@@ -362,7 +362,7 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testDetermineStatusWithUnrecognizedValueReturnsBuying(): void
     {
-        $service = static::getContainer()->get(ImportExcelService::class);
+        $service = self::getContainer()->get(ImportExcelService::class);
         $method = new \ReflectionMethod($service, 'determineStatus');
 
         self::assertSame(ComicStatus::BUYING, $method->invoke($service, 'xyz'));
@@ -373,7 +373,7 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testDetermineOnNasWithNonReturnsFalse(): void
     {
-        $service = static::getContainer()->get(ImportExcelService::class);
+        $service = self::getContainer()->get(ImportExcelService::class);
         $method = new \ReflectionMethod($service, 'determineOnNas');
 
         self::assertFalse($method->invoke($service, 'non'));
@@ -384,7 +384,7 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testParseIntegerValueWithZeroCommaZeroReturnsNull(): void
     {
-        $service = static::getContainer()->get(ImportExcelService::class);
+        $service = self::getContainer()->get(ImportExcelService::class);
         $method = new \ReflectionMethod($service, 'parseIntegerValue');
 
         $result = $method->invoke($service, '0, 0');
@@ -398,7 +398,7 @@ final class ImportExcelCommandTest extends KernelTestCase
      */
     public function testParseIntegerValueWithZeroReturnsNull(): void
     {
-        $service = static::getContainer()->get(ImportExcelService::class);
+        $service = self::getContainer()->get(ImportExcelService::class);
         $method = new \ReflectionMethod($service, 'parseIntegerValue');
 
         $result = $method->invoke($service, 0);

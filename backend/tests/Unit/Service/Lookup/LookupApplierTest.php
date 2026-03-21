@@ -8,6 +8,7 @@ use App\Repository\AuthorRepository;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupResult;
 use App\Tests\Factory\EntityFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -17,8 +18,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final class LookupApplierTest extends TestCase
 {
-    private AuthorRepository $authorRepository;
-    private HttpClientInterface $httpClient;
+    private MockObject $authorRepository;
+    private MockObject $httpClient;
     private LookupApplier $applier;
 
     protected function setUp(): void

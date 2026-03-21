@@ -354,16 +354,16 @@ final class NasDirectoryParserTest extends TestCase
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 15,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'Blake et Mortimer',
             ),
             // Depuis BD/_lus/ : 10 tomes lus
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 10,
-                readComplete: false,
                 readUpTo: 10,
+                readComplete: false,
                 title: 'Blake et Mortimer',
             ),
         ];
@@ -385,16 +385,16 @@ final class NasDirectoryParserTest extends TestCase
             new NasSeriesData(
                 isComplete: true,
                 lastDownloaded: 4,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'Anachron',
             ),
             // Depuis BD/_lus/ : 2 tomes lus
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 2,
-                readComplete: false,
                 readUpTo: 2,
+                readComplete: false,
                 title: 'Anachron',
             ),
         ];
@@ -416,24 +416,24 @@ final class NasDirectoryParserTest extends TestCase
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 20,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'One Piece',
             ),
             // Depuis BD/_lus/ : 15 tomes lus
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 15,
-                readComplete: false,
                 readUpTo: 15,
+                readComplete: false,
                 title: 'One Piece',
             ),
             // Depuis /lecture en cours/ : tomes 16-18, readUpTo = 15
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 18,
-                readComplete: false,
                 readUpTo: 15,
+                readComplete: false,
                 title: 'One Piece',
             ),
         ];
@@ -452,15 +452,15 @@ final class NasDirectoryParserTest extends TestCase
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 5,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'Androides',
             ),
             new NasSeriesData(
                 isComplete: true,
                 lastDownloaded: 3,
-                readComplete: true,
                 readUpTo: null,
+                readComplete: true,
                 title: 'Blake et Mortimer',
             ),
         ];
@@ -500,15 +500,15 @@ final class NasDirectoryParserTest extends TestCase
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 15,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'Blake et Morter',
             ),
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 10,
-                readComplete: false,
                 readUpTo: 10,
+                readComplete: false,
                 title: 'Blake & Mortimer',
             ),
         ];
@@ -526,15 +526,15 @@ final class NasDirectoryParserTest extends TestCase
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 5,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'Naruto',
             ),
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 3,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'Narutaru',
             ),
         ];
@@ -566,16 +566,16 @@ final class NasDirectoryParserTest extends TestCase
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 5,
-                publisher: 'DC Comics',
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: 'Batman',
+                publisher: 'DC Comics',
             ),
             new NasSeriesData(
                 isComplete: false,
                 lastDownloaded: 3,
-                readComplete: false,
                 readUpTo: 3,
+                readComplete: false,
                 title: 'Batman',
             ),
         ];

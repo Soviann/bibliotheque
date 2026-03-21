@@ -86,7 +86,7 @@ final class BedethequeLookupTest extends TestCase
 
         self::assertSame(110, $provider->getFieldPriority('authors', ComicType::MANGA));
         self::assertSame(110, $provider->getFieldPriority('description', ComicType::COMICS));
-        self::assertSame(110, $provider->getFieldPriority('publisher', null));
+        self::assertSame(110, $provider->getFieldPriority('publisher'));
     }
 
     /**
@@ -97,7 +97,7 @@ final class BedethequeLookupTest extends TestCase
         $provider = $this->createProvider();
 
         self::assertSame(50, $provider->getFieldPriority('thumbnail', ComicType::MANGA));
-        self::assertSame(50, $provider->getFieldPriority('thumbnail', null));
+        self::assertSame(50, $provider->getFieldPriority('thumbnail'));
     }
 
     /**
@@ -105,10 +105,10 @@ final class BedethequeLookupTest extends TestCase
      */
     public function testPrepareLookupReturnsCachedResult(): void
     {
-        $cachedResult = new LookupResult(title: 'Blacksad', source: 'bedetheque');
+        $cachedResult = new LookupResult(source: 'bedetheque', title: 'Blacksad');
 
         $realCache = new ArrayAdapter();
-        $realCache->get('test_key', static fn () => $cachedResult);
+        $realCache->get('test_key', static fn (): LookupResult => $cachedResult);
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
         $provider = $this->createProvider();
@@ -249,7 +249,7 @@ final class BedethequeLookupTest extends TestCase
      */
     public function testResolveLookupReturnsCachedResultDirectly(): void
     {
-        $cachedResult = new LookupResult(title: 'Cached', source: 'bedetheque');
+        $cachedResult = new LookupResult(source: 'bedetheque', title: 'Cached');
         $provider = $this->createProvider();
 
         $result = $provider->resolveLookup($cachedResult);

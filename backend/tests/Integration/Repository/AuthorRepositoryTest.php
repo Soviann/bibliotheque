@@ -22,8 +22,8 @@ final class AuthorRepositoryTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
-        $this->repository = static::getContainer()->get(AuthorRepository::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->repository = self::getContainer()->get(AuthorRepository::class);
     }
 
     // ---------------------------------------------------------------

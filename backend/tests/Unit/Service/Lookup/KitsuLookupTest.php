@@ -68,11 +68,9 @@ final class KitsuLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://kitsu.app/api/edge/manga',
-                self::callback(static function (array $options): bool {
-                    return 'application/vnd.api+json' === $options['headers']['Accept']
-                        && 'One Piece' === $options['query']['filter[text]']
-                        && 1 === $options['query']['page[limit]'];
-                }),
+                self::callback(static fn (array $options): bool => 'application/vnd.api+json' === $options['headers']['Accept']
+                    && 'One Piece' === $options['query']['filter[text]']
+                    && 1 === $options['query']['page[limit]']),
             )
             ->willReturn($response);
 
@@ -275,9 +273,7 @@ final class KitsuLookupTest extends TestCase
             ->with(
                 'GET',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 5 === $options['query']['page[limit]'];
-                }),
+                self::callback(static fn (array $options): bool => 5 === $options['query']['page[limit]']),
             )
             ->willReturn($response);
 

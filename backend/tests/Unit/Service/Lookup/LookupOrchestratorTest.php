@@ -56,7 +56,7 @@ final class LookupOrchestratorTest extends TestCase
      */
     public function testLookupNormalizesIsbn(): void
     {
-        $result = new LookupResult(title: 'Test', source: 'provider');
+        $result = new LookupResult(source: 'provider', title: 'Test');
 
         $provider = $this->createStubProvider(
             fieldPriority: 100,
@@ -175,14 +175,14 @@ final class LookupOrchestratorTest extends TestCase
         $unsupported = $this->createStubProvider(
             fieldPriority: 200,
             name: 'unsupported',
-            result: new LookupResult(title: 'Should Not Appear', source: 'unsupported'),
+            result: new LookupResult(source: 'unsupported', title: 'Should Not Appear'),
             supports: false,
         );
 
         $supported = $this->createStubProvider(
             fieldPriority: 50,
             name: 'supported',
-            result: new LookupResult(title: 'Correct', source: 'supported'),
+            result: new LookupResult(source: 'supported', title: 'Correct'),
             supports: true,
         );
 
@@ -235,7 +235,7 @@ final class LookupOrchestratorTest extends TestCase
             throwOnPrepare: new \RuntimeException('Network failure'),
         );
 
-        $workingResult = new LookupResult(title: 'Working', source: 'working');
+        $workingResult = new LookupResult(source: 'working', title: 'Working');
         $workingProvider = $this->createStubProvider(
             fieldPriority: 80,
             name: 'working',
@@ -271,7 +271,7 @@ final class LookupOrchestratorTest extends TestCase
             throwOnResolve: new \RuntimeException('Parse error'),
         );
 
-        $workingResult = new LookupResult(title: 'Working', source: 'working');
+        $workingResult = new LookupResult(source: 'working', title: 'Working');
         $workingProvider = $this->createStubProvider(
             fieldPriority: 80,
             name: 'working',
@@ -313,14 +313,14 @@ final class LookupOrchestratorTest extends TestCase
                 return 'prepared';
             }
 
-            public function resolveLookup(mixed $state): ?LookupResult
+            public function resolveLookup(mixed $state): LookupResult
             {
                 // Simuler un delai en consommant du temps
                 \usleep(100000); // 100ms
 
                 $this->recordApiMessage(ApiLookupStatus::SUCCESS, 'OK');
 
-                return new LookupResult(title: 'Slow Result', source: 'slow_provider');
+                return new LookupResult(source: 'slow_provider', title: 'Slow Result');
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -332,14 +332,14 @@ final class LookupOrchestratorTest extends TestCase
         $fastProvider = $this->createStubProvider(
             fieldPriority: 80,
             name: 'fast_provider',
-            result: new LookupResult(title: 'Fast Result', source: 'fast_provider'),
+            result: new LookupResult(source: 'fast_provider', title: 'Fast Result'),
             supports: true,
         );
 
         // Timeout de 0 secondes : tout depasse immediatement apres le premier resolve
         $orchestrator = new LookupOrchestrator(0.0, new NullLogger(), [$slowProvider, $fastProvider]);
 
-        $result = $orchestrator->lookup('1234567890');
+        $orchestrator->lookup('1234567890');
 
         // Le slow provider doit avoir eu le temps de s'executer (premier dans la liste)
         // Le fast provider devrait etre en timeout
@@ -366,7 +366,7 @@ final class LookupOrchestratorTest extends TestCase
         $provider1 = $this->createStubProvider(
             fieldPriority: 100,
             name: 'provider1',
-            result: new LookupResult(title: 'T1', source: 'p1'),
+            result: new LookupResult(source: 'p1', title: 'T1'),
             supports: true,
             apiMessage: new ApiMessage(message: 'OK', status: 'success'),
         );
@@ -399,7 +399,7 @@ final class LookupOrchestratorTest extends TestCase
         $provider1 = $this->createStubProvider(
             fieldPriority: 100,
             name: 'provider1',
-            result: new LookupResult(title: 'T1', source: 'p1'),
+            result: new LookupResult(source: 'p1', title: 'T1'),
             supports: true,
         );
 
@@ -601,9 +601,9 @@ final class LookupOrchestratorTest extends TestCase
                 return 'state';
             }
 
-            public function resolveLookup(mixed $state): ?LookupResult
+            public function resolveLookup(mixed $state): LookupResult
             {
-                return new LookupResult(title: 'Test', source: 'type_tracker');
+                return new LookupResult(source: 'type_tracker', title: 'Test');
             }
 
             public function supports(string $mode, ?ComicType $type): bool
@@ -746,7 +746,7 @@ final class LookupOrchestratorTest extends TestCase
         $provider = $this->createStubProvider(
             fieldPriority: 100,
             name: 'silent_provider',
-            result: new LookupResult(title: 'Test', source: 'silent'),
+            result: new LookupResult(source: 'silent', title: 'Test'),
             supports: true,
             apiMessage: null,
         );
@@ -852,7 +852,7 @@ final class LookupOrchestratorTest extends TestCase
 
         // 3 titres distincts: one piece, naruto, bleach
         self::assertCount(3, $results);
-        $titles = \array_map(static fn (LookupResult $r) => $r->title, $results);
+        $titles = \array_map(static fn (LookupResult $r): ?string => $r->title, $results);
         self::assertContains('One Piece', $titles);
         self::assertContains('Naruto', $titles);
         self::assertContains('Bleach', $titles);
@@ -882,7 +882,7 @@ final class LookupOrchestratorTest extends TestCase
         $results = $orchestrator->lookupByTitleMultiple('Result', null, 5);
 
         self::assertCount(2, $results);
-        $titles = \array_map(static fn (LookupResult $r) => $r->title, $results);
+        $titles = \array_map(static fn (LookupResult $r): ?string => $r->title, $results);
         self::assertContains('Single Result', $titles);
         self::assertContains('Multi Result', $titles);
     }
@@ -961,7 +961,7 @@ final class LookupOrchestratorTest extends TestCase
 
         // Seuls les titres contenant "instinct" devraient passer
         self::assertCount(2, $results);
-        $titles = \array_map(static fn (LookupResult $r) => $r->title, $results);
+        $titles = \array_map(static fn (LookupResult $r): ?string => $r->title, $results);
         self::assertContains('3 instincts : La survie', $titles);
         self::assertContains('Les instincts primaires', $titles);
     }
@@ -1001,16 +1001,16 @@ final class LookupOrchestratorTest extends TestCase
         bool $supports,
         ?\Throwable $throwOnPrepare = null,
     ): MultiResultLookupProviderInterface {
-        return new class($fieldPriority, $name, $results, $supports, $throwOnPrepare) implements MultiResultLookupProviderInterface {
+        return new readonly class($fieldPriority, $name, $results, $supports, $throwOnPrepare) implements MultiResultLookupProviderInterface {
             /**
              * @param list<LookupResult> $results
              */
             public function __construct(
-                private readonly int $fieldPriority,
-                private readonly string $name,
-                private readonly array $results,
-                private readonly bool $supports,
-                private readonly ?\Throwable $throwOnPrepare,
+                private int $fieldPriority,
+                private string $name,
+                private array $results,
+                private bool $supports,
+                private ?\Throwable $throwOnPrepare,
             ) {
             }
 
@@ -1031,7 +1031,7 @@ final class LookupOrchestratorTest extends TestCase
 
             public function prepareMultipleLookup(string $query, ?ComicType $type, int $limit): mixed
             {
-                if (null !== $this->throwOnPrepare) {
+                if ($this->throwOnPrepare instanceof \Throwable) {
                     throw $this->throwOnPrepare;
                 }
 
@@ -1072,15 +1072,15 @@ final class LookupOrchestratorTest extends TestCase
         ?\Throwable $throwOnPrepareEnrich = null,
         ?\Throwable $throwOnResolveEnrich = null,
     ): EnrichableLookupProviderInterface {
-        return new class($enrichResult, $fieldPriority, $name, $result, $supports, $throwOnPrepareEnrich, $throwOnResolveEnrich) implements EnrichableLookupProviderInterface {
+        return new readonly class($enrichResult, $fieldPriority, $name, $result, $supports, $throwOnPrepareEnrich, $throwOnResolveEnrich) implements EnrichableLookupProviderInterface {
             public function __construct(
-                private readonly ?LookupResult $enrichResult,
-                private readonly int $fieldPriority,
-                private readonly string $name,
-                private readonly ?LookupResult $result,
-                private readonly bool $supports,
-                private readonly ?\Throwable $throwOnPrepareEnrich,
-                private readonly ?\Throwable $throwOnResolveEnrich,
+                private ?LookupResult $enrichResult,
+                private int $fieldPriority,
+                private string $name,
+                private ?LookupResult $result,
+                private bool $supports,
+                private ?\Throwable $throwOnPrepareEnrich,
+                private ?\Throwable $throwOnResolveEnrich,
             ) {
             }
 
@@ -1101,7 +1101,7 @@ final class LookupOrchestratorTest extends TestCase
 
             public function prepareEnrich(LookupResult $partial, ?ComicType $type): mixed
             {
-                if (null !== $this->throwOnPrepareEnrich) {
+                if ($this->throwOnPrepareEnrich instanceof \Throwable) {
                     throw $this->throwOnPrepareEnrich;
                 }
 
@@ -1115,7 +1115,7 @@ final class LookupOrchestratorTest extends TestCase
 
             public function resolveEnrich(mixed $state): ?LookupResult
             {
-                if (null !== $this->throwOnResolveEnrich) {
+                if ($this->throwOnResolveEnrich instanceof \Throwable) {
                     throw $this->throwOnResolveEnrich;
                 }
 
@@ -1146,15 +1146,15 @@ final class LookupOrchestratorTest extends TestCase
         ?\Throwable $throwOnResolve = null,
         ?ApiMessage $apiMessage = null,
     ): LookupProviderInterface {
-        return new class($apiMessage, $fieldPriority, $name, $result, $supports, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
+        return new readonly class($apiMessage, $fieldPriority, $name, $result, $supports, $throwOnPrepare, $throwOnResolve) implements LookupProviderInterface {
             public function __construct(
-                private readonly ?ApiMessage $apiMessage,
-                private readonly int $fieldPriority,
-                private readonly string $name,
-                private readonly ?LookupResult $result,
-                private readonly bool $supports,
-                private readonly ?\Throwable $throwOnPrepare,
-                private readonly ?\Throwable $throwOnResolve,
+                private ?ApiMessage $apiMessage,
+                private int $fieldPriority,
+                private string $name,
+                private ?LookupResult $result,
+                private bool $supports,
+                private ?\Throwable $throwOnPrepare,
+                private ?\Throwable $throwOnResolve,
             ) {
             }
 
@@ -1175,7 +1175,7 @@ final class LookupOrchestratorTest extends TestCase
 
             public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
             {
-                if (null !== $this->throwOnPrepare) {
+                if ($this->throwOnPrepare instanceof \Throwable) {
                     throw $this->throwOnPrepare;
                 }
 
@@ -1184,7 +1184,7 @@ final class LookupOrchestratorTest extends TestCase
 
             public function resolveLookup(mixed $state): ?LookupResult
             {
-                if (null !== $this->throwOnResolve) {
+                if ($this->throwOnResolve instanceof \Throwable) {
                     throw $this->throwOnResolve;
                 }
 

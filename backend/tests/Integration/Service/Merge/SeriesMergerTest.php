@@ -25,8 +25,8 @@ final class SeriesMergerTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
-        $this->merger = static::getContainer()->get(SeriesMerger::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->merger = self::getContainer()->get(SeriesMerger::class);
     }
 
     public function testExecuteMergesSeriesInDatabase(): void
@@ -87,13 +87,13 @@ final class SeriesMergerTest extends KernelTestCase
             type: 'bd',
         );
 
-        $result = $this->merger->execute($preview);
+        $this->merger->execute($preview);
 
         // Vider le cache Doctrine pour relire depuis la base
         $this->em->clear();
 
         // Vérifier qu'il ne reste qu'une seule série
-        $repository = static::getContainer()->get(ComicSeriesRepository::class);
+        $repository = self::getContainer()->get(ComicSeriesRepository::class);
         $allSeries = $repository->findAll();
         self::assertCount(1, $allSeries);
 
