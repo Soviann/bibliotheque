@@ -13,6 +13,7 @@ use App\Repository\ComicSeriesRepository;
 use App\Repository\UserRepository;
 use App\Service\Lookup\Gemini\GeminiClientPool;
 use App\Service\Lookup\Gemini\GeminiJsonParser;
+use App\Service\Notification\NotificationService;
 use Psr\Log\LoggerInterface;
 
 /**

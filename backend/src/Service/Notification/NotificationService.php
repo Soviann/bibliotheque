@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Notification;
 
 use App\Entity\Notification;
 use App\Entity\User;
@@ -10,7 +10,6 @@ use App\Enum\NotificationChannel;
 use App\Enum\NotificationEntityType;
 use App\Enum\NotificationType;
 use App\Repository\NotificationPreferenceRepository;
-use App\Service\Notification\NotifierInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 

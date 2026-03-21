@@ -10,6 +10,7 @@ use App\Enum\NotificationType;
 use App\Repository\ComicSeriesRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\UserRepository;
+use App\Service\Notification\NotificationService;
 use Psr\Log\LoggerInterface;
 
 /**

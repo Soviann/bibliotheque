@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Service;
+namespace App\Tests\Unit\Service\Notification;
 
 use App\Entity\Notification;
 use App\Entity\NotificationPreference;
@@ -11,8 +11,8 @@ use App\Enum\NotificationChannel;
 use App\Enum\NotificationEntityType;
 use App\Enum\NotificationType;
 use App\Repository\NotificationPreferenceRepository;
-use App\Service\NotificationService;
-use App\Service\WebPushService;
+use App\Service\Notification\NotificationService;
+use App\Service\Notification\WebPushService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
