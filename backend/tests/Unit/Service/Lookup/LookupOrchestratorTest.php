@@ -327,6 +327,11 @@ final class LookupOrchestratorTest extends TestCase
             {
                 return true;
             }
+
+            protected function getLogger(): LoggerInterface
+            {
+                return new NullLogger();
+            }
         };
 
         $fastProvider = $this->createStubProvider(

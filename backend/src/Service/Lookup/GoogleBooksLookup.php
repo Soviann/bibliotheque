@@ -178,6 +178,11 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
         return \in_array($mode, ['isbn', 'title'], true);
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Extrait l'ISBN depuis les identifiants Google Books.
      * Préfère ISBN-13, sinon ISBN-10.

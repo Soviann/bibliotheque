@@ -223,14 +223,8 @@ final class JikanLookup extends AbstractLookupProvider implements MultiResultLoo
         return \count($names) > 0 ? \implode(', ', $names) : null;
     }
 
-    private function handleHttpException(ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e): void
+    protected function getLogger(): LoggerInterface
     {
-        $code = $e->getResponse()->getStatusCode();
-        if (429 === $code) {
-            $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
-        } else {
-            $this->recordApiMessage(ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
-        }
-        $this->logger->warning('Erreur HTTP Jikan : {error}', ['error' => $e->getMessage()]);
+        return $this->logger;
     }
 }

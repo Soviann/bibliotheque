@@ -10,6 +10,8 @@ use App\Service\Lookup\AbstractLookupProvider;
 use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\LookupResult;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Sous-classe concrete pour tester AbstractLookupProvider.
@@ -55,6 +57,11 @@ final class ConcreteTestProvider extends AbstractLookupProvider
     public function supports(string $mode, ?ComicType $type): bool
     {
         return true;
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return new NullLogger();
     }
 }
 

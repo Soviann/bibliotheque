@@ -108,6 +108,11 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         return ['cacheKey' => $cacheKey, 'prompt' => $buildPrompt()];
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     protected function consumeRateLimit(): bool
     {
         $limiter = $this->limiterFactory->create('gemini_global');

@@ -131,6 +131,11 @@ final class BnfLookup extends AbstractLookupProvider
         return \trim($parts[0]);
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Extrait l'ISBN depuis un identifiant Dublin Core : "ISBN xxx" → "xxx".
      *

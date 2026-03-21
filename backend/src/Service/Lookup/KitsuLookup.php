@@ -197,14 +197,8 @@ final class KitsuLookup extends AbstractLookupProvider implements MultiResultLoo
         );
     }
 
-    private function handleHttpException(ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e): void
+    protected function getLogger(): LoggerInterface
     {
-        $code = $e->getResponse()->getStatusCode();
-        if (429 === $code) {
-            $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
-        } else {
-            $this->recordApiMessage(ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
-        }
-        $this->logger->warning('Erreur HTTP Kitsu : {error}', ['error' => $e->getMessage()]);
+        return $this->logger;
     }
 }

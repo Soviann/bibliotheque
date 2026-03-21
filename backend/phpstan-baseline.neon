@@ -1,18 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: src/Controller/PurgeController.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: src/DTO/ComicSeriesListItem.php
-
-		-
 			message: '#^Property App\\Entity\\Author\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
 			identifier: property.unusedType
 			count: 1
@@ -53,12 +41,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/Repository/ComicSeriesRepository.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: src/Service/Merge/MergePreviewHydrator.php
 
 		-
 			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
@@ -469,13 +451,13 @@ parameters:
 			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
 
 		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:575\:\:\$calledSupportsType is never read, only written\.$#'
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:580\:\:\$calledSupportsType is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
 
 		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:575\:\:\$calledWithType is never read, only written\.$#'
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:580\:\:\$calledWithType is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php

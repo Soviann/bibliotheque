@@ -219,6 +219,11 @@ final class WikipediaLookup extends AbstractLookupProvider implements Enrichable
         return \in_array($mode, ['isbn', 'title'], true);
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Construit l'URL de thumbnail depuis le nom de fichier Wikimedia Commons.
      */

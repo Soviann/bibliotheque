@@ -357,4 +357,9 @@ final class AniListLookup extends AbstractLookupProvider implements MultiResultL
 
         return (string) $year;
     }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
 }

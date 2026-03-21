@@ -133,6 +133,11 @@ final class OpenLibraryLookup extends AbstractLookupProvider
         return 'isbn' === $mode;
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Récupère les noms des auteurs en parallèle.
      *
