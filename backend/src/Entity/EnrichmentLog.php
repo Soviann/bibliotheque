@@ -38,7 +38,7 @@ class EnrichmentLog
     private EnrichmentAction $action;
 
     #[ORM\ManyToOne(targetEntity: ComicSeries::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Groups(['enrichment-log:read'])]
     private ComicSeries $comicSeries;
 

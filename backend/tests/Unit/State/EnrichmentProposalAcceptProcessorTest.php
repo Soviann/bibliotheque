@@ -14,6 +14,7 @@ use App\Enum\EnrichmentConfidence;
 use App\Enum\ProposalStatus;
 use App\Repository\AuthorRepository;
 use App\Service\CoverDownloader;
+use App\Service\Enrichment\EnrichmentService;
 use App\State\EnrichmentProposalAcceptProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\Stub;
@@ -38,6 +39,8 @@ final class EnrichmentProposalAcceptProcessorTest extends TestCase
     {
         $this->authorRepository = $this->createStub(AuthorRepository::class);
         $this->coverDownloader = $this->createStub(CoverDownloader::class);
+        $enrichmentService = $this->createStub(EnrichmentService::class);
+        $enrichmentService->method('getSeriesValue')->willReturn(null);
         $this->entityManager = $this->createStub(EntityManagerInterface::class);
 
         $this->entityManager->method('persist')->willReturnCallback(function (object $entity): void {
@@ -47,6 +50,7 @@ final class EnrichmentProposalAcceptProcessorTest extends TestCase
         $this->processor = new EnrichmentProposalAcceptProcessor(
             $this->authorRepository,
             $this->coverDownloader,
+            $enrichmentService,
             $this->entityManager,
         );
     }

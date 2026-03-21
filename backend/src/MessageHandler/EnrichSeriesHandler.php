@@ -54,6 +54,11 @@ final readonly class EnrichSeriesHandler
             $series->getType(),
         );
 
+        // Rate limit → relancer le message (Messenger réessaiera)
+        if ($this->lookupOrchestrator->hasRateLimitError()) {
+            throw new \RuntimeException(\sprintf('Rate limit atteint pour la série "%s" — le message sera réessayé', $series->getTitle()));
+        }
+
         if (null !== $result) {
             $sources = $this->lookupOrchestrator->getLastSources();
 

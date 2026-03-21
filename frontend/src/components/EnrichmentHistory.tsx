@@ -10,13 +10,7 @@ import {
   EnrichmentConfidenceLabel,
   type EnrichmentConfidence,
 } from "../types/enums";
-
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return "—";
-  if (typeof value === "boolean") return value ? "Oui" : "Non";
-  if (typeof value === "string" && value.length > 80) return value.slice(0, 80) + "…";
-  return String(value);
-}
+import { formatEnrichmentValue } from "../utils/enrichmentUtils";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -70,7 +64,7 @@ export default function EnrichmentHistory({ seriesId }: { seriesId: number }) {
               <span className="text-xs text-text-tertiary">{log.source}</span>
               {log.oldValue !== null && log.newValue !== null && (
                 <div className="w-full text-xs text-text-secondary">
-                  {formatValue(log.oldValue)} → {formatValue(log.newValue)}
+                  {formatEnrichmentValue(log.oldValue)} → {formatEnrichmentValue(log.newValue)}
                 </div>
               )}
             </div>

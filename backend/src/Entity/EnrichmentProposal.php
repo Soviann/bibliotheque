@@ -53,7 +53,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class EnrichmentProposal
 {
     #[ORM\ManyToOne(targetEntity: ComicSeries::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Groups(['enrichment:read'])]
     private ComicSeries $comicSeries;
 

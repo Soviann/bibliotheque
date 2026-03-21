@@ -13,13 +13,7 @@ import {
   type EnrichmentConfidence,
   ProposalStatus,
 } from "../types/enums";
-
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return "—";
-  if (typeof value === "boolean") return value ? "Oui" : "Non";
-  if (typeof value === "string" && value.length > 100) return value.slice(0, 100) + "…";
-  return String(value);
-}
+import { formatEnrichmentValue } from "../utils/enrichmentUtils";
 
 function ProposalCard({
   onAccept,
@@ -45,9 +39,9 @@ function ProposalCard({
           <span className="text-xs text-text-tertiary">{proposal.source}</span>
         </div>
         <div className="mt-1 text-sm text-text-secondary">
-          <span className="text-text-tertiary">{formatValue(proposal.currentValue)}</span>
+          <span className="text-text-tertiary">{formatEnrichmentValue(proposal.currentValue)}</span>
           {" → "}
-          <span className="font-medium text-text-primary">{formatValue(proposal.proposedValue)}</span>
+          <span className="font-medium text-text-primary">{formatEnrichmentValue(proposal.proposedValue)}</span>
         </div>
       </div>
       <div className="flex shrink-0 gap-1">

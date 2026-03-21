@@ -13,8 +13,10 @@ use App\Enum\EnrichableField;
 use App\Enum\EnrichmentAction;
 use App\Repository\AuthorRepository;
 use App\Service\CoverDownloader;
+use App\Service\Enrichment\EnrichmentService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 /**
  * Accepte une proposition d'enrichissement et applique la valeur à la série.
@@ -26,6 +28,7 @@ final readonly class EnrichmentProposalAcceptProcessor implements ProcessorInter
     public function __construct(
         private AuthorRepository $authorRepository,
         private CoverDownloader $coverDownloader,
+        private EnrichmentService $enrichmentService,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -42,6 +45,13 @@ final readonly class EnrichmentProposalAcceptProcessor implements ProcessorInter
         $series = $data->getComicSeries();
         $field = $data->getField();
         $proposedValue = $data->getProposedValue();
+
+        // Vérifie que la valeur n'a pas changé depuis la proposition
+        $currentValue = $this->enrichmentService->getSeriesValue($series, $field);
+
+        if ($currentValue !== $data->getCurrentValue()) {
+            throw new ConflictHttpException('La valeur du champ a changé depuis la proposition. Veuillez la rejeter et relancer un enrichissement.');
+        }
 
         $this->applyValue($data);
 
