@@ -9,7 +9,6 @@ use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\BatchLookupService;
-use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;

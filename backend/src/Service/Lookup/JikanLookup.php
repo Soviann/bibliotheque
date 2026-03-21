@@ -152,6 +152,11 @@ final class JikanLookup extends AbstractLookupProvider implements MultiResultLoo
         return LookupMode::TITLE === $mode && ComicType::MANGA === $type;
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Construit un LookupResult depuis un item Jikan.
      *
@@ -222,10 +227,5 @@ final class JikanLookup extends AbstractLookupProvider implements MultiResultLoo
         }
 
         return \count($names) > 0 ? \implode(', ', $names) : null;
-    }
-
-    protected function getLogger(): LoggerInterface
-    {
-        return $this->logger;
     }
 }

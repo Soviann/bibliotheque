@@ -42,7 +42,7 @@ final readonly class PurgeController
         }
 
         /** @var int[] $ids */
-        $ids = \array_map(static fn (mixed $id): int => (int) (is_numeric($id) ? $id : 0), $seriesIds);
+        $ids = \array_map(static fn (mixed $id): int => (int) (\is_numeric($id) ? $id : 0), $seriesIds);
         $count = $this->purgeService->executePurge($ids);
 
         return new JsonResponse(['purged' => $count]);

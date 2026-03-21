@@ -92,6 +92,11 @@ final class BnfLookup extends AbstractLookupProvider
         return true;
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Nettoie le nom d'un auteur BnF : "Nom, Prénom (dates)" → "Prénom Nom".
      */
@@ -130,11 +135,6 @@ final class BnfLookup extends AbstractLookupProvider
         $parts = \explode(' / ', $raw, 2);
 
         return \trim($parts[0]);
-    }
-
-    protected function getLogger(): LoggerInterface
-    {
-        return $this->logger;
     }
 
     /**

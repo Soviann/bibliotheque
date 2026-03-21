@@ -153,6 +153,11 @@ final class MangaDexLookup extends AbstractLookupProvider implements MultiResult
         return LookupMode::TITLE === $mode && ComicType::MANGA === $type;
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Construit un LookupResult depuis un item MangaDex.
      *
@@ -246,10 +251,5 @@ final class MangaDexLookup extends AbstractLookupProvider implements MultiResult
         }
 
         return null;
-    }
-
-    protected function getLogger(): LoggerInterface
-    {
-        return $this->logger;
     }
 }

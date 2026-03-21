@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\NewReleaseProgress;
-use App\Entity\ComicSeries;
 use App\Enum\BatchLookupStatus;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\LookupOrchestrator;
@@ -97,5 +96,4 @@ final readonly class NewReleaseCheckerService
             $this->entityManager->flush();
         }
     }
-
 }

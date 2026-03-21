@@ -179,6 +179,11 @@ final class ComicVineLookup extends AbstractLookupProvider implements MultiResul
         return LookupMode::TITLE === $mode && \in_array($type, [ComicType::BD, ComicType::COMICS], true);
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Construit un LookupResult depuis un item ComicVine.
      *
@@ -226,10 +231,5 @@ final class ComicVineLookup extends AbstractLookupProvider implements MultiResul
             thumbnail: $thumbnail,
             title: $title,
         );
-    }
-
-    protected function getLogger(): LoggerInterface
-    {
-        return $this->logger;
     }
 }

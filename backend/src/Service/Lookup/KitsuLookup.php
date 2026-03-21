@@ -152,6 +152,11 @@ final class KitsuLookup extends AbstractLookupProvider implements MultiResultLoo
         return LookupMode::TITLE === $mode && ComicType::MANGA === $type;
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Construit un LookupResult depuis un item JSON:API Kitsu.
      *
@@ -196,10 +201,5 @@ final class KitsuLookup extends AbstractLookupProvider implements MultiResultLoo
             thumbnail: $thumbnail,
             title: $title,
         );
-    }
-
-    protected function getLogger(): LoggerInterface
-    {
-        return $this->logger;
     }
 }

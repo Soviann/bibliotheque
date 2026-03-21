@@ -95,5 +95,4 @@ class LookupApplier
             return false;
         }
     }
-
 }

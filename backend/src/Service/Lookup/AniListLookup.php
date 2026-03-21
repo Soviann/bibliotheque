@@ -259,6 +259,11 @@ final class AniListLookup extends AbstractLookupProvider implements MultiResultL
         return LookupMode::TITLE === $mode && ComicType::MANGA === $type;
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /**
      * Construit un LookupResult à partir d'un objet media AniList.
      *
@@ -357,10 +362,5 @@ final class AniListLookup extends AbstractLookupProvider implements MultiResultL
         }
 
         return (string) $year;
-    }
-
-    protected function getLogger(): LoggerInterface
-    {
-        return $this->logger;
     }
 }

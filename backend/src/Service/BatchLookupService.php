@@ -169,5 +169,4 @@ final readonly class BatchLookupService
             ),
         ];
     }
-
 }
