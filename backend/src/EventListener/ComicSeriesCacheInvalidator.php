@@ -24,7 +24,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 #[AsDoctrineListener(event: Events::postPersist)]
 #[AsDoctrineListener(event: Events::postRemove)]
 #[AsDoctrineListener(event: Events::postUpdate)]
-final class ComicSeriesCacheInvalidator
+final readonly class ComicSeriesCacheInvalidator
 {
     private const array WATCHED_ENTITIES = [
         Author::class,
@@ -34,7 +34,7 @@ final class ComicSeriesCacheInvalidator
 
     public function __construct(
         #[Autowire(service: 'comic_series_api.cache')]
-        private readonly CacheInterface $cache,
+        private CacheInterface $cache,
     ) {
     }
 

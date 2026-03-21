@@ -17,12 +17,12 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * Exécute la fusion de séries selon un aperçu validé.
  */
-final class SeriesMerger
+final readonly class SeriesMerger
 {
     public function __construct(
-        private readonly AuthorRepository $authorRepository,
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private AuthorRepository $authorRepository,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 

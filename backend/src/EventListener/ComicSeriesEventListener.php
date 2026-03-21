@@ -25,10 +25,10 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 #[AsDoctrineListener(event: Events::postPersist)]
 #[AsDoctrineListener(event: Events::postRemove)]
 #[AsDoctrineListener(event: Events::postUpdate)]
-final class ComicSeriesEventListener
+final readonly class ComicSeriesEventListener
 {
     public function __construct(
-        private readonly EventDispatcherInterface $eventDispatcher,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 

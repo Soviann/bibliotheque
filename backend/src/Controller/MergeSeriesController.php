@@ -21,14 +21,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/merge-series')]
-final class MergeSeriesController
+final readonly class MergeSeriesController
 {
     public function __construct(
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly MergePreviewBuilder $mergePreviewBuilder,
-        private readonly MergePreviewHydrator $mergePreviewHydrator,
-        private readonly SeriesGroupDetector $seriesGroupDetector,
-        private readonly SeriesMerger $seriesMerger,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private MergePreviewBuilder $mergePreviewBuilder,
+        private MergePreviewHydrator $mergePreviewHydrator,
+        private SeriesGroupDetector $seriesGroupDetector,
+        private SeriesMerger $seriesMerger,
     ) {
     }
 

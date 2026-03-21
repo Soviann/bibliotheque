@@ -18,18 +18,18 @@ use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-final class GoogleLoginController
+final readonly class GoogleLoginController
 {
     public function __construct(
         #[Autowire('%env(OAUTH_ALLOWED_EMAIL)%')]
-        private readonly string $allowedEmail,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly GoogleClient $googleClient,
-        private readonly JWTTokenManagerInterface $jwtManager,
-        private readonly LoggerInterface $logger,
-        private readonly RateLimiterFactoryInterface $googleLoginLimiter,
-        private readonly UserRepository $userRepository,
-        private readonly ValidatorInterface $validator,
+        private string $allowedEmail,
+        private EntityManagerInterface $entityManager,
+        private GoogleClient $googleClient,
+        private JWTTokenManagerInterface $jwtManager,
+        private LoggerInterface $logger,
+        private RateLimiterFactoryInterface $googleLoginLimiter,
+        private UserRepository $userRepository,
+        private ValidatorInterface $validator,
     ) {
     }
 

@@ -126,7 +126,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         $logName = $this->getLogName();
 
         try {
-            return $this->geminiClientPool->executeWithRetry(function ($client, $model) use ($prompt, $logName): ?LookupResult {
+            return $this->geminiClientPool->executeWithRetry(function ($client, \BackedEnum|string $model) use ($prompt, $logName): ?LookupResult {
                 $response = $client
                     ->generativeModel(model: $model)
                     ->withTool(new Tool(googleSearch: GoogleSearch::from()))

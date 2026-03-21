@@ -168,7 +168,7 @@ class LookupOrchestrator
         // Filtrer les résultats dont le titre ne correspond pas à la requête
         $filtered = \array_filter(
             $allResults,
-            static fn (LookupResult $r) => TitleMatcher::matches($title, $r->title ?? ''),
+            static fn (LookupResult $r): bool => TitleMatcher::matches($title, $r->title ?? ''),
         );
 
         // Dédupliquer par titre normalisé, garder le premier trouvé

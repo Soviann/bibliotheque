@@ -92,7 +92,7 @@ final class ApiController
 
         return new JsonResponse([
             'apiMessages' => $lookupOrchestrator->getLastApiMessages(),
-            'results' => \array_map(static fn (LookupResult $r) => $r->jsonSerialize(), $results),
+            'results' => \array_map(static fn (LookupResult $r): array => $r->jsonSerialize(), $results),
             'sources' => $lookupOrchestrator->getLastSources(),
         ]);
     }

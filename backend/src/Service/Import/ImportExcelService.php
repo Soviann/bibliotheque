@@ -19,7 +19,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 /**
  * Service d'import des données depuis un fichier Excel de suivi.
  */
-final class ImportExcelService
+final readonly class ImportExcelService
 {
     private const array SHEET_TYPE_MAP = [
         'BD' => ComicType::BD,
@@ -29,8 +29,8 @@ final class ImportExcelService
     ];
 
     public function __construct(
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -70,7 +70,7 @@ final class ImportExcelService
 
                 $result = $this->importRow($row, $comicType);
 
-                if (null !== $result) {
+                if ($result instanceof ImportResult) {
                     if (!$dryRun) {
                         $this->entityManager->persist($result->series);
                     }
@@ -173,7 +173,7 @@ final class ImportExcelService
         }
 
         $existing = $this->comicSeriesRepository->findOneByFuzzyTitle($title, $comicType);
-        $isUpdate = null !== $existing;
+        $isUpdate = $existing instanceof ComicSeries;
         $comic = $existing ?? new ComicSeries();
 
         if (!$isUpdate) {
@@ -225,9 +225,7 @@ final class ImportExcelService
             $currentIssueValue,
             $currentIssueComplete,
             $lastBoughtValue,
-            $lastBoughtComplete,
             $lastDownloadedValue,
-            $lastDownloadedComplete,
             $latestPublishedIssue
         );
 
@@ -294,9 +292,7 @@ final class ImportExcelService
         ?int $currentIssueValue,
         bool $currentIssueComplete,
         ?int $lastBoughtValue,
-        bool $lastBoughtComplete,
         ?int $lastDownloadedValue,
-        bool $lastDownloadedComplete,
         ?int $latestPublishedIssue,
     ): ?int {
         $candidates = [];

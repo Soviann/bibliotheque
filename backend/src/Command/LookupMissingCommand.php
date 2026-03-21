@@ -11,6 +11,7 @@ use App\Repository\ComicSeriesRepository;
 use App\Service\BatchLookupService;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupOrchestrator;
+use App\Service\Lookup\LookupResult;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -77,7 +78,7 @@ final class LookupMissingCommand extends Command
 
         // Mode série spécifique — ne passe pas par le service batch
         if (null !== $seriesId) {
-            return $this->processSpecificSeries($io, (int) $seriesId, $delay, $dryRun);
+            return $this->processSpecificSeries($io, (int) $seriesId, $dryRun);
         }
 
         $count = $this->batchLookupService->countSeriesToProcess($type, $force);
@@ -132,7 +133,7 @@ final class LookupMissingCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function processSpecificSeries(SymfonyStyle $io, int $seriesId, int $delay, bool $dryRun): int
+    private function processSpecificSeries(SymfonyStyle $io, int $seriesId, bool $dryRun): int
     {
         $series = $this->comicSeriesRepository->find($seriesId);
 
@@ -149,7 +150,7 @@ final class LookupMissingCommand extends Command
 
         $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
 
-        if (null === $result) {
+        if (!$result instanceof LookupResult) {
             $io->text('Aucun résultat trouvé.');
 
             if (!$dryRun) {

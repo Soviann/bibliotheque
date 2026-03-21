@@ -63,7 +63,7 @@ final class PurgeDeletedCommand extends Command
         if ($dryRun) {
             $io->note('Mode dry-run : aucune suppression effectuée.');
         } else {
-            $ids = \array_map(static fn ($s) => $s->id, $purgeable);
+            $ids = \array_map(static fn ($s): int => $s->id, $purgeable);
             $count = $this->purgeService->executePurge($ids);
             $io->success(\sprintf('%d série(s) purgée(s).', $count));
         }

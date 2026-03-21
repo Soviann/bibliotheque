@@ -10,10 +10,10 @@ namespace App\Service\Lookup;
 final class TitleMatcher
 {
     /** Mots trop courants pour être discriminants (articles, prépositions, etc.). */
-    private const STOPWORDS = ['au', 'aux', 'ce', 'ces', 'de', 'des', 'du', 'en', 'et', 'la', 'le', 'les', 'of', 'the', 'un', 'une'];
+    private const array STOPWORDS = ['au', 'aux', 'ce', 'ces', 'de', 'des', 'du', 'en', 'et', 'la', 'le', 'les', 'of', 'the', 'un', 'une'];
 
     /** Longueur minimale pour qu'un mot soit considéré significatif. */
-    private const MIN_WORD_LENGTH = 3;
+    private const int MIN_WORD_LENGTH = 3;
 
     /**
      * Vérifie si un titre de résultat correspond suffisamment à la requête.

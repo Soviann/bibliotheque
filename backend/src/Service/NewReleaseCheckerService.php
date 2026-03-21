@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\NewReleaseProgress;
+use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ApiLookupStatus;
 use App\Enum\BatchLookupStatus;
@@ -15,14 +16,14 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * Vérifie les nouvelles parutions pour les séries en cours d'achat.
  */
-final class NewReleaseCheckerService
+final readonly class NewReleaseCheckerService
 {
     private const int BATCH_SIZE = 10;
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LookupOrchestrator $lookupOrchestrator,
-        private readonly ComicSeriesRepository $repository,
+        private EntityManagerInterface $entityManager,
+        private LookupOrchestrator $lookupOrchestrator,
+        private ComicSeriesRepository $repository,
     ) {
     }
 
@@ -116,7 +117,7 @@ final class NewReleaseCheckerService
     /**
      * Crée les tomes manquants avec les flags par défaut de la série.
      */
-    private function createMissingTomes(\App\Entity\ComicSeries $series, int $latestPublishedIssue): void
+    private function createMissingTomes(ComicSeries $series, int $latestPublishedIssue): void
     {
         $existingNumbers = [];
         foreach ($series->getTomes() as $tome) {

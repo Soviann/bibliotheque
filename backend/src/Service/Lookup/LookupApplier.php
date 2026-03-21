@@ -68,7 +68,7 @@ class LookupApplier
         }
 
         if ($series->getAuthors()->isEmpty() && null !== $result->authors) {
-            $names = \array_map('trim', \explode(',', $result->authors));
+            $names = \array_map(trim(...), \explode(',', $result->authors));
             $authors = $this->authorRepository->findOrCreateMultiple($names);
 
             foreach ($authors as $author) {

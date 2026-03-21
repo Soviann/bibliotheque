@@ -11,6 +11,7 @@ use App\Service\Lookup\GeminiClientPool;
 use App\Service\Lookup\GeminiJsonParser;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
+use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
@@ -18,15 +19,15 @@ use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 /**
  * Détecte les groupes de séries qui devraient être fusionnées via Gemini.
  */
-final class SeriesGroupDetector
+final readonly class SeriesGroupDetector
 {
     private const int MAX_BATCH_SIZE = 50;
 
     public function __construct(
-        private readonly GeminiClientPool $geminiClientPool,
+        private GeminiClientPool $geminiClientPool,
         #[Autowire(service: 'limiter.gemini_api')]
-        private readonly RateLimiterFactoryInterface $limiterFactory,
-        private readonly LoggerInterface $logger,
+        private RateLimiterFactoryInterface $limiterFactory,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -121,7 +122,7 @@ final class SeriesGroupDetector
         $prompt = $this->buildPrompt($batch);
 
         try {
-            $text = $this->geminiClientPool->executeWithRetry(static function ($client, $model) use ($prompt): string {
+            $text = $this->geminiClientPool->executeWithRetry(static function ($client, \BackedEnum|string $model) use ($prompt): string {
                 $response = $client
                     ->generativeModel(model: $model)
                     ->withTool(new Tool(googleSearch: GoogleSearch::from()))
@@ -134,12 +135,12 @@ final class SeriesGroupDetector
                 'message' => $e->getMessage(),
             ]);
 
-            $isQuotaError = $e instanceof \Gemini\Exceptions\ErrorException
+            $isQuotaError = $e instanceof ErrorException
                 ? 429 === $e->getErrorCode()
                 : \str_contains($e->getMessage(), 'quota') || \str_contains($e->getMessage(), '429');
 
             if ($isQuotaError) {
-                throw new \RuntimeException('Quota Gemini épuisé (toutes les clés). Réessayez dans quelques minutes.');
+                throw new \RuntimeException('Quota Gemini épuisé (toutes les clés). Réessayez dans quelques minutes.', $e->getCode(), $e);
             }
 
             return [];

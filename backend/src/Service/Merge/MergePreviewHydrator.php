@@ -48,7 +48,7 @@ final class MergePreviewHydrator
                     bought: (bool) ($tomeData['bought'] ?? false),
                     downloaded: (bool) ($tomeData['downloaded'] ?? false),
                     isbn: isset($tomeData['isbn']) && \is_string($tomeData['isbn']) ? $tomeData['isbn'] : null,
-                    number: (int) ($tomeData['number'] ?? 0),
+                    number: \is_numeric($tomeData['number'] ?? null) ? (int) $tomeData['number'] : 0,
                     onNas: (bool) ($tomeData['onNas'] ?? false),
                     read: (bool) ($tomeData['read'] ?? false),
                     title: isset($tomeData['title']) && \is_string($tomeData['title']) ? $tomeData['title'] : null,
@@ -62,7 +62,7 @@ final class MergePreviewHydrator
         $authors = \is_array($data['authors'] ?? null) ? \array_values($data['authors']) : [];
 
         /** @var list<int> $sourceSeriesIds */
-        $sourceSeriesIds = \array_values(\array_map('\intval', $data['sourceSeriesIds']));
+        $sourceSeriesIds = \array_values(\array_map(static fn (mixed $v): int => (int) (\is_numeric($v) ? $v : 0), $data['sourceSeriesIds']));
 
         return new MergePreview(
             amazonUrl: isset($data['amazonUrl']) && \is_string($data['amazonUrl']) ? $data['amazonUrl'] : null,

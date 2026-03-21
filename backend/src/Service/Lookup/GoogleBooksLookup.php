@@ -266,7 +266,9 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
 
             /** @var array<string, mixed> $volumeInfo */
             if (null === $authors && !empty($volumeInfo['authors']) && \is_array($volumeInfo['authors'])) {
-                $authors = \implode(', ', $volumeInfo['authors']);
+                /** @var array<string> $authorList */
+                $authorList = $volumeInfo['authors'];
+                $authors = \implode(', ', $authorList);
             }
 
             if (null === $description && !empty($volumeInfo['description']) && \is_string($volumeInfo['description'])) {

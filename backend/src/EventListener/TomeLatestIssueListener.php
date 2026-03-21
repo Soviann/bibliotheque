@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
+use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Event\PrePersistEventArgs;
@@ -36,7 +37,7 @@ final class TomeLatestIssueListener
 
         $series = $entity->getComicSeries();
 
-        if (null === $series) {
+        if (!$series instanceof ComicSeries) {
             return;
         }
 

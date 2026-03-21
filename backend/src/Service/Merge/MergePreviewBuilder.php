@@ -8,7 +8,6 @@ use App\DTO\MergeGroup;
 use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
 use App\Entity\ComicSeries;
-use App\Entity\Tome;
 use App\Service\Lookup\GeminiClientPool;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
@@ -19,13 +18,13 @@ use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 /**
  * Construit un aperçu de fusion à partir d'un groupe détecté ou d'une sélection manuelle.
  */
-final class MergePreviewBuilder
+final readonly class MergePreviewBuilder
 {
     public function __construct(
-        private readonly GeminiClientPool $geminiClientPool,
+        private GeminiClientPool $geminiClientPool,
         #[Autowire(service: 'limiter.gemini_api')]
-        private readonly RateLimiterFactoryInterface $limiterFactory,
-        private readonly LoggerInterface $logger,
+        private RateLimiterFactoryInterface $limiterFactory,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -317,7 +316,7 @@ final class MergePreviewBuilder
         $prompt = $this->buildManualSelectionPrompt($seriesList);
 
         try {
-            $text = $this->geminiClientPool->executeWithRetry(static function ($client, $model) use ($prompt): string {
+            $text = $this->geminiClientPool->executeWithRetry(static function ($client, \BackedEnum|string $model) use ($prompt): string {
                 $response = $client
                     ->generativeModel(model: $model)
                     ->withTool(new Tool(googleSearch: GoogleSearch::from()))
