@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.14.3] - 2026-03-21
+
 ### Fixed
 
 - **Scanner ISBN** : Corrige le bouton « Scanner » qui ne fonctionnait pas — le conteneur vidéo n'était jamais monté car l'état `scanning` était vérifié après le `ref`
