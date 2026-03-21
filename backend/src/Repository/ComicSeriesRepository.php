@@ -162,30 +162,35 @@ class ComicSeriesRepository extends ServiceEntityRepository
      */
     public function findWithMissingLookupData(?ComicType $type = null, ?int $limit = null, bool $force = false): array
     {
-        $qb = $this->createQueryBuilder('c')
-            ->leftJoin('c.authors', 'a')
-            ->groupBy('c.id')
-            ->having(
-                'c.description IS NULL'
-                .' OR c.publisher IS NULL'
-                .' OR c.publishedDate IS NULL'
-                .' OR (c.coverUrl IS NULL AND c.coverImage IS NULL)'
-                .' OR c.latestPublishedIssue IS NULL'
-                .' OR COUNT(a.id) = 0'
-            )
-            ->orderBy('c.title', 'ASC');
+        $qb = $this->buildMissingDataQueryBuilder($type, $limit);
 
         if (!$force) {
             $qb->andWhere('c.lookupCompletedAt IS NULL');
         }
 
-        if ($type instanceof ComicType) {
-            $qb->andWhere('c.type = :type')
-                ->setParameter('type', $type);
-        }
+        /** @var ComicSeries[] $result */
+        $result = $qb->getQuery()->getResult();
 
-        if (null !== $limit && $limit > 0) {
-            $qb->setMaxResults($limit);
+        return $result;
+    }
+
+    /**
+     * Retourne les séries à enrichir automatiquement :
+     * - données manquantes ET (lookupCompletedAt null OU obsolète).
+     *
+     * @return ComicSeries[]
+     */
+    public function findForAutoEnrich(
+        bool $force = false,
+        ?int $limit = null,
+        ?\DateTimeImmutable $staleDate = null,
+        ?ComicType $type = null,
+    ): array {
+        $qb = $this->buildMissingDataQueryBuilder($type, $limit);
+
+        if (!$force) {
+            $qb->andWhere('c.lookupCompletedAt IS NULL OR c.lookupCompletedAt < :staleDate')
+                ->setParameter('staleDate', $staleDate ?? new \DateTimeImmutable('-30 days'));
         }
 
         /** @var ComicSeries[] $result */
@@ -325,6 +330,36 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
             return $this->doFindAllForApi();
         });
+    }
+
+    /**
+     * Construit le QueryBuilder commun pour les séries avec données manquantes.
+     */
+    private function buildMissingDataQueryBuilder(?ComicType $type, ?int $limit): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.authors', 'a')
+            ->groupBy('c.id')
+            ->having(
+                'c.description IS NULL'
+                .' OR c.publisher IS NULL'
+                .' OR c.publishedDate IS NULL'
+                .' OR (c.coverUrl IS NULL AND c.coverImage IS NULL)'
+                .' OR c.latestPublishedIssue IS NULL'
+                .' OR COUNT(a.id) = 0'
+            )
+            ->orderBy('c.title', 'ASC');
+
+        if ($type instanceof ComicType) {
+            $qb->andWhere('c.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if (null !== $limit && $limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb;
     }
 
     /**

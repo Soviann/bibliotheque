@@ -42,6 +42,7 @@ export function useLookupFeature(
     update("isOneShot", result.isOneShot || form.isOneShot);
     update("latestPublishedIssue", result.latestPublishedIssue?.toString() ?? form.latestPublishedIssue);
     update("publishedDate", result.publishedDate ?? form.publishedDate);
+    update("lookupCompletedAt", new Date().toISOString());
     update("publisher", result.publisher ?? form.publisher);
     update("title", result.title || form.title);
 

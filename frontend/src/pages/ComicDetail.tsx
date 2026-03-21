@@ -8,6 +8,7 @@ import CoverLightbox from "../components/CoverLightbox";
 import EmptyState from "../components/EmptyState";
 import ProgressBar from "../components/ProgressBar";
 import SkeletonBox from "../components/SkeletonBox";
+import EnrichmentHistory from "../components/EnrichmentHistory";
 import SyncPendingIndicator from "../components/SyncPendingIndicator";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
@@ -504,6 +505,9 @@ export default function ComicDetail() {
           </div>
         </ComponentErrorBoundary>
       )}
+
+      {/* Enrichment history */}
+      <EnrichmentHistory seriesId={comic.id} />
 
       {/* Action bar: sticky on mobile, inline on desktop */}
       <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3 lg:static lg:justify-start lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0">

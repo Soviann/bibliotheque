@@ -6,6 +6,11 @@ export const queryKeys = {
     preview: (type: string, force: boolean) => ["batch-lookup-preview", type, force] as const,
     previewPrefix: ["batch-lookup-preview"] as const,
   },
+  enrichment: {
+    logs: (seriesId: number) => ["enrichment-logs", seriesId] as const,
+    proposals: (status?: string) => ["enrichment-proposals", status] as const,
+    proposalsPrefix: ["enrichment-proposals"] as const,
+  },
   comics: {
     all: ["comics"] as const,
     detail: (id: number | undefined) => ["comic", id] as const,

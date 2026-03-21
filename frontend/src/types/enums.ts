@@ -79,3 +79,72 @@ export const statusOptionsAll: SelectOption[] = [
   { label: "Tous les statuts", value: "" },
   ...statusOptions,
 ];
+
+export const EnrichmentAction = {
+  ACCEPTED: "accepted",
+  AUTO_APPLIED: "auto_applied",
+  REJECTED: "rejected",
+  SKIPPED: "skipped",
+} as const;
+export type EnrichmentAction =
+  (typeof EnrichmentAction)[keyof typeof EnrichmentAction];
+
+export const EnrichmentActionLabel: Record<EnrichmentAction, string> = {
+  [EnrichmentAction.ACCEPTED]: "Accepté",
+  [EnrichmentAction.AUTO_APPLIED]: "Auto-appliqué",
+  [EnrichmentAction.REJECTED]: "Rejeté",
+  [EnrichmentAction.SKIPPED]: "Ignoré",
+};
+
+export const EnrichmentActionColor: Record<EnrichmentAction, string> = {
+  [EnrichmentAction.ACCEPTED]:
+    "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
+  [EnrichmentAction.AUTO_APPLIED]:
+    "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+  [EnrichmentAction.REJECTED]:
+    "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
+  [EnrichmentAction.SKIPPED]:
+    "bg-gray-100 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400",
+};
+
+export const EnrichmentConfidence = {
+  HIGH: "high",
+  LOW: "low",
+  MEDIUM: "medium",
+} as const;
+export type EnrichmentConfidence =
+  (typeof EnrichmentConfidence)[keyof typeof EnrichmentConfidence];
+
+export const EnrichmentConfidenceLabel: Record<EnrichmentConfidence, string> = {
+  [EnrichmentConfidence.HIGH]: "Haute",
+  [EnrichmentConfidence.LOW]: "Basse",
+  [EnrichmentConfidence.MEDIUM]: "Moyenne",
+};
+
+export const EnrichmentConfidenceColor: Record<EnrichmentConfidence, string> = {
+  [EnrichmentConfidence.HIGH]:
+    "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
+  [EnrichmentConfidence.LOW]:
+    "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
+  [EnrichmentConfidence.MEDIUM]:
+    "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400",
+};
+
+export const EnrichableFieldLabel: Record<string, string> = {
+  amazonUrl: "Lien Amazon",
+  authors: "Auteurs",
+  cover: "Couverture",
+  description: "Description",
+  isbn: "ISBN",
+  isOneShot: "One-shot",
+  latestPublishedIssue: "Dernier tome paru",
+  publisher: "Éditeur",
+};
+
+export const ProposalStatus = {
+  ACCEPTED: "accepted",
+  PENDING: "pending",
+  REJECTED: "rejected",
+} as const;
+export type ProposalStatus =
+  (typeof ProposalStatus)[keyof typeof ProposalStatus];

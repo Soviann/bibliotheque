@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\EventListener\EnrichOnCreateListener;
 use App\Service\Import\ImportExcelService;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -57,12 +58,16 @@ final class ImportExcelCommand extends Command
             $io->warning('Mode simulation activé (--dry-run). Aucune donnée ne sera persistée.');
         }
 
+        EnrichOnCreateListener::disable();
+
         try {
             $result = $this->importExcelService->import($filePath, $dryRun);
         } catch (ReaderException $e) {
             $io->error(\sprintf('Impossible de lire le fichier Excel : %s', $e->getMessage()));
 
             return Command::FAILURE;
+        } finally {
+            EnrichOnCreateListener::enable();
         }
 
         foreach ($result->sheetDetails as $sheetName => $details) {
@@ -83,7 +88,7 @@ final class ImportExcelCommand extends Command
         ));
 
         if (($result->totalCreated > 0) && !$dryRun) {
-            $io->info('Pour compléter les données des séries importées, exécutez : bin/console app:lookup-missing');
+            $io->info('Pour compléter les données des séries importées, exécutez : bin/console app:auto-enrich');
         }
 
         return Command::SUCCESS;

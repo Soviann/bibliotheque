@@ -7,6 +7,19 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Enrichissement intelligent** : Pipeline d'enrichissement automatique avec scoring de confiance (HIGH → auto-appliqué, MEDIUM → file de revue, LOW → ignoré)
+- **File de revue** : Page `/tools/enrichment-review` pour valider ou rejeter les propositions d'enrichissement
+- **Audit trail** : Historique d'enrichissement consultable sur chaque fiche série (auto-appliqué, accepté, rejeté, ignoré)
+- **Commande `app:auto-enrich`** : Remplace `app:lookup-missing` avec scoring de confiance et file de revue
+- **Messenger** : Infrastructure asynchrone (transport Doctrine) pour l'enrichissement à la création de série
+- **Protection batch** : Désactivation automatique de l'enrichissement pendant les imports Excel/Books
+
+### Removed
+
+- **Commande `app:lookup-missing`** : Remplacée par `app:auto-enrich`
+
 ## [v2.15.1] - 2026-03-21
 
 ### Added

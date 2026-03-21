@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\EventListener\EnrichOnCreateListener;
 use App\Service\Import\ImportBooksService;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -57,12 +58,16 @@ final class ImportBooksCommand extends Command
             $io->warning('Mode simulation activé (--dry-run). Aucune donnée ne sera persistée.');
         }
 
+        EnrichOnCreateListener::disable();
+
         try {
             $result = $this->importBooksService->import($filePath, $dryRun);
         } catch (ReaderException $e) {
             $io->error(\sprintf('Impossible de lire le fichier Excel : %s', $e->getMessage()));
 
             return Command::FAILURE;
+        } finally {
+            EnrichOnCreateListener::enable();
         }
 
         $io->section(\sprintf('%d groupes détectés', $result->groupCount));
