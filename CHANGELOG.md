@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.17.0] - 2026-03-21
+
 ### Added
 
 - **Notifications** : Système de notifications in-app et push avec préférences par type
