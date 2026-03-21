@@ -337,26 +337,28 @@ final readonly class ImportExcelService
     /**
      * Vérifie si une valeur est "fini".
      */
-    private function isFiniValue(mixed $value): bool
+    /**
+     * Normalise une valeur mixte en chaîne minuscule trimée.
+     */
+    private function normalizeValue(mixed $value): string
     {
         if (null === $value) {
-            return false;
+            return '';
         }
 
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
+        return \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
+    }
 
-        return 'fini' === $value;
+    private function isFiniValue(mixed $value): bool
+    {
+        return 'fini' === $this->normalizeValue($value);
     }
 
     private function determineOnNas(mixed $value): bool
     {
-        if (null === $value) {
-            return false;
-        }
+        $normalized = $this->normalizeValue($value);
 
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
-
-        return '' !== $value && 'non' !== $value;
+        return '' !== $normalized && 'non' !== $normalized;
     }
 
     /**
@@ -364,13 +366,7 @@ final readonly class ImportExcelService
      */
     private function isNonValue(mixed $value): bool
     {
-        if (null === $value) {
-            return false;
-        }
-
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
-
-        return 'non' === $value;
+        return 'non' === $this->normalizeValue($value);
     }
 
     /**
@@ -378,13 +374,7 @@ final readonly class ImportExcelService
      */
     private function isOuiValue(mixed $value): bool
     {
-        if (null === $value) {
-            return false;
-        }
-
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
-
-        return 'oui' === $value;
+        return 'oui' === $this->normalizeValue($value);
     }
 
     /**
