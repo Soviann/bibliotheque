@@ -36,7 +36,8 @@ class EnrichmentProposalRepository extends ServiceEntityRepository
      */
     public function findPendingBySeries(ComicSeries $series): array
     {
-        return $this->createQueryBuilder('p')
+        /** @var list<EnrichmentProposal> $result */
+        $result = $this->createQueryBuilder('p')
             ->andWhere('p.comicSeries = :series')
             ->andWhere('p.status = :status')
             ->orderBy('p.createdAt', 'DESC')
@@ -44,11 +45,14 @@ class EnrichmentProposalRepository extends ServiceEntityRepository
             ->setParameter('status', ProposalStatus::PENDING)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     public function findPendingBySeriesAndField(ComicSeries $series, EnrichableField $field): ?EnrichmentProposal
     {
-        return $this->createQueryBuilder('p')
+        /** @var EnrichmentProposal|null $result */
+        $result = $this->createQueryBuilder('p')
             ->andWhere('p.comicSeries = :series')
             ->andWhere('p.field = :field')
             ->andWhere('p.status = :status')
@@ -57,5 +61,7 @@ class EnrichmentProposalRepository extends ServiceEntityRepository
             ->setParameter('status', ProposalStatus::PENDING)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $result;
     }
 }

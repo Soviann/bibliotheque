@@ -24,11 +24,14 @@ class EnrichmentLogRepository extends ServiceEntityRepository
      */
     public function findBySeriesOrderedDesc(ComicSeries $series): array
     {
-        return $this->createQueryBuilder('l')
+        /** @var list<EnrichmentLog> $result */
+        $result = $this->createQueryBuilder('l')
             ->andWhere('l.comicSeries = :series')
             ->orderBy('l.createdAt', 'DESC')
             ->setParameter('series', $series)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

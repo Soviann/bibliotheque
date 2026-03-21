@@ -55,4 +55,23 @@ final class EnrichOnCreateListenerTest extends TestCase
 
         ($this->listener)(new ComicSeriesCreatedEvent($series));
     }
+
+    /**
+     * Teste que le listener ne dispatche rien quand il est désactivé.
+     */
+    public function testDoesNotDispatchWhenDisabled(): void
+    {
+        EnrichOnCreateListener::disable();
+
+        try {
+            $series = $this->createMock(ComicSeries::class);
+            $series->method('getId')->willReturn(42);
+
+            $this->messageBus->expects(self::never())->method('dispatch');
+
+            ($this->listener)(new ComicSeriesCreatedEvent($series));
+        } finally {
+            EnrichOnCreateListener::enable();
+        }
+    }
 }
