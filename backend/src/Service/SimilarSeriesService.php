@@ -145,7 +145,9 @@ class SimilarSeriesService
             return [];
         }
 
-        /* @var list<array<string, mixed>> */
-        return $parsed;
+        /** @var list<array<string, mixed>> $suggestions */
+        $suggestions = $parsed;
+
+        return $suggestions;
     }
 }
