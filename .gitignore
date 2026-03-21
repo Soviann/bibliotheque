@@ -67,6 +67,7 @@ logs/
 .superpowers/
 .worktrees/
 docs/plans/
+docs/superpowers/
 .ddev/share-providers/
 .phpunit.cache/
 .playwright-mcp/
