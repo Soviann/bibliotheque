@@ -23,6 +23,11 @@ export const queryKeys = {
     titleCandidates: (title: string, type?: string, limit?: number) =>
       ["lookup", "title-candidates", title, type, limit] as const,
   },
+  notifications: {
+    all: ["notifications"] as const,
+    preferences: ["notification-preferences"] as const,
+    unreadCount: ["notifications-unread-count"] as const,
+  },
   offline: {
     queueCount: ["offline-queue-count"] as const,
     syncFailures: ["syncFailures"] as const,

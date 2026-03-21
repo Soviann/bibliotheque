@@ -28,6 +28,16 @@ export const endpoints = {
     isbn: "/lookup/isbn",
     title: "/lookup/title",
   },
+  notificationPreferences: {
+    collection: "/notification_preferences",
+    detail: (id: number) => `/notification_preferences/${id}`,
+  },
+  notifications: {
+    collection: "/notifications",
+    detail: (id: number) => `/notifications/${id}`,
+    readAll: "/notifications/read-all",
+    unreadCount: "/notifications/unread-count",
+  },
   mergeSeries: {
     detect: "/merge-series/detect",
     execute: "/merge-series/execute",

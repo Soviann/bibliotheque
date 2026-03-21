@@ -8,6 +8,7 @@ import { useDarkMode } from "../hooks/useDarkMode";
 import { useServiceWorker } from "../hooks/useServiceWorker";
 import { useSyncStatus } from "../hooks/useSyncStatus";
 import BottomNav from "./BottomNav";
+import NotificationBell from "./NotificationBell";
 import OfflineBanner from "./OfflineBanner";
 import SyncErrorBanner from "./SyncErrorBanner";
 
@@ -97,6 +98,7 @@ export default function Layout() {
               <Search className="h-5 w-5" />
             </button>
           )}
+          <NotificationBell />
           <Link
             aria-label="Outils"
             className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
