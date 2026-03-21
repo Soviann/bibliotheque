@@ -4,6 +4,7 @@ import type {
   EnrichmentAction,
   EnrichmentConfidence,
   ProposalStatus,
+  SuggestionStatus,
 } from "./enums";
 
 export interface HydraCollection<T> {
@@ -24,6 +25,7 @@ export interface HydraCollection<T> {
 
 export interface Author {
   "@id": string;
+  followedForNewSeries: boolean;
   id: number;
   name: string;
 }
@@ -272,6 +274,18 @@ export interface EnrichmentProposal {
   reviewedAt: string | null;
   source: string;
   status: ProposalStatus;
+}
+
+export interface SeriesSuggestion {
+  "@id": string;
+  authors: string[];
+  createdAt: string;
+  id: number;
+  reason: string;
+  sourceSeries: { id: number; title: string } | null;
+  status: SuggestionStatus;
+  title: string;
+  type: ComicType;
 }
 
 export interface EnrichmentLog {

@@ -43,6 +43,12 @@ parameters:
 			path: src/Entity/PushSubscription.php
 
 		-
+			message: '#^Property App\\Entity\\SeriesSuggestion\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/SeriesSuggestion.php
+
+		-
 			message: '#^Property App\\Entity\\Tome\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
 			identifier: property.unusedType
 			count: 1

@@ -190,3 +190,11 @@ export const NotificationTypeLabel: Record<NotificationType, string> = {
   [NotificationType.MISSING_TOME]: "Tome manquant détecté",
   [NotificationType.NEW_RELEASE]: "Nouvelle parution",
 };
+
+export const SuggestionStatus = {
+  ADDED: "added",
+  DISMISSED: "dismissed",
+  PENDING: "pending",
+} as const;
+export type SuggestionStatus =
+  (typeof SuggestionStatus)[keyof typeof SuggestionStatus];

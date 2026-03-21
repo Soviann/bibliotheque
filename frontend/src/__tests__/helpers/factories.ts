@@ -7,6 +7,7 @@ export function createMockAuthor(overrides: Partial<Author> = {}): Author {
   const id = overrides.id ?? nextId++;
   return {
     "@id": `/api/authors/${id}`,
+    followedForNewSeries: false,
     id,
     name: `Author ${id}`,
     ...overrides,

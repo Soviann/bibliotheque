@@ -50,7 +50,7 @@ export function useLookupFeature(
       const authorNames = result.authors.split(",").map((n) => n.trim()).filter(Boolean);
       update(
         "authors",
-        authorNames.map((name, i) => ({ "@id": "", id: -(i + 1), name })),
+        authorNames.map((name, i) => ({ "@id": "", followedForNewSeries: false, id: -(i + 1), name })),
       );
     }
   };

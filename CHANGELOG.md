@@ -7,6 +7,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Tomes manquants** : Détection automatique des tomes manquants avec notifications (séries en cours/terminées)
+- **Suggestions IA** : Suggestions de séries similaires via Gemini, page `/tools/suggestions` avec ajouter/ignorer
+- **Suivi d'auteurs** : Bouton follow/unfollow par auteur sur la fiche série, alerte quand un auteur suivi publie
+- **Commande `app:detect-missing-tomes`** : Détection hebdomadaire (dimanche 3h-8h)
+- **Commande `app:check-author-releases`** : Vérification hebdomadaire (lundi 3h-8h)
+- **Scheduler optimisé** : auto-enrich mar-sam, tâches Gemini hebdo dim+lun pour exploiter le quota
+
 ## [v2.18.0] - 2026-03-21
 
 ### Added
