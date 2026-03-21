@@ -40,14 +40,11 @@ final readonly class EnrichSeriesHandler
             return;
         }
 
-        // Pas besoin d'enrichir si la série a déjà ses données principales
-        // (lookup manuel effectué avant la soumission du formulaire)
-        if (null !== $series->getDescription() && null !== $series->getPublisher() && (null !== $series->getCoverUrl() || null !== $series->getCoverImage())) {
+        // Déjà enrichie (lookup manuel ou batch précédent)
+        if (null !== $series->getLookupCompletedAt()) {
             $this->logger->info('Série "{title}" déjà enrichie, enrichissement automatique ignoré', [
                 'title' => $series->getTitle(),
             ]);
-            $series->setLookupCompletedAt(new \DateTimeImmutable());
-            $this->entityManager->flush();
 
             return;
         }

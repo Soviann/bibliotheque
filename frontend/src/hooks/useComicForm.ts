@@ -38,6 +38,7 @@ export interface FormData {
   isOneShot: boolean;
   latestPublishedIssue: string;
   latestPublishedIssueComplete: boolean;
+  lookupCompletedAt: string | null;
   publishedDate: string;
   publisher: string;
   status: string;
@@ -64,6 +65,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
       isOneShot: comic.isOneShot,
       latestPublishedIssue: comic.latestPublishedIssue?.toString() ?? "",
       latestPublishedIssueComplete: comic.latestPublishedIssueComplete,
+      lookupCompletedAt: null,
       publishedDate: comic.publishedDate ?? "",
       publisher: comic.publisher ?? "",
       status: comic.status,
@@ -94,6 +96,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     isOneShot: false,
     latestPublishedIssue: "",
     latestPublishedIssueComplete: false,
+    lookupCompletedAt: null,
     publishedDate: "",
     publisher: "",
     status: ComicStatus.BUYING,
@@ -190,6 +193,7 @@ export function useComicForm() {
       isOneShot: form.isOneShot,
       latestPublishedIssue: form.latestPublishedIssue ? Number(form.latestPublishedIssue) : null,
       latestPublishedIssueComplete: form.latestPublishedIssueComplete,
+      ...(form.lookupCompletedAt ? { lookupCompletedAt: form.lookupCompletedAt } : {}),
       publishedDate: form.publishedDate || null,
       publisher: form.publisher || null,
       status: form.status as ComicStatus,

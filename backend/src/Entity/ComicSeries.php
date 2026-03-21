@@ -226,6 +226,7 @@ class ComicSeries implements SoftDeletableInterface
     /**
      * Date du dernier lookup automatique effectué.
      */
+    #[Groups(['comic:write'])]
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $lookupCompletedAt = null;
 

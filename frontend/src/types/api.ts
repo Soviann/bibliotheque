@@ -186,6 +186,7 @@ export interface CreateComicPayload {
   isOneShot: boolean;
   latestPublishedIssue: number | null;
   latestPublishedIssueComplete: boolean;
+  lookupCompletedAt?: string;
   publishedDate: string | null;
   publisher: string | null;
   status: ComicStatus;
