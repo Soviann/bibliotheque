@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Service;
+namespace App\Tests\Unit\Service\Cover;
 
-use App\Service\CoverDownloader;
-use App\Service\UploadHandlerInterface;
+use App\Service\Cover\CoverDownloader;
+use App\Service\Cover\Upload\UploadHandlerInterface;
 use App\Tests\Factory\EntityFactory;
 use Intervention\Image\ImageManager;
 use PHPUnit\Framework\MockObject\MockObject;

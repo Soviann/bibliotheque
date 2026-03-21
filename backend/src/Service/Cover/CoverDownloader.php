@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Cover;
 
 use App\Entity\ComicSeries;
+use App\Service\Cover\Upload\UploadHandlerInterface;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Psr\Log\LoggerInterface;

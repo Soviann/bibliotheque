@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Service;
+namespace App\Tests\Unit\Service\Cover\Upload;
 
-use App\Service\UploadHandlerInterface;
-use App\Service\VichUploadHandlerAdapter;
+use App\Service\Cover\Upload\UploadHandlerInterface;
+use App\Service\Cover\Upload\VichUploadHandlerAdapter;
 use PHPUnit\Framework\TestCase;
 use Vich\UploaderBundle\Handler\UploadHandler;
 

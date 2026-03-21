@@ -13,7 +13,7 @@ use App\Enum\EnrichableField;
 use App\Enum\EnrichmentConfidence;
 use App\Enum\ProposalStatus;
 use App\Repository\AuthorRepository;
-use App\Service\CoverDownloader;
+use App\Service\Cover\CoverDownloader;
 use App\Service\Enrichment\EnrichmentService;
 use App\State\EnrichmentProposalAcceptProcessor;
 use Doctrine\ORM\EntityManagerInterface;

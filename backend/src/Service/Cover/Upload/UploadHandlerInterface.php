@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Cover\Upload;
 
 /**
  * Interface pour le handler de suppression de fichiers uploadés.

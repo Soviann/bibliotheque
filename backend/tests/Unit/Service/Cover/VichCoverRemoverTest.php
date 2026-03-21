@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Service;
+namespace App\Tests\Unit\Service\Cover;
 
 use App\Entity\ComicSeries;
-use App\Service\UploadHandlerInterface;
-use App\Service\VichCoverRemover;
+use App\Service\Cover\Upload\UploadHandlerInterface;
+use App\Service\Cover\VichCoverRemover;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
