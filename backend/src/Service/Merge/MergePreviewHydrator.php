@@ -6,6 +6,7 @@ namespace App\Service\Merge;
 
 use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
+use App\Enum\ComicStatus;
 
 /**
  * Hydrate un MergePreview depuis des données JSON brutes.
@@ -80,7 +81,7 @@ final class MergePreviewHydrator
             publishedDate: isset($data['publishedDate']) && \is_string($data['publishedDate']) ? $data['publishedDate'] : null,
             publisher: isset($data['publisher']) && \is_string($data['publisher']) ? $data['publisher'] : null,
             sourceSeriesIds: $sourceSeriesIds,
-            status: isset($data['status']) && \is_string($data['status']) ? $data['status'] : 'buying',
+            status: isset($data['status']) && \is_string($data['status']) ? $data['status'] : ComicStatus::BUYING->value,
             title: $data['title'],
             tomes: $tomes,
             type: $data['type'],

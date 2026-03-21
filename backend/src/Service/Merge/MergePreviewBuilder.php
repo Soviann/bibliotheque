@@ -8,6 +8,8 @@ use App\DTO\MergeGroup;
 use App\DTO\MergePreview;
 use App\DTO\MergePreviewTome;
 use App\Entity\ComicSeries;
+use App\Enum\ComicStatus;
+use App\Enum\ComicType;
 use App\Service\Lookup\GeminiClientPool;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
@@ -110,10 +112,10 @@ final readonly class MergePreviewBuilder
                 static fn (ComicSeries $s): int => (int) $s->getId(),
                 $seriesList,
             )),
-            status: null !== $primary ? $primary->getStatus()->value : 'buying',
+            status: null !== $primary ? $primary->getStatus()->value : ComicStatus::BUYING->value,
             title: $title,
             tomes: $this->buildTomes($seriesList, $tomeNumberMap),
-            type: null !== $primary ? $primary->getType()->value : 'bd',
+            type: null !== $primary ? $primary->getType()->value : ComicType::BD->value,
         );
     }
 
