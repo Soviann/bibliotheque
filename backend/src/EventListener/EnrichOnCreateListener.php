@@ -25,16 +25,6 @@ final class EnrichOnCreateListener
     ) {
     }
 
-    public static function disable(): void
-    {
-        self::$enabled = false;
-    }
-
-    public static function enable(): void
-    {
-        self::$enabled = true;
-    }
-
     public function __invoke(ComicSeriesCreatedEvent $event): void
     {
         if (!self::$enabled) {
@@ -49,5 +39,15 @@ final class EnrichOnCreateListener
         }
 
         $this->messageBus->dispatch(new EnrichSeriesMessage($id));
+    }
+
+    public static function disable(): void
+    {
+        self::$enabled = false;
+    }
+
+    public static function enable(): void
+    {
+        self::$enabled = true;
     }
 }
