@@ -96,7 +96,7 @@ export async function apiFetch<T>(
     throw new Error(sanitizeErrorMessage(message, response.status));
   }
 
-  // 204 No Content
+  // 204 No Content — callers should type T as void for DELETE endpoints
   if (response.status === 204) {
     return undefined as T;
   }
