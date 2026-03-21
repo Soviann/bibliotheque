@@ -8,6 +8,7 @@ use App\Service\Lookup\GeminiClientPool;
 use Gemini\Exceptions\ErrorException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Tests unitaires pour GeminiClientPool.

@@ -6,10 +6,13 @@ namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\AbstractLookupProvider;
 use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\LookupResult;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Sous-classe concrete pour tester AbstractLookupProvider.
@@ -26,7 +29,7 @@ final class ConcreteTestProvider extends AbstractLookupProvider
         return 'test';
     }
 
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
     {
         return null;
     }
@@ -52,9 +55,14 @@ final class ConcreteTestProvider extends AbstractLookupProvider
         return null;
     }
 
-    public function supports(string $mode, ?ComicType $type): bool
+    public function supports(LookupMode $mode, ?ComicType $type): bool
     {
         return true;
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return new NullLogger();
     }
 }
 

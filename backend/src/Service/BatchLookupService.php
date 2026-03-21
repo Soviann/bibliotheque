@@ -6,12 +6,12 @@ namespace App\Service;
 
 use App\DTO\BatchLookupProgress;
 use App\Entity\ComicSeries;
-use App\Enum\ApiLookupStatus;
 use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupOrchestrator;
+use App\Service\Lookup\LookupResult;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -19,16 +19,16 @@ use Doctrine\ORM\EntityManagerInterface;
  *
  * Utilise un générateur pour permettre le streaming (SSE) ou l'affichage CLI.
  */
-final class BatchLookupService
+final readonly class BatchLookupService
 {
     private const int BATCH_SIZE = 10;
     private const int MAX_DELAY = 60;
 
     public function __construct(
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly LookupApplier $lookupApplier,
-        private readonly LookupOrchestrator $lookupOrchestrator,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private EntityManagerInterface $entityManager,
+        private LookupApplier $lookupApplier,
+        private LookupOrchestrator $lookupOrchestrator,
     ) {
     }
 
@@ -38,8 +38,8 @@ final class BatchLookupService
     public function countSeriesToProcess(?ComicType $type = null, bool $force = false): int
     {
         return \count($this->comicSeriesRepository->findWithMissingLookupData(
-            force: $force,
             type: $type,
+            force: $force,
         ));
     }
 
@@ -56,9 +56,9 @@ final class BatchLookupService
         ?ComicType $type = null,
     ): \Generator {
         $seriesList = $this->comicSeriesRepository->findWithMissingLookupData(
-            force: $force,
-            limit: $limit > 0 ? $limit : null,
             type: $type,
+            limit: $limit > 0 ? $limit : null,
+            force: $force,
         );
 
         $currentDelay = $delay;
@@ -103,14 +103,14 @@ final class BatchLookupService
         $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
 
         // Vérifier le rate limiting
-        if ($this->hasRateLimitError()) {
+        if ($this->lookupOrchestrator->hasRateLimitError()) {
             $currentDelay = \min($currentDelay * 2, self::MAX_DELAY);
             \sleep($currentDelay);
 
             // Retry
             $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
 
-            if ($this->hasRateLimitError()) { // @phpstan-ignore if.alwaysTrue (état dépend de l'appel API)
+            if ($this->lookupOrchestrator->hasRateLimitError()) { // @phpstan-ignore if.alwaysTrue (état dépend de l'appel API)
                 return [
                     'delay' => $currentDelay,
                     'progress' => new BatchLookupProgress(
@@ -123,7 +123,7 @@ final class BatchLookupService
             }
         }
 
-        if (null === $result) {
+        if (!$result instanceof LookupResult) {
             if (!$dryRun) {
                 $series->setLookupCompletedAt(new \DateTimeImmutable());
             }
@@ -168,19 +168,5 @@ final class BatchLookupService
                 total: $total,
             ),
         ];
-    }
-
-    /**
-     * Vérifie si un des messages API indique un rate limit.
-     */
-    private function hasRateLimitError(): bool
-    {
-        foreach ($this->lookupOrchestrator->getLastApiMessages() as $message) {
-            if (ApiLookupStatus::RATE_LIMITED->value === $message->status) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

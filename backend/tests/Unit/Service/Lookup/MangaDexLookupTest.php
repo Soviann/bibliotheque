@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\MangaDexLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -52,10 +53,10 @@ final class MangaDexLookupTest extends TestCase
 
     public function testSupportsOnlyTitleModeWithMangaType(): void
     {
-        self::assertTrue($this->provider->supports('title', ComicType::MANGA));
-        self::assertFalse($this->provider->supports('isbn', ComicType::MANGA));
-        self::assertFalse($this->provider->supports('title', ComicType::BD));
-        self::assertFalse($this->provider->supports('title', null));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::MANGA));
+        self::assertFalse($this->provider->supports(LookupMode::ISBN, ComicType::MANGA));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, ComicType::BD));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, null));
     }
 
     public function testPrepareLookupSendsGetRequest(): void
@@ -68,11 +69,9 @@ final class MangaDexLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://api.mangadex.org/manga',
-                self::callback(static function (array $options): bool {
-                    return 'One Piece' === $options['query']['title']
-                        && 1 === $options['query']['limit']
-                        && ['cover_art', 'author', 'artist'] === $options['query']['includes[]'];
-                }),
+                self::callback(static fn (array $options): bool => 'One Piece' === $options['query']['title']
+                    && 1 === $options['query']['limit']
+                    && ['cover_art', 'author', 'artist'] === $options['query']['includes[]']),
             )
             ->willReturn($response);
 
@@ -324,9 +323,7 @@ final class MangaDexLookupTest extends TestCase
             ->with(
                 'GET',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 5 === $options['query']['limit'];
-                }),
+                self::callback(static fn (array $options): bool => 5 === $options['query']['limit']),
             )
             ->willReturn($response);
 

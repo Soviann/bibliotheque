@@ -292,7 +292,7 @@ final class ComicSeriesTest extends TestCase
         $fixedDate = new \DateTimeImmutable('2024-01-01 00:00:00');
         $comic->setUpdatedAt($fixedDate);
 
-        $comic->setCoverFile(null);
+        $comic->setCoverFile();
 
         self::assertNull($comic->getCoverFile());
         self::assertSame($fixedDate, $comic->getUpdatedAt());

@@ -6,6 +6,7 @@ namespace App\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -58,7 +59,7 @@ final class KitsuLookup extends AbstractLookupProvider implements MultiResultLoo
         ]);
     }
 
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
     {
         $this->resetApiMessage();
 
@@ -146,9 +147,14 @@ final class KitsuLookup extends AbstractLookupProvider implements MultiResultLoo
         }
     }
 
-    public function supports(string $mode, ?ComicType $type): bool
+    public function supports(LookupMode $mode, ?ComicType $type): bool
     {
-        return 'title' === $mode && ComicType::MANGA === $type;
+        return LookupMode::TITLE === $mode && ComicType::MANGA === $type;
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
     }
 
     /**
@@ -195,16 +201,5 @@ final class KitsuLookup extends AbstractLookupProvider implements MultiResultLoo
             thumbnail: $thumbnail,
             title: $title,
         );
-    }
-
-    private function handleHttpException(ClientExceptionInterface|ServerExceptionInterface|RedirectionExceptionInterface $e): void
-    {
-        $code = $e->getResponse()->getStatusCode();
-        if (429 === $code) {
-            $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Quota dépassé (429)');
-        } else {
-            $this->recordApiMessage(ApiLookupStatus::ERROR, \sprintf('Erreur HTTP (%d)', $code));
-        }
-        $this->logger->warning('Erreur HTTP Kitsu : {error}', ['error' => $e->getMessage()]);
     }
 }

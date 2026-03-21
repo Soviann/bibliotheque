@@ -12,12 +12,12 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * Service de purge des séries soft-deleted.
  */
-final class PurgeService
+final readonly class PurgeService
 {
     public function __construct(
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly ComicSeriesService $comicSeriesService,
-        private readonly EntityManagerInterface $entityManager,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private ComicSeriesService $comicSeriesService,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 

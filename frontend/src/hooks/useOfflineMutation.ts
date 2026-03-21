@@ -76,6 +76,7 @@ export function useOfflineMutation<TData, TVariables extends object>({
         toast.info("Opération enregistrée, sera synchronisée au retour en ligne");
         onOfflineSuccess?.();
 
+        // Offline path: mutation will be replayed later via Background Sync
         return undefined as TData;
       }
 

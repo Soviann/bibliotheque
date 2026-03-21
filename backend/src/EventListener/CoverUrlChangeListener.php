@@ -17,11 +17,11 @@ use Doctrine\ORM\Events;
  * Utilise preUpdate pour accéder au changeset et modifier l'entité avant le flush.
  */
 #[AsDoctrineListener(event: Events::preUpdate)]
-final class CoverUrlChangeListener
+final readonly class CoverUrlChangeListener
 {
     public function __construct(
-        private readonly CoverDownloader $coverDownloader,
-        private readonly EntityManagerInterface $entityManager,
+        private CoverDownloader $coverDownloader,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 

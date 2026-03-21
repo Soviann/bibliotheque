@@ -8,6 +8,7 @@ use App\Entity\Author;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\Common\Collections\Collection;
 use PHPUnit\Framework\TestCase;
+use Stringable;
 
 /**
  * Tests unitaires pour l'entité Author.

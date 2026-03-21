@@ -20,7 +20,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 /**
  * Service d'import des livres depuis un fichier Excel (format Livres.xlsx).
  */
-final class ImportBooksService
+final readonly class ImportBooksService
 {
     /**
      * Correspondance catégorie → ComicType (par ordre de priorité).
@@ -48,9 +48,9 @@ final class ImportBooksService
     ];
 
     public function __construct(
-        private readonly AuthorRepository $authorRepository,
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private AuthorRepository $authorRepository,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -72,7 +72,7 @@ final class ImportBooksService
         foreach ($groups as $group) {
             $existing = $this->comicSeriesRepository->findOneByFuzzyTitleAnyType($group->seriesName);
 
-            if (null !== $existing) {
+            if ($existing instanceof ComicSeries) {
                 $this->enrichExisting($existing, $group->rows);
 
                 if (!$dryRun) {
@@ -302,7 +302,7 @@ final class ImportBooksService
             if ('' !== $authorField) {
                 foreach (\explode(',', $authorField) as $name) {
                     $name = \trim($name);
-                    if ('' !== $name && !\in_array(\mb_strtolower($name), \array_map('mb_strtolower', $names), true)) {
+                    if ('' !== $name && !\in_array(\mb_strtolower($name), \array_map(mb_strtolower(...), $names), true)) {
                         $names[] = $name;
                     }
                 }

@@ -660,6 +660,30 @@ class ComicSeries implements SoftDeletableInterface
         return $this;
     }
 
+    /**
+     * Crée les tomes manquants (1 → $upTo) avec les flags par défaut de la série.
+     */
+    public function createMissingTomes(int $upTo): void
+    {
+        $existingNumbers = [];
+        foreach ($this->tomes as $tome) {
+            $existingNumbers[$tome->getNumber()] = true;
+        }
+
+        for ($number = 1; $number <= $upTo; ++$number) {
+            if (isset($existingNumbers[$number])) {
+                continue;
+            }
+
+            $tome = new Tome();
+            $tome->setBought($this->defaultTomeBought);
+            $tome->setDownloaded($this->defaultTomeDownloaded);
+            $tome->setNumber($number);
+            $tome->setRead($this->defaultTomeRead);
+            $this->addTome($tome);
+        }
+    }
+
     public function removeTome(Tome $tome): static
     {
         if ($this->tomes->removeElement($tome) && $tome->getComicSeries() === $this) {

@@ -14,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Tests d'intégration pour la commande app:import-books.
@@ -27,9 +28,9 @@ final class ImportBooksCommandTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
-        /** @var \Symfony\Component\HttpKernel\KernelInterface $kernel */
+        /** @var KernelInterface $kernel */
         $kernel = self::$kernel;
         $application = new Application($kernel);
         $command = $application->find('app:import-books');

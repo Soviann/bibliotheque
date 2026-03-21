@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\ComicVineLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -54,11 +55,11 @@ final class ComicVineLookupTest extends TestCase
 
     public function testSupportsBdAndComicsTitleMode(): void
     {
-        self::assertTrue($this->provider->supports('title', ComicType::BD));
-        self::assertTrue($this->provider->supports('title', ComicType::COMICS));
-        self::assertFalse($this->provider->supports('title', ComicType::MANGA));
-        self::assertFalse($this->provider->supports('isbn', ComicType::BD));
-        self::assertFalse($this->provider->supports('title', null));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::BD));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::COMICS));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, ComicType::MANGA));
+        self::assertFalse($this->provider->supports(LookupMode::ISBN, ComicType::BD));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, null));
     }
 
     public function testPrepareLookupSendsGetRequestWithApiKey(): void
@@ -71,13 +72,11 @@ final class ComicVineLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://comicvine.gamespot.com/api/search/',
-                self::callback(static function (array $options): bool {
-                    return 'test-api-key' === $options['query']['api_key']
-                        && 'json' === $options['query']['format']
-                        && 'volume' === $options['query']['resources']
-                        && 'Batman' === $options['query']['query']
-                        && 1 === $options['query']['limit'];
-                }),
+                self::callback(static fn (array $options): bool => 'test-api-key' === $options['query']['api_key']
+                    && 'json' === $options['query']['format']
+                    && 'volume' === $options['query']['resources']
+                    && 'Batman' === $options['query']['query']
+                    && 1 === $options['query']['limit']),
             )
             ->willReturn($response);
 
@@ -243,9 +242,7 @@ final class ComicVineLookupTest extends TestCase
             ->with(
                 'GET',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 5 === $options['query']['limit'];
-                }),
+                self::callback(static fn (array $options): bool => 5 === $options['query']['limit']),
             )
             ->willReturn($response);
 

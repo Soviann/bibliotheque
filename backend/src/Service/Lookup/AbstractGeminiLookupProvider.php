@@ -108,6 +108,11 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         return ['cacheKey' => $cacheKey, 'prompt' => $buildPrompt()];
     }
 
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
     protected function consumeRateLimit(): bool
     {
         $limiter = $this->limiterFactory->create('gemini_global');
@@ -126,7 +131,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
         $logName = $this->getLogName();
 
         try {
-            return $this->geminiClientPool->executeWithRetry(function ($client, $model) use ($prompt, $logName): ?LookupResult {
+            return $this->geminiClientPool->executeWithRetry(function ($client, \BackedEnum|string $model) use ($prompt, $logName): ?LookupResult {
                 $response = $client
                     ->generativeModel(model: $model)
                     ->withTool(new Tool(googleSearch: GoogleSearch::from()))

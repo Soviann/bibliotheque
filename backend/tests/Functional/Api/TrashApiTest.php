@@ -23,10 +23,10 @@ final class TrashApiTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
 
         if (null === $userRepo->findOneBy(['email' => 'test@example.com'])) {
             $user = EntityFactory::createUser();

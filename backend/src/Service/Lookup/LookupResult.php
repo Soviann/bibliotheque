@@ -7,22 +7,22 @@ namespace App\Service\Lookup;
 /**
  * Résultat d'un lookup depuis un provider.
  */
-final class LookupResult implements \JsonSerializable
+final readonly class LookupResult implements \JsonSerializable
 {
     public function __construct(
-        public readonly ?string $amazonUrl = null,
-        public readonly ?string $authors = null,
-        public readonly ?string $description = null,
-        public readonly ?string $isbn = null,
-        public readonly ?bool $isOneShot = null,
-        public readonly ?int $latestPublishedIssue = null,
-        public readonly ?string $publishedDate = null,
-        public readonly ?string $publisher = null,
-        public readonly string $source = '',
-        public readonly ?string $thumbnail = null,
-        public readonly ?string $title = null,
-        public readonly ?int $tomeEnd = null,
-        public readonly ?int $tomeNumber = null,
+        public ?string $amazonUrl = null,
+        public ?string $authors = null,
+        public ?string $description = null,
+        public ?string $isbn = null,
+        public ?bool $isOneShot = null,
+        public ?int $latestPublishedIssue = null,
+        public ?string $publishedDate = null,
+        public ?string $publisher = null,
+        public string $source = '',
+        public ?string $thumbnail = null,
+        public ?string $title = null,
+        public ?int $tomeEnd = null,
+        public ?int $tomeNumber = null,
     ) {
     }
 

@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * le démarrage de l'application avec des secrets non sécurisés.
  */
 #[AsEventListener(event: KernelEvents::REQUEST, method: 'onKernelRequest', priority: 255)]
-final class PlaceholderSecretChecker
+final readonly class PlaceholderSecretChecker
 {
     private const array PLACEHOLDERS = [
         'APP_SECRET' => 'change_this_secret_in_env_local',
@@ -26,11 +26,11 @@ final class PlaceholderSecretChecker
 
     public function __construct(
         #[Autowire('%kernel.secret%')]
-        private readonly string $appSecret,
+        private string $appSecret,
         #[Autowire('%kernel.environment%')]
-        private readonly string $env,
+        private string $env,
         #[Autowire('%env(JWT_PASSPHRASE)%')]
-        private readonly string $jwtPassphrase,
+        private string $jwtPassphrase,
     ) {
     }
 

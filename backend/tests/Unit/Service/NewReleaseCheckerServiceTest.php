@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\DTO\NewReleaseProgress;
-use App\Enum\ApiLookupStatus;
 use App\Enum\BatchLookupStatus;
 use App\Repository\ComicSeriesRepository;
-use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;
 use App\Service\NewReleaseCheckerService;
@@ -86,7 +84,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         self::assertNotNull($series->getNewReleasesCheckedAt());
 
         // Vérifie que les tomes 71-73 ont été créés
-        $tomeNumbers = $series->getTomes()->map(static fn ($t) => $t->getNumber())->toArray();
+        $tomeNumbers = $series->getTomes()->map(static fn ($t): int => $t->getNumber())->toArray();
         self::assertContains(71, $tomeNumbers);
         self::assertContains(72, $tomeNumbers);
         self::assertContains(73, $tomeNumbers);
@@ -153,12 +151,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series1, $series2]);
 
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn(null);
-        $this->lookupOrchestrator->method('getLastApiMessages')->willReturn([
-            'Gemini' => new ApiMessage(
-                message: 'Rate limited',
-                status: ApiLookupStatus::RATE_LIMITED->value,
-            ),
-        ]);
+        $this->lookupOrchestrator->method('hasRateLimitError')->willReturn(true);
 
         $progresses = \iterator_to_array($this->service->run(dryRun: false, limit: null));
 
@@ -219,7 +212,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         \iterator_to_array($this->service->run(dryRun: false, limit: null));
 
         // Vérifie tomes 3 et 4 créés avec les bons flags
-        $newTomes = $series->getTomes()->filter(static fn ($t) => $t->getNumber() >= 3);
+        $newTomes = $series->getTomes()->filter(static fn ($t): bool => $t->getNumber() >= 3);
         self::assertCount(2, $newTomes);
 
         foreach ($newTomes as $tome) {

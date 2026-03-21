@@ -22,8 +22,8 @@ final class UserRepositoryTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
-        $this->repository = static::getContainer()->get(UserRepository::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->repository = self::getContainer()->get(UserRepository::class);
     }
 
     public function testFindByEmail(): void

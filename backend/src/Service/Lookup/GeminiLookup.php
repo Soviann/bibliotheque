@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
@@ -66,11 +67,11 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
         return $this->prepareWithCache($cacheKey, fn (): string => $this->buildEnrichPrompt($partial, $type));
     }
 
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
     {
         $this->resetApiMessage();
 
-        $cacheKey = 'gemini_'.\md5($query.$mode.($type instanceof ComicType ? $type->value : ''));
+        $cacheKey = 'gemini_'.\md5($query.$mode->value.($type instanceof ComicType ? $type->value : ''));
 
         return $this->prepareWithCache($cacheKey, fn (): string => $this->buildLookupPrompt($query, $type, $mode));
     }
@@ -80,9 +81,9 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
         return $this->resolveLookup($state);
     }
 
-    public function supports(string $mode, ?ComicType $type): bool
+    public function supports(LookupMode $mode, ?ComicType $type): bool
     {
-        return \in_array($mode, ['isbn', 'title'], true);
+        return true;
     }
 
     protected function buildResult(array $data): LookupResult
@@ -140,10 +141,10 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
             PROMPT.self::JSON_INSTRUCTIONS;
     }
 
-    private function buildLookupPrompt(string $query, ?ComicType $type, string $mode): string
+    private function buildLookupPrompt(string $query, ?ComicType $type, LookupMode $mode): string
     {
         $typeLabel = $type instanceof ComicType ? $type->value : 'bande dessinée/comics/manga';
-        $searchBy = 'isbn' === $mode ? "l'ISBN {$query}" : "le titre \"{$query}\"";
+        $searchBy = LookupMode::ISBN === $mode ? "l'ISBN {$query}" : "le titre \"{$query}\"";
 
         return <<<PROMPT
             Tu es un assistant spécialisé en bandes dessinées, comics et mangas.

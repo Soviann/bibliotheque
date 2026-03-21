@@ -222,8 +222,8 @@ final class NasDirectoryParser
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
                 lastDownloaded: $lastDownloaded,
-                readComplete: false,
                 readUpTo: null,
+                readComplete: false,
                 title: $parsed['title'],
                 publisher: $publisher,
             );
@@ -266,8 +266,8 @@ final class NasDirectoryParser
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
                 lastDownloaded: $lastDownloaded,
-                readComplete: $parsed['isComplete'],
                 readUpTo: $parsed['isComplete'] ? null : $lastDownloaded,
+                readComplete: $parsed['isComplete'],
                 title: $parsed['title'],
                 publisher: $publisher,
             );
@@ -318,8 +318,8 @@ final class NasDirectoryParser
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
                 lastDownloaded: $lastDownloaded,
-                readComplete: false,
                 readUpTo: $readUpTo,
+                readComplete: false,
                 title: $parsed['title'],
                 publisher: $publisher,
             );
@@ -583,10 +583,8 @@ final class NasDirectoryParser
     {
         $lower = \mb_strtolower($title);
         foreach (self::TITLE_NUMBER_SERIES as $known) {
-            if ($lower === $known) {
-                if (1 === \preg_match('/(\d+)/', $title, $m)) {
-                    return (int) $m[1];
-                }
+            if ($lower === $known && 1 === \preg_match('/(\d+)/', $title, $m)) {
+                return (int) $m[1];
             }
         }
 
@@ -747,8 +745,8 @@ final class NasDirectoryParser
         return new NasSeriesData(
             isComplete: $a->isComplete || $b->isComplete,
             lastDownloaded: $this->maxNullable($a->lastDownloaded, $b->lastDownloaded),
-            readComplete: $a->readComplete || $b->readComplete,
             readUpTo: $this->maxNullable($a->readUpTo, $b->readUpTo),
+            readComplete: $a->readComplete || $b->readComplete,
             title: $a->title,
             publisher: $a->publisher ?? $b->publisher,
         );

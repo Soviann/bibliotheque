@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\OpenLibraryLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -58,17 +59,16 @@ final class OpenLibraryLookupTest extends TestCase
      */
     public function testSupportsOnlyIsbn(): void
     {
-        self::assertTrue($this->provider->supports('isbn', null));
-        self::assertTrue($this->provider->supports('isbn', ComicType::MANGA));
+        self::assertTrue($this->provider->supports(LookupMode::ISBN, null));
+        self::assertTrue($this->provider->supports(LookupMode::ISBN, ComicType::MANGA));
     }
 
     /**
-     * Teste que supports retourne false pour title et autres modes.
+     * Teste que supports retourne false pour title.
      */
-    public function testDoesNotSupportTitleOrOtherModes(): void
+    public function testDoesNotSupportTitle(): void
     {
-        self::assertFalse($this->provider->supports('title', null));
-        self::assertFalse($this->provider->supports('author', null));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, null));
     }
 
     /**
@@ -84,13 +84,11 @@ final class OpenLibraryLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://openlibrary.org/isbn/9782723489.json',
-                self::callback(static function (array $options): bool {
-                    return 10 === $options['timeout'];
-                }),
+                self::callback(static fn (array $options): bool => 10 === $options['timeout']),
             )
             ->willReturn($response);
 
-        $result = $this->provider->prepareLookup('9782723489', null, 'isbn');
+        $result = $this->provider->prepareLookup('9782723489', null, LookupMode::ISBN);
 
         self::assertSame($response, $result);
     }

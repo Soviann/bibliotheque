@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\AniListLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -52,7 +53,7 @@ final class AniListLookupTest extends TestCase
         self::assertSame(60, $this->provider->getFieldPriority('title', ComicType::MANGA));
         self::assertSame(60, $this->provider->getFieldPriority('authors', ComicType::MANGA));
         self::assertSame(60, $this->provider->getFieldPriority('isOneShot', ComicType::BD));
-        self::assertSame(60, $this->provider->getFieldPriority('thumbnail', null));
+        self::assertSame(60, $this->provider->getFieldPriority('thumbnail'));
         self::assertSame(60, $this->provider->getFieldPriority('description'));
     }
 
@@ -69,7 +70,7 @@ final class AniListLookupTest extends TestCase
      */
     public function testSupportsOnlyTitleModeWithMangaType(): void
     {
-        self::assertTrue($this->provider->supports('title', ComicType::MANGA));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::MANGA));
     }
 
     /**
@@ -77,11 +78,11 @@ final class AniListLookupTest extends TestCase
      */
     public function testDoesNotSupportOtherCombinations(): void
     {
-        self::assertFalse($this->provider->supports('isbn', ComicType::MANGA));
-        self::assertFalse($this->provider->supports('title', ComicType::BD));
-        self::assertFalse($this->provider->supports('title', ComicType::COMICS));
-        self::assertFalse($this->provider->supports('title', null));
-        self::assertFalse($this->provider->supports('isbn', null));
+        self::assertFalse($this->provider->supports(LookupMode::ISBN, ComicType::MANGA));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, ComicType::BD));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, ComicType::COMICS));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, null));
+        self::assertFalse($this->provider->supports(LookupMode::ISBN, null));
     }
 
     /**
@@ -97,17 +98,15 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 'https://graphql.anilist.co',
-                self::callback(static function (array $options): bool {
-                    return 'application/json' === $options['headers']['Content-Type']
-                        && 'application/json' === $options['headers']['Accept']
-                        && isset($options['json']['query'])
-                        && 'One Piece' === $options['json']['variables']['search']
-                        && 10 === $options['timeout'];
-                }),
+                self::callback(static fn (array $options): bool => 'application/json' === $options['headers']['Content-Type']
+                    && 'application/json' === $options['headers']['Accept']
+                    && isset($options['json']['query'])
+                    && 'One Piece' === $options['json']['variables']['search']
+                    && 10 === $options['timeout']),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+        $this->provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
     }
 
     /**
@@ -123,13 +122,11 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'One Piece' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'One Piece' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('One Piece - Tome 42', ComicType::MANGA, 'title');
+        $this->provider->prepareLookup('One Piece - Tome 42', ComicType::MANGA, LookupMode::TITLE);
     }
 
     /**
@@ -504,13 +501,11 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'My Hero Academia' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'My Hero Academia' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('My Hero Academia #25', ComicType::MANGA, 'title');
+        $this->provider->prepareLookup('My Hero Academia #25', ComicType::MANGA, LookupMode::TITLE);
     }
 
     /**
@@ -526,13 +521,11 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'Bleach' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'Bleach' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('Bleach (3)', ComicType::MANGA, 'title');
+        $this->provider->prepareLookup('Bleach (3)', ComicType::MANGA, LookupMode::TITLE);
     }
 
     /**
@@ -548,13 +541,11 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'Dragon Ball' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'Dragon Ball' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('Dragon Ball Vol.5', ComicType::MANGA, 'title');
+        $this->provider->prepareLookup('Dragon Ball Vol.5', ComicType::MANGA, LookupMode::TITLE);
     }
 
     /**
@@ -570,13 +561,11 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 self::anything(),
-                self::callback(static function (array $options): bool {
-                    return 'Naruto' === $options['json']['variables']['search'];
-                }),
+                self::callback(static fn (array $options): bool => 'Naruto' === $options['json']['variables']['search']),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('Naruto 42', ComicType::MANGA, 'title');
+        $this->provider->prepareLookup('Naruto 42', ComicType::MANGA, LookupMode::TITLE);
     }
 
     /**
@@ -894,11 +883,9 @@ final class AniListLookupTest extends TestCase
             ->with(
                 'POST',
                 'https://graphql.anilist.co',
-                self::callback(static function (array $options): bool {
-                    return \str_contains($options['json']['query'], 'Page')
-                        && 'Naruto' === $options['json']['variables']['search']
-                        && 5 === $options['json']['variables']['perPage'];
-                }),
+                self::callback(static fn (array $options): bool => \str_contains((string) $options['json']['query'], 'Page')
+                    && 'Naruto' === $options['json']['variables']['search']
+                    && 5 === $options['json']['variables']['perPage']),
             )
             ->willReturn($response);
 

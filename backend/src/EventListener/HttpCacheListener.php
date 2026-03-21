@@ -18,7 +18,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 #[AsEventListener(event: KernelEvents::RESPONSE, method: 'onKernelResponse')]
 final class HttpCacheListener
 {
-    private const CACHE_PATH_PREFIX = '/api/comic_series';
+    private const string CACHE_PATH_PREFIX = '/api/comic_series';
 
     public function onKernelResponse(ResponseEvent $event): void
     {

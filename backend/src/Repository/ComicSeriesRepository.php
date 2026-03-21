@@ -50,13 +50,13 @@ class ComicSeriesRepository extends ServiceEntityRepository
         }
 
         // Type filter
-        if (null !== $filters->type) {
+        if ($filters->type instanceof ComicType) {
             $qb->andWhere('c.type = :type')
                 ->setParameter('type', $filters->type);
         }
 
         // Status filter
-        if (null !== $filters->status) {
+        if ($filters->status instanceof ComicStatus) {
             $qb->andWhere('c.status = :status')
                 ->setParameter('status', $filters->status);
         }
@@ -179,7 +179,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             $qb->andWhere('c.lookupCompletedAt IS NULL');
         }
 
-        if (null !== $type) {
+        if ($type instanceof ComicType) {
             $qb->andWhere('c.type = :type')
                 ->setParameter('type', $type);
         }
@@ -218,7 +218,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             }
         }
 
-        if (null !== $type) {
+        if ($type instanceof ComicType) {
             $qb->andWhere('c.type = :type')
                 ->setParameter('type', $type);
         }
@@ -347,7 +347,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             ->where('LOWER(c.title) LIKE :keyword')
             ->setParameter('keyword', '%'.$keyword.'%');
 
-        if (null !== $type) {
+        if ($type instanceof ComicType) {
             $qb->andWhere('c.type = :type')->setParameter('type', $type);
         }
 

@@ -51,7 +51,7 @@ final class SeriesMergerTest extends TestCase
 
         $seriesMap = [1 => $series1, 2 => $series2, 3 => $series3];
         $this->comicSeriesRepository->method('find')
-            ->willReturnCallback(static fn (int $id) => $seriesMap[$id] ?? null);
+            ->willReturnCallback(static fn (int $id): ?ComicSeries => $seriesMap[$id] ?? null);
 
         $this->authorRepository->method('findOrCreateMultiple')->willReturn([]);
 
@@ -105,7 +105,7 @@ final class SeriesMergerTest extends TestCase
         $series = $this->createSeriesWithId(1, 'Old Title');
         $seriesMap = [1 => $series];
         $this->comicSeriesRepository->method('find')
-            ->willReturnCallback(static fn (int $id) => $seriesMap[$id] ?? null);
+            ->willReturnCallback(static fn (int $id): ?ComicSeries => $seriesMap[$id] ?? null);
         $this->authorRepository->method('findOrCreateMultiple')->willReturn([]);
 
         $preview = new MergePreview(
@@ -147,7 +147,7 @@ final class SeriesMergerTest extends TestCase
         $series = $this->createSeriesWithId(1, 'Test');
         $seriesMap = [1 => $series];
         $this->comicSeriesRepository->method('find')
-            ->willReturnCallback(static fn (int $id) => $seriesMap[$id] ?? null);
+            ->willReturnCallback(static fn (int $id): ?ComicSeries => $seriesMap[$id] ?? null);
         $this->authorRepository->method('findOrCreateMultiple')->willReturn([]);
 
         $preview = new MergePreview(
@@ -211,7 +211,7 @@ final class SeriesMergerTest extends TestCase
 
         $seriesMap = [1 => $series];
         $this->comicSeriesRepository->method('find')
-            ->willReturnCallback(static fn (int $id) => $seriesMap[$id] ?? null);
+            ->willReturnCallback(static fn (int $id): ?ComicSeries => $seriesMap[$id] ?? null);
 
         $author1 = new Author();
         $author1->setName('Goscinny');
@@ -258,7 +258,7 @@ final class SeriesMergerTest extends TestCase
         $series = $this->createSeriesWithId(1, 'Test');
         $seriesMap = [1 => $series];
         $this->comicSeriesRepository->method('find')
-            ->willReturnCallback(static fn (int $id) => $seriesMap[$id] ?? null);
+            ->willReturnCallback(static fn (int $id): ?ComicSeries => $seriesMap[$id] ?? null);
         $this->authorRepository->method('findOrCreateMultiple')->willReturn([]);
 
         self::assertNull($series->getMergeCheckedAt());

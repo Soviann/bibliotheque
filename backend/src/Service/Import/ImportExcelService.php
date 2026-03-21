@@ -19,7 +19,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 /**
  * Service d'import des données depuis un fichier Excel de suivi.
  */
-final class ImportExcelService
+final readonly class ImportExcelService
 {
     private const array SHEET_TYPE_MAP = [
         'BD' => ComicType::BD,
@@ -29,8 +29,8 @@ final class ImportExcelService
     ];
 
     public function __construct(
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -70,7 +70,7 @@ final class ImportExcelService
 
                 $result = $this->importRow($row, $comicType);
 
-                if (null !== $result) {
+                if ($result instanceof ImportResult) {
                     if (!$dryRun) {
                         $this->entityManager->persist($result->series);
                     }
@@ -173,7 +173,7 @@ final class ImportExcelService
         }
 
         $existing = $this->comicSeriesRepository->findOneByFuzzyTitle($title, $comicType);
-        $isUpdate = null !== $existing;
+        $isUpdate = $existing instanceof ComicSeries;
         $comic = $existing ?? new ComicSeries();
 
         if (!$isUpdate) {
@@ -225,9 +225,7 @@ final class ImportExcelService
             $currentIssueValue,
             $currentIssueComplete,
             $lastBoughtValue,
-            $lastBoughtComplete,
             $lastDownloadedValue,
-            $lastDownloadedComplete,
             $latestPublishedIssue
         );
 
@@ -294,9 +292,7 @@ final class ImportExcelService
         ?int $currentIssueValue,
         bool $currentIssueComplete,
         ?int $lastBoughtValue,
-        bool $lastBoughtComplete,
         ?int $lastDownloadedValue,
-        bool $lastDownloadedComplete,
         ?int $latestPublishedIssue,
     ): ?int {
         $candidates = [];
@@ -341,26 +337,28 @@ final class ImportExcelService
     /**
      * Vérifie si une valeur est "fini".
      */
-    private function isFiniValue(mixed $value): bool
+    /**
+     * Normalise une valeur mixte en chaîne minuscule trimée.
+     */
+    private function normalizeValue(mixed $value): string
     {
         if (null === $value) {
-            return false;
+            return '';
         }
 
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
+        return \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
+    }
 
-        return 'fini' === $value;
+    private function isFiniValue(mixed $value): bool
+    {
+        return 'fini' === $this->normalizeValue($value);
     }
 
     private function determineOnNas(mixed $value): bool
     {
-        if (null === $value) {
-            return false;
-        }
+        $normalized = $this->normalizeValue($value);
 
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
-
-        return '' !== $value && 'non' !== $value;
+        return '' !== $normalized && 'non' !== $normalized;
     }
 
     /**
@@ -368,13 +366,7 @@ final class ImportExcelService
      */
     private function isNonValue(mixed $value): bool
     {
-        if (null === $value) {
-            return false;
-        }
-
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
-
-        return 'non' === $value;
+        return 'non' === $this->normalizeValue($value);
     }
 
     /**
@@ -382,13 +374,7 @@ final class ImportExcelService
      */
     private function isOuiValue(mixed $value): bool
     {
-        if (null === $value) {
-            return false;
-        }
-
-        $value = \is_scalar($value) ? \mb_strtolower(\trim((string) $value)) : '';
-
-        return 'oui' === $value;
+        return 'oui' === $this->normalizeValue($value);
     }
 
     /**

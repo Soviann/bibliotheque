@@ -24,7 +24,7 @@ final class InvalidateTokensCommandTest extends KernelTestCase
     {
         self::bootKernel();
 
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
         $application = new Application(self::$kernel);
         $command = $application->find('app:invalidate-tokens');

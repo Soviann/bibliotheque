@@ -16,10 +16,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/tools/purge')]
-final class PurgeController
+final readonly class PurgeController
 {
     public function __construct(
-        private readonly PurgeService $purgeService,
+        private PurgeService $purgeService,
     ) {
     }
 
@@ -42,7 +42,7 @@ final class PurgeController
         }
 
         /** @var int[] $ids */
-        $ids = \array_map('\intval', $seriesIds);
+        $ids = \array_map(static fn (mixed $id): int => (int) (\is_numeric($id) ? $id : 0), $seriesIds);
         $count = $this->purgeService->executePurge($ids);
 
         return new JsonResponse(['purged' => $count]);

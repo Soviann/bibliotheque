@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service\Lookup;
 
+use Gemini;
+use Gemini\Contracts\ClientContract;
 use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 
@@ -50,7 +52,7 @@ class GeminiClientPool
      *
      * @template T
      *
-     * @param callable(\Gemini\Contracts\ClientContract, string): T $callback
+     * @param callable(ClientContract, string):T $callback
      *
      * @return T
      *

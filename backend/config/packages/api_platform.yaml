@@ -3,6 +3,7 @@ api_platform:
         cache_headers:
             vary: ['Accept', 'Authorization', 'Content-Type']
         extra_properties:
+            deduplicate_resource_short_names: true
             rfc_7807_compliant_errors: true
             standard_put: true
         pagination_client_items_per_page: true

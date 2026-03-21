@@ -27,7 +27,7 @@ final class ApiController
         $isbn = $request->query->get('isbn', '');
         $type = $this->resolveComicType($request);
 
-        if (empty($isbn)) {
+        if ('' === $isbn) {
             return new JsonResponse(['error' => 'ISBN requis'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -48,7 +48,7 @@ final class ApiController
         $type = $this->resolveComicType($request);
         $limit = \max(0, (int) $request->query->get('limit', '1'));
 
-        if (empty($title)) {
+        if ('' === $title) {
             return new JsonResponse(['error' => 'Titre requis'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -74,7 +74,7 @@ final class ApiController
         $query = $request->query->get('query', '');
         $type = $this->resolveComicType($request);
 
-        if (empty($query)) {
+        if ('' === $query) {
             return new JsonResponse(['error' => 'Requête requise'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -92,7 +92,7 @@ final class ApiController
 
         return new JsonResponse([
             'apiMessages' => $lookupOrchestrator->getLastApiMessages(),
-            'results' => \array_map(static fn (LookupResult $r) => $r->jsonSerialize(), $results),
+            'results' => \array_map(static fn (LookupResult $r): array => $r->jsonSerialize(), $results),
             'sources' => $lookupOrchestrator->getLastSources(),
         ]);
     }

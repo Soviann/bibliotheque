@@ -168,11 +168,9 @@ final class ComicSeriesServiceTest extends TestCase
 
         $eventDispatcher->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static function (object $event): bool {
-                return $event instanceof ComicSeriesDeletedEvent
-                    && 7 === $event->getId()
-                    && 'Bleach' === $event->getTitle();
-            }));
+            ->with(self::callback(static fn (object $event): bool => $event instanceof ComicSeriesDeletedEvent
+                && 7 === $event->getId()
+                && 'Bleach' === $event->getTitle()));
 
         $this->service->permanentDelete($id, $comic);
     }
@@ -183,16 +181,16 @@ final class ComicSeriesServiceTest extends TestCase
         ?EntityManagerInterface $entityManager = null,
         ?EventDispatcherInterface $eventDispatcher = null,
     ): void {
-        if (null !== $connection) {
+        if ($connection instanceof Connection) {
             $this->connection = $connection;
         }
-        if (null !== $coverRemover) {
+        if ($coverRemover instanceof CoverRemoverInterface) {
             $this->coverRemover = $coverRemover;
         }
-        if (null !== $entityManager) {
+        if ($entityManager instanceof EntityManagerInterface) {
             $this->entityManager = $entityManager;
         }
-        if (null !== $eventDispatcher) {
+        if ($eventDispatcher instanceof EventDispatcherInterface) {
             $this->eventDispatcher = $eventDispatcher;
         }
         $this->service = new ComicSeriesService(

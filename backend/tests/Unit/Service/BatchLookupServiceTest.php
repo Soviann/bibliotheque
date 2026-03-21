@@ -9,7 +9,6 @@ use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\BatchLookupService;
-use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;
@@ -164,14 +163,9 @@ final class BatchLookupServiceTest extends TestCase
             ->method('lookupByTitle')
             ->willReturn(null);
 
-        $rateLimitMessage = new ApiMessage(
-            message: 'Rate limited',
-            status: 'rate_limited',
-        );
-
         $this->lookupOrchestrator
-            ->method('getLastApiMessages')
-            ->willReturn(['google_books' => $rateLimitMessage]);
+            ->method('hasRateLimitError')
+            ->willReturn(true);
 
         $progressItems = \iterator_to_array($this->service->run(delay: 0));
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Lookup;
 
 use App\Entity\ComicSeries;
-use App\Entity\Tome;
 use App\Repository\AuthorRepository;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -54,7 +53,7 @@ class LookupApplier
             $series->setLatestPublishedIssueUpdatedAt(new \DateTimeImmutable());
             $updatedFields[] = 'latestPublishedIssue';
 
-            $this->createMissingTomes($series, $result->latestPublishedIssue);
+            $series->createMissingTomes($result->latestPublishedIssue);
         }
 
         if (null === $series->getPublishedDate() && null !== $result->publishedDate) {
@@ -68,7 +67,7 @@ class LookupApplier
         }
 
         if ($series->getAuthors()->isEmpty() && null !== $result->authors) {
-            $names = \array_map('trim', \explode(',', $result->authors));
+            $names = \array_map(trim(...), \explode(',', $result->authors));
             $authors = $this->authorRepository->findOrCreateMultiple($names);
 
             foreach ($authors as $author) {
@@ -94,30 +93,6 @@ class LookupApplier
             return $response->getStatusCode() < 400;
         } catch (\Throwable) {
             return false;
-        }
-    }
-
-    /**
-     * Crée les tomes manquants (1 → latestPublishedIssue) avec les flags par défaut de la série.
-     */
-    private function createMissingTomes(ComicSeries $series, int $latestPublishedIssue): void
-    {
-        $existingNumbers = [];
-        foreach ($series->getTomes() as $tome) {
-            $existingNumbers[$tome->getNumber()] = true;
-        }
-
-        for ($number = 1; $number <= $latestPublishedIssue; ++$number) {
-            if (isset($existingNumbers[$number])) {
-                continue;
-            }
-
-            $tome = new Tome();
-            $tome->setBought($series->isDefaultTomeBought());
-            $tome->setDownloaded($series->isDefaultTomeDownloaded());
-            $tome->setNumber($number);
-            $tome->setRead($series->isDefaultTomeRead());
-            $series->addTome($tome);
         }
     }
 }

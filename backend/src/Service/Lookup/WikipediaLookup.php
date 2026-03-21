@@ -6,6 +6,7 @@ namespace App\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
@@ -97,14 +98,14 @@ final class WikipediaLookup extends AbstractLookupProvider implements Enrichable
             return null;
         }
 
-        return $this->prepareLookup($partial->title, $type, 'title');
+        return $this->prepareLookup($partial->title, $type, LookupMode::TITLE);
     }
 
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
     {
         $this->resetApiMessage();
 
-        $cacheKey = 'wikipedia_lookup_'.\md5($query.$mode.($type instanceof ComicType ? $type->value : ''));
+        $cacheKey = 'wikipedia_lookup_'.\md5($query.$mode->value.($type instanceof ComicType ? $type->value : ''));
 
         $item = $this->cache->getItem($cacheKey);
 
@@ -117,7 +118,7 @@ final class WikipediaLookup extends AbstractLookupProvider implements Enrichable
             }
         }
 
-        if ('isbn' === $mode) {
+        if (LookupMode::ISBN === $mode) {
             $isbnProp = 13 === \strlen(\str_replace('-', '', $query)) ? 'P212' : 'P957';
 
             $sparql = \sprintf(
@@ -149,7 +150,7 @@ final class WikipediaLookup extends AbstractLookupProvider implements Enrichable
             ]);
         }
 
-        return ['cacheKey' => $cacheKey, 'mode' => $mode, 'response' => $response];
+        return ['cacheKey' => $cacheKey, 'mode' => $mode->value, 'response' => $response];
     }
 
     public function resolveEnrich(mixed $state): ?LookupResult
@@ -214,9 +215,14 @@ final class WikipediaLookup extends AbstractLookupProvider implements Enrichable
         return $result;
     }
 
-    public function supports(string $mode, ?ComicType $type): bool
+    public function supports(LookupMode $mode, ?ComicType $type): bool
     {
-        return \in_array($mode, ['isbn', 'title'], true);
+        return true;
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
     }
 
     /**

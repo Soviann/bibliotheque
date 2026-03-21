@@ -19,10 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/tools/batch-lookup')]
-final class BatchLookupController
+final readonly class BatchLookupController
 {
     public function __construct(
-        private readonly BatchLookupService $batchLookupService,
+        private BatchLookupService $batchLookupService,
     ) {
     }
 

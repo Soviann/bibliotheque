@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/api/tools/import')]
-final class ImportController
+final readonly class ImportController
 {
     private const array ALLOWED_MIME_TYPES = [
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -28,8 +28,8 @@ final class ImportController
     private const int MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
 
     public function __construct(
-        private readonly ImportBooksService $importBooksService,
-        private readonly ImportExcelService $importExcelService,
+        private ImportBooksService $importBooksService,
+        private ImportExcelService $importExcelService,
     ) {
     }
 

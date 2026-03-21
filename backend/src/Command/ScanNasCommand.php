@@ -71,7 +71,7 @@ final class ScanNasCommand extends Command
         /** @var string $password */
         $password = $_ENV['NAS_PASSWORD'] ?? '';
 
-        if ('' === $host || '' === $username || '' === $password) {
+        if (\in_array('', [$host, $username, $password], true)) {
             $io->error('Variables d\'environnement NAS_HOST, NAS_USERNAME et NAS_PASSWORD requises dans .env.local');
 
             return Command::FAILURE;
@@ -114,7 +114,7 @@ final class ScanNasCommand extends Command
             }
 
             // Trier par titre
-            \usort($allSeries, static fn (NasSeriesData $a, NasSeriesData $b) => \strcasecmp($a->title, $b->title));
+            \usort($allSeries, static fn (NasSeriesData $a, NasSeriesData $b): int => \strcasecmp($a->title, $b->title));
 
             // Fusionner les séries en double (même série dans plusieurs dossiers)
             $allSeries = $this->parser->mergeDuplicateSeries($allSeries);
@@ -267,7 +267,7 @@ final class ScanNasCommand extends Command
      */
     private function sshLs(string $remotePath): array
     {
-        if (null === $this->ssh) {
+        if (!$this->ssh instanceof SSH2) {
             return [];
         }
 

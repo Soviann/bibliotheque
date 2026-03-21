@@ -15,18 +15,18 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 /**
  * Recherche de couvertures via Google Books + Serper Images.
  */
-final class CoverSearchService
+final readonly class CoverSearchService
 {
     private const string GOOGLE_BOOKS_URL = 'https://www.googleapis.com/books/v1/volumes';
     private const string SERPER_URL = 'https://google.serper.dev/images';
 
     public function __construct(
         #[Autowire('%env(GOOGLE_BOOKS_API_KEY)%')]
-        private readonly string $googleBooksApiKey,
-        private readonly HttpClientInterface $httpClient,
-        private readonly LoggerInterface $logger,
+        private string $googleBooksApiKey,
+        private HttpClientInterface $httpClient,
+        private LoggerInterface $logger,
         #[Autowire('%env(SERPER_API_KEY)%')]
-        private readonly string $serperApiKey,
+        private string $serperApiKey,
     ) {
     }
 

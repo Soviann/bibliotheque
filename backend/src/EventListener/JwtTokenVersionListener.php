@@ -19,10 +19,10 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
  */
 #[AsEventListener(event: 'lexik_jwt_authentication.on_jwt_created', method: 'onJWTCreated')]
 #[AsEventListener(event: 'lexik_jwt_authentication.on_jwt_decoded', method: 'onJWTDecoded')]
-final class JwtTokenVersionListener
+final readonly class JwtTokenVersionListener
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
+        private UserRepository $userRepository,
     ) {
     }
 

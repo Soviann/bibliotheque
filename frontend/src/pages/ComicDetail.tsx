@@ -79,21 +79,15 @@ function compareTomes(a: Tome, b: Tome, key: SortKey, direction: SortDirection):
   return direction === "asc" ? result : -result;
 }
 
-function formatRelativeDate(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+const rtf = new Intl.RelativeTimeFormat("fr", { numeric: "auto" });
 
-  if (diffDays === 0) return "aujourd'hui";
-  if (diffDays === 1) return "hier";
-  if (diffDays < 30) return `il y a ${diffDays} jours`;
-  if (diffDays < 365) {
-    const months = Math.floor(diffDays / 30);
-    return `il y a ${months} mois`;
-  }
-  const years = Math.floor(diffDays / 365);
-  return `il y a ${years} an${years > 1 ? "s" : ""}`;
+function formatRelativeDate(isoDate: string): string {
+  const diffMs = Date.now() - new Date(isoDate).getTime();
+  const diffDays = Math.floor(diffMs / 86_400_000);
+
+  if (diffDays < 30) return rtf.format(-diffDays, "day");
+  if (diffDays < 365) return rtf.format(-Math.floor(diffDays / 30), "month");
+  return rtf.format(-Math.floor(diffDays / 365), "year");
 }
 
 export default function ComicDetail() {

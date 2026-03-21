@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import Breadcrumb from "../components/Breadcrumb";
+import { queryKeys } from "../queryKeys";
 import EmptyState from "../components/EmptyState";
 import SelectListbox from "../components/SelectListbox";
 import MergeGroupCard from "../components/MergeGroupCard";
@@ -94,7 +95,7 @@ export default function MergeSeries() {
   };
 
   const handleManualPreview = () => {
-    const comicsData = queryClient.getQueryData<HydraCollection<ComicSeries>>(["comics"]);
+    const comicsData = queryClient.getQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all);
     const comics = comicsData?.member ?? [];
     const entries = selectedIds
       .map((id) => {

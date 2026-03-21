@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\LookupResult;
 use App\Service\Lookup\WikipediaLookup;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -77,18 +78,10 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testSupportsIsbnAndTitle(): void
     {
-        self::assertTrue($this->provider->supports('isbn', null));
-        self::assertTrue($this->provider->supports('title', null));
-        self::assertTrue($this->provider->supports('isbn', ComicType::MANGA));
-        self::assertTrue($this->provider->supports('title', ComicType::BD));
-    }
-
-    /**
-     * Teste que supports retourne false pour les modes non supportes.
-     */
-    public function testDoesNotSupportOtherModes(): void
-    {
-        self::assertFalse($this->provider->supports('author', null));
+        self::assertTrue($this->provider->supports(LookupMode::ISBN, null));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, null));
+        self::assertTrue($this->provider->supports(LookupMode::ISBN, ComicType::MANGA));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::BD));
     }
 
     /**
@@ -96,14 +89,14 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testPrepareLookupReturnsCachedResult(): void
     {
-        $cachedResult = new LookupResult(title: 'One Piece', source: 'wikipedia');
+        $cachedResult = new LookupResult(source: 'wikipedia', title: 'One Piece');
 
         $cacheItem = $this->createCacheItem('test_key', $cachedResult, true);
         $this->cache->method('getItem')->willReturn($cacheItem);
 
         $this->createHttpClientMock()->expects(self::never())->method('request');
 
-        $state = $this->provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+        $state = $this->provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertInstanceOf(LookupResult::class, $state);
         self::assertSame('One Piece', $state->title);
@@ -114,7 +107,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testResolveLookupReturnsCachedResultDirectly(): void
     {
-        $cachedResult = new LookupResult(title: 'Cached', source: 'wikipedia');
+        $cachedResult = new LookupResult(source: 'wikipedia', title: 'Cached');
 
         $result = $this->provider->resolveLookup($cachedResult);
 
@@ -137,15 +130,13 @@ final class WikipediaLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://query.wikidata.org/sparql',
-                self::callback(static function (array $options): bool {
-                    return \str_contains($options['query']['query'], 'P212')
-                        && \str_contains($options['query']['query'], '9782723489003')
-                        && 'application/sparql-results+json' === $options['headers']['Accept'];
-                }),
+                self::callback(static fn (array $options): bool => \str_contains((string) $options['query']['query'], 'P212')
+                    && \str_contains((string) $options['query']['query'], '9782723489003')
+                    && 'application/sparql-results+json' === $options['headers']['Accept']),
             )
             ->willReturn($response);
 
-        $state = $this->provider->prepareLookup('9782723489003', null, 'isbn');
+        $state = $this->provider->prepareLookup('9782723489003', null, LookupMode::ISBN);
 
         self::assertIsArray($state);
         self::assertSame('isbn', $state['mode']);
@@ -169,13 +160,11 @@ final class WikipediaLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://query.wikidata.org/sparql',
-                self::callback(static function (array $options): bool {
-                    return \str_contains($options['query']['query'], 'P957');
-                }),
+                self::callback(static fn (array $options): bool => \str_contains((string) $options['query']['query'], 'P957')),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('2723489000', null, 'isbn');
+        $this->provider->prepareLookup('2723489000', null, LookupMode::ISBN);
     }
 
     /**
@@ -194,16 +183,14 @@ final class WikipediaLookupTest extends TestCase
             ->with(
                 'GET',
                 'https://www.wikidata.org/w/api.php',
-                self::callback(static function (array $options): bool {
-                    return 'wbsearchentities' === $options['query']['action']
-                        && 'One Piece' === $options['query']['search']
-                        && 'fr' === $options['query']['language']
-                        && 'json' === $options['query']['format'];
-                }),
+                self::callback(static fn (array $options): bool => 'wbsearchentities' === $options['query']['action']
+                    && 'One Piece' === $options['query']['search']
+                    && 'fr' === $options['query']['language']
+                    && 'json' === $options['query']['format']),
             )
             ->willReturn($response);
 
-        $state = $this->provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+        $state = $this->provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertIsArray($state);
         self::assertSame('title', $state['mode']);
@@ -877,7 +864,7 @@ final class WikipediaLookupTest extends TestCase
      */
     public function testPrepareEnrichReturnsNullForEmptyTitle(): void
     {
-        $partial = new LookupResult(title: '', source: 'test');
+        $partial = new LookupResult(source: 'test', title: '');
 
         $state = $this->provider->prepareEnrich($partial, ComicType::MANGA);
 
@@ -899,7 +886,7 @@ final class WikipediaLookupTest extends TestCase
             ->method('request')
             ->willReturn($response);
 
-        $state = $this->provider->prepareLookup('Test', ComicType::MANGA, 'title');
+        $state = $this->provider->prepareLookup('Test', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertIsArray($state);
         self::assertSame('title', $state['mode']);
@@ -1495,7 +1482,7 @@ final class WikipediaLookupTest extends TestCase
         $realCache = new ArrayAdapter();
 
         if ($isHit && null !== $value) {
-            $realCache->get($key, static fn () => $value);
+            $realCache->get($key, static fn (): mixed => $value);
         }
 
         return $realCache->getItem($key);

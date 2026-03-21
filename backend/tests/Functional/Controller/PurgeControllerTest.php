@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use App\Entity\ComicSeries;
 use App\Repository\UserRepository;
 use App\Tests\Factory\EntityFactory;
 use App\Tests\Trait\AuthenticatedTestTrait;
@@ -21,7 +22,7 @@ final class PurgeControllerTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $container = static::getContainer();
+        $container = self::getContainer();
         $em = $container->get(EntityManagerInterface::class);
 
         // Réinitialiser le rate limiter pour éviter les 429 entre tests
@@ -80,7 +81,7 @@ final class PurgeControllerTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $series = EntityFactory::createComicSeries('Old Deleted');
         $em->persist($series);
         $em->flush();
@@ -135,7 +136,7 @@ final class PurgeControllerTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $series = EntityFactory::createComicSeries('To Purge');
         $em->persist($series);
         $em->flush();
@@ -163,7 +164,7 @@ final class PurgeControllerTest extends ApiTestCase
         // Vérifier la suppression définitive
         $em->getFilters()->disable('soft_delete');
         $em->clear();
-        self::assertNull($em->getRepository(\App\Entity\ComicSeries::class)->find($seriesId));
+        self::assertNull($em->getRepository(ComicSeries::class)->find($seriesId));
         $em->getFilters()->enable('soft_delete');
     }
 

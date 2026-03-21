@@ -23,10 +23,10 @@ final class ComicSeriesApiTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
         /** @var UserRepository $userRepo */
-        $userRepo = static::getContainer()->get(UserRepository::class);
+        $userRepo = self::getContainer()->get(UserRepository::class);
 
         if (null === $userRepo->findOneBy(['email' => 'test@example.com'])) {
             $user = EntityFactory::createUser();
@@ -271,7 +271,7 @@ final class ComicSeriesApiTest extends ApiTestCase
         $this->em->flush();
 
         $id = $series->getId();
-        $tomeIds = $series->getTomes()->map(static fn ($t) => $t->getId())->toArray();
+        $series->getTomes()->map(static fn ($t): ?int => $t->getId())->toArray();
 
         // PATCH avec @id (IRI) pour identifier les tomes existants
         $tomesPayload = [];
@@ -302,10 +302,10 @@ final class ComicSeriesApiTest extends ApiTestCase
 
         self::assertCount(5, $data['tomes']);
         // Vérifier que les données des tomes sont préservées
-        $numbers = \array_map(static fn ($t) => $t['number'], $data['tomes']);
+        $numbers = \array_map(static fn (array $t) => $t['number'], $data['tomes']);
         self::assertSame([1, 2, 3, 4, 5], $numbers);
         // Tous les tomes doivent être achetés (comme les originaux)
-        self::assertTrue(\array_reduce($data['tomes'], static fn ($carry, $t) => $carry && $t['bought'], true));
+        self::assertTrue(\array_reduce($data['tomes'], static fn ($carry, $t): bool => $carry && $t['bought'], true));
     }
 
     public function testPatchAddsNewTomesToExisting(): void
@@ -353,7 +353,7 @@ final class ComicSeriesApiTest extends ApiTestCase
         $data = $client->getResponse()->toArray();
 
         self::assertCount(5, $data['tomes']);
-        $numbers = \array_map(static fn ($t) => $t['number'], $data['tomes']);
+        $numbers = \array_map(static fn (array $t) => $t['number'], $data['tomes']);
         self::assertSame([1, 2, 3, 4, 5], $numbers);
     }
 
@@ -376,7 +376,7 @@ final class ComicSeriesApiTest extends ApiTestCase
 
         $data = $client->getResponse()->toArray();
 
-        $numbers = \array_map(static fn ($t) => $t['number'], $data['tomes']);
+        $numbers = \array_map(static fn (array $t) => $t['number'], $data['tomes']);
         self::assertSame([1, 3, 5], $numbers);
     }
 

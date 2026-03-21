@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
@@ -64,18 +65,18 @@ final class BedethequeLookup extends AbstractGeminiLookupProvider
         return 'bedetheque';
     }
 
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
     {
         $this->resetApiMessage();
 
-        $cacheKey = 'bedetheque_'.\md5($query.$mode.($type instanceof ComicType ? $type->value : ''));
+        $cacheKey = 'bedetheque_'.\md5($query.$mode->value.($type instanceof ComicType ? $type->value : ''));
 
         return $this->prepareWithCache($cacheKey, fn (): string => $this->buildPrompt($query, $type, $mode));
     }
 
-    public function supports(string $mode, ?ComicType $type): bool
+    public function supports(LookupMode $mode, ?ComicType $type): bool
     {
-        return \in_array($mode, ['isbn', 'title'], true);
+        return true;
     }
 
     protected function buildResult(array $data): LookupResult
@@ -115,10 +116,10 @@ final class BedethequeLookup extends AbstractGeminiLookupProvider
         return ['authors', 'description', 'publishedDate', 'publisher', 'thumbnail', 'title'];
     }
 
-    private function buildPrompt(string $query, ?ComicType $type, string $mode): string
+    private function buildPrompt(string $query, ?ComicType $type, LookupMode $mode): string
     {
         $typeLabel = $type instanceof ComicType ? $type->value : 'bande dessinée/comics/manga';
-        $searchBy = 'isbn' === $mode
+        $searchBy = LookupMode::ISBN === $mode
             ? "l'ISBN {$query}"
             : "le titre \"{$query}\"";
 

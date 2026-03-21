@@ -10,6 +10,7 @@ import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import EmptyState from "../components/EmptyState";
 import FilterChips from "../components/FilterChips";
 import Filters from "../components/Filters";
+import SearchInput from "../components/SearchInput";
 import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
@@ -158,17 +159,12 @@ export default function Home() {
       <h1 className="text-xl font-bold text-text-primary">Ma bibliothèque</h1>
       {/* Search bar + filter button (mobile) + count */}
       <div className="flex items-center gap-2">
-        <div className="relative min-w-0 flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-          <input
-            aria-label="Rechercher par titre, auteur, éditeur"
-            className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Rechercher par titre, auteur, éditeur…"
-            type="search"
-            value={search}
-          />
-        </div>
+        <SearchInput
+          ariaLabel="Rechercher par titre, auteur, éditeur"
+          onChange={handleSearchChange}
+          placeholder="Rechercher par titre, auteur, éditeur…"
+          value={search}
+        />
         {isMobile && (
           <Filters
             onSortChange={handleSortChange}
