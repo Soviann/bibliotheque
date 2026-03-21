@@ -12,8 +12,8 @@
 
 - Edit when asked to edit. No issues/plans unless requested.
 - Prefer acting over asking.
-- **No codebase exploration.** CLAUDE.md, MEMORY.md, and `memory/patterns.md` contain all needed context. Jump straight to implementation. Only read files you are about to edit.
-- **Keep docs up to date.** When adding new entities, enums, services, routes, or commands, update this file and `memory/patterns.md` in the same session.
+- **No codebase exploration.** CLAUDE.md, MEMORY.md, and `.claude/memory/patterns.md` contain all needed context. Jump straight to implementation. Only read files you are about to edit.
+- **Keep docs up to date.** When adding new entities, enums, services, routes, or commands, update this file and `.claude/memory/patterns.md` in the same session.
 
 ## Plans
 
@@ -108,7 +108,7 @@ PHP-CS-Fixer and PHPStan: run before committing, only on modified files.
 
 **Format**: JSON-LD (`application/ld+json`). **Login**: `POST /api/login/google` with `{credential}` → `{token}`. Single email via `OAUTH_ALLOWED_EMAIL`.
 
-Resources, processors, providers, lookup endpoints → see `memory/patterns.md`.
+Resources, processors, providers, lookup endpoints → see `.claude/memory/patterns.md`.
 
 ## Rector
 
@@ -186,7 +186,7 @@ Add in `## [Unreleased]`: `### Added|Changed|Fixed|Removed`. Format: `- **Name**
 
 ## Structure
 
-Full file map → `memory/patterns.md`
+Full file map → `.claude/memory/patterns.md`
 
 ```
 backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,Event,EventListener,Message,MessageHandler,Repository,State}/
