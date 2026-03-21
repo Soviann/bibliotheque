@@ -195,6 +195,51 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries à enrichir automatiquement :
+     * - données manquantes ET (lookupCompletedAt null OU obsolète).
+     *
+     * @return ComicSeries[]
+     */
+    public function findForAutoEnrich(
+        bool $force = false,
+        ?int $limit = null,
+        ?\DateTimeImmutable $staleDate = null,
+        ?ComicType $type = null,
+    ): array {
+        $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.authors', 'a')
+            ->groupBy('c.id')
+            ->having(
+                'c.description IS NULL'
+                .' OR c.publisher IS NULL'
+                .' OR c.publishedDate IS NULL'
+                .' OR (c.coverUrl IS NULL AND c.coverImage IS NULL)'
+                .' OR c.latestPublishedIssue IS NULL'
+                .' OR COUNT(a.id) = 0'
+            )
+            ->orderBy('c.title', 'ASC');
+
+        if (!$force) {
+            $qb->andWhere('c.lookupCompletedAt IS NULL OR c.lookupCompletedAt < :staleDate')
+                ->setParameter('staleDate', $staleDate ?? new \DateTimeImmutable('-30 days'));
+        }
+
+        if ($type instanceof ComicType) {
+            $qb->andWhere('c.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if (null !== $limit && $limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        /** @var ComicSeries[] $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
+    }
+
+    /**
      * Retourne les séries candidates à la détection de fusion.
      *
      * @return ComicSeries[]
