@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Service/** : Réorganisation en sous-domaines (ComicSeries, Cover, Notification, Recommendation, Lookup/{Contract,Gemini,Provider,Util})
+- **GeminiQueryService** : Extraction du pattern dupliqué query+parse Gemini (DRY)
+- **NotifierInterface** : Découplage des services de recommandation de NotificationService
+
 ## [v2.19.0] - 2026-03-21
 
 ### Added
