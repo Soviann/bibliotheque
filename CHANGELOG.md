@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.14.4] - 2026-03-21
+
+### Fixed
+
+- **Import livres** : L'enrichissement de séries existantes marque désormais les tomes comme achetés et crée les tomes manquants
+
 ## [v2.14.3] - 2026-03-21
 
 ### Fixed

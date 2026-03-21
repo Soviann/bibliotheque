@@ -271,8 +271,18 @@ final class ImportBooksService
             $isbn = $this->cleanIsbn($entry->row[0] ?? null);
             $tomeNumber = $entry->tomeNumber ?? 1;
 
-            if (null !== $isbn && isset($existingTomes[$tomeNumber]) && null === $existingTomes[$tomeNumber]->getIsbn()) {
-                $existingTomes[$tomeNumber]->setIsbn($isbn);
+            if (isset($existingTomes[$tomeNumber])) {
+                $existingTomes[$tomeNumber]->setBought(true);
+
+                if (null !== $isbn && null === $existingTomes[$tomeNumber]->getIsbn()) {
+                    $existingTomes[$tomeNumber]->setIsbn($isbn);
+                }
+            } else {
+                $tome = new Tome();
+                $tome->setBought(true);
+                $tome->setIsbn($isbn);
+                $tome->setNumber($tomeNumber);
+                $comic->addTome($tome);
             }
         }
     }

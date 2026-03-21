@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Service\Import;
 
 use App\DTO\ImportBooksResult;
 use App\Entity\ComicSeries;
+use App\Entity\Tome;
 use App\Enum\ComicType;
 use App\Repository\AuthorRepository;
 use App\Repository\ComicSeriesRepository;
@@ -132,6 +133,78 @@ final class ImportBooksServiceTest extends TestCase
 
         self::assertSame(0, $result->groupCount);
         self::assertSame(0, $result->created);
+
+        \unlink($filePath);
+    }
+
+    public function testEnrichExistingMarksTomesAsBought(): void
+    {
+        $filePath = $this->createBooksFile([
+            ['9781234567890', 'Naruto - Tome 1', 'Kishimoto', 'Kana', '', 'Manga', ''],
+            ['9781234567891', 'Naruto - Tome 2', 'Kishimoto', 'Kana', '', 'Manga', ''],
+        ]);
+
+        $existing = new ComicSeries();
+        $existing->setTitle('Naruto');
+        $existing->setType(ComicType::MANGA);
+
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setBought(false);
+        $existing->addTome($tome1);
+
+        $tome2 = new Tome();
+        $tome2->setNumber(2);
+        $tome2->setBought(false);
+        $existing->addTome($tome2);
+
+        $this->comicSeriesRepository->method('findOneByFuzzyTitleAnyType')
+            ->with('Naruto')
+            ->willReturn($existing);
+
+        $this->service->import($filePath, false);
+
+        self::assertTrue($tome1->isBought(), 'Le tome 1 devrait être marqué comme acheté');
+        self::assertTrue($tome2->isBought(), 'Le tome 2 devrait être marqué comme acheté');
+
+        \unlink($filePath);
+    }
+
+    public function testEnrichExistingCreatesMissingTomes(): void
+    {
+        $filePath = $this->createBooksFile([
+            ['111', 'Naruto - Tome 1', 'Kishimoto', 'Kana', '', 'Manga', ''],
+            ['222', 'Naruto - Tome 2', 'Kishimoto', 'Kana', '', 'Manga', ''],
+            ['333', 'Naruto - Tome 3', 'Kishimoto', 'Kana', '', 'Manga', ''],
+        ]);
+
+        $existing = new ComicSeries();
+        $existing->setTitle('Naruto');
+        $existing->setType(ComicType::MANGA);
+
+        // Seul le tome 1 existe déjà
+        $tome1 = new Tome();
+        $tome1->setNumber(1);
+        $tome1->setBought(false);
+        $existing->addTome($tome1);
+
+        $this->comicSeriesRepository->method('findOneByFuzzyTitleAnyType')
+            ->with('Naruto')
+            ->willReturn($existing);
+
+        $this->service->import($filePath, false);
+
+        $tomes = $existing->getTomes();
+        self::assertCount(3, $tomes, 'La série devrait avoir 3 tomes');
+
+        $tomeNumbers = [];
+        foreach ($tomes as $tome) {
+            $tomeNumbers[] = $tome->getNumber();
+            self::assertTrue($tome->isBought(), \sprintf('Le tome %d devrait être marqué comme acheté', $tome->getNumber()));
+        }
+
+        self::assertContains(2, $tomeNumbers, 'Le tome 2 devrait avoir été créé');
+        self::assertContains(3, $tomeNumbers, 'Le tome 3 devrait avoir été créé');
 
         \unlink($filePath);
     }
