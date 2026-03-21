@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Enum\BatchLookupStatus;
-use App\Service\NewReleaseCheckerService;
+use App\Service\Recommendation\NewReleaseCheckerService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

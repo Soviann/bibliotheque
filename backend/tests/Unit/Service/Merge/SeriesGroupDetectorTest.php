@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Service\Merge;
 use App\DTO\MergeGroup;
 use App\DTO\MergeGroupEntry;
 use App\Entity\ComicSeries;
-use App\Service\Lookup\GeminiClientPool;
+use App\Service\Lookup\Gemini\GeminiClientPool;
 use App\Service\Merge\SeriesGroupDetector;
 use Gemini\Contracts\ClientContract as GeminiClient;
 use Gemini\Responses\GenerativeModel\GenerateContentResponse;

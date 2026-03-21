@@ -283,10 +283,46 @@ parameters:
 			path: tests/Unit/Enum/ComicTypeTest.php
 
 		-
+			message: '#^Cannot access offset ''deletedAt'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/ComicSeries/PurgeServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/ComicSeries/PurgeServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/Service/ComicSeries/PurgeServiceTest.php
+
+		-
 			message: '#^Call to an undefined method Symfony\\Contracts\\HttpClient\\HttpClientInterface\:\:method\(\)\.$#'
 			identifier: method.notFound
 			count: 4
-			path: tests/Unit/Service/CoverSearchServiceTest.php
+			path: tests/Unit/Service/Cover/CoverSearchServiceTest.php
+
+		-
+			message: '#^Call to function is_subclass_of\(\) with ''App\\\\Service\\\\Cover\\\\Upload\\\\VichUploadHandlerAdapter'' and ''App\\\\Service\\\\Cover\\\\Upload\\\\UploadHandlerInterface'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/Cover/Upload/VichUploadHandlerAdapterTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''L\\''appel remove\(\)…'' will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/Cover/Upload/VichUploadHandlerAdapterTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/Cover/Upload/VichUploadHandlerAdapterTest.php
 
 		-
 			message: '#^Cannot access offset ''created'' on mixed\.$#'
@@ -337,226 +373,190 @@ parameters:
 			path: tests/Unit/Service/Import/ImportExcelServiceTest.php
 
 		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
-			identifier: property.nonObject
+			message: '#^Property App\\Service\\Lookup\\Contract\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:581\:\:\$calledSupportsType is never read, only written\.$#'
+			identifier: property.onlyWritten
 			count: 1
-			path: tests/Unit/Service/Lookup/AbstractLookupProviderTest.php
+			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
-			identifier: property.nonObject
+			message: '#^Property App\\Service\\Lookup\\Contract\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:581\:\:\$calledWithType is never read, only written\.$#'
+			identifier: property.onlyWritten
 			count: 1
-			path: tests/Unit/Service/Lookup/AbstractLookupProviderTest.php
+			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
 
 		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/AbstractLookupProviderTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Service/Lookup/Provider/AbstractLookupProviderTest.php
+
+		-
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Service/Lookup/Provider/AniListLookupTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 5
-			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/AniListLookupTest.php
 
 		-
 			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 2
-			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/AniListLookupTest.php
 
 		-
 			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringNotContainsString\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 2
-			path: tests/Unit/Service/Lookup/AniListLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/AniListLookupTest.php
 
 		-
 			message: '#^Call to an undefined method Symfony\\Component\\Cache\\Adapter\\AdapterInterface\:\:method\(\)\.$#'
 			identifier: method.notFound
 			count: 14
-			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BedethequeLookupTest.php
 
 		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BedethequeLookupTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 8
-			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BedethequeLookupTest.php
 
 		-
 			message: '#^Parameter \#1 \$attributes of static method Gemini\\Responses\\GenerativeModel\\GenerateContentResponse\:\:from\(\) expects array\{candidates\: array\<array\{content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\|null, finishReason\: string\|null, safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}\|null, citationMetadata\: array\{citationSources\: array\{array\{startIndex\: int, endIndex\: int, uri\: string\|null, license\: string\|null\}\}\}\|null, index\: int\|null, tokenCount\: int\|null, avgLogprobs\: float\|null, groundingAttributions\: array\<array\{sourceId\: array\{groundingPassage\?\: array\{passageId\: string, partIndex\: int\}, semanticRetrieverChunk\?\: array\{source\: string, chunk\: string\}\}, content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\}\>\|null, \.\.\.\}\>\|null, promptFeedback\: array\{safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}, blockReason\: string\|null\}\|null, usageMetadata\: array\{promptTokenCount\: int, totalTokenCount\: int, candidatesTokenCount\: int\|null, cachedContentTokenCount\: int\|null, toolUsePromptTokenCount\: int\|null, thoughtsTokenCount\: int\|null, promptTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, cacheTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, \.\.\.\}, modelVersion\: string\|null\}, array\{candidates\: array\{\}, promptFeedback\: array\{blockReason\: ''SAFETY'', safetyRatings\: array\{array\{category\: ''HARM_CATEGORY…'', probability\: ''HIGH'', blocked\: true\}\}\}, usageMetadata\: array\{candidatesTokenCount\: 0, promptTokenCount\: 10, totalTokenCount\: 10\}\} given\.$#'
 			identifier: argument.type
 			count: 1
-			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BedethequeLookupTest.php
 
 		-
 			message: '#^Parameter \#1 \$attributes of static method Gemini\\Responses\\GenerativeModel\\GenerateContentResponse\:\:from\(\) expects array\{candidates\: array\<array\{content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\|null, finishReason\: string\|null, safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}\|null, citationMetadata\: array\{citationSources\: array\{array\{startIndex\: int, endIndex\: int, uri\: string\|null, license\: string\|null\}\}\}\|null, index\: int\|null, tokenCount\: int\|null, avgLogprobs\: float\|null, groundingAttributions\: array\<array\{sourceId\: array\{groundingPassage\?\: array\{passageId\: string, partIndex\: int\}, semanticRetrieverChunk\?\: array\{source\: string, chunk\: string\}\}, content\: array\{parts\: array\{array\{text\: string\|null, inlineData\: array\{mimeType\: string, data\: string\}\|null, fileData\: array\{fileUri\: string, mimeType\: string\}\|null, functionCall\: array\{name\: string, args\: array\<string, mixed\>\|null\}\|null, functionResponse\: array\{name\: string, response\: array\<string, mixed\>\}\|null\}\}, role\: string\}\}\>\|null, \.\.\.\}\>\|null, promptFeedback\: array\{safetyRatings\: array\{array\{category\: string, probability\: string, blocked\: bool\|null\}\}, blockReason\: string\|null\}\|null, usageMetadata\: array\{promptTokenCount\: int, totalTokenCount\: int, candidatesTokenCount\: int\|null, cachedContentTokenCount\: int\|null, toolUsePromptTokenCount\: int\|null, thoughtsTokenCount\: int\|null, promptTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, cacheTokensDetails\: list\<array\{modality\: string, tokenCount\: int\}\>\|null, \.\.\.\}, modelVersion\: string\|null\}, array\{candidates\: array\{\}, promptFeedback\: null, usageMetadata\: array\{candidatesTokenCount\: 0, promptTokenCount\: 10, totalTokenCount\: 10\}\} given\.$#'
 			identifier: argument.type
 			count: 1
-			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BedethequeLookupTest.php
 
 		-
 			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 6
-			path: tests/Unit/Service/Lookup/BedethequeLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BedethequeLookupTest.php
 
 		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: tests/Unit/Service/Lookup/BnfLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BnfLookupTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 4
-			path: tests/Unit/Service/Lookup/BnfLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/BnfLookupTest.php
 
 		-
 			message: '#^Call to an undefined method Symfony\\Component\\Cache\\Adapter\\AdapterInterface\:\:method\(\)\.$#'
 			identifier: method.notFound
 			count: 20
-			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GeminiLookupTest.php
 
 		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 2
-			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GeminiLookupTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 10
-			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GeminiLookupTest.php
 
 		-
 			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 6
-			path: tests/Unit/Service/Lookup/GeminiLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GeminiLookupTest.php
 
 		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 3
-			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GoogleBooksLookupTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 6
-			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GoogleBooksLookupTest.php
 
 		-
 			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
-			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GoogleBooksLookupTest.php
 
 		-
 			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringNotContainsString\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 2
-			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GoogleBooksLookupTest.php
 
 		-
 			message: '#^Parameter \#2 \$string of static method PHPUnit\\Framework\\Assert\:\:assertStringStartsWith\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
-			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/GoogleBooksLookupTest.php
 
 		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:581\:\:\$calledSupportsType is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
-
-		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:581\:\:\$calledWithType is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
-
-		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 3
-			path: tests/Unit/Service/Lookup/OpenLibraryLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/OpenLibraryLookupTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 8
-			path: tests/Unit/Service/Lookup/OpenLibraryLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/OpenLibraryLookupTest.php
 
 		-
 			message: '#^Call to an undefined method Symfony\\Component\\Cache\\Adapter\\AdapterInterface\:\:method\(\)\.$#'
 			identifier: method.notFound
 			count: 24
-			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/WikipediaLookupTest.php
 
 		-
 			message: '#^Call to an undefined method Symfony\\Contracts\\HttpClient\\HttpClientInterface\:\:method\(\)\.$#'
 			identifier: method.notFound
 			count: 19
-			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/WikipediaLookupTest.php
 
 		-
-			message: '#^Cannot access property \$message on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$message on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 3
-			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
+			path: tests/Unit/Service/Lookup/Provider/WikipediaLookupTest.php
 
 		-
-			message: '#^Cannot access property \$status on App\\Service\\Lookup\\ApiMessage\|null\.$#'
+			message: '#^Cannot access property \$status on App\\Service\\Lookup\\Contract\\ApiMessage\|null\.$#'
 			identifier: property.nonObject
 			count: 8
-			path: tests/Unit/Service/Lookup/WikipediaLookupTest.php
-
-		-
-			message: '#^Cannot access offset ''deletedAt'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: tests/Unit/Service/PurgeServiceTest.php
-
-		-
-			message: '#^Cannot access offset ''id'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: tests/Unit/Service/PurgeServiceTest.php
-
-		-
-			message: '#^Cannot access offset ''title'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: tests/Unit/Service/PurgeServiceTest.php
-
-		-
-			message: '#^Call to function is_subclass_of\(\) with ''App\\\\Service\\\\VichUploadHandlerAdapter'' and ''App\\\\Service\\\\UploadHandlerInterface'' will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/Service/VichUploadHandlerAdapterTest.php
-
-		-
-			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''L\\''appel remove\(\)…'' will always evaluate to true\.$#'
-			identifier: staticMethod.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/Service/VichUploadHandlerAdapterTest.php
-
-		-
-			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: staticMethod.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/Service/VichUploadHandlerAdapterTest.php
+			path: tests/Unit/Service/Lookup/Provider/WikipediaLookupTest.php
 
 		-
 			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'

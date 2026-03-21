@@ -23,15 +23,18 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    App\Service\UploadHandlerInterface:
-        alias: App\Service\VichUploadHandlerAdapter
+    App\Service\Cover\Upload\UploadHandlerInterface:
+        alias: App\Service\Cover\Upload\VichUploadHandlerAdapter
+
+    App\Service\Notification\NotifierInterface:
+        alias: App\Service\Notification\NotificationService
 
     Google\Client:
         arguments:
             $config:
                 client_id: '%env(OAUTH_GOOGLE_ID)%'
 
-    App\Service\Lookup\GeminiClientPool:
+    App\Service\Lookup\Gemini\GeminiClientPool:
         arguments:
             $apiKeys: '%env(GEMINI_API_KEYS)%'
             $models: '%env(GEMINI_MODELS)%'

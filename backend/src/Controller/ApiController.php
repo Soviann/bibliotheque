@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Enum\ComicType;
-use App\Service\CoverSearchService;
+use App\Service\Cover\CoverSearchService;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupOrchestrator;
-use App\Service\Lookup\LookupResult;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

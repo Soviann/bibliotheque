@@ -189,7 +189,8 @@ Add in `## [Unreleased]`: `### Added|Changed|Fixed|Removed`. Format: `- **Name**
 Full file map → `memory/patterns.md`
 
 ```
-backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,Event,EventListener,Message,MessageHandler,Repository,Service,State}/
+backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,Event,EventListener,Message,MessageHandler,Repository,State}/
+backend/src/Service/{ComicSeries,Cover/Upload,Enrichment,Import,Lookup/{Contract,Gemini,Provider,Util},Merge,Nas,Notification,Recommendation}/
 backend/tests/{Unit,Integration,Functional,Factory,Trait}/
 frontend/src/{components,hooks,pages,services,types,__tests__}/
 ```

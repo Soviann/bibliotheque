@@ -6,7 +6,7 @@ namespace App\Tests\Unit\EventListener;
 
 use App\Entity\ComicSeries;
 use App\EventListener\CoverUrlChangeListener;
-use App\Service\CoverDownloader;
+use App\Service\Cover\CoverDownloader;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PreUpdateEventArgs;

@@ -12,8 +12,8 @@ use App\Enum\EnrichmentAction;
 use App\Enum\EnrichmentConfidence;
 use App\Enum\LookupMode;
 use App\Repository\EnrichmentProposalRepository;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupApplier;
-use App\Service\Lookup\LookupResult;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 

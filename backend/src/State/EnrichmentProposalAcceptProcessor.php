@@ -12,7 +12,7 @@ use App\Entity\EnrichmentProposal;
 use App\Enum\EnrichableField;
 use App\Enum\EnrichmentAction;
 use App\Repository\AuthorRepository;
-use App\Service\CoverDownloader;
+use App\Service\Cover\CoverDownloader;
 use App\Service\Enrichment\EnrichmentService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;

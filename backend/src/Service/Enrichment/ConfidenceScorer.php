@@ -7,7 +7,7 @@ namespace App\Service\Enrichment;
 use App\Enum\ComicType;
 use App\Enum\EnrichmentConfidence;
 use App\Enum\LookupMode;
-use App\Service\Lookup\LookupResult;
+use App\Service\Lookup\Contract\LookupResult;
 
 /**
  * Calcule un score de confiance (0-1) à partir du contexte de requête et du résultat.
