@@ -200,6 +200,26 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries éligibles à la détection de tomes manquants.
+     *
+     * @return ComicSeries[]
+     */
+    public function findForMissingTomeDetection(): array
+    {
+        /** @var ComicSeries[] $result */
+        $result = $this->createQueryBuilder('c')
+            ->andWhere('c.status IN (:statuses)')
+            ->andWhere('c.isOneShot = false')
+            ->andWhere('c.latestPublishedIssue IS NOT NULL')
+            ->orderBy('c.title', 'ASC')
+            ->setParameter('statuses', [ComicStatus::BUYING, ComicStatus::FINISHED])
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
+    /**
      * Retourne les séries candidates à la détection de fusion.
      *
      * @return ComicSeries[]

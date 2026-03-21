@@ -19,6 +19,17 @@ class AuthorRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<Author>
+     */
+    public function findFollowed(): array
+    {
+        /** @var list<Author> $result */
+        $result = $this->findBy(['followedForNewSeries' => true], ['name' => 'ASC']);
+
+        return $result;
+    }
+
+    /**
      * Trouve ou crée un auteur par son nom.
      */
     public function findOrCreate(string $name): Author

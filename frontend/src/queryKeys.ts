@@ -28,6 +28,9 @@ export const queryKeys = {
     preferences: ["notification-preferences"] as const,
     unreadCount: ["notifications-unread-count"] as const,
   },
+  suggestions: {
+    all: ["suggestions"] as const,
+  },
   offline: {
     queueCount: ["offline-queue-count"] as const,
     syncFailures: ["syncFailures"] as const,

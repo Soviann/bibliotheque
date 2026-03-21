@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { del } from "idb-keyval";
-import { ArrowRight, DatabaseZap, FileSpreadsheet, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
+import { ArrowRight, DatabaseZap, FileSpreadsheet, Lightbulb, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
 import { type ComponentType, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -42,6 +42,12 @@ const tools: ToolCard[] = [
     icon: Trash2,
     title: "Purge corbeille",
     to: "/tools/purge",
+  },
+  {
+    description: "Découvrir des séries similaires à votre collection, suggérées par IA.",
+    icon: Lightbulb,
+    title: "Suggestions",
+    to: "/tools/suggestions",
   },
 ];
 

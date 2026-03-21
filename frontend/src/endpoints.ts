@@ -44,6 +44,10 @@ export const endpoints = {
     preview: "/merge-series/preview",
     suggest: "/merge-series/suggest",
   },
+  suggestions: {
+    collection: "/series_suggestions",
+    detail: (id: number) => `/series_suggestions/${id}`,
+  },
   purge: {
     execute: "/tools/purge/execute",
     preview: "/tools/purge/preview",

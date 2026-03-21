@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, Bell, BellOff, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGoBack } from "../hooks/useGoBack";
@@ -14,10 +14,32 @@ import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useRestoreComic } from "../hooks/useTrash";
+import { useToggleAuthorFollow } from "../hooks/useFollowedAuthors";
 import { useUpdateTome } from "../hooks/useUpdateTome";
 import { ComicStatus, ComicStatusColor, ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
+
+function AuthorWithFollow({ author }: { author: { followedForNewSeries: boolean; id: number; name: string } }) {
+  const toggleFollow = useToggleAuthorFollow();
+  const followed = author.followedForNewSeries;
+  const Icon = followed ? Bell : BellOff;
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      {author.name}
+      <button
+        aria-label={followed ? `Ne plus suivre ${author.name}` : `Suivre ${author.name}`}
+        className={`rounded p-0.5 ${followed ? "text-primary-600" : "text-text-muted hover:text-text-secondary"}`}
+        onClick={() => toggleFollow.mutate({ follow: !followed, id: author.id })}
+        title={followed ? "Ne plus suivre" : "Suivre cet auteur"}
+        type="button"
+      >
+        <Icon className="h-3.5 w-3.5" />
+      </button>
+    </span>
+  );
+}
 
 type BooleanField = "bought" | "downloaded" | "onNas" | "read";
 type SortKey = "number" | "title" | BooleanField;
@@ -359,7 +381,11 @@ export default function ComicDetail() {
             {comic.authors.length > 0 && (
               <>
                 <dt className="font-medium text-text-secondary">Auteurs</dt>
-                <dd className="text-text-secondary">{comic.authors.map((a) => a.name).join(", ")}</dd>
+                <dd className="flex flex-wrap items-center gap-x-2 gap-y-1 text-text-secondary">
+                  {comic.authors.map((a) => (
+                    <AuthorWithFollow author={a} key={a.id} />
+                  ))}
+                </dd>
               </>
             )}
             {comic.publisher && (
