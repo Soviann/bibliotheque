@@ -83,6 +83,38 @@ async function getToken(): Promise<string | null> {
   return getTokenFromClient(clients[0]);
 }
 
+// ── Push notifications ──
+
+self.addEventListener("push", (event: PushEvent) => {
+  const data = event.data?.json() as {
+    body?: string;
+    icon?: string;
+    title?: string;
+    url?: string;
+  } | undefined;
+
+  if (!data?.title) return;
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body ?? "",
+      data: { url: data.url },
+      icon: data.icon ?? "/app-icon.png",
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event: NotificationEvent) => {
+  event.notification.close();
+  const url = (event.notification.data as { url?: string })?.url;
+
+  if (url) {
+    event.waitUntil(self.clients.openWindow(url));
+  }
+});
+
+// ── Token helpers ──
+
 function getTokenFromClient(client: Client): Promise<string | null> {
   return new Promise((resolve) => {
     const channel = new MessageChannel();

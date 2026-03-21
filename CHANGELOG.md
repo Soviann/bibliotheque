@@ -7,6 +7,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Notifications** : Système de notifications in-app et push avec préférences par type
+- **Cloche de notifications** : Badge de compteur non lu dans le header
+- **Page notifications** : Liste des notifications avec marquer comme lu, supprimer
+- **Paramètres notifications** : Choix du canal par type (in-app, push, les deux, désactivé)
+- **Web Push** : Support des notifications push via VAPID (`minishlink/web-push`)
+- **Commande `app:purge-notifications`** : Purge des notifications anciennes (défaut 90 jours)
+
 ## [v2.16.0] - 2026-03-21
 
 ### Added

@@ -25,6 +25,24 @@ parameters:
 			path: src/Entity/EnrichmentProposal.php
 
 		-
+			message: '#^Property App\\Entity\\Notification\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Notification.php
+
+		-
+			message: '#^Property App\\Entity\\NotificationPreference\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/NotificationPreference.php
+
+		-
+			message: '#^Property App\\Entity\\PushSubscription\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/PushSubscription.php
+
+		-
 			message: '#^Property App\\Entity\\Tome\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
 			identifier: property.unusedType
 			count: 1

@@ -148,3 +148,45 @@ export const ProposalStatus = {
 } as const;
 export type ProposalStatus =
   (typeof ProposalStatus)[keyof typeof ProposalStatus];
+
+export const NotificationChannel = {
+  BOTH: "both",
+  IN_APP: "in_app",
+  OFF: "off",
+  PUSH: "push",
+} as const;
+export type NotificationChannel =
+  (typeof NotificationChannel)[keyof typeof NotificationChannel];
+
+export const NotificationChannelLabel: Record<NotificationChannel, string> = {
+  [NotificationChannel.BOTH]: "In-app + Push",
+  [NotificationChannel.IN_APP]: "In-app",
+  [NotificationChannel.OFF]: "Désactivé",
+  [NotificationChannel.PUSH]: "Push",
+};
+
+export const NotificationEntityType = {
+  AUTHOR: "author",
+  COMIC_SERIES: "comic_series",
+  ENRICHMENT_PROPOSAL: "enrichment_proposal",
+} as const;
+export type NotificationEntityType =
+  (typeof NotificationEntityType)[keyof typeof NotificationEntityType];
+
+export const NotificationType = {
+  AUTHOR_NEW_SERIES: "author_new_series",
+  ENRICHMENT_APPLIED: "enrichment_applied",
+  ENRICHMENT_REVIEW: "enrichment_review",
+  MISSING_TOME: "missing_tome",
+  NEW_RELEASE: "new_release",
+} as const;
+export type NotificationType =
+  (typeof NotificationType)[keyof typeof NotificationType];
+
+export const NotificationTypeLabel: Record<NotificationType, string> = {
+  [NotificationType.AUTHOR_NEW_SERIES]: "Nouvelle série d'un auteur suivi",
+  [NotificationType.ENRICHMENT_APPLIED]: "Enrichissement auto-appliqué",
+  [NotificationType.ENRICHMENT_REVIEW]: "Enrichissement à valider",
+  [NotificationType.MISSING_TOME]: "Tome manquant détecté",
+  [NotificationType.NEW_RELEASE]: "Nouvelle parution",
+};
