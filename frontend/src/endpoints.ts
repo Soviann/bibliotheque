@@ -4,6 +4,12 @@ export const endpoints = {
     preview: "/tools/batch-lookup/preview",
     run: "/tools/batch-lookup/run",
   },
+  enrichment: {
+    accept: (id: number) => `/enrichment_proposals/${id}/accept`,
+    logs: "/enrichment_logs",
+    proposals: "/enrichment_proposals",
+    reject: (id: number) => `/enrichment_proposals/${id}/reject`,
+  },
   comicSeries: {
     collection: "/comic_series",
     detail: (id: number) => `/comic_series/${id}`,

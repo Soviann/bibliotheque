@@ -1,4 +1,10 @@
-import type { ComicStatus, ComicType } from "./enums";
+import type {
+  ComicStatus,
+  ComicType,
+  EnrichmentAction,
+  EnrichmentConfidence,
+  ProposalStatus,
+} from "./enums";
 
 export interface HydraCollection<T> {
   "@context": string;
@@ -251,4 +257,31 @@ export interface LookupCandidate {
   title: string | null;
   tomeEnd: number | null;
   tomeNumber: number | null;
+}
+
+export interface EnrichmentProposal {
+  "@id": string;
+  comicSeries: { "@id": string; id: number; title: string };
+  confidence: EnrichmentConfidence;
+  createdAt: string;
+  currentValue: unknown;
+  field: string;
+  id: number;
+  proposedValue: unknown;
+  reviewedAt: string | null;
+  source: string;
+  status: ProposalStatus;
+}
+
+export interface EnrichmentLog {
+  "@id": string;
+  action: EnrichmentAction;
+  comicSeries: { "@id": string; id: number };
+  confidence: EnrichmentConfidence;
+  createdAt: string;
+  field: string;
+  id: number;
+  newValue: unknown;
+  oldValue: unknown;
+  source: string;
 }
