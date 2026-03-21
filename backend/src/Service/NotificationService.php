@@ -10,13 +10,14 @@ use App\Enum\NotificationChannel;
 use App\Enum\NotificationEntityType;
 use App\Enum\NotificationType;
 use App\Repository\NotificationPreferenceRepository;
+use App\Service\Notification\NotifierInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
  * Crée des notifications en respectant les préférences utilisateur.
  */
-class NotificationService
+class NotificationService implements NotifierInterface
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
