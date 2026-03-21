@@ -64,6 +64,9 @@ OAUTH_ALLOWED_EMAIL=votre_email@gmail.com
 OAUTH_GOOGLE_ID=xxx.apps.googleusercontent.com
 SERPER_API_KEY=votre_cle
 SYMFONY_DECRYPTION_SECRET=valeur_de_la_cle
+VAPID_PRIVATE_KEY=cle_privee_base64url
+VAPID_PUBLIC_KEY=cle_publique_base64url
+VAPID_SUBJECT=mailto:votre_email@example.com
 EOF
 ```
 
@@ -76,6 +79,14 @@ ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/pro
 ```
 
 **OAUTH_GOOGLE_ID** : [Google Cloud Console](https://console.cloud.google.com/) > ID client OAuth 2.0 (Application Web). Ajouter l'URL de prod dans les origines JavaScript autorisées.
+
+**VAPID keys** (notifications push) : générer une fois sur la machine de dev :
+
+```bash
+ddev exec 'php -r "require \"vendor/autoload.php\"; \$k = Minishlink\WebPush\VAPID::createVapidKeys(); echo \"Public: \".\$k[\"publicKey\"].PHP_EOL.\"Private: \".\$k[\"privateKey\"].PHP_EOL;"'
+```
+
+Copier les clés dans `.env.nas`. La clé publique doit aussi être exposée au frontend via `VITE_VAPID_PUBLIC_KEY` dans le build (ajoutée dans le Dockerfile nginx si besoin, ou en dur dans le code frontend pour une app single-user).
 
 ---
 
@@ -197,7 +208,17 @@ gunzip -c "/volume1/google drive/Backup/Bibliotheque/bibliotheque-YYYYMMDD_HHMMS
 
 ---
 
-## 9. Dépannage
+## 9. Accéder au conteneur PHP
+
+```bash
+sudo docker exec -it backend-php-1 bash
+```
+
+Utile pour exécuter des commandes Symfony manuellement (`bin/console ...`).
+
+---
+
+## 10. Dépannage
 
 ```bash
 cd /volume1/docker/bibliotheque/backend
