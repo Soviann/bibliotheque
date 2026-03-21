@@ -39,6 +39,9 @@ services:
     Gemini\Contracts\ClientContract:
         alias: Gemini\Client
 
+    Intervention\Image\ImageManager:
+        factory: ['Intervention\Image\ImageManager', 'gd']
+
     Vich\UploaderBundle\Templating\Helper\UploaderHelperInterface:
         alias: Vich\UploaderBundle\Templating\Helper\UploaderHelper
 

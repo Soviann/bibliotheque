@@ -16,6 +16,7 @@
         "doctrine/orm": "^3.6.2",
         "google-gemini-php/symfony": "^2.0",
         "google/apiclient": "^2.19",
+        "intervention/image": "^3.11",
         "knplabs/doctrine-behaviors": "^3.1",
         "lexik/jwt-authentication-bundle": "^3.2",
         "liip/imagine-bundle": "^2.17.1",

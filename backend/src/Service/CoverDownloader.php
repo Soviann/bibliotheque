@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\ComicSeries;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\ImageManager;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Vich\UploaderBundle\FileAbstraction\ReplacingFile;
@@ -20,6 +22,7 @@ readonly class CoverDownloader
 
     public function __construct(
         private HttpClientInterface $httpClient,
+        private ImageManager $imageManager,
         private LoggerInterface $logger,
         private UploadHandlerInterface $uploadHandler,
     ) {
@@ -54,30 +57,12 @@ readonly class CoverDownloader
                 return false;
             }
 
-            $source = @\imagecreatefromstring($content);
-
-            if (false === $source) {
-                $this->logger->warning('Image invalide reçue', [
-                    'series' => $series->getTitle(),
-                    'url' => $url,
-                ]);
-
-                return false;
-            }
-
-            $resized = $this->resize($source);
-            $output = $this->ensureTrueColor($resized);
             $tempPath = \sprintf('%s/cover_%s_%s.webp', \sys_get_temp_dir(), $series->getId() ?? 0, \uniqid());
 
-            \imagewebp($output, $tempPath, self::WEBP_QUALITY);
-
-            if ($output !== $resized) {
-                \imagedestroy($output);
-            }
-            if ($resized !== $source) {
-                \imagedestroy($resized);
-            }
-            \imagedestroy($source);
+            $this->imageManager->read($content)
+                ->scaleDown(self::MAX_WIDTH, self::MAX_HEIGHT)
+                ->encode(new WebpEncoder(self::WEBP_QUALITY))
+                ->save($tempPath);
 
             $series->setCoverFile(new ReplacingFile($tempPath));
             $this->uploadHandler->upload($series, 'coverFile');
@@ -92,52 +77,5 @@ readonly class CoverDownloader
 
             return false;
         }
-    }
-
-    /**
-     * Convertit une image palette (GIF, PNG 8-bit) en truecolor pour compatibilité WebP.
-     */
-    private function ensureTrueColor(\GdImage $image): \GdImage
-    {
-        if (\imageistruecolor($image)) {
-            return $image;
-        }
-
-        $width = \imagesx($image);
-        $height = \imagesy($image);
-        $trueColor = \imagecreatetruecolor($width, $height);
-        \assert(false !== $trueColor);
-        \imagecopy($trueColor, $image, 0, 0, 0, 0, $width, $height);
-
-        return $trueColor;
-    }
-
-    /**
-     * Redimensionne l'image pour respecter les dimensions maximales sans upscale.
-     *
-     * @param \GdImage $source Image source
-     *
-     * @return \GdImage Image redimensionnée (ou la source si pas de redimensionnement)
-     */
-    private function resize(\GdImage $source): \GdImage
-    {
-        $originalHeight = \imagesy($source);
-        $originalWidth = \imagesx($source);
-
-        if ($originalWidth <= self::MAX_WIDTH && $originalHeight <= self::MAX_HEIGHT) {
-            return $source;
-        }
-
-        $ratio = \min(self::MAX_WIDTH / $originalWidth, self::MAX_HEIGHT / $originalHeight);
-        /** @var int<1, max> $newHeight */
-        $newHeight = \max(1, (int) \round($originalHeight * $ratio));
-        /** @var int<1, max> $newWidth */
-        $newWidth = \max(1, (int) \round($originalWidth * $ratio));
-
-        $resized = \imagecreatetruecolor($newWidth, $newHeight);
-        \assert(false !== $resized);
-        \imagecopyresampled($resized, $source, 0, 0, 0, 0, $newWidth, $newHeight, $originalWidth, $originalHeight);
-
-        return $resized;
     }
 }
