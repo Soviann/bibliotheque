@@ -164,14 +164,9 @@ final class BatchLookupServiceTest extends TestCase
             ->method('lookupByTitle')
             ->willReturn(null);
 
-        $rateLimitMessage = new ApiMessage(
-            message: 'Rate limited',
-            status: 'rate_limited',
-        );
-
         $this->lookupOrchestrator
-            ->method('getLastApiMessages')
-            ->willReturn(['google_books' => $rateLimitMessage]);
+            ->method('hasRateLimitError')
+            ->willReturn(true);
 
         $progressItems = \iterator_to_array($this->service->run(delay: 0));
 
