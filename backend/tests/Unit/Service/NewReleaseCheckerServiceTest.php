@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\DTO\NewReleaseProgress;
-use App\Enum\ApiLookupStatus;
 use App\Enum\BatchLookupStatus;
 use App\Repository\ComicSeriesRepository;
-use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\LookupResult;
 use App\Service\NewReleaseCheckerService;
@@ -153,12 +151,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series1, $series2]);
 
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn(null);
-        $this->lookupOrchestrator->method('getLastApiMessages')->willReturn([
-            'Gemini' => new ApiMessage(
-                message: 'Rate limited',
-                status: ApiLookupStatus::RATE_LIMITED->value,
-            ),
-        ]);
+        $this->lookupOrchestrator->method('hasRateLimitError')->willReturn(true);
 
         $progresses = \iterator_to_array($this->service->run(dryRun: false, limit: null));
 

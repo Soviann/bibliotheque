@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\DTO\NewReleaseProgress;
 use App\Entity\ComicSeries;
-use App\Entity\Tome;
 use App\Enum\BatchLookupStatus;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\LookupOrchestrator;
@@ -70,7 +69,7 @@ final readonly class NewReleaseCheckerService
             if ($isUpdate && !$dryRun) {
                 $series->setLatestPublishedIssue($newLatestIssue);
                 $series->setLatestPublishedIssueUpdatedAt(new \DateTimeImmutable());
-                $this->createMissingTomes($series, $newLatestIssue);
+                $series->createMissingTomes($newLatestIssue);
             }
 
             if (!$dryRun) {
@@ -99,27 +98,4 @@ final readonly class NewReleaseCheckerService
         }
     }
 
-    /**
-     * Crée les tomes manquants avec les flags par défaut de la série.
-     */
-    private function createMissingTomes(ComicSeries $series, int $latestPublishedIssue): void
-    {
-        $existingNumbers = [];
-        foreach ($series->getTomes() as $tome) {
-            $existingNumbers[$tome->getNumber()] = true;
-        }
-
-        for ($number = 1; $number <= $latestPublishedIssue; ++$number) {
-            if (isset($existingNumbers[$number])) {
-                continue;
-            }
-
-            $tome = new Tome();
-            $tome->setBought($series->isDefaultTomeBought());
-            $tome->setDownloaded($series->isDefaultTomeDownloaded());
-            $tome->setNumber($number);
-            $tome->setRead($series->isDefaultTomeRead());
-            $series->addTome($tome);
-        }
-    }
 }
