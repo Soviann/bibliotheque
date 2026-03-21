@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { del } from "idb-keyval";
-import { ArrowRight, DatabaseZap, FileSpreadsheet, LoaderCircle, Merge, Search, Trash2 } from "lucide-react";
+import { ArrowRight, DatabaseZap, FileSpreadsheet, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
 import { type ComponentType, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -13,6 +13,12 @@ interface ToolCard {
 }
 
 const tools: ToolCard[] = [
+  {
+    description: "Valider ou rejeter les propositions d'enrichissement automatique.",
+    icon: Sparkles,
+    title: "Revue d'enrichissement",
+    to: "/tools/enrichment-review",
+  },
   {
     description: "Detecter et fusionner les series dupliquees (tomes d'une meme serie importes separement).",
     icon: Merge,
