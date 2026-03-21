@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.19.0] - 2026-03-21
+
 ### Added
 
 - **Tomes manquants** : Détection automatique des tomes manquants avec notifications (séries en cours/terminées)
