@@ -38,6 +38,7 @@ services:
       - JWT_PASSPHRASE=${JWT_PASSPHRASE:-}
       - JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
       - JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+      - MESSENGER_TRANSPORT_DSN=doctrine://default
       - GEMINI_API_KEYS=${GEMINI_API_KEYS}
       - GEMINI_MODELS=${GEMINI_MODELS}
       - GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
@@ -45,6 +46,35 @@ services:
       - OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
       - SERPER_API_KEY=${SERPER_API_KEY}
       - SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}
+    restart: unless-stopped
+    volumes:
+      - app_var:/var/www/html/var
+      - jwt_keys:/var/www/html/config/jwt
+      - media:/var/www/html/public/media
+      - uploads:/var/www/html/public/uploads
+
+  worker:
+    image: ghcr.io/soviann/bibliotheque-php:${TAG:-latest}
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["worker-entrypoint.sh"]
+    command: []
+    environment:
+      - APP_ENV=prod
+      - APP_SECRET=${APP_SECRET}
+      - COMICVINE_API_KEY=${COMICVINE_API_KEY}
+      - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
+      - GEMINI_API_KEYS=${GEMINI_API_KEYS}
+      - GEMINI_MODELS=${GEMINI_MODELS}
+      - GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
+      - MESSENGER_TRANSPORT_DSN=doctrine://default
+      - SERPER_API_KEY=${SERPER_API_KEY}
+      - SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_SUBJECT=${VAPID_SUBJECT}
     restart: unless-stopped
     volumes:
       - app_var:/var/www/html/var
