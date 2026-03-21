@@ -7,6 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Scheduler** : Toutes les tâches récurrentes gérées par Symfony Scheduler (remplace le planificateur NAS)
+- **Worker Docker** : Conteneur dédié avec Supervisor pour Messenger et Scheduler
+- **Re-enrichissement** : Les séries mises à jour avec des champs vides sont automatiquement re-enrichies
+- **Messenger** : File d'erreurs (`failed` transport) et stratégie de retry (max 3, backoff ×2)
+
 ## [v2.17.0] - 2026-03-21
 
 ### Added
