@@ -8,7 +8,7 @@ use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Event\ComicSeriesDeletedEvent;
 use App\Service\ComicSeriesService;
-use App\Service\CoverRemoverInterface;
+use App\Service\Cover\CoverRemoverInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;

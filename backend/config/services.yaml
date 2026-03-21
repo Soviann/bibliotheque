@@ -26,6 +26,9 @@ services:
     App\Service\Cover\Upload\UploadHandlerInterface:
         alias: App\Service\Cover\Upload\VichUploadHandlerAdapter
 
+    App\Service\Notification\NotifierInterface:
+        alias: App\Service\Notification\NotificationService
+
     Google\Client:
         arguments:
             $config:

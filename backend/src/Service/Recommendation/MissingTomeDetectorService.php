@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Recommendation;
 
 use App\DTO\MissingTomeResult;
 use App\Enum\NotificationEntityType;
@@ -10,7 +10,7 @@ use App\Enum\NotificationType;
 use App\Repository\ComicSeriesRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\UserRepository;
-use App\Service\Notification\NotificationService;
+use App\Service\Notification\NotifierInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -22,7 +22,7 @@ class MissingTomeDetectorService
         private readonly ComicSeriesRepository $comicSeriesRepository,
         private readonly LoggerInterface $logger,
         private readonly NotificationRepository $notificationRepository,
-        private readonly NotificationService $notificationService,
+        private readonly NotifierInterface $notifier,
         private readonly UserRepository $userRepository,
     ) {
     }
@@ -69,7 +69,7 @@ class MissingTomeDetectorService
             );
 
             if (!$dryRun) {
-                $this->notificationService->create(
+                \$this->notifier->create(
                     user: $user,
                     type: NotificationType::MISSING_TOME,
                     title: \sprintf('%d tome(s) manquant(s)', \count($missing)),

@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Recommendation;
 
 use App\Entity\SeriesSuggestion;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Repository\SeriesSuggestionRepository;
-use App\Service\Lookup\Gemini\GeminiClientPool;
-use App\Service\Lookup\Gemini\GeminiJsonParser;
+use App\Service\Lookup\Gemini\GeminiQueryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -23,7 +22,7 @@ class SimilarSeriesService
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly GeminiClientPool $geminiClientPool,
+        private readonly GeminiQueryService $geminiQueryService,
         private readonly LoggerInterface $logger,
         private readonly SeriesSuggestionRepository $suggestionRepository,
     ) {
@@ -131,23 +130,6 @@ class SimilarSeriesService
             Retourne UNIQUEMENT le JSON, sans texte avant ou après.
             PROMPT;
 
-        /** @var string $response */
-        $response = $this->geminiClientPool->executeWithRetry(
-            static fn ($client, \BackedEnum|string $model) => $client
-                ->generativeModel(model: $model)
-                ->generateContent($prompt)
-                ->text(),
-        );
-
-        $parsed = GeminiJsonParser::parseJsonFromText($response);
-
-        if (!\is_array($parsed)) {
-            return [];
-        }
-
-        /** @var list<array<string, mixed>> $suggestions */
-        $suggestions = $parsed;
-
-        return $suggestions;
+        return $this->geminiQueryService->queryJsonArray($prompt);
     }
 }

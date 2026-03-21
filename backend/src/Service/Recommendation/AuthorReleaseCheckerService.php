@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Recommendation;
 
 use App\DTO\AuthorReleaseResult;
 use App\Enum\ComicType;
@@ -11,9 +11,8 @@ use App\Enum\NotificationType;
 use App\Repository\AuthorRepository;
 use App\Repository\ComicSeriesRepository;
 use App\Repository\UserRepository;
-use App\Service\Lookup\Gemini\GeminiClientPool;
-use App\Service\Lookup\Gemini\GeminiJsonParser;
-use App\Service\Notification\NotificationService;
+use App\Service\Lookup\Gemini\GeminiQueryService;
+use App\Service\Notification\NotifierInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -24,9 +23,9 @@ class AuthorReleaseCheckerService
     public function __construct(
         private readonly AuthorRepository $authorRepository,
         private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly GeminiClientPool $geminiClientPool,
+        private readonly GeminiQueryService $geminiQueryService,
         private readonly LoggerInterface $logger,
-        private readonly NotificationService $notificationService,
+        private readonly NotifierInterface $notifier,
         private readonly UserRepository $userRepository,
     ) {
     }
@@ -79,7 +78,7 @@ class AuthorReleaseCheckerService
                     );
 
                     if (!$dryRun) {
-                        $this->notificationService->create(
+                        $this->notifier->create(
                             user: $user,
                             type: NotificationType::AUTHOR_NEW_SERIES,
                             title: \sprintf('Nouvelle série de %s', $author->getName()),
@@ -117,23 +116,6 @@ class AuthorReleaseCheckerService
             Retourne UNIQUEMENT le JSON, sans texte.
             PROMPT;
 
-        /** @var string $response */
-        $response = $this->geminiClientPool->executeWithRetry(
-            static fn ($client, \BackedEnum|string $model) => $client
-                ->generativeModel(model: $model)
-                ->generateContent($prompt)
-                ->text(),
-        );
-
-        $parsed = GeminiJsonParser::parseJsonFromText($response);
-
-        if (!\is_array($parsed)) {
-            return [];
-        }
-
-        /** @var list<array<string, mixed>> $results */
-        $results = $parsed;
-
-        return $results;
+        return $this->geminiQueryService->queryJsonArray($prompt);
     }
 }
