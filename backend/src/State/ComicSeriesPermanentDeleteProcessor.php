@@ -7,7 +7,7 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\ComicSeries;
-use App\Service\ComicSeriesService;
+use App\Service\ComicSeries\ComicSeriesService;
 
 /**
  * Suppression définitive d'une série (DBAL) via API Platform.

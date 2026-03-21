@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Service;
+namespace App\Tests\Unit\Service\ComicSeries;
 
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Event\ComicSeriesDeletedEvent;
-use App\Service\ComicSeriesService;
+use App\Service\ComicSeries\ComicSeriesService;
 use App\Service\Cover\CoverRemoverInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;

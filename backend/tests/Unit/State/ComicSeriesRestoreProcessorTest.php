@@ -6,7 +6,7 @@ namespace App\Tests\Unit\State;
 
 use ApiPlatform\Metadata\Operation;
 use App\Entity\ComicSeries;
-use App\Service\ComicSeriesService;
+use App\Service\ComicSeries\ComicSeriesService;
 use App\State\ComicSeriesRestoreProcessor;
 use PHPUnit\Framework\TestCase;
 

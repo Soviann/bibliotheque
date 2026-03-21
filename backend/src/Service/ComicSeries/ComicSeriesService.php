@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\ComicSeries;
 
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;

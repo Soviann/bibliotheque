@@ -7,7 +7,7 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\ComicSeries;
-use App\Service\ComicSeriesService;
+use App\Service\ComicSeries\ComicSeriesService;
 
 /**
  * Soft-delete d'une série via API Platform.

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Service;
+namespace App\Tests\Unit\Service\ComicSeries;
 
 use App\DTO\PurgeableSeries;
 use App\Entity\ComicSeries;
 use App\Repository\ComicSeriesRepository;
-use App\Service\ComicSeriesService;
-use App\Service\PurgeService;
+use App\Service\ComicSeries\ComicSeriesService;
+use App\Service\ComicSeries\PurgeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\FilterCollection;
 use PHPUnit\Framework\MockObject\MockObject;

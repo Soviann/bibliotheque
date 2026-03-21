@@ -7,7 +7,7 @@ namespace App\Controller;
 use App\DTO\BatchLookupSummary;
 use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
-use App\Service\BatchLookupService;
+use App\Service\Lookup\BatchLookupService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
