@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\BnfLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -68,17 +69,9 @@ final class BnfLookupTest extends TestCase
      */
     public function testSupportsIsbnAndTitle(): void
     {
-        self::assertTrue($this->provider->supports('isbn', null));
-        self::assertTrue($this->provider->supports('title', null));
-        self::assertTrue($this->provider->supports('isbn', ComicType::BD));
-    }
-
-    /**
-     * Teste que supports retourne false pour les modes non supportes.
-     */
-    public function testDoesNotSupportOtherModes(): void
-    {
-        self::assertFalse($this->provider->supports('author', null));
+        self::assertTrue($this->provider->supports(LookupMode::ISBN, null));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, null));
+        self::assertTrue($this->provider->supports(LookupMode::ISBN, ComicType::BD));
     }
 
     /**
@@ -102,7 +95,7 @@ final class BnfLookupTest extends TestCase
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('9782723489', null, 'isbn');
+        $this->provider->prepareLookup('9782723489', null, LookupMode::ISBN);
     }
 
     /**
@@ -122,7 +115,7 @@ final class BnfLookupTest extends TestCase
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+        $this->provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
     }
 
     /**

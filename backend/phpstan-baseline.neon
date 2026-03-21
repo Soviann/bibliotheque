@@ -451,13 +451,13 @@ parameters:
 			path: tests/Unit/Service/Lookup/GoogleBooksLookupTest.php
 
 		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:580\:\:\$calledSupportsType is never read, only written\.$#'
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:581\:\:\$calledSupportsType is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php
 
 		-
-			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:580\:\:\$calledWithType is never read, only written\.$#'
+			message: '#^Property App\\Service\\Lookup\\LookupProviderInterface@anonymous/tests/Unit/Service/Lookup/LookupOrchestratorTest\.php\:581\:\:\$calledWithType is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: tests/Unit/Service/Lookup/LookupOrchestratorTest.php

@@ -6,6 +6,7 @@ namespace App\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -62,11 +63,11 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
         ]);
     }
 
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
     {
         $this->resetApiMessage();
 
-        $q = 'isbn' === $mode ? 'isbn:'.$query : $query;
+        $q = LookupMode::ISBN === $mode ? 'isbn:'.$query : $query;
 
         $query = [
             'maxResults' => 10,
@@ -173,9 +174,9 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
         }
     }
 
-    public function supports(string $mode, ?ComicType $type): bool
+    public function supports(LookupMode $mode, ?ComicType $type): bool
     {
-        return \in_array($mode, ['isbn', 'title'], true);
+        return true;
     }
 
     protected function getLogger(): LoggerInterface

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\BedethequeLookup;
 use App\Service\Lookup\GeminiClientPool;
 use App\Service\Lookup\LookupResult;
@@ -48,18 +49,10 @@ final class BedethequeLookupTest extends TestCase
     {
         $provider = $this->createProvider();
 
-        self::assertTrue($provider->supports('title', null));
-        self::assertTrue($provider->supports('title', ComicType::BD));
-        self::assertTrue($provider->supports('isbn', null));
-        self::assertTrue($provider->supports('isbn', ComicType::BD));
-    }
-
-    /**
-     * Teste que supports retourne false pour les modes non supportes.
-     */
-    public function testDoesNotSupportOtherModes(): void
-    {
-        self::assertFalse($this->createProvider()->supports('author', null));
+        self::assertTrue($provider->supports(LookupMode::TITLE, null));
+        self::assertTrue($provider->supports(LookupMode::TITLE, ComicType::BD));
+        self::assertTrue($provider->supports(LookupMode::ISBN, null));
+        self::assertTrue($provider->supports(LookupMode::ISBN, ComicType::BD));
     }
 
     /**
@@ -112,7 +105,7 @@ final class BedethequeLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('Blacksad', ComicType::BD, 'title');
+        $state = $provider->prepareLookup('Blacksad', ComicType::BD, LookupMode::TITLE);
 
         self::assertInstanceOf(LookupResult::class, $state);
         self::assertSame('Blacksad', $state->title);
@@ -137,7 +130,7 @@ final class BedethequeLookupTest extends TestCase
         $limiterFactory->create('gemini_global')->consume();
 
         $provider = $this->createProvider(limiterFactory: $limiterFactory);
-        $state = $provider->prepareLookup('Blacksad', ComicType::BD, 'title');
+        $state = $provider->prepareLookup('Blacksad', ComicType::BD, LookupMode::TITLE);
 
         self::assertNull($state);
 
@@ -154,7 +147,7 @@ final class BedethequeLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('Blacksad', ComicType::BD, 'title');
+        $state = $provider->prepareLookup('Blacksad', ComicType::BD, LookupMode::TITLE);
 
         self::assertIsArray($state);
         self::assertArrayHasKey('cacheKey', $state);
@@ -172,7 +165,7 @@ final class BedethequeLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('9782205049831', ComicType::BD, 'isbn');
+        $state = $provider->prepareLookup('9782205049831', ComicType::BD, LookupMode::ISBN);
 
         self::assertIsArray($state);
         self::assertStringContainsString('9782205049831', $state['prompt']);
@@ -189,7 +182,7 @@ final class BedethequeLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($realCache->getItem('test_key'));
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertIsArray($state);
         self::assertStringContainsString('manga', $state['prompt']);

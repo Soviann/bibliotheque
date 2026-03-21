@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\KitsuLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -52,10 +53,10 @@ final class KitsuLookupTest extends TestCase
 
     public function testSupportsOnlyTitleModeWithMangaType(): void
     {
-        self::assertTrue($this->provider->supports('title', ComicType::MANGA));
-        self::assertFalse($this->provider->supports('isbn', ComicType::MANGA));
-        self::assertFalse($this->provider->supports('title', ComicType::BD));
-        self::assertFalse($this->provider->supports('title', null));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::MANGA));
+        self::assertFalse($this->provider->supports(LookupMode::ISBN, ComicType::MANGA));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, ComicType::BD));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, null));
     }
 
     public function testPrepareLookupSendsGetRequestWithJsonApiHeader(): void

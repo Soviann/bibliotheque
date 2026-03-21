@@ -6,6 +6,7 @@ namespace App\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
@@ -76,7 +77,7 @@ class LookupOrchestrator
             return null;
         }
 
-        $result = $this->doLookup($isbn, $type, 'isbn');
+        $result = $this->doLookup($isbn, $type, LookupMode::ISBN);
 
         if ($result instanceof LookupResult) {
             $result = $result->withIsbn($isbn);
@@ -108,7 +109,7 @@ class LookupOrchestrator
         $prepared = [];
 
         foreach ($this->providers as $provider) {
-            if (!$provider->supports('title', $type)) {
+            if (!$provider->supports(LookupMode::TITLE, $type)) {
                 continue;
             }
 
@@ -117,7 +118,7 @@ class LookupOrchestrator
                     $state = $provider->prepareMultipleLookup($title, $type, $limit);
                     $prepared[] = ['multi' => true, 'provider' => $provider, 'state' => $state];
                 } else {
-                    $state = $provider->prepareLookup($title, $type, 'title');
+                    $state = $provider->prepareLookup($title, $type, LookupMode::TITLE);
                     $prepared[] = ['multi' => false, 'provider' => $provider, 'state' => $state];
                 }
             } catch (\Throwable $e) {
@@ -212,10 +213,10 @@ class LookupOrchestrator
             return null;
         }
 
-        return $this->doLookup($title, $type, 'title');
+        return $this->doLookup($title, $type, LookupMode::TITLE);
     }
 
-    private function doLookup(string $query, ?ComicType $type, string $mode): ?LookupResult
+    private function doLookup(string $query, ?ComicType $type, LookupMode $mode): ?LookupResult
     {
         $this->apiMessages = [];
         $this->sources = [];

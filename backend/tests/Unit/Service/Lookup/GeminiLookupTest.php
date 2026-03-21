@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\GeminiClientPool;
 use App\Service\Lookup\GeminiLookup;
 use App\Service\Lookup\LookupResult;
@@ -61,18 +62,10 @@ final class GeminiLookupTest extends TestCase
     {
         $provider = $this->createProvider();
 
-        self::assertTrue($provider->supports('isbn', null));
-        self::assertTrue($provider->supports('title', null));
-        self::assertTrue($provider->supports('isbn', ComicType::MANGA));
-        self::assertTrue($provider->supports('title', ComicType::BD));
-    }
-
-    /**
-     * Teste que supports retourne false pour les modes non supportes.
-     */
-    public function testDoesNotSupportOtherModes(): void
-    {
-        self::assertFalse($this->createProvider()->supports('author', null));
+        self::assertTrue($provider->supports(LookupMode::ISBN, null));
+        self::assertTrue($provider->supports(LookupMode::TITLE, null));
+        self::assertTrue($provider->supports(LookupMode::ISBN, ComicType::MANGA));
+        self::assertTrue($provider->supports(LookupMode::TITLE, ComicType::BD));
     }
 
     /**
@@ -86,7 +79,7 @@ final class GeminiLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($cacheItem);
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertInstanceOf(LookupResult::class, $state);
         self::assertSame('One Piece', $state->title);
@@ -139,7 +132,7 @@ final class GeminiLookupTest extends TestCase
         $limiterFactory->create('gemini_global')->consume();
 
         $provider = $this->createProvider(limiterFactory: $limiterFactory);
-        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, 'title');
+        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertNull($state);
 
@@ -156,7 +149,7 @@ final class GeminiLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($cacheItem);
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('9782723489003', null, 'isbn');
+        $state = $provider->prepareLookup('9782723489003', null, LookupMode::ISBN);
 
         self::assertIsArray($state);
         self::assertArrayHasKey('cacheKey', $state);
@@ -527,7 +520,7 @@ final class GeminiLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($cacheItem);
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('One Piece', null, 'title');
+        $state = $provider->prepareLookup('One Piece', null, LookupMode::TITLE);
 
         self::assertIsArray($state);
         self::assertStringContainsString('amazonUrl', $state['prompt']);
@@ -542,7 +535,7 @@ final class GeminiLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($cacheItem);
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('Dragon Ball', ComicType::MANGA, 'title');
+        $state = $provider->prepareLookup('Dragon Ball', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertIsArray($state);
         self::assertStringContainsString('Dragon Ball', $state['prompt']);
@@ -718,7 +711,7 @@ final class GeminiLookupTest extends TestCase
         $this->cache->method('getItem')->willReturn($cacheItem);
 
         $provider = $this->createProvider();
-        $state = $provider->prepareLookup('Test', ComicType::MANGA, 'title');
+        $state = $provider->prepareLookup('Test', ComicType::MANGA, LookupMode::TITLE);
 
         // La valeur corrompue est ignoree, on passe au rate limit et on obtient un prompt
         self::assertIsArray($state);
@@ -778,7 +771,7 @@ final class GeminiLookupTest extends TestCase
         $limiterFactory->create('gemini_global')->consume();
 
         $provider = $this->createProvider(limiterFactory: $limiterFactory);
-        $state = $provider->prepareLookup('Test', ComicType::MANGA, 'title');
+        $state = $provider->prepareLookup('Test', ComicType::MANGA, LookupMode::TITLE);
 
         self::assertNull($state);
 

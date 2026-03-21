@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\AbstractLookupProvider;
 use App\Service\Lookup\ApiMessage;
 use App\Service\Lookup\EnrichableLookupProviderInterface;
@@ -308,7 +309,7 @@ final class LookupOrchestratorTest extends TestCase
                 return 'slow_provider';
             }
 
-            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
             {
                 return 'prepared';
             }
@@ -323,7 +324,7 @@ final class LookupOrchestratorTest extends TestCase
                 return new LookupResult(source: 'slow_provider', title: 'Slow Result');
             }
 
-            public function supports(string $mode, ?ComicType $type): bool
+            public function supports(LookupMode $mode, ?ComicType $type): bool
             {
                 return true;
             }
@@ -599,7 +600,7 @@ final class LookupOrchestratorTest extends TestCase
                 return 'type_tracker';
             }
 
-            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
             {
                 $this->calledWithType = $type;
 
@@ -611,7 +612,7 @@ final class LookupOrchestratorTest extends TestCase
                 return new LookupResult(source: 'type_tracker', title: 'Test');
             }
 
-            public function supports(string $mode, ?ComicType $type): bool
+            public function supports(LookupMode $mode, ?ComicType $type): bool
             {
                 $this->calledSupportsType = $type;
 
@@ -1043,7 +1044,7 @@ final class LookupOrchestratorTest extends TestCase
                 return 'multi_state';
             }
 
-            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
             {
                 return 'state';
             }
@@ -1058,7 +1059,7 @@ final class LookupOrchestratorTest extends TestCase
                 return $this->results[0] ?? null;
             }
 
-            public function supports(string $mode, ?ComicType $type): bool
+            public function supports(LookupMode $mode, ?ComicType $type): bool
             {
                 return $this->supports;
             }
@@ -1113,7 +1114,7 @@ final class LookupOrchestratorTest extends TestCase
                 return 'enrich_state';
             }
 
-            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
             {
                 return 'prepared';
             }
@@ -1132,7 +1133,7 @@ final class LookupOrchestratorTest extends TestCase
                 return $this->result;
             }
 
-            public function supports(string $mode, ?ComicType $type): bool
+            public function supports(LookupMode $mode, ?ComicType $type): bool
             {
                 return $this->supports;
             }
@@ -1178,7 +1179,7 @@ final class LookupOrchestratorTest extends TestCase
                 return $this->name;
             }
 
-            public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+            public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
             {
                 if ($this->throwOnPrepare instanceof \Throwable) {
                     throw $this->throwOnPrepare;
@@ -1196,7 +1197,7 @@ final class LookupOrchestratorTest extends TestCase
                 return $this->result;
             }
 
-            public function supports(string $mode, ?ComicType $type): bool
+            public function supports(LookupMode $mode, ?ComicType $type): bool
             {
                 return $this->supports;
             }

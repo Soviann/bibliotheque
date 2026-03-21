@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\ComicVineLookup;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -54,11 +55,11 @@ final class ComicVineLookupTest extends TestCase
 
     public function testSupportsBdAndComicsTitleMode(): void
     {
-        self::assertTrue($this->provider->supports('title', ComicType::BD));
-        self::assertTrue($this->provider->supports('title', ComicType::COMICS));
-        self::assertFalse($this->provider->supports('title', ComicType::MANGA));
-        self::assertFalse($this->provider->supports('isbn', ComicType::BD));
-        self::assertFalse($this->provider->supports('title', null));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::BD));
+        self::assertTrue($this->provider->supports(LookupMode::TITLE, ComicType::COMICS));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, ComicType::MANGA));
+        self::assertFalse($this->provider->supports(LookupMode::ISBN, ComicType::BD));
+        self::assertFalse($this->provider->supports(LookupMode::TITLE, null));
     }
 
     public function testPrepareLookupSendsGetRequestWithApiKey(): void

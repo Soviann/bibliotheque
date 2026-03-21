@@ -6,6 +6,7 @@ namespace App\Service\Lookup;
 
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -69,7 +70,7 @@ final class ComicVineLookup extends AbstractLookupProvider implements MultiResul
         ]);
     }
 
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
     {
         $this->resetApiMessage();
 
@@ -173,9 +174,9 @@ final class ComicVineLookup extends AbstractLookupProvider implements MultiResul
         }
     }
 
-    public function supports(string $mode, ?ComicType $type): bool
+    public function supports(LookupMode $mode, ?ComicType $type): bool
     {
-        return 'title' === $mode && \in_array($type, [ComicType::BD, ComicType::COMICS], true);
+        return LookupMode::TITLE === $mode && \in_array($type, [ComicType::BD, ComicType::COMICS], true);
     }
 
     /**

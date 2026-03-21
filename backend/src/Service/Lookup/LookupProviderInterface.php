@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Lookup;
 
 use App\Enum\ComicType;
+use App\Enum\LookupMode;
 
 /**
  * Interface pour les providers de recherche de données bibliographiques.
@@ -41,11 +42,11 @@ interface LookupProviderInterface
      *
      * @param string         $query ISBN ou titre selon le mode
      * @param ComicType|null $type  Le type de série
-     * @param string         $mode  'isbn' ou 'title'
+     * @param LookupMode     $mode  Mode de recherche (ISBN ou titre)
      *
      * @return mixed État intermédiaire (ResponseInterface, LookupResult depuis cache, null, etc.)
      */
-    public function prepareLookup(string $query, ?ComicType $type, string $mode = 'title'): mixed;
+    public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed;
 
     /**
      * Phase 2 : traite la réponse et retourne le résultat.
@@ -57,8 +58,8 @@ interface LookupProviderInterface
     /**
      * Indique si le provider supporte le mode donné.
      *
-     * @param string         $mode 'isbn' ou 'title'
+     * @param LookupMode     $mode Mode de recherche (ISBN ou titre)
      * @param ComicType|null $type Le type de série (certains providers sont spécifiques à un type)
      */
-    public function supports(string $mode, ?ComicType $type): bool;
+    public function supports(LookupMode $mode, ?ComicType $type): bool;
 }
