@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.19.1] - 2026-03-21
+
 ### Changed
 
 - **Service/** : Réorganisation en sous-domaines (ComicSeries, Cover, Notification, Recommendation, Lookup/{Contract,Gemini,Provider,Util})
