@@ -1,8 +1,9 @@
-import { Loader2, Search, ShoppingCart } from "lucide-react";
+import { Loader2, ShoppingCart } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
 import EmptyState from "../components/EmptyState";
+import SearchInput from "../components/SearchInput";
 import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
@@ -31,16 +32,7 @@ export default function ToBuy() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="relative min-w-0 flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-          <input
-            className="w-full rounded-lg border border-surface-border bg-surface-primary py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Rechercher…"
-            type="search"
-            value={search}
-          />
-        </div>
+        <SearchInput onChange={handleSearchChange} value={search} />
         <span className="flex shrink-0 items-center gap-1.5 text-sm text-text-muted">
           {isFetching && !isLoading && (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
