@@ -10,7 +10,7 @@ use App\Entity\Author;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicType;
-use App\Service\Lookup\GeminiClientPool;
+use App\Service\Lookup\Gemini\GeminiClientPool;
 use App\Service\Merge\MergePreviewBuilder;
 use Gemini\Contracts\ClientContract as GeminiClient;
 use Gemini\Responses\GenerativeModel\GenerateContentResponse;

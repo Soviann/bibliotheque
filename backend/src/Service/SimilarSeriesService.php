@@ -8,8 +8,8 @@ use App\Entity\SeriesSuggestion;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Repository\SeriesSuggestionRepository;
-use App\Service\Lookup\GeminiClientPool;
-use App\Service\Lookup\GeminiJsonParser;
+use App\Service\Lookup\Gemini\GeminiClientPool;
+use App\Service\Lookup\Gemini\GeminiJsonParser;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 

@@ -8,7 +8,7 @@ use App\Enum\ComicType;
 use App\Enum\EnrichmentConfidence;
 use App\Enum\LookupMode;
 use App\Service\Enrichment\ConfidenceScorer;
-use App\Service\Lookup\LookupResult;
+use App\Service\Lookup\Contract\LookupResult;
 use PHPUnit\Framework\TestCase;
 
 /**

@@ -31,7 +31,7 @@ services:
             $config:
                 client_id: '%env(OAUTH_GOOGLE_ID)%'
 
-    App\Service\Lookup\GeminiClientPool:
+    App\Service\Lookup\Gemini\GeminiClientPool:
         arguments:
             $apiKeys: '%env(GEMINI_API_KEYS)%'
             $models: '%env(GEMINI_MODELS)%'

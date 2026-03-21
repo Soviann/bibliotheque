@@ -11,7 +11,7 @@ use App\Repository\ComicSeriesRepository;
 use App\Service\BatchLookupService;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupOrchestrator;
-use App\Service\Lookup\LookupResult;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;

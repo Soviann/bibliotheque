@@ -11,8 +11,8 @@ use App\Enum\NotificationType;
 use App\Repository\AuthorRepository;
 use App\Repository\ComicSeriesRepository;
 use App\Repository\UserRepository;
-use App\Service\Lookup\GeminiClientPool;
-use App\Service\Lookup\GeminiJsonParser;
+use App\Service\Lookup\Gemini\GeminiClientPool;
+use App\Service\Lookup\Gemini\GeminiJsonParser;
 use Psr\Log\LoggerInterface;
 
 /**

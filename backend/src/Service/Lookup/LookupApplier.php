@@ -6,6 +6,7 @@ namespace App\Service\Lookup;
 
 use App\Entity\ComicSeries;
 use App\Repository\AuthorRepository;
+use App\Service\Lookup\Contract\LookupResult;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**

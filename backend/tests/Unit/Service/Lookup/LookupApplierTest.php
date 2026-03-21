@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Service\Lookup;
 
 use App\Repository\AuthorRepository;
 use App\Service\Lookup\LookupApplier;
-use App\Service\Lookup\LookupResult;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Tests\Factory\EntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

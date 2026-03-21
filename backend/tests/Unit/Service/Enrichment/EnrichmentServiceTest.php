@@ -16,7 +16,7 @@ use App\Repository\EnrichmentProposalRepository;
 use App\Service\Enrichment\ConfidenceScorer;
 use App\Service\Enrichment\EnrichmentService;
 use App\Service\Lookup\LookupApplier;
-use App\Service\Lookup\LookupResult;
+use App\Service\Lookup\Contract\LookupResult;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;

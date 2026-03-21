@@ -10,7 +10,7 @@ use App\DTO\MergePreviewTome;
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
-use App\Service\Lookup\GeminiClientPool;
+use App\Service\Lookup\Gemini\GeminiClientPool;
 use Gemini\Data\GoogleSearch;
 use Gemini\Data\Tool;
 use Psr\Log\LoggerInterface;

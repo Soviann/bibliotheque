@@ -6,7 +6,7 @@ namespace App\Service;
 
 use App\DTO\CoverSearchResult;
 use App\Enum\ComicType;
-use App\Service\Lookup\GoogleBooksUrlHelper;
+use App\Service\Lookup\Util\GoogleBooksUrlHelper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;

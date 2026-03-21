@@ -11,7 +11,7 @@ use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\LookupApplier;
 use App\Service\Lookup\LookupOrchestrator;
-use App\Service\Lookup\LookupResult;
+use App\Service\Lookup\Contract\LookupResult;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
