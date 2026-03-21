@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service\Lookup\Provider;
 
-use App\Service\Lookup\Contract\LookupResult;
-
 use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use App\Enum\LookupMode;
+use App\Service\Lookup\Contract\LookupResult;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;

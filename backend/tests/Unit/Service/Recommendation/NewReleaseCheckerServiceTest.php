@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Service;
+namespace App\Tests\Unit\Service\Recommendation;
 
 use App\DTO\NewReleaseProgress;
 use App\Enum\BatchLookupStatus;
 use App\Repository\ComicSeriesRepository;
-use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\Contract\LookupResult;
+use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Recommendation\NewReleaseCheckerService;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;

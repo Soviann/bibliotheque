@@ -6,9 +6,9 @@ namespace App\Tests\Unit\Service\Lookup\Provider;
 
 use App\Enum\ComicType;
 use App\Enum\LookupMode;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Gemini\GeminiClientPool;
 use App\Service\Lookup\Provider\GeminiLookup;
-use App\Service\Lookup\Contract\LookupResult;
 use Gemini\Contracts\ClientContract as GeminiClient;
 use Gemini\Exceptions\ErrorException;
 use Gemini\Responses\GenerativeModel\GenerateContentResponse;

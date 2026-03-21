@@ -69,7 +69,7 @@ class MissingTomeDetectorService
             );
 
             if (!$dryRun) {
-                \$this->notifier->create(
+                $this->notifier->create(
                     user: $user,
                     type: NotificationType::MISSING_TOME,
                     title: \sprintf('%d tome(s) manquant(s)', \count($missing)),

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Lookup\Gemini;
 
 use App\Enum\ApiLookupStatus;
-use App\Service\Lookup\Contract\ApiMessage;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Provider\AbstractLookupProvider;
 use Gemini\Data\GoogleSearch;

@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service\Lookup\Provider;
 
+use App\Enum\ComicType;
+use App\Enum\LookupMode;
 use App\Service\Lookup\Contract\EnrichableLookupProviderInterface;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Gemini\AbstractGeminiLookupProvider;
 use App\Service\Lookup\Gemini\GeminiClientPool;
-
-use App\Enum\ComicType;
-use App\Enum\LookupMode;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;

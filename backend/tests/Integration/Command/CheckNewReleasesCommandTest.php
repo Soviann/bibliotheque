@@ -6,8 +6,8 @@ namespace App\Tests\Integration\Command;
 
 use App\Entity\ComicSeries;
 use App\Enum\ComicStatus;
-use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\Contract\LookupResult;
+use App\Service\Lookup\LookupOrchestrator;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
