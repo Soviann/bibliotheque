@@ -11,6 +11,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **À acheter** : Affichage des tomes manquants en tranches (T.1-3, T.5) au lieu d'une liste (T.1, T.2, T.3, T.5)
 - **Service/** : Réorganisation en sous-domaines (ComicSeries, Cover, Notification, Recommendation, Lookup/{Contract,Gemini,Provider,Util})
 - **GeminiQueryService** : Extraction du pattern dupliqué query+parse Gemini (DRY)
 - **NotifierInterface** : Découplage des services de recommandation de NotificationService

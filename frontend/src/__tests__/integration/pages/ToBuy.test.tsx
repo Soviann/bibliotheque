@@ -55,13 +55,13 @@ describe("ToBuy", () => {
     expect(screen.getByText("Rien à acheter")).toBeInTheDocument();
   });
 
-  it("shows buying series with unbought tomes", () => {
+  it("shows buying series with unbought tomes as ranges", () => {
     const series = makeSeries(1, "One Piece", {
-      unboughtTomeNumbers: [2, 3],
+      unboughtTomeNumbers: [2, 3, 4, 7, 8, 10],
     });
     renderWithComics([series]);
     expect(screen.getByText("One Piece")).toBeInTheDocument();
-    expect(screen.getByText("Prochain : T.2, T.3")).toBeInTheDocument();
+    expect(screen.getByText("Prochain : T.2-4, T.7-8, T.10")).toBeInTheDocument();
   });
 
   it("excludes finished series", () => {

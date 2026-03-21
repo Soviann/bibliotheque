@@ -1,5 +1,5 @@
 import type { ComicSeries } from "../../../types/api";
-import { filterSeriesToBuy, getNextTomesToBuy } from "../../../utils/toBuyUtils";
+import { filterSeriesToBuy, formatTomeRanges, getNextTomesToBuy } from "../../../utils/toBuyUtils";
 
 function makeSeries(overrides: Partial<ComicSeries> = {}): ComicSeries {
   return {
@@ -48,6 +48,32 @@ describe("getNextTomesToBuy", () => {
   it("returns empty array when series has no tomes", () => {
     const series = makeSeries({ unboughtTomeNumbers: [] });
     expect(getNextTomesToBuy(series)).toEqual([]);
+  });
+});
+
+describe("formatTomeRanges", () => {
+  it("returns empty string for empty array", () => {
+    expect(formatTomeRanges([])).toBe("");
+  });
+
+  it("formats a single tome", () => {
+    expect(formatTomeRanges([5])).toBe("T.5");
+  });
+
+  it("formats consecutive tomes as a range", () => {
+    expect(formatTomeRanges([1, 2, 3])).toBe("T.1-3");
+  });
+
+  it("formats mixed ranges and singles", () => {
+    expect(formatTomeRanges([1, 2, 3, 5, 7, 8, 9])).toBe("T.1-3, T.5, T.7-9");
+  });
+
+  it("formats two consecutive tomes as a range", () => {
+    expect(formatTomeRanges([4, 5])).toBe("T.4-5");
+  });
+
+  it("formats all singles", () => {
+    expect(formatTomeRanges([1, 3, 5])).toBe("T.1, T.3, T.5");
   });
 });
 

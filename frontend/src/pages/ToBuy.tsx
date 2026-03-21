@@ -8,7 +8,7 @@ import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
 import { searchComics } from "../utils/searchComics";
-import { filterSeriesToBuy, getNextTomesToBuy } from "../utils/toBuyUtils";
+import { filterSeriesToBuy, formatTomeRanges, getNextTomesToBuy } from "../utils/toBuyUtils";
 
 export default function ToBuy() {
   const { data, isFetching, isLoading } = useComics();
@@ -25,7 +25,7 @@ export default function ToBuy() {
     const sorted = [...searched].sort((a, b) => a.title.localeCompare(b.title, "fr"));
     return sorted.map((comic) => ({
       comic,
-      nextTomes: getNextTomesToBuy(comic).map((n) => `T.${n}`).join(", "),
+      nextTomes: formatTomeRanges(getNextTomesToBuy(comic)),
     }));
   }, [allComics, debouncedSearch]);
 
