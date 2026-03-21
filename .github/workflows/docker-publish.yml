@@ -84,3 +84,15 @@ jobs:
           script: |
             export PATH="/usr/local/bin:$PATH"
             /volume1/docker/bibliotheque/scripts/nas-update.sh
+
+      - name: Collect crash logs on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.NAS_HOST }}
+          username: ${{ secrets.NAS_SSH_USER }}
+          key: ${{ secrets.NAS_SSH_KEY }}
+          port: ${{ secrets.NAS_SSH_PORT }}
+          script: |
+            export PATH="/usr/local/bin:$PATH"
+            /volume1/docker/bibliotheque/scripts/nas-diagnostics.sh 2>&1
