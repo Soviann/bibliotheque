@@ -238,7 +238,7 @@ final class LookupResultTest extends TestCase
      */
     public function testUnserializeWithMissingKeys(): void
     {
-        $serialized = 'O:31:"App\\Service\\Lookup\\LookupResult":2:{s:5:"title";s:4:"Test";s:6:"source";s:4:"test";}';
+        $serialized = 'O:40:"App\\Service\\Lookup\\Contract\\LookupResult":2:{s:5:"title";s:4:"Test";s:6:"source";s:4:"test";}';
 
         /** @var LookupResult $result */
         $result = \unserialize($serialized);
@@ -260,7 +260,7 @@ final class LookupResultTest extends TestCase
      */
     public function testUnserializeWithWrongTypes(): void
     {
-        $serialized = 'O:31:"App\\Service\\Lookup\\LookupResult":10:{s:7:"authors";i:123;s:11:"description";b:1;s:4:"isbn";i:456;s:9:"isOneShot";s:10:"not_a_bool";s:20:"latestPublishedIssue";s:10:"not_an_int";s:13:"publishedDate";i:42;s:9:"publisher";N;s:6:"source";i:999;s:9:"thumbnail";b:0;s:5:"title";i:0;}';
+        $serialized = 'O:40:"App\\Service\\Lookup\\Contract\\LookupResult":10:{s:7:"authors";i:123;s:11:"description";b:1;s:4:"isbn";i:456;s:9:"isOneShot";s:10:"not_a_bool";s:20:"latestPublishedIssue";s:10:"not_an_int";s:13:"publishedDate";i:42;s:9:"publisher";N;s:6:"source";i:999;s:9:"thumbnail";b:0;s:5:"title";i:0;}';
 
         /** @var LookupResult $result */
         $result = \unserialize($serialized);
