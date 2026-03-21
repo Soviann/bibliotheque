@@ -1,4 +1,4 @@
-import { Loader2, ShoppingCart } from "lucide-react";
+import { Loader2, Search, ShoppingCart } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import ComicCard from "../components/ComicCard";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
