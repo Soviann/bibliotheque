@@ -68,6 +68,7 @@ class WebPushService
                 );
             }
 
+            /** @var \Minishlink\WebPush\MessageSentReport $report */
             foreach ($webPush->flush() as $report) {
                 if (!$report->isSuccess()) {
                     $this->logger->warning('Push échoué pour {endpoint} : {reason}', [

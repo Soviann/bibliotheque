@@ -56,6 +56,7 @@ class Notification
     #[Groups(['notification:list', 'notification:read'])]
     private string $message;
 
+    /** @var array<string, mixed>|null */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['notification:list', 'notification:read'])]
     private ?array $metadata;
@@ -84,6 +85,9 @@ class Notification
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private User $user;
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function __construct(
         string $message,
         ?array $metadata,
@@ -119,6 +123,7 @@ class Notification
         return $this->message;
     }
 
+    /** @return array<string, mixed>|null */
     public function getMetadata(): ?array
     {
         return $this->metadata;

@@ -32,7 +32,8 @@ class NotificationRepository extends ServiceEntityRepository
 
     public function markAllRead(User $user): int
     {
-        return $this->createQueryBuilder('n')
+        /** @var int $result */
+        $result = $this->createQueryBuilder('n')
             ->update()
             ->set('n.read', 'true')
             ->andWhere('n.user = :user')
@@ -40,15 +41,20 @@ class NotificationRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->getQuery()
             ->execute();
+
+        return $result;
     }
 
     public function purgeOlderThan(\DateTimeImmutable $before): int
     {
-        return $this->createQueryBuilder('n')
+        /** @var int $result */
+        $result = $this->createQueryBuilder('n')
             ->delete()
             ->andWhere('n.createdAt < :before')
             ->setParameter('before', $before)
             ->getQuery()
             ->execute();
+
+        return $result;
     }
 }
