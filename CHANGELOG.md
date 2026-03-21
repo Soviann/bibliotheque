@@ -7,6 +7,27 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.15.0] - 2026-03-21
+
+### Changed
+
+- **Dépendances** : Met à jour Symfony 7.4.7, API Platform 4.3.1, Tailwind 4.2, Vite 7.3, Vitest 4.1, TanStack Query 5.91
+- **Rector** : Applique les refactorings automatiques (readonly anonymous classes, arrow function return types, union types)
+- **Couvertures** : Remplace le traitement GD brut par `intervention/image` v3 dans `CoverDownloader`
+- **Dates relatives** : Utilise l'API native `Intl.RelativeTimeFormat` au lieu d'un calcul manuel
+- **Lookup** : Nouveau enum `LookupMode` remplace les magic strings `'isbn'`/`'title'` (28 fichiers)
+- **Lookup** : Mutualise `handleHttpException` dans `AbstractLookupProvider`, `hasRateLimitError` dans `LookupOrchestrator`, `createMissingTomes` dans `ComicSeries`
+- **Import Excel** : Extrait `normalizeValue()` pour réduire la duplication
+- **Frontend** : Extrait le composant `SearchInput` réutilisable
+
+### Fixed
+
+- **Dépréciations** : Corrige LiipImagineBundle (`twig.mode: lazy`) et API Platform (`deduplicate_resource_short_names`)
+- **Magic strings** : Remplace `'buying'`/`'bd'` par les constantes d'enum dans le module de fusion
+- **ApiController** : Remplace `empty()` par des conditions Yoda
+- **Fusion** : Corrige la clé de query en dur dans `MergeSeries.tsx`
+- **CS Fixer** : Met à jour la recette Symfony (exclut `bundles.php` et `reference.php`)
+
 ## [v2.14.4] - 2026-03-21
 
 ### Fixed
