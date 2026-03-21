@@ -130,7 +130,7 @@ class AuthorReleaseCheckerService
             return [];
         }
 
-        /** @var list<array<string, mixed>> */
+        /* @var list<array<string, mixed>> */
         return $parsed;
     }
 }

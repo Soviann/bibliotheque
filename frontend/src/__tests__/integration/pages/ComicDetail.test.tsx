@@ -129,7 +129,8 @@ describe("ComicDetail", () => {
     renderComicDetail();
 
     await waitFor(() => {
-      expect(screen.getByText("Akira Toriyama, Eiichiro Oda")).toBeInTheDocument();
+      expect(screen.getByText("Akira Toriyama")).toBeInTheDocument();
+      expect(screen.getByText("Eiichiro Oda")).toBeInTheDocument();
     });
   });
 
