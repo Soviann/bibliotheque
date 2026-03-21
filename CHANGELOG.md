@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.15.1] - 2026-03-21
+
 ### Added
 
 - **Diagnostic production** : Script `nas-diagnostics.sh` collectant état des conteneurs, healthchecks, logs Docker/Symfony, OOM et espace disque
