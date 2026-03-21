@@ -189,7 +189,7 @@ Add in `## [Unreleased]`: `### Added|Changed|Fixed|Removed`. Format: `- **Name**
 Full file map → `memory/patterns.md`
 
 ```
-backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,Event,EventListener,Repository,Service,State}/
+backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,Event,EventListener,Message,MessageHandler,Repository,Service,State}/
 backend/tests/{Unit,Integration,Functional,Factory,Trait}/
 frontend/src/{components,hooks,pages,services,types,__tests__}/
 ```
@@ -211,7 +211,7 @@ Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-cla
 
 ### Symfony Secrets (vault prod)
 
-`APP_SECRET` + `JWT_PASSPHRASE` in encrypted vault (`config/secrets/prod/`). Public key committed, decrypt key gitignored.
+`APP_SECRET` + `JWT_PASSPHRASE` + `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` in encrypted vault (`config/secrets/prod/`). Public key committed, decrypt key gitignored.
 
 ```bash
 ddev exec "cd backend && bin/console secrets:set SECRET_NAME --env=prod"
@@ -219,3 +219,26 @@ ddev exec "cd backend && bin/console secrets:list --env=prod"
 ```
 
 Deploy: `SYMFONY_DECRYPTION_SECRET` env var or copy `prod.decrypt.private.php`. `PlaceholderSecretChecker` blocks prod startup if placeholders remain.
+
+### VAPID Keys (Web Push)
+
+Required for push notifications. Generate once:
+```bash
+# Generate key pair
+ddev exec php -r "use Minishlink\WebPush\VAPID; \$keys = VAPID::createVapidKeys(); echo 'Public: '.\$keys['publicKey'].PHP_EOL.'Private: '.\$keys['privateKey'].PHP_EOL;"
+```
+
+Set in `backend/.env.local` (dev) or Symfony secrets vault (prod):
+```
+VAPID_PUBLIC_KEY=<base64url>
+VAPID_PRIVATE_KEY=<base64url>
+VAPID_SUBJECT=mailto:user@example.com
+```
+
+Frontend needs the public key via `VITE_VAPID_PUBLIC_KEY` env var for push subscription.
+
+### Symfony Messenger
+
+Transport: `doctrine://default` (messages stored in `messenger_messages` table). Test env: `in-memory://`.
+
+Config: `backend/config/packages/messenger.yaml`. Currently routes `EnrichSeriesMessage` → async.
