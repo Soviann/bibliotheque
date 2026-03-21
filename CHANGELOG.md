@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.16.0] - 2026-03-21
+
 ### Added
 
 - **Enrichissement intelligent** : Pipeline d'enrichissement automatique avec scoring de confiance (HIGH → auto-appliqué, MEDIUM → file de revue, LOW → ignoré)
