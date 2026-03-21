@@ -12,7 +12,7 @@ use App\Service\Lookup\LookupResult;
 /**
  * Calcule un score de confiance (0-1) à partir du contexte de requête et du résultat.
  */
-final class ConfidenceScorer
+class ConfidenceScorer
 {
     /**
      * @param list<string> $sources Providers ayant contribué au résultat
