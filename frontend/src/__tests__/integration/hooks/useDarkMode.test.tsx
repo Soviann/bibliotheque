@@ -1,10 +1,22 @@
 import { renderHook, act } from "@testing-library/react";
 import { useDarkMode } from "../../../hooks/useDarkMode";
+import { THEME_COLOR_DARK, THEME_COLOR_LIGHT } from "../../../theme";
 
 describe("useDarkMode", () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.classList.remove("dark");
+
+    // Ensure a theme-color meta tag exists for tests
+    let meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "theme-color");
+      meta.setAttribute("content", THEME_COLOR_LIGHT);
+      document.head.appendChild(meta);
+    } else {
+      meta.setAttribute("content", THEME_COLOR_LIGHT);
+    }
   });
 
   it("reads initial preference from localStorage (dark)", () => {
@@ -77,6 +89,32 @@ describe("useDarkMode", () => {
     expect(result.current.isDark).toBe(true);
 
     window.matchMedia = originalMatchMedia;
+  });
+
+  it("updates theme-color meta tag to dark color when switching to dark mode", () => {
+    localStorage.setItem("theme", "light");
+
+    const { result } = renderHook(() => useDarkMode());
+
+    act(() => {
+      result.current.toggle();
+    });
+
+    const meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    expect(meta).toHaveAttribute("content", THEME_COLOR_DARK);
+  });
+
+  it("updates theme-color meta tag to light color when switching to light mode", () => {
+    localStorage.setItem("theme", "dark");
+
+    const { result } = renderHook(() => useDarkMode());
+
+    act(() => {
+      result.current.toggle();
+    });
+
+    const meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    expect(meta).toHaveAttribute("content", THEME_COLOR_LIGHT);
   });
 
   it("persists preference in localStorage", () => {

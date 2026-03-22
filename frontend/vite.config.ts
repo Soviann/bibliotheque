@@ -16,21 +16,53 @@ export default defineConfig({
         name: "Bibliothèque",
         short_name: "Biblio",
         description: "Gestionnaire de bibliothèque BD/Manga",
+        categories: ["utilities"],
+        display: "standalone",
+        id: "/",
+        scope: "/",
+        start_url: "/",
         theme_color: "#1e40af",
         background_color: "#0f172a",
-        display: "standalone",
         icons: [
           {
             src: "/icon-192.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
+          },
+          {
+            src: "/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
           },
           {
             src: "/icon-512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
+          },
+          {
+            src: "/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+        screenshots: [
+          {
+            src: "/screenshots/desktop.png",
+            sizes: "1280x800",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Bibliothèque — vue collection",
+          },
+          {
+            src: "/screenshots/mobile.png",
+            sizes: "390x844",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Bibliothèque — vue mobile",
           },
         ],
       },
@@ -42,6 +74,19 @@ export default defineConfig({
   ],
   build: {
     target: "chrome64",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-query": [
+            "@tanstack/react-query",
+            "@tanstack/react-query-persist-client",
+            "@tanstack/react-virtual",
+          ],
+          "vendor-ui": ["@headlessui/react", "lucide-react"],
+        },
+      },
+    },
   },
   server: {
     host: "0.0.0.0",

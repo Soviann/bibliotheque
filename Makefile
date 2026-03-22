@@ -137,7 +137,7 @@ rector-dry: ## Prévisualiser les refactorings Rector (dry-run)
 
 # ── Build ─────────────────────────────────────────
 
-.PHONY: build serve-prod verify-build
+.PHONY: build serve-prod verify-build lighthouse
 
 build: ## Compiler le frontend pour la production
 	cd $(FRONT) && npm run build
@@ -151,6 +151,10 @@ verify-build: ## Vérifier que le build prod ne contient pas de code de debug
 	@cd $(FRONT) && ! grep -q "ReactQueryDevtools" dist/assets/*.js \
 		&& printf "  $(GREEN)✓$(RESET) Pas de ReactQueryDevtools dans le bundle\n" \
 		|| (printf "  $(CYAN)✗$(RESET) ReactQueryDevtools trouvé dans le bundle !\n" && exit 1)
+
+lighthouse: ## Lancer un audit Lighthouse CI sur le build prod
+	$(MAKE) build
+	cd $(FRONT) && npx lhci autorun
 
 # ── Symfony ───────────────────────────────────────
 
