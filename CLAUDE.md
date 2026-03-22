@@ -70,12 +70,16 @@ PHP-CS-Fixer and PHPStan: run before committing, only on modified files.
 
 1. `declare(strict_types=1);` at top of each file
 2. Prefix native functions: `\array_map()`, `\sprintf()`, `\count()`
-3. Method order: `__construct()` → `public` → `protected` → `private`
-4. Arguments on one line (constructors with promotion: one per line)
-5. Alphabetical sorting: constructor assignments, array keys, YAML keys
-6. Documentation in French
-7. Symfony standards
-8. **Prefer DTOs over arrays**: `readonly` DTO classes in `src/DTO/` (domain) or same namespace. `JsonSerializable` only for API/cache.
+3. Prefer `u()` (String component) over native string functions
+4. Yoda conditions: `if (null === $var)` not `if ($var === null)`
+5. Method order: `__construct()` → `public` → `protected` → `private`
+6. Arguments on one line (constructors with promotion: one per line)
+7. Alphabetical sorting: constructor assignments, array keys, YAML keys
+8. No magic strings: use constants or enums for domain values reused across files
+9. PHPStan level 9 — never ignore/lower
+10. Documentation in French
+11. `@Symfony` CS Fixer ruleset + Symfony standards
+12. **Prefer DTOs over arrays**: `readonly` DTO classes in `src/DTO/` (domain) or same namespace. `JsonSerializable` only for API/cache.
 
 **Entity validation**: `$this->validator->validate($entity)` before persist.
 
@@ -120,9 +124,15 @@ Run CS-Fixer and tests afterwards.
 
 ## Git
 
-### Commits
-
-**Always** reference the issue: `#N` in body or `fixes #N` to auto-close.
+- Format: `<type>(scope): description` — types: `feat|fix|chore|refactor|docs`
+- French descriptions use 3rd-person imperative: `ajoute`, `corrige`, `supprime` (not infinitive)
+- Commit title = visible impact, not implementation detail. Technical details in body.
+  - `fix`: the problem solved. BAD: `utilise PATCH au lieu de PUT`. GOOD: `corrige la perte des tomes`
+  - `feat`: the capability added. BAD: `ajoute CoverSearchService`. GOOD: `ajoute la recherche de couvertures`
+- Never commit `docs/plans/` — always `git reset docs/plans/` before committing
+- Skip `git diff` when you made the edits — only diff to discover changes you didn't make
+- Merges: `--no-ff`
+- **Always** reference the issue: `#N` in body or `fixes #N` to auto-close.
 
 ### Branches (GitHub Flow)
 
@@ -243,3 +253,13 @@ Frontend needs the public key via `VITE_VAPID_PUBLIC_KEY` env var for push subsc
 Transport: `doctrine://default` (messages stored in `messenger_messages` table). Test env: `in-memory://`.
 
 Config: `backend/config/packages/messenger.yaml`. Currently routes `EnrichSeriesMessage` → async.
+
+## Language
+
+- Commits + docs/comments: French
+- Code identifiers: English
+- CLAUDE.md: English
+
+## Recommended Plugins
+
+Install for the best experience: `php-lsp`, `context7`, `superpowers`, `pr-review-toolkit`, `commit-commands`, `hookify`, `code-simplifier`.
