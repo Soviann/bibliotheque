@@ -148,6 +148,4 @@ jobs:
 
       - name: Run Lighthouse CI
         working-directory: frontend
-        env:
-          CHROME_FLAGS: "--headless=new --no-sandbox --disable-gpu"
         run: npx lhci autorun
