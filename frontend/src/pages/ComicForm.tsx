@@ -275,7 +275,7 @@ export default function ComicForm() {
               <>
                 <img
                   alt="Aperçu"
-                  className="mt-2 h-48 cursor-pointer rounded-lg shadow"
+                  className="mt-2 h-48 w-36 cursor-pointer rounded-lg object-cover shadow"
                   onClick={() => setLightboxOpen(true)}
                   src={form.coverUrl}
                 />

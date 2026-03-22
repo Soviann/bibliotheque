@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ComicStatus, ComicStatusShortLabel, ComicType, ComicTypeLabel } from "../types/enums";
 
 interface FilterChipsProps {
@@ -22,7 +23,7 @@ const statusChips: ChipDef[] = Object.values(ComicStatus).map((value) => ({
   value,
 }));
 
-function Chip({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+const Chip = memo(function Chip({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
   return (
     <button
       aria-pressed={active}
@@ -37,7 +38,7 @@ function Chip({ active, label, onClick }: { active: boolean; label: string; onCl
       {label}
     </button>
   );
-}
+});
 
 export default function FilterChips({ onStatusChange, onTypeChange, status, type }: FilterChipsProps) {
   return (
