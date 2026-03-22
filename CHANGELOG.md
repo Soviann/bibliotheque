@@ -7,6 +7,19 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Lighthouse CI** : Audit automatique des performances, accessibilité et bonnes pratiques dans le pipeline CI
+- **Screenshots PWA** : Captures desktop et mobile pour l'invite d'installation
+
+### Changed
+
+- **Manifeste PWA** : Séparation des icônes any/maskable, ajout de start_url, scope, id, categories et screenshots
+- **Meta HTML** : Ajout de description, theme-color sombre, et fallback noscript
+- **Mode sombre** : Synchronisation dynamique du theme-color avec le mode sombre/clair
+- **Build** : Découpage des chunks vendor (react, tanstack, UI) pour un meilleur cache navigateur
+- **Images** : Ajout des dimensions explicites pour éviter le CLS (Cumulative Layout Shift)
+
 ## [v2.19.1] - 2026-03-21
 
 ### Changed

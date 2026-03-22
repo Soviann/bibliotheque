@@ -31,8 +31,10 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
           <img
             alt={comic.title}
             className="h-full w-full object-cover"
+            height={200}
             loading="lazy"
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
+            width={150}
           />
         </div>
         {/* Info */}
@@ -68,8 +70,10 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
         <img
           alt={comic.title}
           className="h-full w-full object-cover transition group-hover:scale-105"
+          height={200}
           loading="lazy"
           src={coverSrc ?? ComicTypePlaceholder[comic.type]}
+          width={150}
         />
         {isNewRelease && (
           <span

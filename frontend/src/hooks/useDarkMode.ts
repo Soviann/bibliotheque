@@ -13,6 +13,11 @@ export function useDarkMode() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
     localStorage.setItem("theme", isDark ? "dark" : "light");
+
+    const meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (meta) {
+      meta.setAttribute("content", isDark ? "#0f172a" : "#1e40af");
+    }
   }, [isDark]);
 
   const toggle = useCallback(() => setIsDark((prev) => !prev), []);
