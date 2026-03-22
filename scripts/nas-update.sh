@@ -110,6 +110,10 @@ if try_deploy; then
     # Migrations
     docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
     log "Migrations exécutées."
+
+    # Miniatures de couverture (LiipImagine)
+    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console app:warm-thumbnails --env=prod 2>&1 | tee -a "$LOG_FILE"
+    log "Miniatures de couverture générées."
     log "=== Mise à jour terminée (${TARGET_TAG}) ==="
     exit 0
 fi
