@@ -54,4 +54,18 @@ describe("CoverImage", () => {
 
     expect(container.firstChild).toHaveClass("custom-class");
   });
+
+  it("uses object-cover by default", () => {
+    render(<CoverImage alt="Test" src="/test.webp" />);
+
+    expect(screen.getByAltText("Test").className).toContain("object-cover");
+  });
+
+  it("supports objectFit=contain", () => {
+    render(<CoverImage alt="Test" objectFit="contain" src="/test.webp" />);
+
+    const img = screen.getByAltText("Test");
+    expect(img.className).toContain("object-contain");
+    expect(img.className).not.toContain("object-cover");
+  });
 });

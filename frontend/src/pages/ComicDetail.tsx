@@ -354,6 +354,7 @@ export default function ComicDetail() {
             className={`w-full max-h-64 md:max-h-none rounded-lg shadow${coverSrc ? " cursor-pointer" : ""}`}
             fallbackSrc={ComicTypePlaceholder[comic.type]}
             loading="eager"
+            objectFit="contain"
             onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
           />

@@ -6,6 +6,7 @@ interface CoverImageProps {
   fallbackSrc?: string;
   height?: number;
   loading?: "eager" | "lazy";
+  objectFit?: "contain" | "cover";
   onClick?: () => void;
   src: string;
   width?: number;
@@ -17,6 +18,7 @@ export default function CoverImage({
   fallbackSrc,
   height,
   loading = "lazy",
+  objectFit = "cover",
   onClick,
   src,
   width,
@@ -34,7 +36,7 @@ export default function CoverImage({
       )}
       <img
         alt={alt}
-        className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+        className={`h-full w-full ${objectFit === "contain" ? "object-contain" : "object-cover"} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
         height={height}
         loading={loading}
         onClick={onClick}
