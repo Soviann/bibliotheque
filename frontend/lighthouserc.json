@@ -4,8 +4,9 @@
       "staticDistDir": "dist",
       "url": ["/"],
       "settings": {
-        "chromeFlags": "--headless=new --no-sandbox"
-      }
+        "chromeFlags": ["--headless=new", "--no-sandbox", "--disable-gpu"]
+      },
+      "numberOfRuns": 1
     },
     "assert": {
       "assertions": {
