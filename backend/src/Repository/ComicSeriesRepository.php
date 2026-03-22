@@ -156,6 +156,23 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les séries ayant une couverture locale (coverImage non null).
+     *
+     * @return ComicSeries[]
+     */
+    public function findWithLocalCover(): array
+    {
+        /** @var ComicSeries[] $result */
+        $result = $this->createQueryBuilder('c')
+            ->where('c.coverImage IS NOT NULL')
+            ->orderBy('c.title', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
+    /**
      * Retourne les séries dont au moins un champ remplissable par lookup est vide.
      *
      * @return ComicSeries[]

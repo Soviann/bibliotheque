@@ -1105,8 +1105,10 @@ describe("ComicDetail", () => {
 
     await waitFor(() => {
       const img = screen.getByAltText("Mobile Cover");
-      expect(img.className).toContain("max-h-64");
-      expect(img.className).toContain("md:max-h-none");
+      // CoverImage : les classes de dimension sont sur le wrapper (parent de l'img)
+      const wrapper = img.closest("[class*='max-h-64']");
+      expect(wrapper).not.toBeNull();
+      expect(wrapper?.className).toContain("md:max-h-none");
     });
   });
 

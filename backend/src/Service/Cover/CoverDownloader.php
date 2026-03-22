@@ -25,6 +25,7 @@ readonly class CoverDownloader
         private HttpClientInterface $httpClient,
         private ImageManager $imageManager,
         private LoggerInterface $logger,
+        private ThumbnailGenerator $thumbnailGenerator,
         private UploadHandlerInterface $uploadHandler,
     ) {
     }
@@ -67,6 +68,10 @@ readonly class CoverDownloader
 
             $series->setCoverFile(new ReplacingFile($tempPath));
             $this->uploadHandler->upload($series, 'coverFile');
+
+            if (null !== $series->getCoverImage()) {
+                $this->thumbnailGenerator->generate($series->getCoverImage());
+            }
 
             return true;
         } catch (\Throwable $e) {

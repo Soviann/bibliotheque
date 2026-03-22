@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGoBack } from "../hooks/useGoBack";
 import { toast } from "sonner";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
+import CoverImage from "../components/CoverImage";
 import CoverLightbox from "../components/CoverLightbox";
 import EmptyState from "../components/EmptyState";
 import ProgressBar from "../components/ProgressBar";
@@ -348,9 +349,12 @@ export default function ComicDetail() {
       <div className="flex flex-col gap-6 md:flex-row">
         {/* Cover */}
         <div className="w-full md:w-48">
-          <img
+          <CoverImage
             alt={comic.title}
-            className={`w-full max-h-64 md:max-h-none object-contain rounded-lg shadow${coverSrc ? " cursor-pointer" : ""}`}
+            className={`w-full max-h-64 md:max-h-none rounded-lg shadow${coverSrc ? " cursor-pointer" : ""}`}
+            fallbackSrc={ComicTypePlaceholder[comic.type]}
+            loading="eager"
+            objectFit="contain"
             onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
           />

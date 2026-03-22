@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Cover;
 
 use App\Service\Cover\CoverDownloader;
+use App\Service\Cover\ThumbnailGenerator;
 use App\Service\Cover\Upload\UploadHandlerInterface;
 use App\Tests\Factory\EntityFactory;
 use Intervention\Image\ImageManager;
@@ -19,10 +20,12 @@ use Symfony\Component\HttpClient\Response\MockResponse;
  */
 final class CoverDownloaderTest extends TestCase
 {
+    private ThumbnailGenerator&MockObject $thumbnailGenerator;
     private UploadHandlerInterface&MockObject $uploadHandler;
 
     protected function setUp(): void
     {
+        $this->thumbnailGenerator = $this->createMock(ThumbnailGenerator::class);
         $this->uploadHandler = $this->createMock(UploadHandlerInterface::class);
     }
 
@@ -30,7 +33,7 @@ final class CoverDownloaderTest extends TestCase
     {
         $imageData = $this->createTestImage(800, 1200);
         $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/cover.jpg');
@@ -47,7 +50,7 @@ final class CoverDownloaderTest extends TestCase
     {
         $imageData = $this->createTestImage(1200, 1800);
         $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $downloader->downloadAndStore($series, 'https://example.com/cover.jpg');
@@ -68,7 +71,7 @@ final class CoverDownloaderTest extends TestCase
     {
         $imageData = $this->createTestImage(200, 300);
         $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $downloader->downloadAndStore($series, 'https://example.com/small.jpg');
@@ -87,7 +90,7 @@ final class CoverDownloaderTest extends TestCase
     public function testDownloadReturnsFalseOnHttpError(): void
     {
         $httpClient = new MockHttpClient([new MockResponse('', ['http_code' => 404])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/missing.jpg');
@@ -99,7 +102,7 @@ final class CoverDownloaderTest extends TestCase
     public function testDownloadReturnsFalseOnInvalidImage(): void
     {
         $httpClient = new MockHttpClient([new MockResponse('not an image', ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/bad.txt');
@@ -111,13 +114,49 @@ final class CoverDownloaderTest extends TestCase
     public function testDownloadReturnsFalseOnEmptyBody(): void
     {
         $httpClient = new MockHttpClient([new MockResponse('', ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/empty');
 
         self::assertFalse($result);
         self::assertNull($series->getCoverFile());
+    }
+
+    public function testDownloadAndStoreGeneratesThumbnail(): void
+    {
+        $imageData = $this->createTestImage(800, 1200);
+        $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+
+        // Simule le comportement de VichUploader qui définit coverImage après upload
+        $this->uploadHandler->method('upload')
+            ->willReturnCallback(static function (object $entity): void {
+                \assert($entity instanceof \App\Entity\ComicSeries);
+                $entity->setCoverImage('cover_test.webp');
+            });
+
+        $this->thumbnailGenerator->expects(self::once())
+            ->method('generate')
+            ->with('cover_test.webp');
+
+        $series = EntityFactory::createComicSeries('Test');
+        $downloader->downloadAndStore($series, 'https://example.com/cover.jpg');
+
+        // Nettoyage
+        @\unlink($series->getCoverFile()?->getPathname() ?? '');
+    }
+
+    public function testDownloadDoesNotGenerateThumbnailOnFailure(): void
+    {
+        $httpClient = new MockHttpClient([new MockResponse('', ['http_code' => 404])]);
+        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+
+        $this->thumbnailGenerator->expects(self::never())
+            ->method('generate');
+
+        $series = EntityFactory::createComicSeries('Test');
+        $downloader->downloadAndStore($series, 'https://example.com/missing.jpg');
     }
 
     private function createTestImage(int $width, int $height): string

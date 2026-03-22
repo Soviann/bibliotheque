@@ -275,7 +275,7 @@ describe("Trash", () => {
 
     await waitFor(() => {
       const img = screen.getByAltText("Local Cover");
-      expect(img).toHaveAttribute("src", "/uploads/covers/local.webp");
+      expect(img).toHaveAttribute("src", "/media/cache/cover_thumbnail/uploads/covers/local.webp");
     });
   });
 

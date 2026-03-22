@@ -4,8 +4,9 @@ import { memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ComicSeries } from "../types/api";
 import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
-import { getCoverSrc } from "../utils/coverUtils";
+import { getCoverSrc, getCoverThumbnailSrc } from "../utils/coverUtils";
 import { hasNewRelease } from "../utils/releaseUtils";
+import CoverImage from "./CoverImage";
 import SyncPendingIndicator from "./SyncPendingIndicator";
 
 interface ComicCardProps {
@@ -16,7 +17,7 @@ interface ComicCardProps {
 
 export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
   const navigate = useNavigate();
-  const coverSrc = getCoverSrc(comic);
+  const coverSrc = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
   const total = Math.max(comic.latestPublishedIssue ?? 0, comic.coveredCount);
   const showStats = !comic.isOneShot && comic.tomesCount > 0;
   const hasActions = !!onDelete;
@@ -27,16 +28,14 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
     return (
       <div className="group block overflow-hidden rounded-xl border border-surface-border bg-surface-primary opacity-75 shadow-sm">
         {/* Cover */}
-        <div className="aspect-[3/4] overflow-hidden bg-surface-tertiary">
-          <img
-            alt={comic.title}
-            className="h-full w-full object-cover"
-            height={200}
-            loading="lazy"
-            src={coverSrc ?? ComicTypePlaceholder[comic.type]}
-            width={150}
-          />
-        </div>
+        <CoverImage
+          alt={comic.title}
+          className="aspect-[3/4]"
+          fallbackSrc={ComicTypePlaceholder[comic.type]}
+          height={200}
+          src={coverSrc ?? ComicTypePlaceholder[comic.type]}
+          width={150}
+        />
         {/* Info */}
         <div className="p-2">
           <div className="flex items-start gap-1">
@@ -67,11 +66,11 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
     >
       {/* Cover */}
       <div className="relative aspect-[3/4] overflow-hidden bg-surface-tertiary">
-        <img
+        <CoverImage
           alt={comic.title}
-          className="h-full w-full object-cover transition group-hover:scale-105"
+          className="h-full w-full transition group-hover:scale-105"
+          fallbackSrc={ComicTypePlaceholder[comic.type]}
           height={200}
-          loading="lazy"
           src={coverSrc ?? ComicTypePlaceholder[comic.type]}
           width={150}
         />
