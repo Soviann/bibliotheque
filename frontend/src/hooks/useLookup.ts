@@ -4,6 +4,8 @@ import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 
+const STALE_TIME_24H = 24 * 60 * 60 * 1000;
+
 export function useLookupIsbn(isbn: string, type?: string) {
   const params = new URLSearchParams({ isbn });
   if (type) params.set("type", type);
@@ -12,6 +14,7 @@ export function useLookupIsbn(isbn: string, type?: string) {
     enabled: isbn.length >= 10,
     queryFn: () => apiFetch<LookupResult>(`${endpoints.lookup.isbn}?${params}`),
     queryKey: queryKeys.lookup.isbn(isbn, type),
+    staleTime: STALE_TIME_24H,
   });
 }
 
@@ -23,6 +26,7 @@ export function useLookupTitle(title: string, type?: string) {
     enabled: title.length >= 2,
     queryFn: () => apiFetch<LookupResult>(`${endpoints.lookup.title}?${params}`),
     queryKey: queryKeys.lookup.title(title, type),
+    staleTime: STALE_TIME_24H,
   });
 }
 
@@ -34,6 +38,7 @@ export function useLookupTitleCandidates(title: string, type?: string, limit = 5
     enabled: title.length >= 2,
     queryFn: () => apiFetch<LookupCandidatesResponse>(`${endpoints.lookup.title}?${params}`),
     queryKey: queryKeys.lookup.titleCandidates(title, type, limit),
+    staleTime: STALE_TIME_24H,
   });
 }
 
