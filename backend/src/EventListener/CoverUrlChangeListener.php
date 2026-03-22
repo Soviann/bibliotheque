@@ -5,23 +5,20 @@ declare(strict_types=1);
 namespace App\EventListener;
 
 use App\Entity\ComicSeries;
-use App\Service\Cover\CoverDownloader;
+use App\Message\DownloadCoverMessage;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Télécharge automatiquement la couverture quand coverUrl change sur une ComicSeries.
- *
- * Utilise preUpdate pour accéder au changeset et modifier l'entité avant le flush.
+ * Dispatche un message asynchrone pour télécharger la couverture quand coverUrl change.
  */
 #[AsDoctrineListener(event: Events::preUpdate)]
 final readonly class CoverUrlChangeListener
 {
     public function __construct(
-        private CoverDownloader $coverDownloader,
-        private EntityManagerInterface $entityManager,
+        private MessageBusInterface $messageBus,
     ) {
     }
 
@@ -44,12 +41,12 @@ final readonly class CoverUrlChangeListener
             return;
         }
 
-        if ($this->coverDownloader->downloadAndStore($entity, $newUrl)) {
-            // Recalculer le changeset pour inclure coverFile/coverImage
-            $this->entityManager->getUnitOfWork()->recomputeSingleEntityChangeSet(
-                $this->entityManager->getClassMetadata(ComicSeries::class),
-                $entity,
-            );
+        $seriesId = $entity->getId();
+
+        if (null === $seriesId) {
+            return;
         }
+
+        $this->messageBus->dispatch(new DownloadCoverMessage($seriesId, $newUrl));
     }
 }

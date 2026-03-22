@@ -6,97 +6,89 @@ namespace App\Tests\Unit\EventListener;
 
 use App\Entity\ComicSeries;
 use App\EventListener\CoverUrlChangeListener;
-use App\Service\Cover\CoverDownloader;
+use App\Message\DownloadCoverMessage;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\UnitOfWork;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Tests unitaires pour CoverUrlChangeListener.
  */
 final class CoverUrlChangeListenerTest extends TestCase
 {
-    private CoverDownloader&MockObject $coverDownloader;
-    private CoverUrlChangeListener $listener;
     private EntityManagerInterface&MockObject $entityManager;
+    private CoverUrlChangeListener $listener;
+    private MessageBusInterface&MockObject $messageBus;
 
     protected function setUp(): void
     {
-        $this->coverDownloader = $this->createMock(CoverDownloader::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->listener = new CoverUrlChangeListener($this->coverDownloader, $this->entityManager);
+        $this->messageBus = $this->createMock(MessageBusInterface::class);
+        $this->listener = new CoverUrlChangeListener($this->messageBus);
     }
 
-    public function testDownloadsWhenCoverUrlChanges(): void
+    public function testDispatchesMessageWhenCoverUrlChanges(): void
     {
-        $series = EntityFactory::createComicSeries('Test');
+        $series = $this->createSeriesWithId(42);
 
         $changeSet = ['coverUrl' => ['https://old.com/cover.jpg', 'https://new.com/cover.jpg']];
         $args = new PreUpdateEventArgs($series, $this->entityManager, $changeSet);
 
-        $this->coverDownloader->expects(self::once())
-            ->method('downloadAndStore')
-            ->with($series, 'https://new.com/cover.jpg')
-            ->willReturn(true);
-
-        $uow = $this->createMock(UnitOfWork::class);
-        $uow->expects(self::once())->method('recomputeSingleEntityChangeSet');
-        $this->entityManager->method('getUnitOfWork')->willReturn($uow);
-        $this->entityManager->method('getClassMetadata')->willReturn(
-            new ClassMetadata(ComicSeries::class)
-        );
+        $this->messageBus->expects(self::once())
+            ->method('dispatch')
+            ->with(self::callback(
+                static fn ($msg) => $msg instanceof DownloadCoverMessage
+                    && 42 === $msg->seriesId
+                    && 'https://new.com/cover.jpg' === $msg->coverUrl,
+            ))
+            ->willReturn(new Envelope(new DownloadCoverMessage(42, 'https://new.com/cover.jpg')));
 
         $this->listener->preUpdate($args);
     }
 
-    public function testDownloadsWhenCoverUrlSetFromNull(): void
+    public function testDispatchesMessageWhenCoverUrlSetFromNull(): void
     {
-        $series = EntityFactory::createComicSeries('Test');
+        $series = $this->createSeriesWithId(10);
 
         $changeSet = ['coverUrl' => [null, 'https://new.com/cover.jpg']];
         $args = new PreUpdateEventArgs($series, $this->entityManager, $changeSet);
 
-        $this->coverDownloader->expects(self::once())
-            ->method('downloadAndStore')
-            ->with($series, 'https://new.com/cover.jpg')
-            ->willReturn(true);
-
-        $uow = $this->createMock(UnitOfWork::class);
-        $uow->expects(self::once())->method('recomputeSingleEntityChangeSet');
-        $this->entityManager->method('getUnitOfWork')->willReturn($uow);
-        $this->entityManager->method('getClassMetadata')->willReturn(
-            new ClassMetadata(ComicSeries::class)
-        );
+        $this->messageBus->expects(self::once())
+            ->method('dispatch')
+            ->with(self::callback(
+                static fn ($msg) => $msg instanceof DownloadCoverMessage
+                    && 10 === $msg->seriesId
+                    && 'https://new.com/cover.jpg' === $msg->coverUrl,
+            ))
+            ->willReturn(new Envelope(new DownloadCoverMessage(10, 'https://new.com/cover.jpg')));
 
         $this->listener->preUpdate($args);
     }
 
-    public function testDoesNotDownloadWhenCoverUrlCleared(): void
+    public function testDoesNotDispatchWhenCoverUrlCleared(): void
     {
         $series = EntityFactory::createComicSeries('Test');
 
         $changeSet = ['coverUrl' => ['https://old.com/cover.jpg', null]];
         $args = new PreUpdateEventArgs($series, $this->entityManager, $changeSet);
 
-        $this->coverDownloader->expects(self::never())
-            ->method('downloadAndStore');
+        $this->messageBus->expects(self::never())->method('dispatch');
 
         $this->listener->preUpdate($args);
     }
 
-    public function testDoesNotDownloadWhenCoverUrlUnchanged(): void
+    public function testDoesNotDispatchWhenCoverUrlUnchanged(): void
     {
         $series = EntityFactory::createComicSeries('Test');
 
         $changeSet = ['title' => ['Old Title', 'New Title']];
         $args = new PreUpdateEventArgs($series, $this->entityManager, $changeSet);
 
-        $this->coverDownloader->expects(self::never())
-            ->method('downloadAndStore');
+        $this->messageBus->expects(self::never())->method('dispatch');
 
         $this->listener->preUpdate($args);
     }
@@ -108,22 +100,40 @@ final class CoverUrlChangeListenerTest extends TestCase
         $changeSet = ['coverUrl' => [null, 'https://new.com/cover.jpg']];
         $args = new PreUpdateEventArgs($entity, $this->entityManager, $changeSet);
 
-        $this->coverDownloader->expects(self::never())
-            ->method('downloadAndStore');
+        $this->messageBus->expects(self::never())->method('dispatch');
 
         $this->listener->preUpdate($args);
     }
 
-    public function testDoesNotDownloadWhenCoverUrlSameValue(): void
+    public function testDoesNotDispatchWhenCoverUrlSameValue(): void
     {
         $series = EntityFactory::createComicSeries('Test');
 
         $changeSet = ['coverUrl' => ['https://same.com/cover.jpg', 'https://same.com/cover.jpg']];
         $args = new PreUpdateEventArgs($series, $this->entityManager, $changeSet);
 
-        $this->coverDownloader->expects(self::never())
-            ->method('downloadAndStore');
+        $this->messageBus->expects(self::never())->method('dispatch');
 
         $this->listener->preUpdate($args);
+    }
+
+    public function testDoesNotDispatchWhenSeriesHasNoId(): void
+    {
+        $series = EntityFactory::createComicSeries('Test');
+
+        $changeSet = ['coverUrl' => [null, 'https://new.com/cover.jpg']];
+        $args = new PreUpdateEventArgs($series, $this->entityManager, $changeSet);
+
+        $this->messageBus->expects(self::never())->method('dispatch');
+
+        $this->listener->preUpdate($args);
+    }
+
+    private function createSeriesWithId(int $id): ComicSeries&MockObject
+    {
+        $series = $this->createMock(ComicSeries::class);
+        $series->method('getId')->willReturn($id);
+
+        return $series;
     }
 }
