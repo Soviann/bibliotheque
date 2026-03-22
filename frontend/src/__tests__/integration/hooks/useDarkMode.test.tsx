@@ -1,5 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useDarkMode } from "../../../hooks/useDarkMode";
+import { THEME_COLOR_DARK, THEME_COLOR_LIGHT } from "../../../theme";
 
 describe("useDarkMode", () => {
   beforeEach(() => {
@@ -11,10 +12,10 @@ describe("useDarkMode", () => {
     if (!meta) {
       meta = document.createElement("meta");
       meta.setAttribute("name", "theme-color");
-      meta.setAttribute("content", "#1e40af");
+      meta.setAttribute("content", THEME_COLOR_LIGHT);
       document.head.appendChild(meta);
     } else {
-      meta.setAttribute("content", "#1e40af");
+      meta.setAttribute("content", THEME_COLOR_LIGHT);
     }
   });
 
@@ -100,7 +101,7 @@ describe("useDarkMode", () => {
     });
 
     const meta = document.querySelector('meta[name="theme-color"]:not([media])');
-    expect(meta).toHaveAttribute("content", "#0f172a");
+    expect(meta).toHaveAttribute("content", THEME_COLOR_DARK);
   });
 
   it("updates theme-color meta tag to light color when switching to light mode", () => {
@@ -113,7 +114,7 @@ describe("useDarkMode", () => {
     });
 
     const meta = document.querySelector('meta[name="theme-color"]:not([media])');
-    expect(meta).toHaveAttribute("content", "#1e40af");
+    expect(meta).toHaveAttribute("content", THEME_COLOR_LIGHT);
   });
 
   it("persists preference in localStorage", () => {

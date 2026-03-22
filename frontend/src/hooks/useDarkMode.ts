@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { THEME_COLOR_DARK, THEME_COLOR_LIGHT } from "../theme";
 
 function getInitialDark(): boolean {
   const stored = localStorage.getItem("theme");
@@ -16,7 +17,7 @@ export function useDarkMode() {
 
     const meta = document.querySelector('meta[name="theme-color"]:not([media])');
     if (meta) {
-      meta.setAttribute("content", isDark ? "#0f172a" : "#1e40af");
+      meta.setAttribute("content", isDark ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
     }
   }, [isDark]);
 

@@ -144,7 +144,7 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: npx tsc && npx vite build --mode prod
+        run: npm run build
 
       - name: Run Lighthouse CI
         working-directory: frontend
