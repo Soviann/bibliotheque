@@ -7,6 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Invalidation des caches** : Le pull-to-refresh et la synchro offline n'invalident plus que les données comics au lieu de tous les caches TanStack Query
+- **Polling des notifications** : Arrête le polling en arrière-plan quand l'onglet est inactif
+- **Polling de la queue offline** : Arrête le polling quand l'app est online et la queue est vide (au lieu de toutes les 2s en permanence)
+- **Listener de synchro SW** : Le handler est stable via useRef, évite les ré-enregistrements inutiles
+
 ## [v2.20.0] - 2026-03-22
 
 ### Added

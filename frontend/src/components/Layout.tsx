@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, Moon, Search, Sun, Wrench, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
@@ -23,7 +22,6 @@ export default function Layout() {
 
   // Sync feedback toasts
   const { error, status, syncedCount } = useSyncStatus();
-  const queryClient = useQueryClient();
   const prevStatus = useRef(status);
 
   useEffect(() => {
@@ -32,11 +30,10 @@ export default function Layout() {
 
     if (status === "success" && syncedCount > 0) {
       toast.success(`${syncedCount} opération${syncedCount > 1 ? "s" : ""} synchronisée${syncedCount > 1 ? "s" : ""}`);
-      void queryClient.invalidateQueries();
     } else if (status === "error" && error) {
       toast.error(`Erreur de synchronisation : ${error}`);
     }
-  }, [error, queryClient, status, syncedCount]);
+  }, [error, status, syncedCount]);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-secondary">

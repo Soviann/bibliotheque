@@ -18,6 +18,7 @@ import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useRestoreComic } from "../hooks/useTrash";
+import { queryKeys } from "../queryKeys";
 import type { ComicSeries } from "../types/api";
 import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
@@ -90,7 +91,11 @@ export default function Home() {
   const restoreComic = useRestoreComic();
   const queryClient = useQueryClient();
   const handleRefresh = useCallback(
-    () => queryClient.invalidateQueries().then(() => undefined),
+    () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.comics.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix }),
+      ]).then(() => undefined),
     [queryClient],
   );
   const { isRefreshing, pullDistance } = usePullToRefresh({ onRefresh: handleRefresh });

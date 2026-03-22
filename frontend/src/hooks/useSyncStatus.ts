@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { queryKeys } from "../queryKeys";
 
 export type SyncStatus = "error" | "idle" | "success" | "syncing";
@@ -18,6 +18,10 @@ export function useSyncStatus() {
     syncedCount: 0,
   });
 
+  // Stable ref to avoid re-registering SW listener on queryClient change
+  const queryClientRef = useRef(queryClient);
+  queryClientRef.current = queryClient;
+
   const handleMessage = useCallback((event: MessageEvent) => {
     const { data } = event;
     if (!data?.type) return;
@@ -29,15 +33,15 @@ export function useSyncStatus() {
       case "sync-complete":
         setState({ error: null, status: "success", syncedCount: data.count ?? 0 });
         if ((data.count ?? 0) > 0) {
-          void queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
-          void queryClient.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix });
+          void queryClientRef.current.invalidateQueries({ queryKey: queryKeys.comics.all });
+          void queryClientRef.current.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix });
         }
         break;
       case "sync-error":
         setState((prev) => ({ ...prev, error: data.error ?? "Erreur inconnue", status: "error" }));
         break;
     }
-  }, [queryClient]);
+  }, []);
 
   useEffect(() => {
     const sw = navigator.serviceWorker;
