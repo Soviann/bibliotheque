@@ -46,7 +46,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(SearchFilter::class, properties: ['status' => 'exact'])]
 #[ORM\Entity(repositoryClass: EnrichmentProposalRepository::class)]
 #[ORM\Index(name: 'idx_enrichment_proposal_series', columns: ['comic_series_id'])]
-#[ORM\Index(name: 'idx_enrichment_proposal_series_field_status', columns: ['comic_series_id', 'field', 'status'])]
 #[ORM\Index(name: 'idx_enrichment_proposal_status', columns: ['status'])]
 #[ORM\UniqueConstraint(
     name: 'uniq_proposal_series_field_pending',

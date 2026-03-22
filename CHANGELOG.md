@@ -9,10 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
-- **Index EnrichmentProposal** : Ajout d'index explicites sur `comic_series_id` et `(comic_series_id, field, status)` pour accélérer les requêtes de propositions d'enrichissement
-
-### Changed
-
+- **Index EnrichmentProposal** : Ajout d'un index explicite sur `comic_series_id` pour accélérer les requêtes de propositions d'enrichissement
 - **Téléchargement de couverture asynchrone** : Le téléchargement de couverture lors d'un changement de `coverUrl` est désormais traité via Symfony Messenger au lieu de bloquer la requête API
 
 ### Fixed
