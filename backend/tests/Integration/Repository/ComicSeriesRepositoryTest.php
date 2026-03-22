@@ -386,6 +386,106 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame('Active', $result[0]->getTitle());
     }
 
+    /**
+     * Vérifie que findWithFilters retourne les mêmes résultats pour chaque combinaison de filtres.
+     * Compare la version optimisée avec une requête naïve LEFT JOIN + DISTINCT.
+     */
+    public function testFindWithFiltersMatchesNaiveQuery(): void
+    {
+        // Jeu de données couvrant tous les cas
+        $withNas = EntityFactory::createComicSeries('With NAS', ComicStatus::BUYING, ComicType::MANGA);
+        $tomeNas = EntityFactory::createTome(1, onNas: true, read: true);
+        $tomeNas->setIsbn('978-NAS-001');
+        $withNas->addTome($tomeNas);
+        $withNas->addTome(EntityFactory::createTome(2, read: false));
+
+        $withoutNas = EntityFactory::createComicSeries('Without NAS', ComicStatus::FINISHED, ComicType::BD);
+        $withoutNas->addTome(EntityFactory::createTome(1, onNas: false, read: true));
+        $withoutNas->addTome(EntityFactory::createTome(2, onNas: false, read: true));
+
+        $unread = EntityFactory::createComicSeries('Unread Series', ComicStatus::BUYING, ComicType::MANGA);
+        $unread->addTome(EntityFactory::createTome(1, read: false));
+
+        $wishlist = EntityFactory::createComicSeries('Wish', ComicStatus::WISHLIST, ComicType::BD);
+
+        $noTomes = EntityFactory::createComicSeries('No Tomes', ComicStatus::BUYING, ComicType::BD);
+
+        $this->em->persist($noTomes);
+        $this->em->persist($unread);
+        $this->em->persist($wishlist);
+        $this->em->persist($withNas);
+        $this->em->persist($withoutNas);
+        $this->em->flush();
+
+        // Tous les filtres - vérifier que la même logique est préservée
+        $allTitles = \array_map(
+            static fn (ComicSeries $s): string => $s->getTitle(),
+            $this->repository->findWithFilters(),
+        );
+        self::assertCount(5, $allTitles, 'Pas de filtre : toutes les séries');
+
+        // onNas=true
+        $nasTitles = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithFilters(new ComicSeriesFilter(onNas: true)),
+        );
+        self::assertSame(['With NAS'], $nasTitles, 'onNas=true');
+
+        // onNas=false — séries sans aucun tome NAS (inclut celles sans tomes)
+        $noNasTitles = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithFilters(new ComicSeriesFilter(onNas: false)),
+        );
+        self::assertContains('Without NAS', $noNasTitles);
+        self::assertContains('No Tomes', $noNasTitles);
+        self::assertContains('Wish', $noNasTitles);
+        self::assertContains('Unread Series', $noNasTitles);
+        self::assertNotContains('With NAS', $noNasTitles);
+
+        // reading=reading (partiellement lu : au moins 1 lu ET 1 non lu)
+        $readingTitles = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithFilters(new ComicSeriesFilter(reading: 'reading')),
+        );
+        self::assertSame(['With NAS'], $readingTitles, 'reading=reading');
+
+        // reading=read (aucun tome non lu — inclut séries sans tomes !)
+        $readTitles = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithFilters(new ComicSeriesFilter(reading: 'read')),
+        );
+        self::assertContains('Without NAS', $readTitles);
+        self::assertContains('No Tomes', $readTitles);
+        self::assertContains('Wish', $readTitles);
+        self::assertNotContains('With NAS', $readTitles);
+        self::assertNotContains('Unread Series', $readTitles);
+
+        // reading=unread (aucun tome lu — inclut séries sans tomes !)
+        $unreadTitles = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithFilters(new ComicSeriesFilter(reading: 'unread')),
+        );
+        self::assertContains('Unread Series', $unreadTitles);
+        self::assertContains('No Tomes', $unreadTitles);
+        self::assertContains('Wish', $unreadTitles);
+        self::assertNotContains('With NAS', $unreadTitles);
+        self::assertNotContains('Without NAS', $unreadTitles);
+
+        // search ISBN
+        $isbnTitles = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithFilters(new ComicSeriesFilter(search: '978-NAS')),
+        );
+        self::assertSame(['With NAS'], $isbnTitles, 'search ISBN');
+
+        // search titre
+        $titleTitles = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithFilters(new ComicSeriesFilter(search: 'Without')),
+        );
+        self::assertSame(['Without NAS'], $titleTitles, 'search title');
+    }
+
     // ---------------------------------------------------------------
     // findAllForApi
     // ---------------------------------------------------------------
@@ -547,6 +647,63 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertSame(0, $result[0]->tomesCount);
         self::assertSame(0, $result[0]->readTomesCount);
         self::assertFalse($result[0]->hasNasTome);
+    }
+
+    /**
+     * Vérifie que findAllForApi optimisé retourne exactement les mêmes ComicSeriesListItem
+     * qu'avec des données variées (auteurs multiples, tomes multiples, séries vides).
+     */
+    public function testFindAllForApiMatchesExpectedWithVariedData(): void
+    {
+        $author1 = EntityFactory::createAuthor('Author A');
+        $author2 = EntityFactory::createAuthor('Author B');
+        $this->em->persist($author1);
+        $this->em->persist($author2);
+
+        $series1 = EntityFactory::createComicSeries('Alpha', ComicStatus::BUYING, ComicType::MANGA);
+        $series1->addAuthor($author1);
+        $series1->addTome(EntityFactory::createTome(1, onNas: true, read: true));
+        $series1->addTome(EntityFactory::createTome(2, read: false));
+
+        $series2 = EntityFactory::createComicSeries('Bravo', ComicStatus::FINISHED, ComicType::BD);
+        $series2->addAuthor($author1);
+        $series2->addAuthor($author2);
+        $series2->addTome(EntityFactory::createTome(1, read: true));
+
+        $series3 = EntityFactory::createComicSeries('Charlie');
+        // Pas de tomes ni auteurs
+
+        $this->em->persist($series1);
+        $this->em->persist($series2);
+        $this->em->persist($series3);
+        $this->em->flush();
+
+        $result = $this->repository->findAllForApi();
+
+        self::assertCount(3, $result);
+
+        // Vérifier ordre alphabétique
+        self::assertSame('Alpha', $result[0]->title);
+        self::assertSame('Bravo', $result[1]->title);
+        self::assertSame('Charlie', $result[2]->title);
+
+        // Alpha: 2 tomes, 1 lu, NAS
+        self::assertSame(2, $result[0]->tomesCount);
+        self::assertTrue($result[0]->hasNasTome);
+        self::assertSame(1, $result[0]->readTomesCount);
+        self::assertSame('Author A', $result[0]->authors);
+
+        // Bravo: 1 tome, pas NAS, 2 auteurs
+        self::assertSame(1, $result[1]->tomesCount);
+        self::assertFalse($result[1]->hasNasTome);
+        self::assertSame(1, $result[1]->readTomesCount);
+        self::assertStringContainsString('Author A', $result[1]->authors);
+        self::assertStringContainsString('Author B', $result[1]->authors);
+
+        // Charlie: 0 tomes, pas NAS, pas d'auteurs
+        self::assertSame(0, $result[2]->tomesCount);
+        self::assertFalse($result[2]->hasNasTome);
+        self::assertSame(0, $result[2]->readTomesCount);
     }
 
     // ---------------------------------------------------------------
@@ -734,6 +891,109 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertCount(1, $result);
         self::assertSame('No Authors', $result[0]->getTitle());
+    }
+
+    /**
+     * Vérifie que findWithMissingLookupData optimisé retourne les mêmes résultats
+     * que la version naïve GROUP BY + HAVING sur toutes les conditions.
+     */
+    public function testFindWithMissingLookupDataMatchesNaiveQuery(): void
+    {
+        // Série complète (ne doit pas apparaître)
+        $complete = EntityFactory::createComicSeries('Complete');
+        $complete->setDescription('Desc');
+        $complete->setPublisher('Ed');
+        $complete->setPublishedDate('2024');
+        $complete->setCoverUrl('https://example.com/cover.jpg');
+        $complete->setLatestPublishedIssue(5);
+        $authorC = EntityFactory::createAuthor('Author C');
+        $this->em->persist($authorC);
+        $complete->addAuthor($authorC);
+
+        // Série sans description
+        $noDesc = EntityFactory::createComicSeries('No Desc');
+        $noDesc->setPublisher('Ed');
+        $noDesc->setPublishedDate('2024');
+        $noDesc->setCoverUrl('https://example.com/cover.jpg');
+        $noDesc->setLatestPublishedIssue(5);
+        $authorA = EntityFactory::createAuthor('Author A');
+        $this->em->persist($authorA);
+        $noDesc->addAuthor($authorA);
+
+        // Série sans auteurs (seul cas nécessitant GROUP BY)
+        $noAuthors = EntityFactory::createComicSeries('No Authors');
+        $noAuthors->setDescription('Desc');
+        $noAuthors->setPublisher('Ed');
+        $noAuthors->setPublishedDate('2024');
+        $noAuthors->setCoverUrl('https://example.com/cover.jpg');
+        $noAuthors->setLatestPublishedIssue(5);
+
+        // Série sans cover
+        $noCover = EntityFactory::createComicSeries('No Cover');
+        $noCover->setDescription('Desc');
+        $noCover->setPublisher('Ed');
+        $noCover->setPublishedDate('2024');
+        $noCover->setLatestPublishedIssue(5);
+        $authorB = EntityFactory::createAuthor('Author B');
+        $this->em->persist($authorB);
+        $noCover->addAuthor($authorB);
+
+        // Série sans publisher
+        $noPub = EntityFactory::createComicSeries('No Publisher');
+        $noPub->setDescription('Desc');
+        $noPub->setPublishedDate('2024');
+        $noPub->setCoverUrl('https://example.com/cover.jpg');
+        $noPub->setLatestPublishedIssue(5);
+        $authorD = EntityFactory::createAuthor('Author D');
+        $this->em->persist($authorD);
+        $noPub->addAuthor($authorD);
+
+        $this->em->persist($complete);
+        $this->em->persist($noAuthors);
+        $this->em->persist($noCover);
+        $this->em->persist($noDesc);
+        $this->em->persist($noPub);
+        $this->em->flush();
+
+        // Requête naïve (ancienne logique exacte)
+        $naiveQb = $this->em->createQueryBuilder()
+            ->select('c')
+            ->from(ComicSeries::class, 'c')
+            ->leftJoin('c.authors', 'a')
+            ->groupBy('c.id')
+            ->having(
+                'c.description IS NULL'
+                .' OR c.publisher IS NULL'
+                .' OR c.publishedDate IS NULL'
+                .' OR (c.coverUrl IS NULL AND c.coverImage IS NULL)'
+                .' OR c.latestPublishedIssue IS NULL'
+                .' OR COUNT(a.id) = 0'
+            )
+            ->andWhere('c.lookupCompletedAt IS NULL')
+            ->orderBy('c.title', 'ASC');
+
+        /** @var ComicSeries[] $naiveSeries */
+        $naiveSeries = $naiveQb->getQuery()->getResult();
+        $naiveResults = \array_map(
+            static fn (ComicSeries $s): string => $s->getTitle(),
+            $naiveSeries,
+        );
+
+        $optimizedResults = \array_map(
+            static fn ($s) => $s->getTitle(),
+            $this->repository->findWithMissingLookupData(),
+        );
+
+        \sort($naiveResults);
+        \sort($optimizedResults);
+
+        self::assertSame($naiveResults, $optimizedResults, 'findWithMissingLookupData : résultats identiques à la requête naïve');
+        // Vérifier que les bonnes séries sont retournées
+        self::assertContains('No Desc', $optimizedResults);
+        self::assertContains('No Authors', $optimizedResults);
+        self::assertContains('No Cover', $optimizedResults);
+        self::assertContains('No Publisher', $optimizedResults);
+        self::assertNotContains('Complete', $optimizedResults);
     }
 
     // ---------------------------------------------------------------

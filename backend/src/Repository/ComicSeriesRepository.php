@@ -34,9 +34,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
      */
     public function findWithFilters(ComicSeriesFilter $filters = new ComicSeriesFilter()): array
     {
-        $qb = $this->createQueryBuilder('c')
-            ->leftJoin('c.tomes', 't')
-            ->addSelect('t');
+        $qb = $this->createQueryBuilder('c');
 
         // Wishlist filter : isWishlist est calculé à partir du statut
         if (null !== $filters->isWishlist) {
@@ -61,14 +59,12 @@ class ComicSeriesRepository extends ServiceEntityRepository
                 ->setParameter('status', $filters->status);
         }
 
-        // NAS filter (vérifie si au moins un tome est sur le NAS)
+        // NAS filter — EXISTS subquery (pas de JOIN)
         if (null !== $filters->onNas) {
             if ($filters->onNas) {
-                $qb->andWhere('t.onNas = :onNas')
-                    ->setParameter('onNas', true);
+                $qb->andWhere('EXISTS (SELECT tn.id FROM App\Entity\Tome tn WHERE tn.comicSeries = c AND tn.onNas = true)');
             } else {
-                // Séries sans aucun tome sur NAS
-                $qb->andWhere('NOT EXISTS (SELECT t2.id FROM App\Entity\Tome t2 WHERE t2.comicSeries = c AND t2.onNas = true)');
+                $qb->andWhere('NOT EXISTS (SELECT tn2.id FROM App\Entity\Tome tn2 WHERE tn2.comicSeries = c AND tn2.onNas = true)');
             }
         }
 
@@ -86,14 +82,13 @@ class ComicSeriesRepository extends ServiceEntityRepository
             };
         }
 
-        // Search filter (titre uniquement, ISBN est maintenant sur les tomes)
+        // Search filter — JOIN tomes uniquement pour la recherche ISBN
         if (null !== $filters->search && '' !== $filters->search) {
-            $qb->andWhere('c.title LIKE :search OR t.isbn LIKE :search')
-                ->setParameter('search', '%'.$filters->search.'%');
+            $qb->leftJoin('c.tomes', 't')
+                ->andWhere('c.title LIKE :search OR t.isbn LIKE :search')
+                ->setParameter('search', '%'.$filters->search.'%')
+                ->distinct();
         }
-
-        // Distinct pour éviter les doublons à cause du JOIN
-        $qb->distinct();
 
         // Sorting
         match ($filters->sort) {
@@ -371,19 +366,20 @@ class ComicSeriesRepository extends ServiceEntityRepository
 
     /**
      * Construit le QueryBuilder commun pour les séries avec données manquantes.
+     *
+     * Les vérifications scalaires (NULL) sont placées dans WHERE (pas d'agrégation nécessaire).
+     * L'absence d'auteurs est détectée via NOT EXISTS pour éviter un GROUP BY sur toute la table.
      */
     private function buildMissingDataQueryBuilder(?ComicType $type, ?int $limit): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('c')
-            ->leftJoin('c.authors', 'a')
-            ->groupBy('c.id')
-            ->having(
+            ->where(
                 'c.description IS NULL'
                 .' OR c.publisher IS NULL'
                 .' OR c.publishedDate IS NULL'
                 .' OR (c.coverUrl IS NULL AND c.coverImage IS NULL)'
                 .' OR c.latestPublishedIssue IS NULL'
-                .' OR COUNT(a.id) = 0'
+                .' OR NOT EXISTS (SELECT a2.id FROM App\Entity\Author a2 WHERE a2 MEMBER OF c.authors)'
             )
             ->orderBy('c.title', 'ASC');
 
@@ -452,23 +448,39 @@ class ComicSeriesRepository extends ServiceEntityRepository
     /**
      * Exécute la requête complète avec eager loading pour éviter le N+1.
      *
+     * Utilise deux requêtes séparées (séries+auteurs, puis tomes) au lieu d'un seul
+     * LEFT JOIN croisé pour éviter le produit cartésien séries×auteurs×tomes.
+     *
      * @return list<ComicSeriesListItem>
      */
     private function doFindAllForApi(): array
     {
+        // Requête 1 : séries + auteurs (pas de cartésien avec les tomes)
         /** @var ComicSeries[] $comics */
         $comics = $this->createQueryBuilder('c')
             ->leftJoin('c.authors', 'a')
             ->addSelect('a')
-            ->leftJoin('c.tomes', 't')
-            ->addSelect('t')
             ->orderBy('c.title', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        if ([] === $comics) {
+            return [];
+        }
+
+        // Requête 2 : charger les tomes via l'identity map (Doctrine les associe automatiquement)
+        $ids = \array_map(static fn (ComicSeries $c): ?int => $c->getId(), $comics);
+        $this->getEntityManager()->createQueryBuilder()
+            ->select('t')
+            ->from(Tome::class, 't')
+            ->where('t.comicSeries IN (:ids)')
+            ->setParameter('ids', $ids)
             ->getQuery()
             ->getResult();
 
         $result = [];
         foreach ($comics as $comic) {
-            $hasNasTome = $comic->getTomes()->exists(static fn (int $key, Tome $t): bool => $t->isOnNas());
+            $hasNasTome = $comic->getTomes()->exists(static fn (int $_key, Tome $t): bool => $t->isOnNas());
 
             $result[] = ComicSeriesListItem::fromEntity($comic, $hasNasTome);
         }
