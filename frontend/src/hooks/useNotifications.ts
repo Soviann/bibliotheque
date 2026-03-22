@@ -10,6 +10,7 @@ export function useUnreadCount() {
     queryFn: () => apiFetch<{ count: number }>(endpoints.notifications.unreadCount),
     queryKey: queryKeys.notifications.unreadCount,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
 }
 

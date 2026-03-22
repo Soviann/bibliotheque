@@ -307,7 +307,7 @@ describe("Layout", () => {
       expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it("invalidates queries after sync success", () => {
+    it("does not call invalidateQueries on sync success (handled by useSyncStatus)", () => {
       const queryClient = createTestQueryClient();
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -329,7 +329,7 @@ describe("Layout", () => {
         </Routes>,
       );
 
-      expect(invalidateSpy).toHaveBeenCalled();
+      expect(invalidateSpy).not.toHaveBeenCalled();
     });
 
     it("does not fire toast twice for the same status (duplicate prevention)", () => {

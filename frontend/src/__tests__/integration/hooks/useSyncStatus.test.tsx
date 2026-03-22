@@ -189,4 +189,42 @@ describe("useSyncStatus", () => {
     expect(result.current.syncedCount).toBe(0);
     expect(result.current.error).toBeNull();
   });
+
+  it("does not re-register the SW listener on re-render", () => {
+    const { rerender } = renderHook(() => useSyncStatus(), { wrapper: createWrapper() });
+
+    const initialCallCount = addEventListenerSpy.mock.calls.length;
+
+    // Re-render multiple times
+    rerender();
+    rerender();
+    rerender();
+
+    // addEventListener should not have been called again
+    expect(addEventListenerSpy).toHaveBeenCalledTimes(initialCallCount);
+  });
+
+  it("invalidates only comics queries on sync-complete with count > 0", () => {
+    const queryClient = createTestQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    function Wrapper({ children }: { children: ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+    }
+
+    renderHook(() => useSyncStatus(), { wrapper: Wrapper });
+
+    act(() => {
+      messageHandler?.({ data: { count: 2, type: "sync-complete" } } as MessageEvent);
+    });
+
+    // Should invalidate comics.all and comics.detailPrefix, not everything
+    expect(invalidateSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["comics"] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["comic"] });
+  });
 });

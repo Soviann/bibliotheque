@@ -69,4 +69,22 @@ describe("usePendingQueueCount", () => {
 
     expect(result.current).toBe(0);
   });
+
+  it("stops polling when online and queue is empty", async () => {
+    vi.mocked(getPendingCount).mockResolvedValue(0);
+
+    renderHook(() => usePendingQueueCount(), {
+      wrapper: createWrapper(),
+    });
+
+    // Wait for initial fetch
+    await waitFor(() => expect(getPendingCount).toHaveBeenCalledTimes(1));
+
+    // Record call count after initial, then wait 3s (more than the 2s interval)
+    vi.mocked(getPendingCount).mockClear();
+    await new Promise((r) => setTimeout(r, 3000));
+
+    // Should NOT have been called again since online + count=0
+    expect(getPendingCount).not.toHaveBeenCalled();
+  }, 10_000);
 });
