@@ -33,3 +33,9 @@ web_extra_daemons:
   - name: vite
     command: bash -c 'cd /var/www/html/frontend && npm install && npm run dev'
     directory: /var/www/html/frontend
+  - name: messenger-worker
+    command: bash -c 'cd /var/www/html/backend && php bin/console messenger:consume async --limit=500 --time-limit=3600'
+    directory: /var/www/html/backend
+  - name: scheduler
+    command: bash -c 'cd /var/www/html/backend && php bin/console messenger:consume scheduler_default --time-limit=3600'
+    directory: /var/www/html/backend
