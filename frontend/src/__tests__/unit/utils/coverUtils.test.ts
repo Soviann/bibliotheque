@@ -1,4 +1,4 @@
-import { getCoverSrc } from "../../../utils/coverUtils";
+import { getCoverSrc, getCoverThumbnailSrc } from "../../../utils/coverUtils";
 
 describe("getCoverSrc", () => {
   it("returns local path when coverImage is set", () => {
@@ -41,5 +41,26 @@ describe("getCoverSrc", () => {
   it("accepts https:// coverUrl", () => {
     expect(getCoverSrc({ coverImage: null, coverUrl: "https://example.com/img.jpg" }))
       .toBe("https://example.com/img.jpg");
+  });
+});
+
+describe("getCoverThumbnailSrc", () => {
+  it("returns LiipImagine thumbnail path for local cover", () => {
+    expect(getCoverThumbnailSrc({ coverImage: "abc.webp", coverUrl: null }))
+      .toBe("/media/cache/cover_thumbnail/uploads/covers/abc.webp");
+  });
+
+  it("returns null when no local cover", () => {
+    expect(getCoverThumbnailSrc({ coverImage: null, coverUrl: "https://example.com/img.jpg" }))
+      .toBeNull();
+  });
+
+  it("returns null when coverImage is null", () => {
+    expect(getCoverThumbnailSrc({ coverImage: null })).toBeNull();
+  });
+
+  it("prefers thumbnail over external URL", () => {
+    expect(getCoverThumbnailSrc({ coverImage: "local.webp", coverUrl: "https://remote.com/img.jpg" }))
+      .toBe("/media/cache/cover_thumbnail/uploads/covers/local.webp");
   });
 });

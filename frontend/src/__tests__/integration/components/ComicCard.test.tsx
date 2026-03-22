@@ -32,7 +32,7 @@ describe("ComicCard", () => {
     renderWithProviders(<ComicCard comic={comic} />);
 
     const img = screen.getByAltText("Naruto");
-    expect(img).toHaveAttribute("src", "/uploads/covers/naruto.webp");
+    expect(img).toHaveAttribute("src", "/media/cache/cover_thumbnail/uploads/covers/naruto.webp");
   });
 
   it("falls back to coverUrl when coverImage is null", () => {

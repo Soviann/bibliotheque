@@ -9,6 +9,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Miniatures de couverture** : Les vues liste/grille utilisent des miniatures 300x450 pré-générées via LiipImagine, réduisant le poids des images de ~75%
+- **Skeleton de chargement** : Composant `CoverImage` avec animation shimmer pendant le chargement des couvertures
+- **Commande `app:warm-thumbnails`** : Pré-génère les miniatures pour toutes les couvertures existantes
+- **Nginx fallback** : Fallback PHP-FPM pour la génération à la volée des miniatures manquantes en production
 - **Lighthouse CI** : Audit automatique des performances, accessibilité et bonnes pratiques dans le pipeline CI
 - **Screenshots PWA** : Captures desktop et mobile pour l'invite d'installation
 
