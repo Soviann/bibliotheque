@@ -8,6 +8,7 @@ use App\Entity\Author;
 use App\Repository\AuthorRepository;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\PersistentCollection;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -102,5 +103,47 @@ final class AuthorRepositoryTest extends KernelTestCase
         $names = \array_map(static fn (Author $a): string => $a->getName(), $authors);
         self::assertContains('Hergé', $names);
         self::assertContains('Franquin', $names);
+    }
+
+    // ---------------------------------------------------------------
+    // findFollowed
+    // ---------------------------------------------------------------
+
+    public function testFindFollowedReturnsOnlyFollowedAuthorsWithSeries(): void
+    {
+        $followed = EntityFactory::createAuthor('Urasawa');
+        $followed->setFollowedForNewSeries(true);
+
+        $series = EntityFactory::createComicSeries('Monster');
+        $followed->addComicSeries($series);
+
+        $notFollowed = EntityFactory::createAuthor('Oda');
+
+        $this->em->persist($followed);
+        $this->em->persist($notFollowed);
+        $this->em->persist($series);
+        $this->em->flush();
+        $this->em->clear();
+
+        $result = $this->repository->findFollowed();
+
+        self::assertCount(1, $result);
+        self::assertSame('Urasawa', $result[0]->getName());
+        // Vérifie que les séries sont pré-chargées (pas de lazy loading)
+        $collection = $result[0]->getComicSeries();
+        self::assertInstanceOf(PersistentCollection::class, $collection);
+        self::assertTrue($collection->isInitialized());
+        self::assertCount(1, $result[0]->getComicSeries());
+    }
+
+    public function testFindFollowedReturnsEmptyWhenNoneFollowed(): void
+    {
+        $author = EntityFactory::createAuthor('Toriyama');
+        $this->em->persist($author);
+        $this->em->flush();
+
+        $result = $this->repository->findFollowed();
+
+        self::assertSame([], $result);
     }
 }

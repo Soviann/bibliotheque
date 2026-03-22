@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **N+1 AuthorReleaseCheckerService** : Pré-charge les séries des auteurs suivis via JOIN et remplace la comparaison de titres en PHP par une requête SQL
+
 ### Changed
 
 - **staleTime sur les queries statiques** : Les lookups ISBN/titre (24h) et la recherche d'auteurs (30min) ne refetchent plus inutilement

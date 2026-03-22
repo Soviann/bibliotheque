@@ -42,10 +42,7 @@ class AuthorReleaseCheckerService
             return;
         }
 
-        $allTitles = \array_map(
-            static fn ($s) => \mb_strtolower($s->title),
-            $this->comicSeriesRepository->findAllForApi(),
-        );
+        $allTitles = $this->comicSeriesRepository->findAllTitlesLower();
 
         foreach ($followedAuthors as $author) {
             try {
