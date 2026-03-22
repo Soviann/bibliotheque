@@ -70,6 +70,7 @@ Reference for implementing features without exploring the codebase.
 | `JwtTokenVersionListener` | JWT create: adds tokenVersion. JWT decode: validates version match |
 | `EnrichOnCreateListener` | ComicSeriesCreatedEvent → dispatches `EnrichSeriesMessage` (async). `disable()`/`enable()` for batch imports |
 | `ReEnrichOnUpdateListener` | ComicSeriesUpdatedEvent → re-dispatches `EnrichSeriesMessage` if cover/description/publisher still null (cooldown 24h) |
+| `CoverUrlChangeListener` | preUpdate: dispatches `DownloadCoverMessage` (async) when `coverUrl` changes on ComicSeries |
 | `PlaceholderSecretChecker` | kernel.request (priority 255): blocks prod if placeholder secrets |
 
 ## Controllers (`backend/src/Controller/`)
@@ -96,6 +97,13 @@ Reference for implementing features without exploring the codebase.
 | `EnrichmentProposalRejectProcessor` | Reject proposal → log |
 | `NotificationPreferenceInitializer` | AP4 provider: creates default prefs (IN_APP) on first GET |
 | `TrashCollectionProvider` | GET `/api/trash` |
+
+## Messages & Handlers (`backend/src/Message/`, `backend/src/MessageHandler/`)
+
+| Message | Handler | Purpose |
+|---------|---------|---------|
+| `DownloadCoverMessage(seriesId, coverUrl)` | `DownloadCoverHandler` | Télécharge et stocke la couverture en WebP (async via Messenger) |
+| `EnrichSeriesMessage(seriesId)` | `EnrichSeriesHandler` | Enrichissement automatique via lookup providers (async via Messenger) |
 
 ## Services (`backend/src/Service/`)
 
@@ -237,7 +245,7 @@ Reference for implementing features without exploring the codebase.
 | `liip_imagine.yaml` | `cover_thumbnail` 300x450 webp, `cover_medium` 600x900 webp |
 | `security.yaml` | JWT firewall `/api/` (stateless). Public: `POST /api/login/google` |
 | `vich_uploader.yaml` | `comic_covers` → `public/uploads/covers` |
-| `messenger.yaml` | Doctrine transport (`doctrine://default`), `EnrichSeriesMessage` → async, failed transport, retry ×3. Test: `in-memory://` |
+| `messenger.yaml` | Doctrine transport (`doctrine://default`), `DownloadCoverMessage` + `EnrichSeriesMessage` → async, failed transport, retry ×3. Test: `in-memory://` |
 | `secrets/prod/` | Vault: `APP_SECRET` + `JWT_PASSPHRASE` + `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY`. Decrypt key gitignored. |
 
 ### Backend Tests (`backend/tests/`)

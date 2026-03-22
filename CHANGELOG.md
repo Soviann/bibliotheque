@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Téléchargement de couverture asynchrone** : Le téléchargement de couverture lors d'un changement de `coverUrl` est désormais traité via Symfony Messenger au lieu de bloquer la requête API
+
 ### Fixed
 
 - **N+1 AuthorReleaseCheckerService** : Pré-charge les séries des auteurs suivis via JOIN et remplace la comparaison de titres en PHP par une requête SQL
