@@ -11,11 +11,16 @@
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f172a" />
     <title>Bibliothèque</title>
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased">
+  <body class="bg-slate-50 text-slate-900 antialiased" style="min-height:100vh">
     <noscript>
       <p>JavaScript est requis pour utiliser Bibliothèque.</p>
     </noscript>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Contenu initial visible avant le chargement React (évite NO_FCP Lighthouse) -->
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh">
+        <p style="color:#64748b;font-family:system-ui">Chargement…</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
