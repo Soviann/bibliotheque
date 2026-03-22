@@ -347,6 +347,22 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne tous les titres en minuscules (via SQL), sans charger les entités.
+     *
+     * @return list<string>
+     */
+    public function findAllTitlesLower(): array
+    {
+        /** @var list<array{title: string}> $rows */
+        $rows = $this->createQueryBuilder('c')
+            ->select('LOWER(c.title) AS title')
+            ->getQuery()
+            ->getScalarResult();
+
+        return \array_column($rows, 'title');
+    }
+
+    /**
      * Retourne toutes les séries avec leurs relations pour l'API PWA.
      *
      * Utilise un cache applicatif (15 min) pour éviter de requêter la base

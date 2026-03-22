@@ -1217,4 +1217,29 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         self::assertCount(1, $result);
         self::assertSame('Already Looked', $result[0]->getTitle());
     }
+
+    // ---------------------------------------------------------------
+    // findAllTitlesLower
+    // ---------------------------------------------------------------
+
+    public function testFindAllTitlesLowerReturnsLowercaseTitles(): void
+    {
+        $this->em->persist(EntityFactory::createComicSeries('Astérix'));
+        $this->em->persist(EntityFactory::createComicSeries('ONE PIECE'));
+        $this->em->persist(EntityFactory::createComicSeries('Naruto'));
+        $this->em->flush();
+
+        $titles = $this->repository->findAllTitlesLower();
+
+        self::assertContains('astérix', $titles);
+        self::assertContains('one piece', $titles);
+        self::assertContains('naruto', $titles);
+    }
+
+    public function testFindAllTitlesLowerReturnsEmptyWhenNoSeries(): void
+    {
+        $titles = $this->repository->findAllTitlesLower();
+
+        self::assertSame([], $titles);
+    }
 }

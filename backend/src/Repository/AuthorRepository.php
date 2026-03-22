@@ -19,12 +19,20 @@ class AuthorRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les auteurs suivis avec leurs séries pré-chargées (évite N+1).
+     *
      * @return list<Author>
      */
     public function findFollowed(): array
     {
         /** @var list<Author> $result */
-        $result = $this->findBy(['followedForNewSeries' => true], ['name' => 'ASC']);
+        $result = $this->createQueryBuilder('a')
+            ->leftJoin('a.comicSeries', 'cs')
+            ->addSelect('cs')
+            ->where('a.followedForNewSeries = true')
+            ->orderBy('a.name', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         return $result;
     }
