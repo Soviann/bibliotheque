@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.20.0] - 2026-03-22
+
 ### Added
 
 - **Miniatures de couverture** : Les vues liste/grille utilisent des miniatures 300x450 pré-générées via LiipImagine, réduisant le poids des images de ~75%
