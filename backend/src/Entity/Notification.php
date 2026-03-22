@@ -39,6 +39,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(BooleanFilter::class, properties: ['read'])]
 #[ApiFilter(SearchFilter::class, properties: ['type' => 'exact'])]
 #[ORM\Entity(repositoryClass: NotificationRepository::class)]
+#[ORM\Index(name: 'idx_notification_type_entity', columns: ['type', 'related_entity_type', 'related_entity_id', 'read_status'])]
 #[ORM\Index(name: 'idx_notification_user_read', columns: ['user_id', 'read_status', 'created_at'])]
 class Notification
 {

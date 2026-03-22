@@ -51,6 +51,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_tome_isbn', columns: ['isbn'])]
 #[ORM\Index(name: 'idx_tome_on_nas', columns: ['on_nas'])]
 #[ORM\Index(name: 'idx_tome_series_number', columns: ['comic_series_id', 'is_hors_serie', 'number'])]
+#[ORM\Index(name: 'idx_tome_series_read', columns: ['comic_series_id', '`read`'])]
 class Tome
 {
     #[Groups(['tome:read', 'comic:read'])]
