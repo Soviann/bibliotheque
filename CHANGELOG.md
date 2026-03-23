@@ -9,6 +9,9 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
+- **Invalidation de cache granulaire** : L'invalidation du cache API ne se déclenche plus lors de la mise à jour de champs internes (`lookupCompletedAt`, `mergeCheckedAt`, `newReleasesCheckedAt`)
+- **TTL cache API** : Augmenté de 15 à 30 minutes (l'invalidation explicite garantit la fraîcheur)
+- **Cache-Control HTTP** : Ajout de `max-age=300` sur les réponses GET `/api/comic_series` pour que le navigateur serve depuis son cache pendant 5 minutes
 - **Index EnrichmentProposal** : Ajout d'un index explicite sur `comic_series_id` pour accélérer les requêtes de propositions d'enrichissement
 - **Téléchargement de couverture asynchrone** : Le téléchargement de couverture lors d'un changement de `coverUrl` est désormais traité via Symfony Messenger au lieu de bloquer la requête API
 

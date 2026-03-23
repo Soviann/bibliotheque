@@ -13,8 +13,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Event\PostRemoveEventArgs;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
+use Doctrine\ORM\UnitOfWork;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\Cache\CacheInterface;
 
@@ -24,13 +24,16 @@ use Symfony\Contracts\Cache\CacheInterface;
 final class ComicSeriesCacheInvalidatorTest extends TestCase
 {
     private CacheInterface&MockObject $cache;
-    private EntityManagerInterface&Stub $entityManager;
+    private EntityManagerInterface&MockObject $entityManager;
+    private UnitOfWork&MockObject $unitOfWork;
     private ComicSeriesCacheInvalidator $listener;
 
     protected function setUp(): void
     {
         $this->cache = $this->createMock(CacheInterface::class);
-        $this->entityManager = $this->createStub(EntityManagerInterface::class);
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->unitOfWork = $this->createMock(UnitOfWork::class);
+        $this->entityManager->method('getUnitOfWork')->willReturn($this->unitOfWork);
 
         $this->listener = new ComicSeriesCacheInvalidator($this->cache);
     }
@@ -90,6 +93,11 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
     {
         $entity = new ComicSeries();
         $event = new PostUpdateEventArgs($entity, $this->entityManager);
+
+        $this->unitOfWork
+            ->method('getEntityChangeSet')
+            ->with($entity)
+            ->willReturn(['title' => ['Old', 'New']]);
 
         $this->cache
             ->expects(self::once())
@@ -186,5 +194,91 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
             ->method('delete');
 
         $this->listener->postRemove($event);
+    }
+
+    public function testPostUpdateWithOnlyInternalFieldsDoesNotInvalidateCache(): void
+    {
+        $entity = new ComicSeries();
+        $event = new PostUpdateEventArgs($entity, $this->entityManager);
+
+        $this->unitOfWork
+            ->method('getEntityChangeSet')
+            ->with($entity)
+            ->willReturn([
+                'lookupCompletedAt' => [null, new \DateTimeImmutable()],
+                'mergeCheckedAt' => [null, new \DateTimeImmutable()],
+            ]);
+
+        $this->cache
+            ->expects(self::never())
+            ->method('delete');
+
+        $this->listener->postUpdate($event);
+    }
+
+    public function testPostUpdateWithPublicFieldInvalidatesCache(): void
+    {
+        $entity = new ComicSeries();
+        $event = new PostUpdateEventArgs($entity, $this->entityManager);
+
+        $this->unitOfWork
+            ->method('getEntityChangeSet')
+            ->with($entity)
+            ->willReturn([
+                'lookupCompletedAt' => [null, new \DateTimeImmutable()],
+                'title' => ['Old Title', 'New Title'],
+            ]);
+
+        $this->cache
+            ->expects(self::once())
+            ->method('delete')
+            ->with('comic_series_api_all');
+
+        $this->listener->postUpdate($event);
+    }
+
+    public function testPostUpdateWithNewReleasesCheckedAtOnlyDoesNotInvalidateCache(): void
+    {
+        $entity = new ComicSeries();
+        $event = new PostUpdateEventArgs($entity, $this->entityManager);
+
+        $this->unitOfWork
+            ->method('getEntityChangeSet')
+            ->with($entity)
+            ->willReturn([
+                'newReleasesCheckedAt' => [null, new \DateTimeImmutable()],
+            ]);
+
+        $this->cache
+            ->expects(self::never())
+            ->method('delete');
+
+        $this->listener->postUpdate($event);
+    }
+
+    public function testPostUpdateWithTomeAlwaysInvalidatesCache(): void
+    {
+        $entity = new Tome();
+        $event = new PostUpdateEventArgs($entity, $this->entityManager);
+
+        $this->cache
+            ->expects(self::once())
+            ->method('delete')
+            ->with('comic_series_api_all');
+
+        $this->listener->postUpdate($event);
+    }
+
+    public function testPostUpdateWithAuthorAlwaysInvalidatesCache(): void
+    {
+        $entity = new Author();
+        $event = new PostUpdateEventArgs($entity, $this->entityManager);
+
+        $this->cache
+            ->expects(self::once())
+            ->method('delete')
+            ->with('comic_series_api_all');
+
+        $this->listener->postUpdate($event);
     }
 }

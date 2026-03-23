@@ -44,6 +44,7 @@ final class HttpCacheListener
         $etag = \md5((string) $response->getContent());
         $response->setEtag($etag);
         $response->setPrivate();
+        $response->setMaxAge(300);
         $response->headers->addCacheControlDirective('must-revalidate');
 
         $response->isNotModified($request);
