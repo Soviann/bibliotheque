@@ -20,6 +20,10 @@ use Symfony\Contracts\Cache\CacheInterface;
  *
  * Écoute les événements Doctrine postPersist, postUpdate et postRemove
  * sur ComicSeries, Tome et Author pour supprimer le cache.
+ *
+ * Pour ComicSeries en postUpdate, seuls les champs publics (visibles dans l'API)
+ * déclenchent l'invalidation. Les champs internes (lookupCompletedAt, mergeCheckedAt,
+ * newReleasesCheckedAt) sont ignorés pour éviter les invalidations inutiles.
  */
 #[AsDoctrineListener(event: Events::postPersist)]
 #[AsDoctrineListener(event: Events::postRemove)]
@@ -30,6 +34,13 @@ final readonly class ComicSeriesCacheInvalidator
         Author::class,
         ComicSeries::class,
         Tome::class,
+    ];
+
+    /** Champs ComicSeries qui ne sont pas exposés dans l'API liste. */
+    private const array INTERNAL_FIELDS = [
+        'lookupCompletedAt',
+        'mergeCheckedAt',
+        'newReleasesCheckedAt',
     ];
 
     public function __construct(
@@ -50,7 +61,19 @@ final readonly class ComicSeriesCacheInvalidator
 
     public function postUpdate(PostUpdateEventArgs $event): void
     {
-        $this->invalidateIfRelevant($event->getObject());
+        $entity = $event->getObject();
+
+        if ($entity instanceof ComicSeries) {
+            $changeSet = $event->getObjectManager()->getUnitOfWork()->getEntityChangeSet($entity);
+            $changedFields = \array_keys($changeSet);
+            $publicFields = \array_diff($changedFields, self::INTERNAL_FIELDS);
+
+            if ([] === $publicFields) {
+                return;
+            }
+        }
+
+        $this->invalidateIfRelevant($entity);
     }
 
     private function invalidateIfRelevant(object $entity): void

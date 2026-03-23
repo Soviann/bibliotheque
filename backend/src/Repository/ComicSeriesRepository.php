@@ -365,7 +365,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
     /**
      * Retourne toutes les séries avec leurs relations pour l'API PWA.
      *
-     * Utilise un cache applicatif (15 min) pour éviter de requêter la base
+     * Utilise un cache applicatif (30 min) pour éviter de requêter la base
      * à chaque chargement. Le cache est invalidé par ComicSeriesCacheInvalidator.
      *
      * @return list<ComicSeriesListItem>
@@ -374,7 +374,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
     {
         /* @var list<ComicSeriesListItem> */
         return $this->cache->get('comic_series_api_all', function (ItemInterface $item): array {
-            $item->expiresAfter(900);
+            $item->expiresAfter(1800);
 
             return $this->doFindAllForApi();
         });
