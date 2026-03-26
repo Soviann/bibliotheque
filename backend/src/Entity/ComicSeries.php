@@ -85,13 +85,13 @@ class ComicSeries implements SoftDeletableInterface
 {
     use SoftDeletableTrait;
 
-    #[Groups(['comic:list', 'comic:read'])]
+    #[Groups(['comic:list', 'comic:read', 'enrichment:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['comic:list', 'comic:read', 'comic:write'])]
+    #[Groups(['comic:list', 'comic:read', 'comic:write', 'enrichment:read'])]
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private string $title = '';
