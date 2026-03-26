@@ -22,15 +22,21 @@ Cliquer sur **Déconnexion** dans la barre de navigation (header desktop ou menu
 
 L'interface s'adapte à la taille de l'écran :
 
-- **Mobile** : barre de navigation en bas de l'écran avec 4 onglets
-- **Desktop** : barre de navigation en haut avec les mêmes liens
+- **Mobile** : barre de navigation en bas de l'écran avec 4 onglets (glassmorphism en dark mode, indicateurs dot)
+- **Desktop** : header sticky avec backdrop-blur en haut
 
 | Onglet | Description |
 |--------|-------------|
 | Accueil | Bibliothèque complète |
-| Wishlist | Bibliothèque filtrée sur le statut « Liste de souhaits » |
+| À acheter | Tomes manquants des séries en cours |
 | Ajouter | Formulaire de création |
 | Corbeille | Séries supprimées |
+
+Le header contient également :
+- **Recherche** : icône loupe qui ouvre un champ pleine largeur (Enter recherche, Escape ferme)
+- **Notifications** : cloche avec badge de compteur non lu
+- **Outils** : accès à la section d'administration
+- **Mode sombre/clair** : bouton de bascule
 
 ---
 
@@ -38,46 +44,54 @@ L'interface s'adapte à la taille de l'écran :
 
 La page d'accueil affiche toutes les séries de la collection sous forme de grille de cartes.
 
+### Carrousel « Récemment ajoutés »
+
+En haut de page, un carrousel horizontal présente les dernières séries ajoutées à la collection.
+
 ### Cartes de série
 
 Chaque carte affiche :
-- La couverture (ou une illustration spécifique au type si absente)
+- La couverture (avec halo coloré en dark mode — « ambient glow »)
 - Le titre
 - Le(s) auteur(s)
-- Le type (BD, Manga, Comics, Livre)
-- Le nombre de tomes (ou « One-shot »)
-- Le statut (En cours d'achat, Terminé, Arrêté, Liste de souhaits)
+- Le type (BD, Manga, Comics, Livre) en badge
+- Le nombre de tomes
+- Le statut
 
 Cliquer sur une carte ouvre la page de détail de la série.
 
 ### Filtres
 
-Des **chips de filtre rapide** (type et statut) sont affichés au-dessus de la grille pour un accès en un tap. Ils sont scrollables horizontalement sur mobile. Cliquer un chip active le filtre ; cliquer à nouveau le désactive.
+Des **chips de filtre rapide** (type et statut) sont affichés au-dessus de la grille, scrollables horizontalement sur mobile. Cliquer un chip active le filtre ; cliquer à nouveau le désactive.
 
-En complément, deux menus déroulants permettent de filtrer la bibliothèque :
+En complément, deux menus déroulants permettent de filtrer :
 
 - **Type** : BD, Manga, Comics, Livre
 - **Statut** : En cours d'achat, Terminé, Arrêté, Liste de souhaits
 
 ### Tri
 
-Un sélecteur de tri permet d'ordonner les séries affichées :
+Un sélecteur de tri permet d'ordonner les séries :
 
 - **Titre A→Z / Z→A** : Tri alphabétique (par défaut A→Z)
 - **Plus récent / Plus ancien** : Par date d'ajout
 - **Plus de tomes / Moins de tomes** : Par nombre de tomes
 
+### Pull-to-refresh
+
+Sur mobile, un geste tactile (tirer vers le bas) rafraîchit les données avec un indicateur visuel.
+
 ---
 
-## Wishlist
+## À acheter
 
-Le bouton **Wishlist** dans la barre de navigation redirige vers la page d'accueil avec le filtre statut pré-sélectionné sur **Liste de souhaits** (`/?status=wishlist`). Tous les autres filtres (type, tri, recherche) restent disponibles.
+La page **À acheter** (`/to-buy`) liste les tomes manquants des séries en cours d'achat. Les tomes manquants sont affichés sous forme de tranches (ex : « T.1-3, T.5 »). Un carrousel « Récemment ajoutés » apparaît en haut de page, et les mêmes filtres (chips, type, tri) sont disponibles.
 
 ---
 
 ## Recherche
 
-Permet de rechercher dans la collection par titre. La recherche se déclenche automatiquement après saisie (avec un délai anti-rebond de 300 ms).
+La recherche est accessible depuis l'icône loupe dans le header. Le champ s'ouvre en pleine largeur avec un slide animé. La recherche se déclenche après saisie (délai anti-rebond de 300 ms) et redirige vers la page d'accueil avec le paramètre `?search=`.
 
 ---
 
@@ -85,31 +99,42 @@ Permet de rechercher dans la collection par titre. La recherche se déclenche au
 
 La page de détail affiche toutes les informations d'une série :
 
-- Couverture en grand format
+- Couverture en grand format (cliquer pour un **zoom plein écran** via lightbox)
 - Titre, auteur(s), éditeur
 - Type et statut
-- Description
-- Date de publication
-- Nombre de tomes publiés
+- Description (section dédiée)
+- Date de publication, nombre de tomes publiés
+- Lien Amazon (si renseigné)
+- Métadonnées en grille clé-valeur
+- Bannière d'alerte si des tomes parus ne sont pas encore ajoutés
+
+### Suivi d'auteurs
+
+Un bouton **follow/unfollow** est disponible pour chaque auteur affiché sur la fiche. Suivre un auteur permet de recevoir des notifications quand il publie une nouvelle série.
 
 ### Gestion des tomes
 
-Si la série n'est pas un one-shot, la liste des tomes s'affiche avec pour chaque tome :
-- Numéro (affiché sous forme de plage si un numéro de fin est défini, ex : « 4-6 »)
-- Titre (optionnel)
-- ISBN (optionnel)
-- Cases à cocher interactives : Acheté, Téléchargé, Lu, NAS — un clic bascule le statut directement (mise à jour optimiste, support hors-ligne)
+Si la série n'est pas un one-shot, la liste des tomes s'affiche :
+- **Desktop** : tableau avec colonnes triables (#, Titre, Acheté, Téléchargé, Lu, NAS)
+- **Mobile (< 768px)** : cartes dépliables — vue repliée `#N - Titre` avec checkbox « Acheté » en accès rapide, déplier pour éditer les autres champs
+- Cases à cocher interactives — un clic bascule le statut directement (mise à jour optimiste, support hors-ligne)
+- **Actions en masse** : checkbox dans les en-têtes de colonne pour cocher/décocher tous les tomes (état indeterminate)
+
+### Historique d'enrichissement
+
+Un panneau dépliable affiche l'historique des enrichissements automatiques de la série (auto-appliqué, accepté, rejeté, ignoré), avec pour chaque entrée : date, action, champ modifié, niveau de confiance, source, et valeurs avant/après.
 
 ### Actions disponibles
 
 - **Modifier** : ouvre le formulaire d'édition
+- **Amazon** : ouvre le lien Amazon (si renseigné)
 - **Supprimer** : déplace la série dans la corbeille (suppression douce)
 
 ---
 
 ## Ajouter / modifier une série
 
-Le formulaire de création/édition est la page la plus riche de l'application.
+Le formulaire de création/édition est organisé en **sections repliables** (Info générale, Publication, Média).
 
 ### Recherche automatique (Lookup)
 
@@ -119,7 +144,11 @@ Avant de remplir manuellement, vous pouvez utiliser la recherche automatique :
 2. **Par titre** : saisir un titre et l'application recherche les informations correspondantes
 3. **Par scan de code-barres** : utiliser la caméra du téléphone pour scanner le code-barres d'un livre/manga
 
-Les champs pré-remplis peuvent être modifiés avant la sauvegarde.
+Les champs pré-remplis peuvent être modifiés avant la sauvegarde. Le lookup fonctionne même quand les sections sont repliées.
+
+### Recherche de couvertures
+
+Une modale dédiée permet de rechercher des couvertures via Google Books et Serper (images web). Les résultats s'affichent en grille avec un indicateur de scroll.
 
 ### Champs du formulaire
 
@@ -132,7 +161,8 @@ Les champs pré-remplis peuvent être modifiés avant la sauvegarde.
 | Éditeur | Maison d'édition | Non |
 | Description | Résumé ou notes | Non |
 | Date de publication | Date de première publication | Non |
-| Couverture | Upload d'image ou URL externe | Non |
+| Couverture | Upload d'image, URL externe ou recherche | Non |
+| URL Amazon | Lien vers la page Amazon de la série | Non |
 | One-shot | Indique que la série est un tome unique | Non |
 | Dernier tome publié | Numéro du dernier tome sorti | Non |
 | Parution terminée | Indique que la série est terminée | Non |
@@ -154,6 +184,39 @@ Pour les séries non one-shot, une section permet d'ajouter des tomes :
 
 ---
 
+## Notifications
+
+### Cloche de notifications
+
+Une icône cloche dans le header affiche un badge avec le nombre de notifications non lues.
+
+### Page de notifications (`/notifications`)
+
+La page liste toutes les notifications avec possibilité de :
+- Marquer comme lu
+- Supprimer
+- Marquer toutes comme lues
+
+### Types de notifications
+
+- **Tomes manquants** : détection automatique de tomes non ajoutés pour les séries en cours
+- **Nouvelles publications** : alertes pour les séries suivies quand de nouveaux tomes sortent
+- **Publications d'auteurs suivis** : alerte quand un auteur suivi publie une nouvelle série
+
+### Préférences (`/settings/notifications`)
+
+Chaque type de notification peut être configuré individuellement :
+- **In-app** : notification visible dans la cloche
+- **Push** : notification push du navigateur
+- **Les deux**
+- **Désactivé**
+
+### Notifications push
+
+Les notifications push nécessitent l'autorisation du navigateur. Elles fonctionnent même quand l'application est fermée.
+
+---
+
 ## Corbeille
 
 Les séries supprimées sont déplacées dans la corbeille et conservées pendant un certain temps.
@@ -170,11 +233,19 @@ Cliquer sur **Supprimer définitivement** pour effacer la série de manière irr
 
 ## Outils d'administration
 
-Accessible via le menu **Outils** (`/tools`), cette section regroupe les outils d'administration de la collection.
+Accessible via l'icône **clé à molette** dans le header ou la route `/tools`, cette section regroupe les outils d'administration. Un fil d'Ariane « Outils / Nom de la page » facilite la navigation.
 
 ### Lookup batch
 
 Lancer une recherche automatique de métadonnées sur toutes les séries incomplètes. Filtres disponibles : type, forcer le re-lookup, limite, délai entre les requêtes. Le progrès s'affiche en temps réel via streaming SSE.
+
+### Revue d'enrichissement (`/tools/enrichment-review`)
+
+Valider ou rejeter les propositions d'enrichissement automatique. Filtres disponibles : recherche par série, filtre par champ, niveau de confiance et source. Chaque proposition affiche les valeurs avant/après et peut être acceptée ou rejetée.
+
+### Suggestions IA (`/tools/suggestions`)
+
+Suggestions de séries similaires générées par Gemini AI à partir de la collection existante. Chaque suggestion peut être ajoutée à la bibliothèque ou ignorée.
 
 ### Import Excel
 
@@ -197,6 +268,9 @@ Supprimer définitivement les séries dans la corbeille depuis plus de N jours. 
 ## Mode sombre
 
 Un bouton dans le header permet de basculer entre le mode clair et le mode sombre. La préférence est sauvegardée dans le navigateur.
+
+- **Mode clair** : design « Refined Collector » — typographie serif (Playfair Display), palette warm off-white et cognac
+- **Mode sombre** : design « Dark Luxe » — typographie sans-serif (DM Sans), palette deep navy et indigo, glassmorphism, ambient glow sur les couvertures
 
 ---
 
@@ -223,5 +297,5 @@ Une fois installée, l'application fonctionne en mode hors-ligne :
 - Les couvertures sont mises en cache
 - Les données de l'API sont disponibles pendant 7 jours en cache
 - Les modifications (ajout, édition, suppression de séries et tomes) sont enregistrées localement et synchronisées automatiquement au retour en ligne
-- Une bannière indique le nombre d'opérations en attente de synchronisation
+- Une bannière indique le nombre d'opérations en attente de synchronisation (dépliable pour voir le détail)
 - La recherche automatique (ISBN/titre) et le scanner sont indisponibles hors-ligne

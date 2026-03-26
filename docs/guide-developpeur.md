@@ -4,7 +4,7 @@
 
 - **DDEV** >= 1.24 (inclut PHP, MariaDB, nginx, Node.js)
 - **Git**
-- Ou bien : PHP 8.3+, MariaDB 10.11+, Composer 2, Node.js 20+, nginx (voir les guides de déploiement [NAS](guide-deploiement-nas.md) / [OVH](guide-deploiement-ovh.md))
+- Ou bien : PHP 8.3+, MariaDB 10.11+, Composer 2, Node.js 20+, nginx (voir les guides de déploiement [NAS](guide-deploiement-nas.md))
 
 ---
 
@@ -20,33 +20,45 @@ bibliotheque/
 │   ├── public/              # Point d'entrée web (index.php)
 │   ├── src/
 │   │   ├── Command/         # Commandes console
-│   │   ├── Controller/      # Contrôleurs API (lookup, import, purge, merge, batch-lookup)
+│   │   ├── Controller/      # Contrôleurs API (lookup, import, purge, merge, batch-lookup, notifications)
 │   │   ├── DataFixtures/    # Fixtures de test
 │   │   ├── Doctrine/Filter/ # Filtre soft-delete
 │   │   ├── DTO/             # Data Transfer Objects
 │   │   ├── Entity/          # Entités Doctrine + attributs API Platform
-│   │   ├── Enum/            # Enums PHP (ComicStatus, ComicType, ApiLookupStatus)
+│   │   ├── Enum/            # Enums PHP
 │   │   ├── Event/           # Domain events
 │   │   ├── EventListener/   # Doctrine listeners, JWT listeners
+│   │   ├── Message/         # Messages Messenger (async)
+│   │   ├── MessageHandler/  # Handlers des messages async
 │   │   ├── Repository/      # Repositories Doctrine
 │   │   ├── Service/         # Services métier
+│   │   │   ├── ComicSeries/ # Logique métier séries
+│   │   │   ├── Cover/       # Upload et téléchargement de couvertures
+│   │   │   ├── Enrichment/  # Pipeline d'enrichissement automatique
 │   │   │   ├── Import/      # Import Excel (suivi + livres)
 │   │   │   ├── Lookup/      # Providers de recherche (ISBN, titre)
-│   │   │   └── Merge/       # Fusion de séries via Gemini AI
+│   │   │   │   ├── Contract/  # Interfaces
+│   │   │   │   ├── Gemini/    # Client et services Gemini
+│   │   │   │   ├── Provider/  # Implémentations des providers
+│   │   │   │   └── Util/      # Utilitaires lookup
+│   │   │   ├── Merge/       # Fusion de séries via Gemini AI
+│   │   │   ├── Nas/         # Scan NAS (détection fichiers)
+│   │   │   ├── Notification/ # Notifications in-app et push
+│   │   │   └── Recommendation/ # Suggestions IA et détection tomes/auteurs
 │   │   └── State/           # Processeurs API Platform
 │   ├── tests/               # Tests PHPUnit
 │   ├── composer.json
 │   └── phpunit.dist.xml
 ├── frontend/                # React 19 + TypeScript + Vite
-│   ├── public/              # Assets statiques (icônes PWA)
+│   ├── public/              # Assets statiques (icônes PWA, screenshots)
 │   ├── src/
 │   │   ├── __tests__/       # Tests Vitest
 │   │   ├── components/      # Composants React réutilisables
-│   │   ├── hooks/           # Hooks custom (API, auth)
+│   │   ├── hooks/           # Hooks custom (API, auth, notifications, offline)
 │   │   ├── pages/           # Pages de l'application
 │   │   ├── services/        # Service API (apiFetch, JWT), offline queue, sync handler
 │   │   ├── types/           # Types TypeScript et enums
-│   │   └── utils/           # Utilitaires (recherche fuzzy, tri)
+│   │   └── utils/           # Utilitaires (recherche fuzzy, tri, enrichment)
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.ts
@@ -102,6 +114,7 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | `make jwt` | Générer les clés JWT |
 | `make cs` | Corriger le style PHP |
 | `make rector` | Appliquer les refactorings Rector |
+| `make coverage` | Rapport de couverture PHPUnit (pcov) |
 
 ---
 
@@ -118,8 +131,10 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | LexikJWTAuthenticationBundle | 3 | Authentification JWT |
 | MariaDB | 10.11 | Base de données |
 | VichUploaderBundle | 2 | Upload de fichiers (couvertures) |
-| LiipImagineBundle | 2 | Redimensionnement d'images |
+| LiipImagineBundle | 2 | Redimensionnement d'images (miniatures 300x450) |
 | NelmioCorsBundle | 2 | Gestion des CORS |
+| minishlink/web-push | 9 | Notifications push (VAPID) |
+| intervention/image | 3 | Traitement d'images (couvertures) |
 
 ### Entités
 
@@ -129,6 +144,12 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | `Tome` | Tome d'une série. Sous-ressource de ComicSeries. |
 | `Author` | Auteur, lié à ComicSeries via ManyToMany. |
 | `User` | Utilisateur de l'application. |
+| `EnrichmentProposal` | Proposition d'enrichissement en attente de revue (confiance MEDIUM). |
+| `EnrichmentLog` | Historique d'enrichissement d'une série (audit trail). |
+| `Notification` | Notification in-app (tomes manquants, nouvelles parutions, etc.). |
+| `NotificationPreference` | Préférence de canal par type de notification et par utilisateur. |
+| `PushSubscription` | Abonnement push d'un navigateur (endpoint, clés VAPID). |
+| `SeriesSuggestion` | Suggestion IA de série similaire. |
 
 ### Enums
 
@@ -136,6 +157,16 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 |------|---------|
 | `ComicStatus` | `buying`, `finished`, `stopped`, `wishlist` |
 | `ComicType` | `bd`, `comics`, `livre`, `manga` |
+| `LookupMode` | `isbn`, `title` |
+| `EnrichmentAction` | `accepted`, `auto_applied`, `rejected`, `skipped` |
+| `EnrichmentConfidence` | `high`, `medium`, `low` |
+| `EnrichableField` | `authors`, `coverUrl`, `description`, `editor`, `isOneShot`, `lastPublishedVolume`, `publicationDate`, `publicationFinished`, `title` |
+| `ProposalStatus` | `pending`, `accepted`, `rejected` |
+| `NotificationType` | `missing_tomes`, `new_release`, `author_release` |
+| `NotificationChannel` | `in_app`, `push` |
+| `NotificationEntityType` | `comic_series`, `author` |
+| `SuggestionStatus` | `pending`, `accepted`, `rejected` |
+| `BatchLookupStatus` | `pending`, `skipped`, `enriched`, `error` |
 
 ### Endpoints API
 
@@ -152,7 +183,7 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | GET | `/api/comic_series` | Liste des séries (filtres : status, type, title, isOneShot) |
 | GET | `/api/comic_series/{id}` | Détail d'une série |
 | POST | `/api/comic_series` | Créer une série |
-| PUT | `/api/comic_series/{id}` | Modifier une série |
+| PATCH | `/api/comic_series/{id}` | Modifier une série |
 | DELETE | `/api/comic_series/{id}` | Supprimer une série (soft delete) |
 | PUT | `/api/comic_series/{id}/restore` | Restaurer une série supprimée |
 | DELETE | `/api/trash/{id}/permanent` | Suppression définitive |
@@ -163,7 +194,7 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 |---------|-----|-------------|
 | GET | `/api/comic_series/{id}/tomes` | Liste des tomes d'une série |
 | POST | `/api/comic_series/{id}/tomes` | Ajouter un tome |
-| PUT | `/api/tomes/{id}` | Modifier un tome |
+| PATCH | `/api/tomes/{id}` | Modifier un tome |
 | DELETE | `/api/tomes/{id}` | Supprimer un tome |
 
 **Auteurs :**
@@ -180,6 +211,46 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 |---------|-----|-------------|
 | GET | `/api/lookup/isbn?isbn=...&type=...` | Recherche par ISBN |
 | GET | `/api/lookup/title?title=...&type=...` | Recherche par titre |
+| GET | `/api/lookup/covers?title=...&type=...` | Recherche de couvertures |
+
+**Notifications :**
+
+| Méthode | URL | Description |
+|---------|-----|-------------|
+| GET | `/api/notifications` | Liste des notifications (API Platform) |
+| GET | `/api/notifications/unread-count` | Nombre de notifications non lues |
+| PATCH | `/api/notifications/read-all` | Marquer toutes comme lues |
+| PATCH | `/api/notifications/{id}` | Modifier une notification (marquer comme lue) |
+| DELETE | `/api/notifications/{id}` | Supprimer une notification |
+
+**Préférences de notifications :**
+
+| Méthode | URL | Description |
+|---------|-----|-------------|
+| GET | `/api/notification_preferences` | Préférences du user connecté |
+| PATCH | `/api/notification_preferences/{id}` | Modifier une préférence |
+
+**Push subscriptions :**
+
+| Méthode | URL | Description |
+|---------|-----|-------------|
+| POST | `/api/push_subscriptions` | Enregistrer un abonnement push |
+| DELETE | `/api/push_subscriptions/{id}` | Supprimer un abonnement |
+
+**Enrichissement :**
+
+| Méthode | URL | Description |
+|---------|-----|-------------|
+| GET | `/api/enrichment_proposals` | Liste des propositions (filtres : status, field, confidence, source) |
+| PATCH | `/api/enrichment_proposals/{id}` | Accepter/rejeter une proposition |
+| GET | `/api/enrichment_logs` | Historique d'enrichissement (filtre : comicSeries) |
+
+**Suggestions :**
+
+| Méthode | URL | Description |
+|---------|-----|-------------|
+| GET | `/api/series_suggestions` | Liste des suggestions IA |
+| PATCH | `/api/series_suggestions/{id}` | Accepter/rejeter une suggestion |
 
 **Outils (JWT protégés) :**
 
@@ -192,6 +263,7 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | GET | `/api/tools/purge/preview?days=30` | Prévisualiser les séries à purger |
 | POST | `/api/tools/purge/execute` | Exécuter la purge (`{seriesIds}`) |
 | POST | `/api/merge-series/detect` | Détecter les séries à fusionner |
+| POST | `/api/merge-series/suggest` | Suggestions de fusion via Gemini |
 | POST | `/api/merge-series/preview` | Aperçu de fusion (`{seriesIds}`) |
 | POST | `/api/merge-series/execute` | Exécuter la fusion |
 
@@ -234,15 +306,67 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 | GeminiLookup | Google Gemini AI | Informations complémentaires |
 | BedethequeLookup | Bedetheque.com via Gemini | BD (référence francophone), métadonnées séries |
 
+### Enrichissement automatique
+
+Le pipeline d'enrichissement (`Service/Enrichment/`) analyse les séries et enrichit automatiquement les champs manquants :
+
+1. **Scoring de confiance** : chaque donnée reçoit un niveau HIGH, MEDIUM ou LOW
+2. **HIGH** → auto-appliqué et journalisé dans `EnrichmentLog`
+3. **MEDIUM** → créé comme `EnrichmentProposal` en attente de revue manuelle
+4. **LOW** → ignoré et journalisé
+
+L'enrichissement se déclenche :
+- À la **création** d'une série (via Messenger, asynchrone)
+- Via la commande **`app:auto-enrich`** (scheduler, mar-sam 3h-8h)
+- Lors d'un **re-enrichissement** quand des champs sont vidés manuellement
+
+L'enrichissement est **désactivé automatiquement** pendant les imports Excel/Books.
+
+### Symfony Messenger
+
+Transport : `doctrine://default` (messages stockés dans `messenger_messages`). Test env : `in-memory://`.
+
+| Message | Handler | Description |
+|---------|---------|-------------|
+| `EnrichSeriesMessage` | `EnrichSeriesHandler` | Enrichissement asynchrone à la création |
+| `DownloadCoverMessage` | `DownloadCoverHandler` | Téléchargement de couverture asynchrone |
+
+Configuration : `backend/config/packages/messenger.yaml`. Retry : max 3, backoff ×2. Transport `failed` pour les erreurs.
+
+### Symfony Scheduler
+
+Toutes les tâches récurrentes sont gérées par Symfony Scheduler (`backend/src/Schedule.php`) :
+
+| Cron | Commande | Description |
+|------|----------|-------------|
+| `0 3-8 * * 2-6` | `app:auto-enrich` | Enrichissement automatique (mar-sam, 3h-8h) |
+| `0 4 * * *` | `app:check-new-releases` | Vérification nouvelles parutions (quotidien) |
+| `0 5 * * *` | `app:download-covers` | Téléchargement des couvertures manquantes (quotidien) |
+| `0 3-8 * * 0` | `app:detect-missing-tomes` | Détection tomes manquants (dimanche) |
+| `0 3-8 * * 1` | `app:check-author-releases` | Vérification publications auteurs suivis (lundi) |
+| `0 1 1 * *` | `app:purge-deleted` | Purge corbeille (1er du mois) |
+| `0 2 1 * *` | `app:purge-notifications --days=90` | Purge notifications anciennes (1er du mois) |
+
+Les tâches Gemini (auto-enrich, detect-missing-tomes, check-author-releases) sont réparties sur des jours différents pour exploiter le quota (reset à minuit PT = 9h Paris).
+
+Un **conteneur worker Docker** dédié avec Supervisor exécute Messenger et Scheduler en production.
+
 ### Commandes console
 
 | Commande | Description |
 |----------|-------------|
-| `app:import-books <fichier> [--dry-run]` | Importer des livres depuis un fichier Excel (Livres.xlsx) |
+| `app:auto-enrich` | Enrichir automatiquement les séries avec scoring de confiance |
+| `app:check-new-releases` | Vérifier les nouvelles parutions des séries en cours |
+| `app:check-author-releases` | Vérifier les publications des auteurs suivis |
+| `app:detect-missing-tomes` | Détecter les tomes manquants des séries en cours/terminées |
+| `app:download-covers` | Télécharger les couvertures manquantes |
+| `app:scan-nas [--dry-run]` | Scanner le NAS et mettre à jour le statut des tomes |
+| `app:import-books <fichier> [--dry-run]` | Importer des livres depuis un fichier Excel |
 | `app:import-excel <fichier> [--dry-run]` | Importer une collection depuis un fichier Excel de suivi |
 | `app:invalidate-tokens [--email=...]` | Invalider les tokens JWT (tous ou par utilisateur) |
-| `app:lookup-missing [--type=...] [--limit=...] [--force]` | Rechercher les métadonnées manquantes des séries |
 | `app:purge-deleted [--days=30] [--dry-run]` | Supprimer définitivement les séries dans la corbeille |
+| `app:purge-notifications [--days=90]` | Purger les notifications anciennes |
+| `app:warm-thumbnails` | Pré-générer les miniatures de toutes les couvertures |
 
 ---
 
@@ -265,36 +389,66 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 | Fuse.js | 7 | Recherche fuzzy client-side |
 | vite-plugin-pwa | 1 | Service worker et manifest PWA |
 | html5-qrcode | 2 | Scanner de codes-barres |
+| idb / idb-keyval | - | IndexedDB (offline queue, JWT miroir) |
 
 ### Patterns
 
 **Service API (`services/api.ts`)** :
 - `apiFetch<T>(path, options)` — Fonction générique qui gère les headers JWT, Content-Type, erreurs 401
-- Le token JWT est stocké dans `localStorage`
+- Le token JWT est stocké dans `localStorage` et miroir dans IndexedDB pour le service worker
 - En cas de 401, le token est supprimé et l'utilisateur est redirigé vers `/login`
 
 **Hooks** :
 - Chaque interaction API a son propre hook (`useComics`, `useComic`, `useCreateComic`, etc.)
 - Les hooks de lecture utilisent `useQuery` (TanStack Query)
 - Les hooks de mutation utilisent `useMutation` et invalident les query keys pertinentes au succès
+- Hooks spécialisés : `useNotifications`, `useEnrichment`, `useOnlineStatus`, `useSyncStatus`, `useServiceWorker`, `useDarkMode`
 
 **Routing** :
 - Routes définies dans `App.tsx`
-- Pages chargées en lazy loading (`React.lazy()`) sauf Home
+- Pages chargées en lazy loading (`React.lazy()` avec retry) sauf Home
 - `AuthGuard` protège toutes les routes sauf `/login`
+- Fallback offline quand un chunk n'est pas en cache
+
+**Pages** :
+
+| Page | Route | Description |
+|------|-------|-------------|
+| `Home` | `/` | Bibliothèque complète (carrousel + grille) |
+| `ToBuy` | `/to-buy` | Tomes manquants des séries en cours |
+| `ComicDetail` | `/comic/:id` | Fiche détaillée d'une série |
+| `ComicForm` | `/comic/new`, `/comic/:id/edit` | Formulaire de création/édition |
+| `Trash` | `/trash` | Corbeille |
+| `Tools` | `/tools` | Hub des outils d'administration |
+| `EnrichmentReview` | `/tools/enrichment-review` | Revue des propositions d'enrichissement |
+| `Suggestions` | `/tools/suggestions` | Suggestions IA de séries |
+| `ImportTool` | `/tools/import` | Import Excel |
+| `LookupTool` | `/tools/lookup` | Lookup batch |
+| `MergeSeries` | `/tools/merge-series` | Fusion de séries |
+| `PurgeTool` | `/tools/purge` | Purge corbeille |
+| `Notifications` | `/notifications` | Liste des notifications |
+| `NotificationSettings` | `/settings/notifications` | Préférences de notifications |
+| `Login` | `/login` | Connexion Google OAuth |
 
 **Composants** :
 
 | Composant | Description |
 |-----------|-------------|
-| `Layout` | Shell de l'app (header, navigation, Outlet) |
+| `Layout` | Shell de l'app (header sticky, search, notifications, Outlet) |
+| `BottomNav` | Navigation bottom (mobile) avec glassmorphism et indicateurs dot |
 | `AuthGuard` | Redirige vers /login si non authentifié |
-| `ComicCard` | Carte d'une série (couverture, titre, auteur, badges) |
+| `ComicCard` | Carte d'une série (couverture, ambient glow, badges) |
+| `CoverImage` | Image avec skeleton shimmer et miniatures |
+| `CoverLightbox` | Lightbox plein écran pour les couvertures |
+| `CoverSearchModal` | Modale de recherche de couvertures (Google Books + Serper) |
 | `FilterChips` | Chips de filtre rapide (type, statut) scrollables |
-| `Filters` | Menus déroulants de filtrage (type, statut) |
+| `NotificationBell` | Cloche avec badge compteur non lu |
+| `EnrichmentHistory` | Historique d'enrichissement sur la fiche série |
 | `ConfirmModal` | Modal de confirmation (Headless UI Dialog) |
 | `ComponentErrorBoundary` | Error boundary contextuel (label + retry) pour sections de page |
 | `ErrorFallback` | Fallback pour ErrorBoundary app-level |
+| `OfflineBanner` | Bannière offline avec liste dépliable des opérations en attente |
+| `SyncErrorBanner` | Bannière d'erreur de synchronisation |
 | `BarcodeScanner` | Scanner de codes-barres (html5-qrcode) |
 
 ---
@@ -391,6 +545,13 @@ Exemples :
 | `GEMINI_API_KEYS` | Clés API Gemini multiples, séparées par virgule (rotation sur 429) | vide |
 | `GEMINI_MODELS` | Modèles Gemini par ordre de priorité (dégradation progressive) | `gemini-2.5-flash,...` |
 | `GOOGLE_BOOKS_API_KEY` | Clé API Google Books (optionnel) | vide |
+| `SERPER_API_KEY` | Clé API Serper.dev pour la recherche de couvertures | vide |
 | `OAUTH_GOOGLE_ID` | ID client OAuth Google | À définir dans `.env.local` |
 | `OAUTH_ALLOWED_EMAIL` | Email Gmail autorisé pour le login | À définir dans `.env.local` |
 | `CORS_ALLOW_ORIGIN` | Regex des origines CORS autorisées | `localhost` |
+| `VAPID_PUBLIC_KEY` | Clé publique VAPID pour les notifications push | `change_me` |
+| `VAPID_PRIVATE_KEY` | Clé privée VAPID pour les notifications push | `change_me` |
+| `VAPID_SUBJECT` | Email de contact VAPID | `mailto:contact@example.com` |
+| `MESSENGER_TRANSPORT_DSN` | Transport Messenger | `doctrine://default` |
+| `VITE_VAPID_PUBLIC_KEY` | Clé publique VAPID côté frontend | vide |
+| `VITE_GOOGLE_CLIENT_ID` | ID client OAuth Google côté frontend | vide |
