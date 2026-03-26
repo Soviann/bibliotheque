@@ -6,7 +6,6 @@ export const endpoints = {
   },
   enrichment: {
     accept: (id: number) => `/enrichment_proposals/${id}/accept`,
-    logs: "/enrichment_logs",
     proposals: "/enrichment_proposals",
     reject: (id: number) => `/enrichment_proposals/${id}/reject`,
   },

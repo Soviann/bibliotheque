@@ -1,21 +1,21 @@
-import { Check, Loader2, Search, Sparkles, X } from "lucide-react";
+import { Loader2, Search, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import Breadcrumb from "../components/Breadcrumb";
 import EmptyState from "../components/EmptyState";
+import ProposalCard from "../components/ProposalCard";
 import SelectListbox from "../components/SelectListbox";
 import { useAcceptProposal, useEnrichmentProposals, useRejectProposal } from "../hooks/useEnrichment";
 import type { EnrichmentProposal } from "../types/api";
 import {
   EnrichableFieldLabel,
-  EnrichmentConfidenceColor,
   EnrichmentConfidenceLabel,
-  type EnrichmentConfidence,
   ProposalStatus,
   type SelectOption,
 } from "../types/enums";
-import { formatEnrichmentValue } from "../utils/enrichmentUtils";
+
+const ACTIONABLE_STATUSES: string[] = [ProposalStatus.PENDING, ProposalStatus.PRE_ACCEPTED];
 
 const confidenceOptions: SelectOption[] = [
   { label: "Toutes", value: "" },
@@ -24,59 +24,8 @@ const confidenceOptions: SelectOption[] = [
   { label: EnrichmentConfidenceLabel.low, value: "low" },
 ];
 
-function ProposalCard({
-  onAccept,
-  onReject,
-  proposal,
-}: {
-  onAccept: (id: number) => void;
-  onReject: (id: number) => void;
-  proposal: EnrichmentProposal;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-3 rounded-lg border border-surface-border bg-surface-secondary p-3">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-text-primary">
-            {EnrichableFieldLabel[proposal.field] ?? proposal.field}
-          </span>
-          <span
-            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${EnrichmentConfidenceColor[proposal.confidence as EnrichmentConfidence]}`}
-          >
-            {EnrichmentConfidenceLabel[proposal.confidence as EnrichmentConfidence]}
-          </span>
-          <span className="text-xs text-text-tertiary">{proposal.source}</span>
-        </div>
-        <div className="mt-1 break-all text-sm text-text-secondary">
-          <span className="text-text-tertiary">{formatEnrichmentValue(proposal.currentValue)}</span>
-          {" → "}
-          <span className="font-medium text-text-primary">{formatEnrichmentValue(proposal.proposedValue)}</span>
-        </div>
-      </div>
-      <div className="flex shrink-0 gap-1">
-        <button
-          className="rounded-md bg-green-600 p-1.5 text-white hover:bg-green-700"
-          onClick={() => onAccept(proposal.id)}
-          title="Accepter"
-          type="button"
-        >
-          <Check className="h-4 w-4" />
-        </button>
-        <button
-          className="rounded-md bg-red-600 p-1.5 text-white hover:bg-red-700"
-          onClick={() => onReject(proposal.id)}
-          title="Rejeter"
-          type="button"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function EnrichmentReview() {
-  const { data: proposals, isLoading } = useEnrichmentProposals(ProposalStatus.PENDING);
+  const { data: allProposals, isLoading } = useEnrichmentProposals();
   const acceptMutation = useAcceptProposal();
   const rejectMutation = useRejectProposal();
 
@@ -84,6 +33,12 @@ export default function EnrichmentReview() {
   const [fieldFilter, setFieldFilter] = useState("");
   const [confidenceFilter, setConfidenceFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
+
+  // Ne garder que les proposals PENDING et PRE_ACCEPTED
+  const proposals = useMemo(
+    () => allProposals?.filter((p) => ACTIONABLE_STATUSES.includes(p.status)),
+    [allProposals],
+  );
 
   const fieldOptions: SelectOption[] = useMemo(() => {
     const fields = new Set(proposals?.map((p) => p.field) ?? []);

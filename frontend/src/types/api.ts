@@ -1,7 +1,6 @@
 import type {
   ComicStatus,
   ComicType,
-  EnrichmentAction,
   EnrichmentConfidence,
   ProposalStatus,
   SuggestionStatus,
@@ -288,15 +287,3 @@ export interface SeriesSuggestion {
   type: ComicType;
 }
 
-export interface EnrichmentLog {
-  "@id": string;
-  action: EnrichmentAction;
-  comicSeries: { "@id": string; id: number };
-  confidence: EnrichmentConfidence;
-  createdAt: string;
-  field: string;
-  id: number;
-  newValue: unknown;
-  oldValue: unknown;
-  source: string;
-}

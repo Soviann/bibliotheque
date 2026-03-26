@@ -13,12 +13,6 @@ parameters:
 			path: src/Entity/ComicSeries.php
 
 		-
-			message: '#^Property App\\Entity\\EnrichmentLog\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
-			identifier: property.unusedType
-			count: 1
-			path: src/Entity/EnrichmentLog.php
-
-		-
 			message: '#^Property App\\Entity\\EnrichmentProposal\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
 			identifier: property.unusedType
 			count: 1

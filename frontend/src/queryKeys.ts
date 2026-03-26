@@ -7,8 +7,8 @@ export const queryKeys = {
     previewPrefix: ["batch-lookup-preview"] as const,
   },
   enrichment: {
-    logs: (seriesId: number) => ["enrichment-logs", seriesId] as const,
     proposals: (status?: string) => ["enrichment-proposals", status] as const,
+    proposalsBySeries: (seriesId: number) => ["enrichment-proposals", "series", seriesId] as const,
     proposalsPrefix: ["enrichment-proposals"] as const,
   },
   comics: {

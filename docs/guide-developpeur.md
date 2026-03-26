@@ -144,8 +144,7 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | `Tome` | Tome d'une série. Sous-ressource de ComicSeries. |
 | `Author` | Auteur, lié à ComicSeries via ManyToMany. |
 | `User` | Utilisateur de l'application. |
-| `EnrichmentProposal` | Proposition d'enrichissement en attente de revue (confiance MEDIUM). |
-| `EnrichmentLog` | Historique d'enrichissement d'une série (audit trail). |
+| `EnrichmentProposal` | Proposition d'enrichissement (PENDING, PRE_ACCEPTED, ACCEPTED, REJECTED, SKIPPED). Sert d'historique. |
 | `Notification` | Notification in-app (tomes manquants, nouvelles parutions, etc.). |
 | `NotificationPreference` | Préférence de canal par type de notification et par utilisateur. |
 | `PushSubscription` | Abonnement push d'un navigateur (endpoint, clés VAPID). |
@@ -158,10 +157,9 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 | `ComicStatus` | `buying`, `finished`, `stopped`, `wishlist` |
 | `ComicType` | `bd`, `comics`, `livre`, `manga` |
 | `LookupMode` | `isbn`, `title` |
-| `EnrichmentAction` | `accepted`, `auto_applied`, `rejected`, `skipped` |
 | `EnrichmentConfidence` | `high`, `medium`, `low` |
 | `EnrichableField` | `authors`, `coverUrl`, `description`, `editor`, `isOneShot`, `lastPublishedVolume`, `publicationDate`, `publicationFinished`, `title` |
-| `ProposalStatus` | `pending`, `accepted`, `rejected` |
+| `ProposalStatus` | `pending`, `pre_accepted`, `accepted`, `rejected`, `skipped` |
 | `NotificationType` | `missing_tomes`, `new_release`, `author_release` |
 | `NotificationChannel` | `in_app`, `push` |
 | `NotificationEntityType` | `comic_series`, `author` |
@@ -311,9 +309,9 @@ Le `LookupOrchestrator` interroge en parallèle plusieurs providers pour trouver
 Le pipeline d'enrichissement (`Service/Enrichment/`) analyse les séries et enrichit automatiquement les champs manquants :
 
 1. **Scoring de confiance** : chaque donnée reçoit un niveau HIGH, MEDIUM ou LOW
-2. **HIGH** → auto-appliqué et journalisé dans `EnrichmentLog`
-3. **MEDIUM** → créé comme `EnrichmentProposal` en attente de revue manuelle
-4. **LOW** → ignoré et journalisé
+2. **HIGH** → auto-appliqué + `EnrichmentProposal` PRE_ACCEPTED (l'utilisateur peut rejeter → revert)
+3. **MEDIUM** → `EnrichmentProposal` PENDING en attente de revue manuelle
+4. **LOW** → `EnrichmentProposal` SKIPPED (ignoré, empêche la synchro de repasser)
 
 L'enrichissement se déclenche :
 - À la **création** d'une série (via Messenger, asynchrone)
@@ -443,7 +441,7 @@ Un **conteneur worker Docker** dédié avec Supervisor exécute Messenger et Sch
 | `CoverSearchModal` | Modale de recherche de couvertures (Google Books + Serper) |
 | `FilterChips` | Chips de filtre rapide (type, statut) scrollables |
 | `NotificationBell` | Cloche avec badge compteur non lu |
-| `EnrichmentHistory` | Historique d'enrichissement sur la fiche série |
+| `SeriesEnrichmentProposals` | Propositions d'enrichissement sur la fiche série |
 | `ConfirmModal` | Modal de confirmation (Headless UI Dialog) |
 | `ComponentErrorBoundary` | Error boundary contextuel (label + retry) pour sections de page |
 | `ErrorFallback` | Fallback pour ErrorBoundary app-level |

@@ -6,10 +6,9 @@ namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Entity\EnrichmentLog;
 use App\Entity\EnrichmentProposal;
-use App\Enum\EnrichmentAction;
 use App\Enum\ProposalStatus;
+use App\Service\Enrichment\EnrichmentService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -21,6 +20,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 final readonly class EnrichmentProposalRejectProcessor implements ProcessorInterface
 {
     public function __construct(
+        private EnrichmentService $enrichmentService,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -30,22 +30,20 @@ final readonly class EnrichmentProposalRejectProcessor implements ProcessorInter
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): EnrichmentProposal
     {
-        if (ProposalStatus::PENDING !== $data->getStatus()) {
-            throw new BadRequestHttpException('Seules les propositions en attente peuvent être rejetées.');
+        if (!\in_array($data->getStatus(), [ProposalStatus::PENDING, ProposalStatus::PRE_ACCEPTED], true)) {
+            throw new BadRequestHttpException('Seules les propositions en attente ou pré-approuvées peuvent être rejetées.');
+        }
+
+        // PRE_ACCEPTED : la valeur a été appliquée, il faut la reverter
+        if (ProposalStatus::PRE_ACCEPTED === $data->getStatus()) {
+            $this->enrichmentService->revertFieldValue(
+                $data->getComicSeries(),
+                $data->getField(),
+                $data->getCurrentValue(),
+            );
         }
 
         $data->reject();
-
-        $log = new EnrichmentLog(
-            action: EnrichmentAction::REJECTED,
-            comicSeries: $data->getComicSeries(),
-            confidence: $data->getConfidence(),
-            field: $data->getField(),
-            newValue: $data->getProposedValue(),
-            oldValue: $data->getCurrentValue(),
-            source: $data->getSource(),
-        );
-        $this->entityManager->persist($log);
         $this->entityManager->flush();
 
         return $data;

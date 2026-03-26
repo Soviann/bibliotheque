@@ -54,8 +54,7 @@ src/
 |---|---|
 | Author | Comic/manga author |
 | ComicSeries | Central entity, soft-deletable |
-| EnrichmentLog | Enrichment attempts per series (provider, status, fields) |
-| EnrichmentProposal | AI-suggested metadata changes pending review |
+| EnrichmentProposal | Enrichment proposals (PENDING/PRE_ACCEPTED/ACCEPTED/REJECTED/SKIPPED) — serves as history |
 | Notification | User notifications |
 | NotificationPreference | Per-user notification channel preferences |
 | PushSubscription | Web Push endpoints per user |
@@ -65,7 +64,7 @@ src/
 
 ## Enums
 
-ApiLookupStatus, BatchLookupStatus, ComicStatus (collection status), ComicType (BD/comic/manga), EnrichableField, EnrichmentAction (accept/reject), EnrichmentConfidence (high/medium/low), LookupMode (isbn/title), NotificationChannel (web/push), NotificationEntityType, NotificationType, ProposalStatus (pending/accepted/rejected), SuggestionStatus.
+ApiLookupStatus, BatchLookupStatus, ComicStatus (collection status), ComicType (BD/comic/manga), EnrichableField, EnrichmentConfidence (high/medium/low), LookupMode (isbn/title), NotificationChannel (web/push), NotificationEntityType, NotificationType, ProposalStatus (pending/pre_accepted/accepted/rejected/skipped), SuggestionStatus.
 
 ## Services (`src/Service/`)
 
@@ -94,7 +93,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (collection status), ComicType (
 
 **Controllers**: ApiController (lookup: title/ISBN/covers), BatchLookupController (SSE streaming), GoogleLoginController, ImportController (books/Excel), MergeSeriesController (detect/preview/execute/suggest), NotificationController (read-all/unread-count), PurgeController (preview/execute purge).
 
-**Resources**: ComicSeries, Tome, Author, EnrichmentProposal, EnrichmentLog, Notification, NotificationPreference, SeriesSuggestion. Format: JSON-LD.
+**Resources**: ComicSeries, Tome, Author, EnrichmentProposal, Notification, NotificationPreference, SeriesSuggestion. Format: JSON-LD.
 
 ## Messenger & Scheduler
 
