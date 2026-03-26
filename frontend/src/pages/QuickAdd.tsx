@@ -1,6 +1,6 @@
-import { ArrowLeft, Camera, Repeat, Search } from "lucide-react";
+import { ArrowLeft, Camera, FilePlus2, Repeat, Search } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AddedStack from "../components/AddedStack";
 import QuickAddScan from "../components/QuickAddScan";
@@ -40,7 +40,17 @@ export default function QuickAdd() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-base font-semibold text-text-primary">Ajout rapide</h1>
+          <div className="flex flex-col items-center">
+            <h1 className="text-base font-semibold text-text-primary">Ajout rapide</h1>
+            <Link
+              className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400"
+              to="/comic/new"
+              viewTransition
+            >
+              <FilePlus2 className="h-3 w-3" />
+              Ajout détaillé
+            </Link>
+          </div>
           <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-muted">
             <Repeat className="h-3.5 w-3.5" />
             Batch
