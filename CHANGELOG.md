@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.23.0] - 2026-03-26
+
 ### Added
 
 - **Shared Element Transitions** : animation fluide des couvertures entre la grille et la page détail via View Transition API
