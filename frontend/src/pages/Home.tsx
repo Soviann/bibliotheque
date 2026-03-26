@@ -1,12 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, Filter, Heart, Loader2, RefreshCw, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CardActionBar from "../components/CardActionBar";
 import ComicCard from "../components/ComicCard";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
+import CoverImage from "../components/CoverImage";
 import EmptyState from "../components/EmptyState";
 import FilterChips from "../components/FilterChips";
 import Filters from "../components/Filters";
@@ -20,6 +21,8 @@ import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useRestoreComic } from "../hooks/useTrash";
 import { queryKeys } from "../queryKeys";
 import type { ComicSeries } from "../types/api";
+import { ComicTypePlaceholder } from "../types/enums";
+import { getCoverSrc, getCoverThumbnailSrc } from "../utils/coverUtils";
 import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
 import type { SortOption } from "../utils/sortComics";
@@ -32,6 +35,9 @@ const VALID_SORTS: Set<string> = new Set([
   "tomes-asc",
   "tomes-desc",
 ]);
+
+/** Nombre de séries affichées dans la section hero */
+const HERO_COUNT = 10;
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -130,6 +136,14 @@ export default function Home() {
     return sortComics(searchComics(preFiltered, debouncedSearch), sort);
   }, [allComics, debouncedSearch, sort, status, type]);
 
+  // Récemment ajoutés — triés par date de création décroissante
+  const recentlyAdded = useMemo(() => {
+    if (allComics.length === 0) return [];
+    return [...allComics]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, HERO_COUNT);
+  }, [allComics]);
+
   const handleResetFilters = useCallback(() => {
     setSearchParams(
       (prev) => {
@@ -146,6 +160,9 @@ export default function Home() {
   const pullIndicatorHeight = isRefreshing ? 48 : Math.min(pullDistance, 80);
   const pullProgress = Math.min(pullDistance / 80, 1);
 
+  // N'afficher la section hero que sur la vue par défaut (pas de filtre/recherche)
+  const showHero = !isLoading && !debouncedSearch && !type && !status && recentlyAdded.length > 0;
+
   return (
     <div className="space-y-4">
       {(pullDistance > 0 || isRefreshing) && (
@@ -161,7 +178,65 @@ export default function Home() {
           />
         </div>
       )}
-      <h1 className="text-xl font-bold text-text-primary">Ma bibliothèque</h1>
+
+      <h1 className="font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold dark:uppercase dark:tracking-wider">
+        Ma bibliothèque
+      </h1>
+
+      {/* Hero — Récemment ajoutés */}
+      {showHero && (
+        <section className="space-y-2">
+          <h2 className="font-display text-sm font-semibold text-text-secondary dark:font-body dark:text-xs dark:uppercase dark:tracking-widest dark:text-text-muted">
+            Récemment ajoutés
+          </h2>
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 scrollbar-none">
+            {recentlyAdded.map((comic) => {
+              const src = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
+              return (
+                <Link
+                  className="group flex w-[140px] shrink-0 snap-center flex-col gap-1.5 sm:w-[160px]"
+                  key={comic.id}
+                  to={`/comic/${comic.id}`}
+                  viewTransition
+                >
+                  <div className="card-glow overflow-hidden rounded-xl transition-transform duration-200 group-hover:-translate-y-1 group-hover:scale-[1.02]"
+                    style={{ ["--glow-rgb" as string]: "99, 102, 241" }}
+                  >
+                    <CoverImage
+                      alt={comic.title}
+                      className="aspect-[3/4]"
+                      fallbackSrc={ComicTypePlaceholder[comic.type]}
+                      height={240}
+                      src={src ?? ComicTypePlaceholder[comic.type]}
+                      width={180}
+                    />
+                  </div>
+                  <h3 className="truncate font-display text-sm font-medium text-text-primary dark:font-body dark:text-xs">
+                    {comic.title}
+                  </h3>
+                  {!comic.isOneShot && (
+                    <p className="font-mono-stats text-xs text-text-muted">
+                      {comic.tomesCount} t.
+                    </p>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Séparateur visuel */}
+      {showHero && (
+        <div className="flex items-center gap-3">
+          <hr className="flex-1 border-surface-border dark:border-white/5" />
+          <span className="font-display text-sm font-semibold text-text-secondary dark:font-body dark:text-xs dark:uppercase dark:tracking-widest dark:text-text-muted">
+            Toute la collection
+          </span>
+          <hr className="flex-1 border-surface-border dark:border-white/5" />
+        </div>
+      )}
+
       {/* Search bar + filter button (mobile) + count */}
       <div className="flex items-center gap-2">
         <SearchInput
@@ -180,7 +255,7 @@ export default function Home() {
             type={type}
           />
         )}
-        <span className="flex shrink-0 items-center gap-1.5 text-sm text-text-muted">
+        <span className="flex shrink-0 items-center gap-1.5 font-mono-stats text-sm text-text-muted">
           {isFetching && !isLoading && (
             <Loader2 className="h-3.5 w-3.5 animate-spin" data-testid="search-loading" />
           )}
@@ -211,7 +286,7 @@ export default function Home() {
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {Array.from({ length: 8 }, (_, i) => (
             <ComicCardSkeleton key={i} />
           ))}

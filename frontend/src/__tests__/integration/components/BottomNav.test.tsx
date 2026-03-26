@@ -25,22 +25,22 @@ describe("BottomNav", () => {
     renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
 
     const toBuyLink = screen.getByText("À acheter").closest("a");
-    expect(toBuyLink?.className).toContain("border-emerald-500");
+    expect(toBuyLink?.className).toContain("text-accent-sage");
   });
 
   it("highlights Home tab on root", () => {
     renderWithProviders(<BottomNav />, { initialEntries: ["/"] });
 
     const homeLink = screen.getByText("Accueil").closest("a");
-    expect(homeLink?.className).toContain("border-primary-500");
+    expect(homeLink?.className).toContain("text-primary-600");
   });
 
   it("does not highlight Home tab on /to-buy", () => {
     renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
 
     const homeLink = screen.getByText("Accueil").closest("a");
-    expect(homeLink?.className).toContain("text-text-secondary");
-    expect(homeLink?.className).not.toContain("border-primary-500");
+    expect(homeLink?.className).toContain("text-text-muted");
+    expect(homeLink?.className).not.toContain("text-primary-600");
   });
 
   it("sets aria-current='page' on the active link only", () => {

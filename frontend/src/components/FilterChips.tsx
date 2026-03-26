@@ -29,8 +29,8 @@ const Chip = memo(function Chip({ active, label, onClick }: { active: boolean; l
       aria-pressed={active}
       className={`shrink-0 rounded-full border px-3 py-1 text-sm font-medium transition ${
         active
-          ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400 dark:text-gray-900"
-          : "border-surface-border bg-surface-primary text-text-secondary hover:border-primary-400 hover:text-text-primary"
+          ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-500 dark:text-white"
+          : "border-surface-border bg-surface-elevated text-text-secondary hover:border-primary-400 hover:text-text-primary dark:border-white/10 dark:bg-white/5 dark:hover:border-primary-400/30"
       }`}
       onClick={onClick}
       type="button"
@@ -56,7 +56,7 @@ export default function FilterChips({ onStatusChange, onTypeChange, status, type
           onClick={() => onTypeChange(type === chip.value ? "" : chip.value)}
         />
       ))}
-      <span className="mx-0.5 shrink-0 self-stretch border-l border-surface-border" aria-hidden="true" />
+      <span className="mx-0.5 shrink-0 self-stretch border-l border-surface-border dark:border-white/10" aria-hidden="true" />
       {statusChips.map((chip) => (
         <Chip
           active={status === chip.value}

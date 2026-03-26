@@ -14,6 +14,7 @@ import SyncPendingIndicator from "../components/SyncPendingIndicator";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useDeleteComic } from "../hooks/useDeleteComic";
+import { useDominantColor } from "../hooks/useDominantColor";
 import { useRestoreComic } from "../hooks/useTrash";
 import { useToggleAuthorFollow } from "../hooks/useFollowedAuthors";
 import { useUpdateTome } from "../hooks/useUpdateTome";
@@ -122,6 +123,8 @@ export default function ComicDetail() {
   const deleteComic = useDeleteComic();
   const restoreComic = useRestoreComic();
   const updateTome = useUpdateTome(id ? Number(id) : undefined);
+  const coverSrc = comic ? getCoverSrc(comic) : null;
+  const [dominantColor, extractColor] = useDominantColor(coverSrc);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [optimisticTomes, setOptimisticTomes] = useState<Tome[]>([]);
   const [sort, dispatchSort] = useReducer(
@@ -280,7 +283,6 @@ export default function ComicDetail() {
     );
   }
 
-  const coverSrc = getCoverSrc(comic);
   const showProgress = !comic.isOneShot && optimisticTomes.length > 0;
 
   const handleDelete = () => {
@@ -303,7 +305,7 @@ export default function ComicDetail() {
   const actionButtons = (
     <>
       <Link
-        className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700"
+        className="flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-primary-700"
         to={`/comic/${comic.id}/edit`}
         viewTransition
       >
@@ -312,7 +314,7 @@ export default function ComicDetail() {
       </Link>
       {comic.status === ComicStatus.BUYING && comic.amazonUrl && (
         <a
-          className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-base font-medium text-white hover:bg-amber-700"
+          className="flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-amber-700"
           href={comic.amazonUrl}
           rel="noopener noreferrer"
           target="_blank"
@@ -322,7 +324,7 @@ export default function ComicDetail() {
         </a>
       )}
       <button
-        className="flex items-center gap-2 rounded-lg border border-red-600 px-5 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-950/30"
+        className="flex items-center gap-2 rounded-xl border border-accent-danger px-5 py-2.5 text-base font-medium text-accent-danger transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
         onClick={handleDelete}
         type="button"
       >
@@ -339,29 +341,46 @@ export default function ComicDetail() {
         <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary" onClick={goBack} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-xl font-bold text-text-primary">
+        <h1 className="flex-1 font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold">
           {comic._syncPending && <SyncPendingIndicator className="mr-1.5" />}
           {comic.title}
         </h1>
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col gap-6 md:flex-row">
+      {/* Content — avec backdrop ambient en dark mode */}
+      <div className="relative flex flex-col gap-6 md:flex-row">
+        {/* Ambient backdrop (dark mode only) */}
+        {coverSrc && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-x-4 -top-4 hidden h-72 overflow-hidden rounded-2xl dark:block"
+          >
+            <img
+              alt=""
+              className="h-full w-full scale-110 object-cover blur-3xl"
+              src={coverSrc}
+              style={{ opacity: 0.15 }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-surface-primary/50 to-surface-primary" />
+          </div>
+        )}
+
         {/* Cover */}
-        <div className="w-full md:w-48">
+        <div className="relative z-10 w-full md:w-48" style={{ ["--glow-rgb" as string]: dominantColor }}>
           <CoverImage
             alt={comic.title}
-            className={`w-full max-h-64 md:max-h-none rounded-lg shadow${coverSrc ? " cursor-pointer" : ""}`}
+            className={`card-glow w-full max-h-64 md:max-h-none rounded-xl shadow-lg${coverSrc ? " cursor-pointer" : ""}`}
             fallbackSrc={ComicTypePlaceholder[comic.type]}
             loading="eager"
             objectFit="contain"
             onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
+            onImageLoad={extractColor}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
           />
         </div>
 
         {/* Info */}
-        <div className="flex-1 space-y-3">
+        <div className="relative z-10 flex-1 space-y-3">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
               {ComicTypeLabel[comic.type]}
@@ -474,12 +493,12 @@ export default function ComicDetail() {
       {!comic.isOneShot && optimisticTomes.length > 0 && (
         <ComponentErrorBoundary label="les tomes">
           <div>
-            <h2 className="mb-3 text-lg font-semibold text-text-primary">
+            <h2 className="mb-3 font-display text-lg font-semibold text-text-primary dark:font-body">
               Tomes ({optimisticTomes.length})
             </h2>
-            <div className="overflow-x-auto rounded-lg border border-surface-border">
+            <div className="overflow-x-auto rounded-xl border border-surface-border dark:border-white/10">
               <table className="w-full text-sm">
-                <thead className="bg-surface-tertiary">
+                <thead className="bg-surface-elevated dark:bg-surface-elevated/50">
                   <tr>
                     <th className="px-4 py-2 text-left font-medium text-text-secondary">
                       <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("number")} type="button">
@@ -506,9 +525,9 @@ export default function ComicDetail() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-border">
-                  {sortedTomes.map((tome) => (
-                    <tr className="hover:bg-surface-tertiary/50" key={tome.id}>
+                <tbody className="divide-y divide-surface-border dark:divide-white/5">
+                  {sortedTomes.map((tome, index) => (
+                    <tr className={`transition-colors hover:bg-surface-tertiary/50 dark:hover:bg-primary-950/20 ${index % 2 === 1 ? "bg-surface-secondary/50 dark:bg-surface-elevated/30" : ""}`} key={tome.id}>
                       <td className="px-4 py-2 font-medium text-text-primary">
                         {tome._syncPending && <SyncPendingIndicator className="mr-1" />}
                         {tome.isHorsSerie ? "HS" : ""}{tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
@@ -540,7 +559,11 @@ export default function ComicDetail() {
       <EnrichmentHistory seriesId={comic.id} />
 
       {/* Action bar: sticky on mobile, inline on desktop */}
-      <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3 lg:static lg:justify-start lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0">
+      {/* Spacer pour compenser la barre fixe sur mobile */}
+      <div className="h-16 lg:hidden" />
+
+      {/* Barre d'actions — fixée au-dessus de la navbar sur mobile, inline sur desktop */}
+      <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary/90 px-4 py-3 backdrop-blur-md dark:border-white/10 dark:bg-surface-primary/70 lg:static lg:justify-start lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
         {actionButtons}
       </div>
 

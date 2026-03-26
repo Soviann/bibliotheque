@@ -4,7 +4,7 @@ export const formFocusRing =
 
 /** Champ texte / nombre / url — sans largeur, sans focus ring */
 export const formInputClassName =
-  "rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary";
+  "rounded-xl border border-surface-border bg-surface-elevated px-4 py-2.5 text-sm text-text-primary dark:border-white/10 dark:bg-white/5";
 
 /** Champ texte avec focus ring */
 export const formInputFocusClassName =
@@ -12,16 +12,16 @@ export const formInputFocusClassName =
 
 /** Variante bg-surface-secondary avec focus ring (modales de fusion) */
 export const formInputSecondaryClassName =
-  "rounded-lg border border-surface-border bg-surface-secondary px-3 py-2 text-sm text-text-primary";
+  "rounded-xl border border-surface-border bg-surface-secondary px-4 py-2.5 text-sm text-text-primary dark:border-white/10 dark:bg-white/5";
 
 export const formInputSecondaryFocusClassName =
   `${formInputSecondaryClassName} ${formFocusRing}`;
 
-/** Champ compact (px-2 au lieu de px-3) — sélecteurs date */
+/** Champ compact (px-2 au lieu de px-4) — sélecteurs date */
 export const formInputCompactClassName =
-  "rounded-lg border border-surface-border bg-surface-primary px-2 py-2 text-sm text-text-primary";
+  "rounded-xl border border-surface-border bg-surface-elevated px-2 py-2.5 text-sm text-text-primary dark:border-white/10 dark:bg-white/5";
 
-/** Bouton Listbox pour formulaires (variante py-2) */
+/** Bouton Listbox pour formulaires (variante py-2.5) */
 export const formListboxButtonClassName =
   `flex w-full items-center justify-between gap-2 ${formInputClassName} transition hover:border-primary-400 ${formFocusRing}`;
 
@@ -31,7 +31,7 @@ export const formListboxButtonSecondaryClassName =
 
 /** Select natif avec focus ring (padding légèrement plus grand) */
 export const formSelectClassName =
-  `${formInputClassName.replace("py-2", "py-2.5")} ${formFocusRing}`;
+  `${formInputClassName.replace("py-2.5", "py-3")} ${formFocusRing}`;
 
 /** Checkbox */
 export const formCheckboxClassName =

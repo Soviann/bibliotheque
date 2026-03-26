@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 interface ToolCard {
   description: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
   title: string;
   to: string;
 }
@@ -70,23 +70,25 @@ export default function Tools() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1 className="mb-6 text-xl font-bold text-text-primary">Outils</h1>
+      <h1 className="mb-6 font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold dark:uppercase dark:tracking-wider">
+        Outils
+      </h1>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {tools.map(({ description, icon: Icon, title, to }) => (
           <Link
-            className="group flex items-start gap-4 rounded-xl border border-surface-border bg-surface-primary p-4 transition hover:border-primary-400 hover:shadow-sm"
+            className="group flex items-start gap-4 rounded-xl border border-surface-border bg-surface-primary p-4 transition-all hover:-translate-y-0.5 hover:border-primary-400 hover:shadow-md dark:border-white/10 dark:bg-surface-secondary dark:hover:border-primary-400/30"
             key={to}
             to={to}
             viewTransition
           >
-            <div className="rounded-lg bg-primary-50 p-2.5 dark:bg-primary-950/30">
-              <Icon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <div className="rounded-xl bg-primary-50 p-2.5 dark:bg-primary-950/30">
+              <Icon className="h-5 w-5 text-primary-600 dark:text-primary-400" strokeWidth={1.5} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h2 className="font-semibold text-text-primary">{title}</h2>
-                <ArrowRight className="h-4 w-4 text-text-muted opacity-0 transition group-hover:opacity-100" />
+                <ArrowRight className="h-4 w-4 text-text-muted opacity-0 transition group-hover:opacity-100" strokeWidth={1.5} />
               </div>
               <p className="mt-1 text-sm text-text-secondary">{description}</p>
             </div>
@@ -94,15 +96,15 @@ export default function Tools() {
         ))}
 
         <button
-          className="group flex cursor-pointer items-start gap-4 rounded-xl border border-surface-border bg-surface-primary p-4 text-left transition hover:border-red-400 hover:shadow-sm disabled:opacity-60"
+          className="group flex cursor-pointer items-start gap-4 rounded-xl border border-surface-border bg-surface-primary p-4 text-left transition-all hover:-translate-y-0.5 hover:border-accent-danger/50 hover:shadow-md disabled:opacity-60 dark:border-white/10 dark:bg-surface-secondary dark:hover:border-accent-danger/30"
           disabled={clearing}
           onClick={handleClearCache}
           type="button"
         >
-          <div className="rounded-lg bg-red-50 p-2.5 dark:bg-red-950/30">
+          <div className="rounded-xl bg-red-50 p-2.5 dark:bg-red-950/30">
             {clearing
-              ? <LoaderCircle className="h-5 w-5 animate-spin text-red-600 dark:text-red-400" />
-              : <DatabaseZap className="h-5 w-5 text-red-600 dark:text-red-400" />}
+              ? <LoaderCircle className="h-5 w-5 animate-spin text-accent-danger" />
+              : <DatabaseZap className="h-5 w-5 text-accent-danger" strokeWidth={1.5} />}
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="font-semibold text-text-primary">{clearing ? "Vidage en cours…" : "Vider le cache"}</h2>

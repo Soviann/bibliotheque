@@ -41,7 +41,7 @@ export default function SelectListbox({
             aria-label={!label ? (placeholder ?? options[0]?.label) : undefined}
             className={
               buttonClassName ??
-              "flex w-full items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-primary px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              "flex w-full items-center justify-between gap-2 rounded-xl border border-surface-border bg-surface-elevated px-3 py-1.5 text-sm text-text-primary transition hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-white/10 dark:bg-white/5"
             }
           >
             <span
@@ -51,7 +51,7 @@ export default function SelectListbox({
             </span>
             <ChevronDown className="h-4 w-4 text-text-muted" />
           </ListboxButton>
-          <ListboxOptions className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary py-1 shadow-lg transition focus:outline-none">
+          <ListboxOptions className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-surface-border bg-surface-primary py-1 shadow-lg transition focus:outline-none dark:border-white/10 dark:bg-surface-elevated">
             {options.map((option) => (
               <ListboxOption
                 className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"

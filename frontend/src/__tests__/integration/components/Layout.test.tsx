@@ -188,7 +188,10 @@ describe("Layout", () => {
 
       await user.click(screen.getByLabelText("Rechercher"));
 
-      expect(screen.getByPlaceholderText("Rechercher…")).toBeInTheDocument();
+      const input = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
+      expect(input).toBeInTheDocument();
+      // Le formulaire slide en opacity-100 quand ouvert
+      expect(input.closest("form")).toHaveClass("opacity-100");
     });
 
     it("navigates to /?search=value on Enter", async () => {
@@ -207,7 +210,7 @@ describe("Layout", () => {
       );
 
       await user.click(screen.getByLabelText("Rechercher"));
-      await user.type(screen.getByPlaceholderText("Rechercher…"), "naruto{Enter}");
+      await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "naruto{Enter}");
 
       await waitFor(() => {
         expect(screen.getByText("Home Content")).toBeInTheDocument();
@@ -219,11 +222,14 @@ describe("Layout", () => {
       renderLayout();
 
       await user.click(screen.getByLabelText("Rechercher"));
-      expect(screen.getByPlaceholderText("Rechercher…")).toBeInTheDocument();
+      const input = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…") as HTMLInputElement;
+      await user.type(input, "test");
+      expect(input.value).toBe("test");
 
       await user.keyboard("{Escape}");
 
-      expect(screen.queryByPlaceholderText("Rechercher…")).not.toBeInTheDocument();
+      // La valeur est effacée après Escape
+      expect(input.value).toBe("");
     });
   });
 
