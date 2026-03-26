@@ -15,6 +15,7 @@ export default function QuickAdd() {
   const [tab, setTab] = useState<"scan" | "search">("scan");
   const { addItem, addedItems, batchMode, toggleBatchMode } = useQuickAdd();
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState("bd");
 
   const handleAdd = useCallback(
     (result: { coverUrl: string | null; title: string; tomeNumber: number }) => {
@@ -45,7 +46,7 @@ export default function QuickAdd() {
             <h1 className="text-base font-semibold text-text-primary">Ajout rapide</h1>
             <Link
               className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400"
-              to={searchQuery ? `/comic/new?title=${encodeURIComponent(searchQuery)}` : "/comic/new"}
+              to={`/comic/new${searchQuery || searchType !== "bd" ? `?${new URLSearchParams({ ...(searchQuery ? { title: searchQuery } : {}), ...(searchType !== "bd" ? { type: searchType } : {}) })}` : ""}`}
               viewTransition
             >
               <FilePlus2 className="h-3 w-3" />
@@ -69,7 +70,7 @@ export default function QuickAdd() {
           {tab === "scan" ? (
             <QuickAddScan batchMode={batchMode} onAdd={handleAdd} />
           ) : (
-            <QuickAddSearch onAdd={handleAdd} onQueryChange={setSearchQuery} />
+            <QuickAddSearch onAdd={handleAdd} onQueryChange={setSearchQuery} onTypeChange={setSearchType} />
           )}
         </div>
       </div>

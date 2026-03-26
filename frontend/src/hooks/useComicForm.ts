@@ -121,9 +121,15 @@ export function useComicForm() {
 
   const [form, setForm] = useState<FormData>(() => {
     const initial = buildInitialForm();
-    const prefillTitle = searchParams.get("title");
-    if (!isEdit && prefillTitle) {
-      initial.title = prefillTitle;
+    if (!isEdit) {
+      const prefillTitle = searchParams.get("title");
+      const prefillType = searchParams.get("type") as ComicType | null;
+      if (prefillTitle) {
+        initial.title = prefillTitle;
+      }
+      if (prefillType && Object.values(ComicType).includes(prefillType)) {
+        initial.type = prefillType;
+      }
     }
     return initial;
   });
