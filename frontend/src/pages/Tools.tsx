@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { del } from "idb-keyval";
-import { ArrowRight, DatabaseZap, FileSpreadsheet, Lightbulb, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
+import { ArrowRight, DatabaseZap, FileSpreadsheet, HelpCircle, Lightbulb, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
 import { type ComponentType, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -48,6 +48,12 @@ const tools: ToolCard[] = [
     icon: Lightbulb,
     title: "Suggestions",
     to: "/tools/suggestions",
+  },
+  {
+    description: "Comprendre les automatismes, les tâches planifiées et le fonctionnement de l'application.",
+    icon: HelpCircle,
+    title: "Aide",
+    to: "/tools/help",
   },
 ];
 

@@ -64,6 +64,7 @@ const NotificationSettings = lazyWithRetry(() => import("./pages/NotificationSet
 const ToBuy = lazyWithRetry(() => import("./pages/ToBuy"));
 const PurgeTool = lazyWithRetry(() => import("./pages/PurgeTool"));
 const Suggestions = lazyWithRetry(() => import("./pages/Suggestions"));
+const HelpPage = lazyWithRetry(() => import("./pages/HelpPage"));
 const Tools = lazyWithRetry(() => import("./pages/Tools"));
 const Trash = lazyWithRetry(() => import("./pages/Trash"));
 
@@ -113,6 +114,7 @@ const router = createBrowserRouter(
         <Route element={<MergeSeries />} path="tools/merge-series" />
         <Route element={<PurgeTool />} path="tools/purge" />
         <Route element={<Suggestions />} path="tools/suggestions" />
+        <Route element={<HelpPage />} path="tools/help" />
         <Route element={<Notifications />} path="notifications" />
         <Route element={<NotificationSettings />} path="settings/notifications" />
         <Route element={<ToBuy />} path="to-buy" />
