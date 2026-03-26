@@ -7,9 +7,15 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.22.0] - 2026-03-26
+
 ### Added
 
 - **Filtres revue d'enrichissement** : recherche par série, filtre par champ, confiance et source sur la page de revue des propositions
+
+### Fixed
+
+- **Revue d'enrichissement** : le titre de la série n'apparaissait pas (groupe de sérialisation manquant)
 
 ## [v2.21.0] - 2026-03-26
 
