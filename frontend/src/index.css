@@ -193,13 +193,20 @@ body {
 .dark .card-glow:hover {
   box-shadow: 0 8px 30px rgba(var(--glow-rgb, 99, 102, 241), 0.25);
 }
+.dark .card-glow:active {
+  box-shadow: 0 4px 40px rgba(var(--glow-rgb, 99, 102, 241), 0.35);
+}
 
 /* Light mode card shadow */
 .card-glow {
   box-shadow: 0 2px 8px rgba(44, 36, 32, 0.06);
+  transition: box-shadow 0.3s ease;
 }
 .card-glow:hover {
   box-shadow: 0 4px 16px rgba(44, 36, 32, 0.12);
+}
+.card-glow:active {
+  box-shadow: 0 4px 12px rgba(44, 36, 32, 0.16);
 }
 
 /* ── Désactiver les transitions si l'utilisateur préfère un mouvement réduit ── */
