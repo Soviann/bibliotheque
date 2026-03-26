@@ -17,7 +17,7 @@ import {
 describe("formStyles", () => {
   it("exports base input className", () => {
     expect(formInputClassName).toBe(
-      "rounded-lg border border-surface-border bg-surface-primary px-3 py-2 text-sm text-text-primary",
+      "rounded-xl border border-surface-border bg-surface-elevated px-4 py-2.5 text-sm text-text-primary dark:border-white/10 dark:bg-white/5",
     );
   });
 
@@ -28,27 +28,27 @@ describe("formStyles", () => {
 
   it("exports secondary input variants with bg-surface-secondary", () => {
     expect(formInputSecondaryClassName).toContain("bg-surface-secondary");
-    expect(formInputSecondaryClassName).not.toContain("bg-surface-primary");
+    expect(formInputSecondaryClassName).not.toContain("bg-surface-elevated");
     expect(formInputSecondaryFocusClassName).toContain(formFocusRing);
   });
 
   it("exports compact input with px-2", () => {
     expect(formInputCompactClassName).toContain("px-2");
-    expect(formInputCompactClassName).not.toContain("px-3");
+    expect(formInputCompactClassName).not.toContain("px-4");
   });
 
   it("exports listbox button className with hover and focus", () => {
     expect(formListboxButtonClassName).toContain("hover:border-primary-400");
-    expect(formListboxButtonClassName).toContain("bg-surface-primary");
+    expect(formListboxButtonClassName).toContain("bg-surface-elevated");
   });
 
   it("exports secondary listbox button className", () => {
     expect(formListboxButtonSecondaryClassName).toContain("bg-surface-secondary");
-    expect(formListboxButtonSecondaryClassName).not.toContain("bg-surface-primary");
+    expect(formListboxButtonSecondaryClassName).not.toContain("bg-surface-elevated");
   });
 
   it("exports select className with larger padding", () => {
-    expect(formSelectClassName).toContain("py-2.5");
+    expect(formSelectClassName).toContain("py-3");
     expect(formSelectClassName).toContain(formFocusRing);
   });
 

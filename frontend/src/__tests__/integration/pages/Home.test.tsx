@@ -51,9 +51,9 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto").length).toBeGreaterThan(0);
     });
-    expect(screen.getByText("One Piece")).toBeInTheDocument();
+    expect(screen.getAllByText("One Piece").length).toBeGreaterThan(0);
   });
 
   it("shows empty library state when no comics exist", async () => {
@@ -107,7 +107,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto").length).toBeGreaterThan(0);
     });
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "XYZNOTFOUND");
@@ -163,7 +163,7 @@ describe("Home", () => {
     await user.click(screen.getByRole("button", { name: "Réinitialiser les filtres" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Buying Comic")).toBeInTheDocument();
+      expect(screen.getAllByText("Buying Comic")[0]).toBeInTheDocument();
     });
   });
 
@@ -189,7 +189,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Naruto");
@@ -197,7 +197,7 @@ describe("Home", () => {
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
     });
-    expect(screen.getByText("Naruto")).toBeInTheDocument();
+    expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
   });
 
   it("displays count of filtered and total comics", async () => {
@@ -242,7 +242,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
     // Open type filter and select Manga (use listbox to avoid chip ambiguity)
@@ -250,7 +250,7 @@ describe("Home", () => {
     const listbox = screen.getByRole("listbox");
     await user.click(within(listbox).getByText("Manga"));
 
-    expect(screen.getByText("Naruto")).toBeInTheDocument();
+    expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
   });
 
@@ -275,7 +275,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Delete Me")).toBeInTheDocument();
+      expect(screen.getAllByText("Delete Me")[0]).toBeInTheDocument();
     });
 
     // Open the ⋮ dropdown menu on desktop
@@ -306,13 +306,13 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Buying Comic")).toBeInTheDocument();
+      expect(screen.getAllByText("Buying Comic")[0]).toBeInTheDocument();
     });
 
     await user.click(screen.getByText("Tous les statuts"));
     await user.click(screen.getByText("En cours d'achat"));
 
-    expect(screen.getByText("Buying Comic")).toBeInTheDocument();
+    expect(screen.getAllByText("Buying Comic")[0]).toBeInTheDocument();
     expect(screen.queryByText("Finished Comic")).not.toBeInTheDocument();
   });
 
@@ -335,7 +335,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Toast Delete")).toBeInTheDocument();
+      expect(screen.getAllByText("Toast Delete")[0]).toBeInTheDocument();
     });
 
     // Open the ⋮ dropdown menu on desktop
@@ -381,10 +381,11 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
-    const headings = screen.getAllByRole("heading", { level: 3 });
+    const grid = screen.getByTestId("comics-grid");
+    const headings = within(grid).getAllByRole("heading", { level: 3 });
     expect(headings[0]).toHaveTextContent("Astérix");
     expect(headings[1]).toHaveTextContent("Naruto");
     expect(headings[2]).toHaveTextContent("Zelda");
@@ -406,13 +407,14 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Astérix")).toBeInTheDocument();
+      expect(screen.getAllByText("Astérix")[0]).toBeInTheDocument();
     });
 
     await user.click(screen.getByText("Titre A→Z"));
     await user.click(screen.getByText("Titre Z→A"));
 
-    const headings = screen.getAllByRole("heading", { level: 3 });
+    const grid = screen.getByTestId("comics-grid");
+    const headings = within(grid).getAllByRole("heading", { level: 3 });
     expect(headings[0]).toHaveTextContent("Zelda");
     expect(headings[1]).toHaveTextContent("Astérix");
   });
@@ -434,13 +436,14 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Old")).toBeInTheDocument();
+      expect(screen.getAllByText("Old")[0]).toBeInTheDocument();
     });
 
     await user.click(screen.getByText("Titre A→Z"));
     await user.click(screen.getByText("Plus récent"));
 
-    const headings = screen.getAllByRole("heading", { level: 3 });
+    const grid = screen.getByTestId("comics-grid");
+    const headings = within(grid).getAllByRole("heading", { level: 3 });
     expect(headings[0]).toHaveTextContent("New");
     expect(headings[1]).toHaveTextContent("Mid");
     expect(headings[2]).toHaveTextContent("Old");
@@ -463,13 +466,14 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Few")).toBeInTheDocument();
+      expect(screen.getAllByText("Few")[0]).toBeInTheDocument();
     });
 
     await user.click(screen.getByText("Titre A→Z"));
     await user.click(screen.getByText("Plus de tomes"));
 
-    const headings = screen.getAllByRole("heading", { level: 3 });
+    const grid = screen.getByTestId("comics-grid");
+    const headings = within(grid).getAllByRole("heading", { level: 3 });
     expect(headings[0]).toHaveTextContent("Many");
     expect(headings[1]).toHaveTextContent("Few");
     expect(headings[2]).toHaveTextContent("None");
@@ -499,7 +503,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Monster")).toBeInTheDocument();
+      expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
     });
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Urasawa");
@@ -507,7 +511,7 @@ describe("Home", () => {
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
     });
-    expect(screen.getByText("Monster")).toBeInTheDocument();
+    expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
   });
 
   it("filters comics by publisher", async () => {
@@ -526,7 +530,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Monster")).toBeInTheDocument();
+      expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
     });
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Kana");
@@ -534,7 +538,7 @@ describe("Home", () => {
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
     });
-    expect(screen.getByText("Monster")).toBeInTheDocument();
+    expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
   });
 
   it("filters comics with fuzzy search (typos)", async () => {
@@ -557,7 +561,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Monster")).toBeInTheDocument();
+      expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
     });
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Uraswa");
@@ -565,7 +569,7 @@ describe("Home", () => {
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
     });
-    expect(screen.getByText("Monster")).toBeInTheDocument();
+    expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
   });
 
   it("handles case-insensitive search with surrounding whitespace", async () => {
@@ -584,7 +588,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
     await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "  naruto  ");
@@ -592,7 +596,7 @@ describe("Home", () => {
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
     });
-    expect(screen.getByText("Naruto")).toBeInTheDocument();
+    expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
   });
 
   it("pre-filters by status URL param", async () => {
@@ -610,7 +614,7 @@ describe("Home", () => {
     renderWithProviders(<Home />, { initialEntries: ["/?status=wishlist"] });
 
     await waitFor(() => {
-      expect(screen.getByText("Wanted Comic")).toBeInTheDocument();
+      expect(screen.getAllByText("Wanted Comic")[0]).toBeInTheDocument();
     });
     expect(screen.queryByText("Buying Comic")).not.toBeInTheDocument();
   });
@@ -630,7 +634,7 @@ describe("Home", () => {
     renderWithProviders(<Home />, { initialEntries: ["/?type=manga"] });
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
     expect(screen.queryByText("Tintin")).not.toBeInTheDocument();
   });
@@ -650,10 +654,11 @@ describe("Home", () => {
     renderWithProviders(<Home />, { initialEntries: ["/?sort=createdAt-desc"] });
 
     await waitFor(() => {
-      expect(screen.getByText("Astérix")).toBeInTheDocument();
+      expect(screen.getAllByText("Astérix")[0]).toBeInTheDocument();
     });
 
-    const headings = screen.getAllByRole("heading", { level: 3 });
+    const grid = screen.getByTestId("comics-grid");
+    const headings = within(grid).getAllByRole("heading", { level: 3 });
     expect(headings[0]).toHaveTextContent("Zelda");
     expect(headings[1]).toHaveTextContent("Astérix");
   });
@@ -674,7 +679,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
     const searchInput = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
@@ -684,14 +689,14 @@ describe("Home", () => {
     expect(searchInput).toHaveValue("Nar");
 
     // Both comics still visible before debounce fires
-    expect(screen.getByText("Naruto")).toBeInTheDocument();
-    expect(screen.getByText("One Piece")).toBeInTheDocument();
+    expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("One Piece")[0]).toBeInTheDocument();
 
     // After debounce, filtering applies
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
     });
-    expect(screen.getByText("Naruto")).toBeInTheDocument();
+    expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
   });
 
   it("restores all results after clearing search input", async () => {
@@ -710,7 +715,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
     const searchInput = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
@@ -728,9 +733,9 @@ describe("Home", () => {
 
     // After debounce, all comics reappear
     await waitFor(() => {
-      expect(screen.getByText("One Piece")).toBeInTheDocument();
+      expect(screen.getAllByText("One Piece")[0]).toBeInTheDocument();
     });
-    expect(screen.getByText("Naruto")).toBeInTheDocument();
+    expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
   });
 
   it("shows loading indicator while data is being fetched", async () => {
@@ -771,7 +776,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
     // The isFetching state from useComics should show an indicator
@@ -794,7 +799,7 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
     const grid = screen.getByTestId("comics-grid");
@@ -816,7 +821,7 @@ describe("Home", () => {
     renderWithProviders(<Home />, { initialEntries: ["/?search=Naruto"] });
 
     await waitFor(() => {
-      expect(screen.getByText("Naruto")).toBeInTheDocument();
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
     expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
 

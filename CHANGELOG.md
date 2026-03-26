@@ -7,7 +7,26 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.21.0] - 2026-03-26
+
+### Added
+
+- **Redesign UI complet** : nouveau design hybride — « Refined Collector » (light, serif, cognac) et « Dark Luxe » (dark, sans-serif, indigo, glassmorphism)
+- **Typographie** : Playfair Display (display), DM Sans (body), DM Mono (stats) via Google Fonts
+- **Section hero** : carrousel horizontal « Récemment ajoutés » sur l'accueil et la page À acheter
+- **Ambient glow** : les couvertures projettent un halo coloré en dark mode (couleur dominante extraite via canvas)
+- **Filtres sur À acheter** : chips rapides, filtres type/statut/tri comme sur l'accueil
+- **Recherche pleine largeur** : le champ de recherche du header slide et prend toute la barre
+
 ### Changed
+
+- **Cards cover-dominant** : couverture à 90%, stats toujours visibles en bas, badge type en top-left
+- **Bottom nav** : glassmorphism en dark, indicateurs dot, labels toujours visibles
+- **Header** : sticky avec backdrop-blur, titre serif (light) / uppercase tracked (dark)
+- **Detail page** : backdrop ambient blur en dark mode, barre d'actions fixée au-dessus de la navbar
+- **Composants** : radius uniformisé (rounded-xl), inputs plus spacieux, modales avec backdrop-blur
+- **Palette** : warm off-white/cognac (light), deep navy/indigo (dark) remplacent le bleu générique
+- **CSP DDEV** : ajout `'unsafe-inline'` à `script-src` pour le HMR Vite
 
 - **Invalidation de cache granulaire** : L'invalidation du cache API ne se déclenche plus lors de la mise à jour de champs internes (`lookupCompletedAt`, `mergeCheckedAt`, `newReleasesCheckedAt`)
 - **TTL cache API** : Augmenté de 15 à 30 minutes (l'invalidation explicite garantit la fraîcheur)

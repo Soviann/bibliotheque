@@ -55,6 +55,7 @@ describe("ProgressLog", () => {
 
     render(<ProgressLog progress={progress} total={5} />);
 
-    expect(screen.getByText("2 / 5 (40%)")).toBeInTheDocument();
+    expect(screen.getByText("2 / 5")).toBeInTheDocument();
+    expect(screen.getByText("(40%)")).toBeInTheDocument();
   });
 });

@@ -8,6 +8,7 @@ interface CoverImageProps {
   loading?: "eager" | "lazy";
   objectFit?: "contain" | "cover";
   onClick?: () => void;
+  onImageLoad?: (img: HTMLImageElement) => void;
   src: string;
   width?: number;
 }
@@ -20,6 +21,7 @@ export default function CoverImage({
   loading = "lazy",
   objectFit = "cover",
   onClick,
+  onImageLoad,
   src,
   width,
 }: CoverImageProps) {
@@ -46,7 +48,10 @@ export default function CoverImage({
             setLoaded(true);
           }
         }}
-        onLoad={() => setLoaded(true)}
+        onLoad={(e) => {
+          setLoaded(true);
+          onImageLoad?.(e.currentTarget);
+        }}
         src={error && fallbackSrc ? fallbackSrc : src}
         width={width}
       />

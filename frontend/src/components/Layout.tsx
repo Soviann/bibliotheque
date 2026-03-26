@@ -41,89 +41,96 @@ export default function Layout() {
       <SyncErrorBanner />
 
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-surface-border bg-surface-primary px-4 py-2.5">
-        <Link className="flex items-center gap-2" to="/" viewTransition>
-          <img alt="" className="h-8 w-8 rounded-lg" src="/app-icon.png" />
-          <span className="text-lg font-bold text-text-primary">Bibliothèque</span>
-        </Link>
-        <div className="flex items-center gap-1">
-          {searchOpen ? (
-            <form
-              className="flex items-center gap-1"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const q = searchValue.trim();
-                if (q) {
-                  navigate(`/?search=${encodeURIComponent(q)}`, { viewTransition: true });
-                }
-                setSearchOpen(false);
-                setSearchValue("");
-              }}
-            >
-              <input
-                autoFocus
-                className="w-36 rounded-lg border border-surface-border bg-surface-secondary px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:w-48"
-                onChange={(e) => setSearchValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    setSearchOpen(false);
-                    setSearchValue("");
-                  }
-                }}
-                placeholder="Rechercher…"
-                ref={searchInputRef}
-                type="search"
-                value={searchValue}
-              />
+      <header className="sticky top-0 z-40 overflow-hidden border-b border-surface-border bg-surface-primary/90 px-4 py-2.5 backdrop-blur-md dark:border-transparent dark:bg-surface-primary/70">
+        <div className="relative flex items-center justify-between">
+          {/* Contenu normal (logo + actions) */}
+          <div className={`flex min-w-0 flex-1 items-center justify-between transition-all duration-300 ${searchOpen ? "pointer-events-none -translate-x-4 opacity-0" : "translate-x-0 opacity-100"}`}>
+            <Link className="flex items-center gap-2.5" to="/" viewTransition>
+              <img alt="" className="h-8 w-8 rounded-lg" src="/app-icon.png" />
+              <span className="font-display text-lg font-bold tracking-tight text-text-primary dark:font-body dark:text-sm dark:font-semibold dark:uppercase dark:tracking-widest">
+                Bibliothèque
+              </span>
+            </Link>
+            <div className="flex items-center gap-0.5">
               <button
-                aria-label="Fermer la recherche"
+                aria-label="Rechercher"
                 className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
-                onClick={() => { setSearchOpen(false); setSearchValue(""); }}
+                onClick={() => setSearchOpen(true)}
+                title="Rechercher"
                 type="button"
               >
-                <X className="h-5 w-5" />
+                <Search className="h-5 w-5" strokeWidth={1.5} />
               </button>
-            </form>
-          ) : (
+              <NotificationBell />
+              <Link
+                aria-label="Outils"
+                className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
+                title="Outils"
+                to="/tools"
+                viewTransition
+              >
+                <Wrench className="h-5 w-5" strokeWidth={1.5} />
+              </Link>
+              <button
+                aria-label={isDark ? "Mode clair" : "Mode sombre"}
+                className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
+                onClick={toggle}
+                title={isDark ? "Mode clair" : "Mode sombre"}
+                type="button"
+              >
+                {isDark ? <Sun className="h-5 w-5" strokeWidth={1.5} /> : <Moon className="h-5 w-5" strokeWidth={1.5} />}
+              </button>
+              <div className="mx-1 h-5 w-px bg-surface-border" />
+              <button
+                aria-label="Déconnexion"
+                className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
+                onClick={logout}
+                title="Déconnexion"
+                type="button"
+              >
+                <LogOut className="h-5 w-5" strokeWidth={1.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Barre de recherche — pleine largeur, slide depuis la droite */}
+          <form
+            className={`absolute inset-0 flex items-center gap-2 transition-all duration-300 ${searchOpen ? "translate-x-0 opacity-100" : "pointer-events-none translate-x-8 opacity-0"}`}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = searchValue.trim();
+              if (q) {
+                navigate(`/?search=${encodeURIComponent(q)}`, { viewTransition: true });
+              }
+              setSearchOpen(false);
+              setSearchValue("");
+            }}
+          >
+            <Search className="h-5 w-5 shrink-0 text-text-muted" strokeWidth={1.5} />
+            <input
+              autoFocus={searchOpen}
+              className="min-w-0 flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearchOpen(false);
+                  setSearchValue("");
+                }
+              }}
+              placeholder="Rechercher par titre, auteur, éditeur…"
+              ref={searchInputRef}
+              type="search"
+              value={searchValue}
+            />
             <button
-              aria-label="Rechercher"
-              className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
-              onClick={() => setSearchOpen(true)}
-              title="Rechercher"
+              aria-label="Fermer la recherche"
+              className="shrink-0 rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
+              onClick={() => { setSearchOpen(false); setSearchValue(""); }}
               type="button"
             >
-              <Search className="h-5 w-5" />
+              <X className="h-5 w-5" strokeWidth={1.5} />
             </button>
-          )}
-          <NotificationBell />
-          <Link
-            aria-label="Outils"
-            className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
-            title="Outils"
-            to="/tools"
-            viewTransition
-          >
-            <Wrench className="h-5 w-5" />
-          </Link>
-          <button
-            aria-label={isDark ? "Mode clair" : "Mode sombre"}
-            className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
-            onClick={toggle}
-            title={isDark ? "Mode clair" : "Mode sombre"}
-            type="button"
-          >
-            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
-          <div className="mx-1 h-5 w-px bg-surface-border" />
-          <button
-            aria-label="Déconnexion"
-            className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
-            onClick={logout}
-            title="Déconnexion"
-            type="button"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
+          </form>
         </div>
       </header>
 

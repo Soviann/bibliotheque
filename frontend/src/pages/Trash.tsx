@@ -19,7 +19,7 @@ export default function Trash() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">Corbeille</h1>
+      <h1 className="font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold dark:uppercase dark:tracking-wider">Corbeille</h1>
 
       {isLoading ? (
         <div className="space-y-2" data-testid="trash-skeleton">
@@ -42,7 +42,7 @@ export default function Trash() {
         <div className="space-y-2">
           {comics.map((comic) => (
             <div
-              className="flex items-center gap-3 rounded-lg border border-surface-border bg-surface-primary p-3"
+              className="flex items-center gap-3 rounded-xl border border-surface-border bg-surface-primary p-3 dark:border-white/10 dark:bg-surface-secondary"
               key={comic.id}
             >
               <img
