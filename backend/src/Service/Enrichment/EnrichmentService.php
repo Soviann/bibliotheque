@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Service\Enrichment;
 
 use App\Entity\ComicSeries;
-use App\Entity\EnrichmentLog;
 use App\Entity\EnrichmentProposal;
 use App\Enum\EnrichableField;
-use App\Enum\EnrichmentAction;
 use App\Enum\EnrichmentConfidence;
 use App\Enum\LookupMode;
+use App\Repository\AuthorRepository;
 use App\Repository\EnrichmentProposalRepository;
+use App\Service\Cover\CoverDownloader;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupApplier;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,7 +55,9 @@ class EnrichmentService
     ];
 
     public function __construct(
+        private readonly AuthorRepository $authorRepository,
         private readonly ConfidenceScorer $confidenceScorer,
+        private readonly CoverDownloader $coverDownloader,
         private readonly EntityManagerInterface $entityManager,
         private readonly LookupApplier $lookupApplier,
         private readonly LoggerInterface $logger,
@@ -89,6 +91,44 @@ class EnrichmentService
         };
 
         return $confidence;
+    }
+
+    /**
+     * Applique une valeur à un champ enrichissable d'une série.
+     */
+    public function applyFieldValue(ComicSeries $series, EnrichableField $field, mixed $value): void
+    {
+        $stringValue = \is_string($value) ? $value : (\is_scalar($value) ? (string) $value : '');
+
+        match ($field) {
+            EnrichableField::AMAZON_URL => $series->setAmazonUrl($stringValue),
+            EnrichableField::AUTHORS => $this->applyAuthors($series, $value),
+            EnrichableField::COVER => $this->coverDownloader->downloadAndStore($series, $stringValue),
+            EnrichableField::DESCRIPTION => $series->setDescription($stringValue),
+            EnrichableField::ISBN => null,
+            EnrichableField::IS_ONE_SHOT => $series->setIsOneShot((bool) $value),
+            EnrichableField::LATEST_PUBLISHED_ISSUE => $series->setLatestPublishedIssue(\is_numeric($value) ? (int) $value : 0),
+            EnrichableField::PUBLISHER => $series->setPublisher($stringValue),
+        };
+    }
+
+    /**
+     * Reverte un champ enrichissable à sa valeur précédente (sans téléchargement de couverture).
+     */
+    public function revertFieldValue(ComicSeries $series, EnrichableField $field, mixed $value): void
+    {
+        $stringValue = \is_string($value) ? $value : (\is_scalar($value) ? (string) $value : '');
+
+        match ($field) {
+            EnrichableField::AMAZON_URL => $series->setAmazonUrl('' === $stringValue ? null : $stringValue),
+            EnrichableField::AUTHORS => $this->revertAuthors($series, $value),
+            EnrichableField::COVER => $series->setCoverUrl(null === $value ? null : $stringValue),
+            EnrichableField::DESCRIPTION => $series->setDescription('' === $stringValue ? null : $stringValue),
+            EnrichableField::ISBN => null,
+            EnrichableField::IS_ONE_SHOT => $series->setIsOneShot((bool) $value),
+            EnrichableField::LATEST_PUBLISHED_ISSUE => $series->setLatestPublishedIssue(\is_numeric($value) ? (int) $value : null),
+            EnrichableField::PUBLISHER => $series->setPublisher('' === $stringValue ? null : $stringValue),
+        };
     }
 
     /**
@@ -137,16 +177,16 @@ class EnrichmentService
 
             $newValue = $this->getSeriesValue($series, $enrichableField);
 
-            $log = new EnrichmentLog(
-                action: EnrichmentAction::AUTO_APPLIED,
+            $proposal = new EnrichmentProposal(
                 comicSeries: $series,
                 confidence: $confidence,
+                currentValue: $oldValues[$fieldName] ?? null,
                 field: $enrichableField,
-                newValue: $newValue,
-                oldValue: $oldValues[$fieldName] ?? null,
+                proposedValue: $newValue,
                 source: $source,
             );
-            $this->entityManager->persist($log);
+            $proposal->preAccept();
+            $this->entityManager->persist($proposal);
         }
 
         $this->logger->info('Enrichissement auto-appliqué pour "{title}" : {fields}', [
@@ -208,8 +248,7 @@ class EnrichmentService
     ): void {
         $source = \implode(', ', $sources);
 
-        // Log un skip par champ non-null du résultat
-        $logged = false;
+        $created = false;
 
         foreach (self::RESULT_FIELD_MAP as $resultField => $enrichableField) {
             $proposedValue = $this->getResultValue($result, $resultField);
@@ -218,20 +257,20 @@ class EnrichmentService
                 continue;
             }
 
-            $log = new EnrichmentLog(
-                action: EnrichmentAction::SKIPPED,
+            $proposal = new EnrichmentProposal(
                 comicSeries: $series,
                 confidence: $confidence,
+                currentValue: $this->getSeriesValue($series, $enrichableField),
                 field: $enrichableField,
-                newValue: $proposedValue,
-                oldValue: $this->getSeriesValue($series, $enrichableField),
+                proposedValue: $proposedValue,
                 source: $source,
             );
-            $this->entityManager->persist($log);
-            $logged = true;
+            $proposal->skip();
+            $this->entityManager->persist($proposal);
+            $created = true;
         }
 
-        if (!$logged) {
+        if (!$created) {
             $this->logger->info('Enrichissement ignoré pour "{title}" — résultat vide', [
                 'title' => $series->getTitle(),
             ]);
@@ -242,6 +281,20 @@ class EnrichmentService
         $this->logger->info('Enrichissement ignoré pour "{title}" — confiance trop basse', [
             'title' => $series->getTitle(),
         ]);
+    }
+
+    private function applyAuthors(ComicSeries $series, mixed $value): void
+    {
+        if (!\is_string($value) || '' === $value) {
+            return;
+        }
+
+        $names = \array_map(\trim(...), \explode(',', $value));
+        $authors = $this->authorRepository->findOrCreateMultiple($names);
+
+        foreach ($authors as $author) {
+            $series->addAuthor($author);
+        }
     }
 
     private function getResultValue(LookupResult $result, string $fieldName): mixed
@@ -257,5 +310,22 @@ class EnrichmentService
             'thumbnail' => $result->thumbnail,
             default => null,
         };
+    }
+
+    private function revertAuthors(ComicSeries $series, mixed $value): void
+    {
+        // Supprimer tous les auteurs, puis remettre les anciens si non-null
+        foreach ($series->getAuthors()->toArray() as $author) {
+            $series->removeAuthor($author);
+        }
+
+        if (\is_string($value) && '' !== $value) {
+            $names = \array_map(\trim(...), \explode(',', $value));
+            $authors = $this->authorRepository->findOrCreateMultiple($names);
+
+            foreach ($authors as $author) {
+                $series->addAuthor($author);
+            }
+        }
     }
 }

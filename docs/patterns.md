@@ -11,8 +11,7 @@ Reference for implementing features without exploring the codebase.
 | `Author` | name:string(unique), followedForNewSeries:bool(default false) | `comicSeries:M2M(mappedBy)` | GetCollection(search by name), Get, Patch, Post |
 | `SeriesSuggestion` | title, type:`ComicType`, authors:JSON, reason:string, status:`SuggestionStatus`(default PENDING) | `sourceSeries:M2O→ComicSeries(SET NULL)` | GetCollection(filter status), Patch(status) |
 | `User` | email:string(unique), googleId?, roles, tokenVersion:int(default=1) | — | — |
-| `EnrichmentProposal` | field:`EnrichableField`, confidence:`EnrichmentConfidence`, currentValue:JSON?, proposedValue:JSON, source:string, status:`ProposalStatus`(default PENDING), reviewedAt? | `comicSeries:M2O→ComicSeries(CASCADE)` | GetCollection(filter status), Get, Patch(/accept), Patch(/reject) |
-| `EnrichmentLog` | field:`EnrichableField`, action:`EnrichmentAction`, confidence:`EnrichmentConfidence`, oldValue:JSON?, newValue:JSON, source:string | `comicSeries:M2O→ComicSeries(CASCADE)` | GetCollection(filter comicSeries) |
+| `EnrichmentProposal` | field:`EnrichableField`, confidence:`EnrichmentConfidence`, currentValue:JSON?, proposedValue:JSON, source:string, status:`ProposalStatus`(default PENDING), reviewedAt? | `comicSeries:M2O→ComicSeries(CASCADE)` | GetCollection(filter status/comicSeries), Get, Patch(/accept), Patch(/reject) |
 | `Notification` | title, message, type:`NotificationType`, read:bool, relatedEntityType?:`NotificationEntityType`, relatedEntityId?:int, metadata?:JSON | `user:M2O→User(CASCADE)` | GetCollection(filter read/type, paginated), Get, Patch(read), Delete |
 | `NotificationPreference` | type:`NotificationType`, channel:`NotificationChannel`(default IN_APP) | `user:M2O→User(CASCADE)` | GetCollection(provider: initializer), Patch |
 | `PushSubscription` | endpoint:string(unique), publicKey, authToken, expirationTime? | `user:M2O→User(CASCADE)` | GetCollection, Post, Delete |
@@ -26,12 +25,11 @@ Reference for implementing features without exploring the codebase.
 | `ApiLookupStatus` | `ERROR`, `NOT_FOUND`, `RATE_LIMITED`, `SUCCESS`, `TIMEOUT` |
 | `BatchLookupStatus` | `FAILED`, `SKIPPED`, `UPDATED` — `getLabel()` |
 | `EnrichableField` | `AMAZON_URL`, `AUTHORS`, `COVER`, `DESCRIPTION`, `ISBN`, `IS_ONE_SHOT`, `LATEST_PUBLISHED_ISSUE`, `PUBLISHER` |
-| `EnrichmentAction` | `ACCEPTED`, `AUTO_APPLIED`, `REJECTED`, `SKIPPED` |
 | `EnrichmentConfidence` | `HIGH`, `LOW`, `MEDIUM` — `fromScore(float)` |
 | `NotificationChannel` | `BOTH`, `IN_APP`, `OFF`, `PUSH` — `getLabel()` |
 | `NotificationEntityType` | `AUTHOR`, `COMIC_SERIES`, `ENRICHMENT_PROPOSAL` |
 | `NotificationType` | `AUTHOR_NEW_SERIES`, `ENRICHMENT_APPLIED`, `ENRICHMENT_REVIEW`, `MISSING_TOME`, `NEW_RELEASE` — `getLabel()` |
-| `ProposalStatus` | `ACCEPTED`, `PENDING`, `REJECTED` |
+| `ProposalStatus` | `ACCEPTED`, `PENDING`, `PRE_ACCEPTED`, `REJECTED`, `SKIPPED` |
 | `SuggestionStatus` | `ADDED`, `DISMISSED`, `PENDING` — `getLabel()` |
 
 ## DTOs (`backend/src/DTO/`)
@@ -201,7 +199,6 @@ Reference for implementing features without exploring the codebase.
 | `ComicSeriesRepository` | `findWithFilters()`, `findAllForApi()`, `findBuyingForReleaseCheck()`, `findWithMissingLookupData()`, `findForAutoEnrich()`, `findForMergeDetection()`, `findPurgeable(days)`, `findTrashed()` |
 | `AuthorRepository` | `findOrCreate()`, `findOrCreateMultiple()` |
 | `EnrichmentProposalRepository` | `findPendingBySeries()`, `findPendingBySeriesAndField()`, `countPending()` |
-| `EnrichmentLogRepository` | `findBySeriesOrderedDesc()` |
 | `NotificationRepository` | `countUnread()`, `existsUnreadByTypeAndEntity()`, `markAllRead()`, `purgeOlderThan()` |
 | `NotificationPreferenceRepository` | `findByUser()`, `findByUserAndType()` |
 | `PushSubscriptionRepository` | `findByUser()`, `findByEndpoint()` |
@@ -319,7 +316,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `AuthorAutocomplete` | Author search/create combobox (extracted from ComicForm) |
 | `Filters` | Type + status + sort dropdowns |
 | `LookupSection` | ISBN/title lookup section (extracted from ComicForm) |
-| `EnrichmentHistory` | Collapsible enrichment audit trail on ComicDetail |
+| `SeriesEnrichmentProposals` | Enrichment proposals (actionable + history) on ComicDetail |
 | `Layout` | Header + BottomNav + NotificationBell + Outlet + Sonner + OfflineBanner |
 | `NotificationBell` | Bell icon + unread count badge in header |
 | `OfflineBanner` | "Mode hors ligne" banner |
@@ -382,13 +379,13 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `utils/searchComics.ts` | `searchComics()` — Fuse.js fuzzy multi-field search |
 | `utils/coverUtils.ts` | `getCoverSrc()` — local cover path or URL fallback |
 | `utils/sortComics.ts` | `SortOption`, `sortComics()` — client-side sort (French locale) |
-| `utils/enrichmentUtils.ts` | `formatEnrichmentValue()` — shared between EnrichmentReview + EnrichmentHistory |
+| `utils/enrichmentUtils.ts` | `formatEnrichmentValue()` — shared between EnrichmentReview + ProposalCard |
 | `utils/syncLabels.ts` | `operationLabels`, `resourceLabels`, `fieldLabels`, `formatSyncValue()` |
 
 ## Frontend — Types (`frontend/src/types/`)
 
 - `api.ts`: `HydraCollection<T>`, `Author`, `Tome`, `ComicSeries`, `PurgeableSeries`, `MergeGroup`, `MergeGroupEntry`, `MergePreview`, `MergePreviewTome`, `CreateComicPayload`, `UpdateComicPayload`, `TomePayload`, `CreateTomePayload`, `ImportExcelResult`, `ImportBooksResult`, `BatchLookupProgress`, `BatchLookupSummary`, `LookupResult`
-- `enums.ts`: `ComicStatus`, `ComicType`, `EnrichmentAction`, `EnrichmentConfidence`, `NotificationChannel`, `NotificationEntityType`, `NotificationType`, `ProposalStatus` (+ labels, colors)
+- `enums.ts`: `ComicStatus`, `ComicType`, `EnrichmentConfidence`, `NotificationChannel`, `NotificationEntityType`, `NotificationType`, `ProposalStatus` (+ labels, colors)
 - `notifications.ts`: `AppNotification`, `NotificationPreference`
 - `sync.d.ts`: `SyncManager`, `SyncEvent` type declarations
 

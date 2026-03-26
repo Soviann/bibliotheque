@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { endpoints } from "../endpoints";
 import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
-import type { EnrichmentLog, EnrichmentProposal, HydraCollection } from "../types/api";
+import type { EnrichmentProposal, HydraCollection } from "../types/api";
 
 export function useEnrichmentProposals(status?: string) {
   return useQuery({
@@ -17,16 +17,16 @@ export function useEnrichmentProposals(status?: string) {
   });
 }
 
-export function useEnrichmentLogs(seriesId: number) {
+export function useEnrichmentProposalsBySeries(seriesId: number) {
   return useQuery({
     enabled: seriesId > 0,
     queryFn: async () => {
-      const data = await apiFetch<HydraCollection<EnrichmentLog>>(
-        `${endpoints.enrichment.logs}?comicSeries=${seriesId}`,
+      const data = await apiFetch<HydraCollection<EnrichmentProposal>>(
+        `${endpoints.enrichment.proposals}?comicSeries=${seriesId}`,
       );
       return data.member;
     },
-    queryKey: queryKeys.enrichment.logs(seriesId),
+    queryKey: queryKeys.enrichment.proposalsBySeries(seriesId),
   });
 }
 
@@ -59,6 +59,7 @@ export function useRejectProposal() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.enrichment.proposalsPrefix,
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
     },
   });
 }

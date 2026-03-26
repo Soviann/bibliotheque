@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\Enrichment;
 
 use App\Entity\ComicSeries;
-use App\Entity\EnrichmentLog;
 use App\Entity\EnrichmentProposal;
 use App\Enum\ComicType;
-use App\Enum\EnrichmentAction;
 use App\Enum\EnrichmentConfidence;
 use App\Enum\LookupMode;
 use App\Enum\ProposalStatus;
+use App\Repository\AuthorRepository;
 use App\Repository\EnrichmentProposalRepository;
+use App\Service\Cover\CoverDownloader;
 use App\Service\Enrichment\ConfidenceScorer;
 use App\Service\Enrichment\EnrichmentService;
 use App\Service\Lookup\Contract\LookupResult;
@@ -48,7 +48,9 @@ final class EnrichmentServiceTest extends TestCase
         });
 
         $this->enrichmentService = new EnrichmentService(
+            $this->createStub(AuthorRepository::class),
             $this->confidenceScorer,
+            $this->createStub(CoverDownloader::class),
             $this->entityManager,
             $this->lookupApplier,
             new NullLogger(),
@@ -57,9 +59,9 @@ final class EnrichmentServiceTest extends TestCase
     }
 
     /**
-     * Teste que HIGH auto-applique via LookupApplier et crée des logs.
+     * Teste que HIGH auto-applique via LookupApplier et crée des proposals PRE_ACCEPTED.
      */
-    public function testHighConfidenceAutoApplies(): void
+    public function testHighConfidenceAutoAppliesAndCreatesPreAcceptedProposals(): void
     {
         $series = $this->createSeries();
         $result = new LookupResult(description: 'Une description', publisher: 'Glénat', source: 'google');
@@ -71,16 +73,17 @@ final class EnrichmentServiceTest extends TestCase
 
         self::assertSame(EnrichmentConfidence::HIGH, $confidence);
 
-        $logs = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentLog);
-        self::assertCount(2, $logs);
+        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        self::assertCount(2, $proposals);
 
-        /** @var EnrichmentLog $log */
-        $log = \array_values($logs)[0];
-        self::assertSame(EnrichmentAction::AUTO_APPLIED, $log->getAction());
+        /** @var EnrichmentProposal $proposal */
+        $proposal = \array_values($proposals)[0];
+        self::assertSame(ProposalStatus::PRE_ACCEPTED, $proposal->getStatus());
+        self::assertNotNull($proposal->getReviewedAt());
     }
 
     /**
-     * Teste que MEDIUM crée des propositions pour les champs modifiables.
+     * Teste que MEDIUM crée des propositions PENDING pour les champs modifiables.
      */
     public function testMediumConfidenceCreatesProposals(): void
     {
@@ -123,9 +126,9 @@ final class EnrichmentServiceTest extends TestCase
     }
 
     /**
-     * Teste que LOW crée un log SKIPPED.
+     * Teste que LOW crée des proposals SKIPPED.
      */
-    public function testLowConfidenceLogsSkip(): void
+    public function testLowConfidenceCreatesSkippedProposals(): void
     {
         $series = $this->createSeries();
         $result = new LookupResult(description: 'Description', source: 'google');
@@ -136,12 +139,13 @@ final class EnrichmentServiceTest extends TestCase
 
         self::assertSame(EnrichmentConfidence::LOW, $confidence);
 
-        $logs = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentLog);
-        self::assertCount(1, $logs);
+        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        self::assertCount(1, $proposals);
 
-        /** @var EnrichmentLog $log */
-        $log = \array_values($logs)[0];
-        self::assertSame(EnrichmentAction::SKIPPED, $log->getAction());
+        /** @var EnrichmentProposal $proposal */
+        $proposal = \array_values($proposals)[0];
+        self::assertSame(ProposalStatus::SKIPPED, $proposal->getStatus());
+        self::assertNotNull($proposal->getReviewedAt());
     }
 
     private function createSeries(): ComicSeries

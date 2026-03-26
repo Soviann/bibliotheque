@@ -6,17 +6,15 @@ namespace App\Tests\Unit\State;
 
 use ApiPlatform\Metadata\Patch;
 use App\Entity\ComicSeries;
-use App\Entity\EnrichmentLog;
 use App\Entity\EnrichmentProposal;
 use App\Enum\ComicType;
 use App\Enum\EnrichableField;
 use App\Enum\EnrichmentConfidence;
 use App\Enum\ProposalStatus;
-use App\Repository\AuthorRepository;
-use App\Service\Cover\CoverDownloader;
 use App\Service\Enrichment\EnrichmentService;
 use App\State\EnrichmentProposalAcceptProcessor;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -26,39 +24,26 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 final class EnrichmentProposalAcceptProcessorTest extends TestCase
 {
-    private Stub&AuthorRepository $authorRepository;
-    private Stub&CoverDownloader $coverDownloader;
     private Stub&EntityManagerInterface $entityManager;
-
-    /** @var list<object> */
-    private array $persisted = [];
-
+    private MockObject&EnrichmentService $enrichmentService;
     private EnrichmentProposalAcceptProcessor $processor;
 
     protected function setUp(): void
     {
-        $this->authorRepository = $this->createStub(AuthorRepository::class);
-        $this->coverDownloader = $this->createStub(CoverDownloader::class);
-        $enrichmentService = $this->createStub(EnrichmentService::class);
-        $enrichmentService->method('getSeriesValue')->willReturn(null);
+        $this->enrichmentService = $this->createMock(EnrichmentService::class);
+        $this->enrichmentService->method('getSeriesValue')->willReturn(null);
         $this->entityManager = $this->createStub(EntityManagerInterface::class);
 
-        $this->entityManager->method('persist')->willReturnCallback(function (object $entity): void {
-            $this->persisted[] = $entity;
-        });
-
         $this->processor = new EnrichmentProposalAcceptProcessor(
-            $this->authorRepository,
-            $this->coverDownloader,
-            $enrichmentService,
+            $this->enrichmentService,
             $this->entityManager,
         );
     }
 
     /**
-     * Teste l'acceptation d'une proposition de description.
+     * Teste l'acceptation d'une proposition PENDING de description.
      */
-    public function testAcceptDescriptionProposal(): void
+    public function testAcceptPendingProposal(): void
     {
         $series = $this->createSeries();
         $proposal = new EnrichmentProposal(
@@ -70,20 +55,44 @@ final class EnrichmentProposalAcceptProcessorTest extends TestCase
             source: 'google',
         );
 
+        $this->enrichmentService->expects(self::once())
+            ->method('applyFieldValue')
+            ->with($series, EnrichableField::DESCRIPTION, 'Nouvelle description');
+
         $result = $this->processor->process($proposal, new Patch());
 
         self::assertSame(ProposalStatus::ACCEPTED, $result->getStatus());
         self::assertNotNull($result->getReviewedAt());
-        self::assertSame('Nouvelle description', $series->getDescription());
-
-        $logs = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentLog);
-        self::assertCount(1, $logs);
     }
 
     /**
-     * Teste qu'une proposition non-PENDING lève une exception.
+     * Teste l'acceptation d'une proposition PRE_ACCEPTED (pas d'application, juste confirmation).
      */
-    public function testRejectsNonPendingProposal(): void
+    public function testAcceptPreAcceptedProposalSkipsApply(): void
+    {
+        $series = $this->createSeries();
+        $proposal = new EnrichmentProposal(
+            comicSeries: $series,
+            confidence: EnrichmentConfidence::HIGH,
+            currentValue: null,
+            field: EnrichableField::DESCRIPTION,
+            proposedValue: 'Description auto-appliquée',
+            source: 'google',
+        );
+        $proposal->preAccept();
+
+        $this->enrichmentService->expects(self::never())
+            ->method('applyFieldValue');
+
+        $result = $this->processor->process($proposal, new Patch());
+
+        self::assertSame(ProposalStatus::ACCEPTED, $result->getStatus());
+    }
+
+    /**
+     * Teste qu'une proposition REJECTED lève une exception.
+     */
+    public function testRejectsInvalidStatus(): void
     {
         $series = $this->createSeries();
         $proposal = new EnrichmentProposal(
@@ -94,7 +103,7 @@ final class EnrichmentProposalAcceptProcessorTest extends TestCase
             proposedValue: 'desc',
             source: 'google',
         );
-        $proposal->reject(); // status = REJECTED
+        $proposal->reject();
 
         $this->expectException(BadRequestHttpException::class);
         $this->processor->process($proposal, new Patch());

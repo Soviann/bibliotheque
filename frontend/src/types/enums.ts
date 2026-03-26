@@ -80,33 +80,6 @@ export const statusOptionsAll: SelectOption[] = [
   ...statusOptions,
 ];
 
-export const EnrichmentAction = {
-  ACCEPTED: "accepted",
-  AUTO_APPLIED: "auto_applied",
-  REJECTED: "rejected",
-  SKIPPED: "skipped",
-} as const;
-export type EnrichmentAction =
-  (typeof EnrichmentAction)[keyof typeof EnrichmentAction];
-
-export const EnrichmentActionLabel: Record<EnrichmentAction, string> = {
-  [EnrichmentAction.ACCEPTED]: "Accepté",
-  [EnrichmentAction.AUTO_APPLIED]: "Auto-appliqué",
-  [EnrichmentAction.REJECTED]: "Rejeté",
-  [EnrichmentAction.SKIPPED]: "Ignoré",
-};
-
-export const EnrichmentActionColor: Record<EnrichmentAction, string> = {
-  [EnrichmentAction.ACCEPTED]:
-    "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
-  [EnrichmentAction.AUTO_APPLIED]:
-    "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
-  [EnrichmentAction.REJECTED]:
-    "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
-  [EnrichmentAction.SKIPPED]:
-    "bg-gray-100 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400",
-};
-
 export const EnrichmentConfidence = {
   HIGH: "high",
   LOW: "low",
@@ -144,10 +117,33 @@ export const EnrichableFieldLabel: Record<string, string> = {
 export const ProposalStatus = {
   ACCEPTED: "accepted",
   PENDING: "pending",
+  PRE_ACCEPTED: "pre_accepted",
   REJECTED: "rejected",
+  SKIPPED: "skipped",
 } as const;
 export type ProposalStatus =
   (typeof ProposalStatus)[keyof typeof ProposalStatus];
+
+export const ProposalStatusLabel: Record<ProposalStatus, string> = {
+  [ProposalStatus.ACCEPTED]: "Accepté",
+  [ProposalStatus.PENDING]: "En attente",
+  [ProposalStatus.PRE_ACCEPTED]: "Pré-approuvé",
+  [ProposalStatus.REJECTED]: "Rejeté",
+  [ProposalStatus.SKIPPED]: "Ignoré",
+};
+
+export const ProposalStatusColor: Record<ProposalStatus, string> = {
+  [ProposalStatus.ACCEPTED]:
+    "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
+  [ProposalStatus.PENDING]:
+    "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400",
+  [ProposalStatus.PRE_ACCEPTED]:
+    "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+  [ProposalStatus.REJECTED]:
+    "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
+  [ProposalStatus.SKIPPED]:
+    "bg-gray-100 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400",
+};
 
 export const NotificationChannel = {
   BOTH: "both",

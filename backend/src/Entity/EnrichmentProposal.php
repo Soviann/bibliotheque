@@ -43,7 +43,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
     ],
 )]
-#[ApiFilter(SearchFilter::class, properties: ['status' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['comicSeries' => 'exact', 'status' => 'exact'])]
 #[ORM\Entity(repositoryClass: EnrichmentProposalRepository::class)]
 #[ORM\Index(name: 'idx_enrichment_proposal_series', columns: ['comic_series_id'])]
 #[ORM\Index(name: 'idx_enrichment_proposal_status', columns: ['status'])]
@@ -170,9 +170,21 @@ class EnrichmentProposal
         $this->status = ProposalStatus::ACCEPTED;
     }
 
+    public function preAccept(): void
+    {
+        $this->reviewedAt = new \DateTimeImmutable();
+        $this->status = ProposalStatus::PRE_ACCEPTED;
+    }
+
     public function reject(): void
     {
         $this->reviewedAt = new \DateTimeImmutable();
         $this->status = ProposalStatus::REJECTED;
+    }
+
+    public function skip(): void
+    {
+        $this->reviewedAt = new \DateTimeImmutable();
+        $this->status = ProposalStatus::SKIPPED;
     }
 }
