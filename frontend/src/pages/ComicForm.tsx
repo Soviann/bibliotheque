@@ -51,6 +51,7 @@ export default function ComicForm() {
     setLookupIsbn,
     setLookupMode,
     setLookupTitle,
+    submitTitleSearch,
     syncFailure,
     titleCandidates,
     tomeManager,
@@ -137,6 +138,7 @@ export default function ComicForm() {
           setLookupIsbn={setLookupIsbn}
           setLookupMode={setLookupMode}
           setLookupTitle={setLookupTitle}
+          submitTitleSearch={submitTitleSearch}
           titleCandidates={titleCandidates}
         />
       </ComponentErrorBoundary>

@@ -69,6 +69,7 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
           height={200}
           onImageLoad={extractColor}
           src={coverSrc ?? ComicTypePlaceholder[comic.type]}
+          viewTransitionName={`comic-cover-${comic.id}`}
           width={150}
         />
 

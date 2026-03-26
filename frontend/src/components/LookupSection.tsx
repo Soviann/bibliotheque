@@ -1,4 +1,4 @@
-import { ArrowLeft, Layers, Loader2 } from "lucide-react";
+import { ArrowLeft, Layers, Loader2, Search } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { formInputClassName } from "../styles/formStyles";
 import BarcodeScanner from "./BarcodeScanner";
@@ -19,6 +19,7 @@ interface LookupSectionProps {
   setLookupIsbn: (v: string) => void;
   setLookupMode: (v: "isbn" | "title") => void;
   setLookupTitle: (v: string) => void;
+  submitTitleSearch: () => void;
   titleCandidates: UseQueryResult<LookupCandidatesResponse>;
 }
 
@@ -37,6 +38,7 @@ export default function LookupSection({
   setLookupIsbn,
   setLookupMode,
   setLookupTitle,
+  submitTitleSearch,
   titleCandidates,
 }: LookupSectionProps) {
   if (!isOnline) {
@@ -85,7 +87,7 @@ export default function LookupSection({
           <BarcodeScanner onScan={setLookupIsbn} />
         </div>
       ) : (
-        <div className="flex gap-2">
+        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); submitTitleSearch(); }}>
           <input
             className={`flex-1 ${formInputClassName}`}
             onChange={(e) => {
@@ -108,7 +110,15 @@ export default function LookupSection({
               <Layers className="h-4 w-4" />
             </button>
           )}
-        </div>
+          <button
+            className="flex shrink-0 items-center rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 transition"
+            disabled={lookupTitle.trim().length < 2}
+            title="Rechercher"
+            type="submit"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+        </form>
       )}
 
       {isSearching && (

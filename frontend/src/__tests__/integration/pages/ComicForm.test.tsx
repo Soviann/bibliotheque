@@ -354,6 +354,7 @@ describe("ComicForm", () => {
       // Type a title in the lookup field (title mode is default)
       const lookupInput = screen.getByPlaceholderText("Titre de la série");
       await user.type(lookupInput, "Lookup Title");
+      await user.click(screen.getByTitle("Rechercher"));
 
       // Wait for candidate to appear and select it
       await waitFor(() => {
@@ -547,6 +548,7 @@ describe("ComicForm", () => {
 
       const lookupInput = screen.getByPlaceholderText("Titre de la série");
       await user.type(lookupInput, "One Shot Series");
+      await user.click(screen.getByTitle("Rechercher"));
 
       // Select candidate
       await waitFor(() => {
@@ -588,6 +590,7 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       await user.type(screen.getByPlaceholderText("Titre de la série"), "Te");
+      await user.click(screen.getByTitle("Rechercher"));
 
       await waitFor(() => {
         expect(screen.getByText("Recherche en cours…")).toBeInTheDocument();
@@ -608,6 +611,7 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       await user.type(screen.getByPlaceholderText("Titre de la série"), "Result Title");
+      await user.click(screen.getByTitle("Rechercher"));
 
       // Candidates are shown first
       await waitFor(() => {
@@ -1823,6 +1827,7 @@ describe("ComicForm", () => {
       // Perform lookup
       const lookupInput = screen.getByPlaceholderText("Titre de la série");
       await user.type(lookupInput, "Lookup Title");
+      await user.click(screen.getByTitle("Rechercher"));
 
       await waitFor(() => {
         expect(screen.getByText("Lookup Title")).toBeInTheDocument();

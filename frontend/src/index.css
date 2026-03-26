@@ -85,10 +85,19 @@ body {
   font-family: var(--font-body);
 }
 
-/* ── View Transition API — cross-fade entre les pages ── */
+/* ── View Transition API — page transitions ── */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 200ms;
+  animation-duration: 250ms;
+  animation-timing-function: ease-in-out;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0s;
+  }
 }
 
 /* ── Animations ── */
@@ -130,6 +139,18 @@ body {
   100% {
     background-position: 200% 0;
   }
+}
+
+/* ── Micro-interactions ── */
+@keyframes checkbox-bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* Checkbox bounce on change */
+input[type="checkbox"]:checked {
+  animation: checkbox-bounce 0.25s ease-out;
 }
 
 @utility animate-fade-in-up {
@@ -184,22 +205,24 @@ body {
 .dark .card-glow:hover {
   box-shadow: 0 8px 30px rgba(var(--glow-rgb, 99, 102, 241), 0.25);
 }
+.dark .card-glow:active {
+  box-shadow: 0 4px 40px rgba(var(--glow-rgb, 99, 102, 241), 0.35);
+}
 
 /* Light mode card shadow */
 .card-glow {
   box-shadow: 0 2px 8px rgba(44, 36, 32, 0.06);
+  transition: box-shadow 0.3s ease;
 }
 .card-glow:hover {
   box-shadow: 0 4px 16px rgba(44, 36, 32, 0.12);
 }
+.card-glow:active {
+  box-shadow: 0 4px 12px rgba(44, 36, 32, 0.16);
+}
 
 /* ── Désactiver les transitions si l'utilisateur préfère un mouvement réduit ── */
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 0s;
-  }
-
   .animate-fade-in-up,
   .animate-fade-in-scale,
   .animate-glow-pulse {

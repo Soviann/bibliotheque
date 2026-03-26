@@ -349,6 +349,14 @@ export default function ComicDetail() {
 
       {/* Content — avec backdrop ambient en dark mode */}
       <div className="relative flex flex-col gap-6 md:flex-row">
+        {/* Ambient backdrop — gradient from dominant color */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-x-4 -top-4 h-72 overflow-hidden rounded-2xl"
+          style={{
+            background: `radial-gradient(ellipse at top left, rgba(${dominantColor}, 0.12) 0%, transparent 70%)`,
+          }}
+        />
         {/* Ambient backdrop (dark mode only) */}
         {coverSrc && (
           <div
@@ -376,6 +384,7 @@ export default function ComicDetail() {
             onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
             onImageLoad={extractColor}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
+            viewTransitionName={`comic-cover-${id}`}
           />
         </div>
 
@@ -463,10 +472,13 @@ export default function ComicDetail() {
 
       {/* Progression */}
       {showProgress && (
-        <div className="grid gap-3 sm:grid-cols-3">
-          <ProgressBar color="bg-primary-600" current={boughtCount} label="Achetés" total={progressTotal} />
-          <ProgressBar color="bg-green-500" current={readCount} label="Lus" total={progressTotal} />
-          <ProgressBar color="bg-blue-500" current={downloadedCount} label="Téléchargés" total={progressTotal} />
+        <div
+          className="grid gap-3 sm:grid-cols-3"
+          style={{ ["--series-color" as string]: dominantColor }}
+        >
+          <ProgressBar color="bg-[rgb(var(--series-color))]" current={boughtCount} label="Achetés" total={progressTotal} />
+          <ProgressBar color="bg-[rgb(var(--series-color))]" current={readCount} label="Lus" total={progressTotal} />
+          <ProgressBar color="bg-[rgb(var(--series-color))]" current={downloadedCount} label="Téléchargés" total={progressTotal} />
         </div>
       )}
 

@@ -1,17 +1,18 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Filter, Heart, Loader2, RefreshCw, Search } from "lucide-react";
+import { BookOpen, Filter, Heart, LayoutGrid, Loader2, RefreshCw, Rows3, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CardActionBar from "../components/CardActionBar";
 import ComicCard from "../components/ComicCard";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
-import CoverImage from "../components/CoverImage";
 import EmptyState from "../components/EmptyState";
 import FilterChips from "../components/FilterChips";
 import Filters from "../components/Filters";
+import HeroCarousel from "../components/HeroCarousel";
 import SearchInput from "../components/SearchInput";
+import ShelfView from "../components/ShelfView";
 import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
@@ -21,8 +22,6 @@ import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useRestoreComic } from "../hooks/useTrash";
 import { queryKeys } from "../queryKeys";
 import type { ComicSeries } from "../types/api";
-import { ComicTypePlaceholder } from "../types/enums";
-import { getCoverSrc, getCoverThumbnailSrc } from "../utils/coverUtils";
 import { searchComics } from "../utils/searchComics";
 import { sortComics } from "../utils/sortComics";
 import type { SortOption } from "../utils/sortComics";
@@ -51,6 +50,9 @@ export default function Home() {
   const [search, setSearch] = useState(searchParam);
   const debouncedSearch = useDebounce(search, 300);
   const [menuComic, setMenuComic] = useState<ComicSeries | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "shelves">(() => {
+    return (localStorage.getItem("home-view-mode") as "grid" | "shelves") ?? "grid";
+  });
 
   useEffect(() => {
     setSearch(searchParam);
@@ -74,8 +76,18 @@ export default function Home() {
     [setSearchParams],
   );
 
+  const handleViewModeChange = useCallback((mode: "grid" | "shelves") => {
+    setViewMode(mode);
+    localStorage.setItem("home-view-mode", mode);
+  }, []);
+
   const handleStatusChange = useCallback((v: string) => updateParam("status", v), [updateParam]);
   const handleTypeChange = useCallback((v: string) => updateParam("type", v), [updateParam]);
+
+  const handleShelfSeeAll = useCallback((shelfStatus: string) => {
+    handleViewModeChange("grid");
+    handleStatusChange(shelfStatus);
+  }, [handleViewModeChange, handleStatusChange]);
   const handleSortChange = useCallback(
     (v: SortOption) => updateParam("sort", v === "title-asc" ? "" : v),
     [updateParam],
@@ -164,7 +176,7 @@ export default function Home() {
   const showHero = !isLoading && !debouncedSearch && !type && !status && recentlyAdded.length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 transition-[filter] duration-300 ${isRefreshing ? "blur-[1px]" : ""}`}>
       {(pullDistance > 0 || isRefreshing) && (
         <div
           aria-label={isRefreshing ? "Actualisation en cours" : "Tirer pour actualiser"}
@@ -184,47 +196,7 @@ export default function Home() {
       </h1>
 
       {/* Hero — Récemment ajoutés */}
-      {showHero && (
-        <section className="space-y-2">
-          <h2 className="font-display text-sm font-semibold text-text-secondary dark:font-body dark:text-xs dark:uppercase dark:tracking-widest dark:text-text-muted">
-            Récemment ajoutés
-          </h2>
-          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 scrollbar-none">
-            {recentlyAdded.map((comic) => {
-              const src = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
-              return (
-                <Link
-                  className="group flex w-[140px] shrink-0 snap-center flex-col gap-1.5 sm:w-[160px]"
-                  key={comic.id}
-                  to={`/comic/${comic.id}`}
-                  viewTransition
-                >
-                  <div className="card-glow overflow-hidden rounded-xl transition-transform duration-200 group-hover:-translate-y-1 group-hover:scale-[1.02]"
-                    style={{ ["--glow-rgb" as string]: "99, 102, 241" }}
-                  >
-                    <CoverImage
-                      alt={comic.title}
-                      className="aspect-[3/4]"
-                      fallbackSrc={ComicTypePlaceholder[comic.type]}
-                      height={240}
-                      src={src ?? ComicTypePlaceholder[comic.type]}
-                      width={180}
-                    />
-                  </div>
-                  <h3 className="truncate font-display text-sm font-medium text-text-primary dark:font-body dark:text-xs">
-                    {comic.title}
-                  </h3>
-                  {!comic.isOneShot && (
-                    <p className="font-mono-stats text-xs text-text-muted">
-                      {comic.tomesCount} t.
-                    </p>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {showHero && <HeroCarousel comics={recentlyAdded} />}
 
       {/* Séparateur visuel */}
       {showHero && (
@@ -254,6 +226,29 @@ export default function Home() {
             status={status}
             type={type}
           />
+        )}
+        {/* Vue toggle — visible only on default view (no filters/search) */}
+        {!debouncedSearch && !type && !status && (
+          <div className="flex shrink-0 rounded-lg border border-surface-border p-0.5 dark:border-white/10">
+            <button
+              aria-label="Vue grille"
+              aria-pressed={viewMode === "grid"}
+              className={`rounded-md p-1.5 transition-colors ${viewMode === "grid" ? "bg-primary-100 text-primary-600 dark:bg-primary-950/50 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
+              onClick={() => handleViewModeChange("grid")}
+              type="button"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              aria-label="Vue étagères"
+              aria-pressed={viewMode === "shelves"}
+              className={`rounded-md p-1.5 transition-colors ${viewMode === "shelves" ? "bg-primary-100 text-primary-600 dark:bg-primary-950/50 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
+              onClick={() => handleViewModeChange("shelves")}
+              type="button"
+            >
+              <Rows3 className="h-4 w-4" />
+            </button>
+          </div>
         )}
         <span className="flex shrink-0 items-center gap-1.5 font-mono-stats text-sm text-text-muted">
           {isFetching && !isLoading && (
@@ -321,6 +316,8 @@ export default function Home() {
             title="Aucune série avec ces filtres"
           />
         )
+      ) : viewMode === "shelves" && !debouncedSearch && !type && !status ? (
+        <ShelfView comics={filtered} onFilterByStatus={handleShelfSeeAll} />
       ) : (
         <ComponentErrorBoundary label="la grille">
           <VirtualGrid

@@ -119,7 +119,20 @@ export function useComicForm() {
   const { failures, resolveSyncFailure } = useSyncFailures();
   const syncFailure = syncFailureId ? failures.find((f) => f.id === Number(syncFailureId)) : undefined;
 
-  const [form, setForm] = useState<FormData>(buildInitialForm());
+  const [form, setForm] = useState<FormData>(() => {
+    const initial = buildInitialForm();
+    if (!isEdit) {
+      const prefillTitle = searchParams.get("title");
+      const prefillType = searchParams.get("type") as ComicType | null;
+      if (prefillTitle) {
+        initial.title = prefillTitle;
+      }
+      if (prefillType && Object.values(ComicType).includes(prefillType)) {
+        initial.type = prefillType;
+      }
+    }
+    return initial;
+  });
   const [initialized, setInitialized] = useState(!isEdit);
 
   // Cover search state
@@ -265,6 +278,7 @@ export function useComicForm() {
     setLookupIsbn: lookup.setLookupIsbn,
     setLookupMode: lookup.setLookupMode,
     setLookupTitle: lookup.setLookupTitle,
+    submitTitleSearch: lookup.submitTitleSearch,
     titleCandidates: lookup.titleCandidates,
     // Tome management
     tomeManager,
