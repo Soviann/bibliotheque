@@ -10,6 +10,7 @@ interface CoverImageProps {
   onClick?: () => void;
   onImageLoad?: (img: HTMLImageElement) => void;
   src: string;
+  viewTransitionName?: string;
   width?: number;
 }
 
@@ -23,13 +24,14 @@ export default function CoverImage({
   onClick,
   onImageLoad,
   src,
+  viewTransitionName,
   width,
 }: CoverImageProps) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative overflow-hidden ${className}`} style={viewTransitionName ? { viewTransitionName } : undefined}>
       {!loaded && !error && (
         <div
           className="absolute inset-0 animate-pulse bg-surface-tertiary"

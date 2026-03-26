@@ -85,10 +85,19 @@ body {
   font-family: var(--font-body);
 }
 
-/* ── View Transition API — cross-fade entre les pages ── */
+/* ── View Transition API — page transitions ── */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 200ms;
+  animation-duration: 250ms;
+  animation-timing-function: ease-in-out;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0s;
+  }
 }
 
 /* ── Animations ── */
@@ -195,11 +204,6 @@ body {
 
 /* ── Désactiver les transitions si l'utilisateur préfère un mouvement réduit ── */
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 0s;
-  }
-
   .animate-fade-in-up,
   .animate-fade-in-scale,
   .animate-glow-pulse {
