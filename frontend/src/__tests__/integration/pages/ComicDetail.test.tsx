@@ -1027,7 +1027,7 @@ describe("ComicDetail", () => {
       expect(screen.getByText("Button Order")).toBeInTheDocument();
     });
 
-    const actionBar = screen.getByText("Modifier").closest("div.sticky")!;
+    const actionBar = screen.getByText("Modifier").closest("div.fixed")!;
     const buttons = actionBar.querySelectorAll("a, button");
     expect(buttons).toHaveLength(3);
     expect(buttons[0]).toHaveTextContent("Modifier");

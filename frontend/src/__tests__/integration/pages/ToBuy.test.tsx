@@ -60,8 +60,8 @@ describe("ToBuy", () => {
       unboughtTomeNumbers: [2, 3, 4, 7, 8, 10],
     });
     renderWithComics([series]);
-    expect(screen.getByText("One Piece")).toBeInTheDocument();
-    expect(screen.getByText("Prochain : T.2-4, T.7-8, T.10")).toBeInTheDocument();
+    expect(screen.getAllByText("One Piece")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Prochain : T.2-4, T.7-8, T.10")[0]).toBeInTheDocument();
   });
 
   it("excludes finished series", () => {
@@ -97,9 +97,10 @@ describe("ToBuy", () => {
       makeSeries(2, "Akira Toriyama", { unboughtTomeNumbers: [1] }),
     ];
     renderWithComics(series);
-    const cards = screen.getAllByRole("link");
-    expect(cards[0]).toHaveTextContent("Akira Toriyama");
-    expect(cards[1]).toHaveTextContent("Zetman");
+    // Les liens de la grille (après la section hero) sont triés par titre
+    const gridLinks = screen.getByTestId("virtual-grid").querySelectorAll("a");
+    expect(gridLinks[0]).toHaveTextContent("Akira Toriyama");
+    expect(gridLinks[1]).toHaveTextContent("Zetman");
   });
 
   it("shows single tome as 'Prochain : T.X'", () => {
@@ -107,6 +108,6 @@ describe("ToBuy", () => {
       unboughtTomeNumbers: [2],
     });
     renderWithComics([series]);
-    expect(screen.getByText("Prochain : T.2")).toBeInTheDocument();
+    expect(screen.getAllByText("Prochain : T.2")[0]).toBeInTheDocument();
   });
 });
