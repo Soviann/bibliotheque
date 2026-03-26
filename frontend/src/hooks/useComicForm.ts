@@ -119,7 +119,14 @@ export function useComicForm() {
   const { failures, resolveSyncFailure } = useSyncFailures();
   const syncFailure = syncFailureId ? failures.find((f) => f.id === Number(syncFailureId)) : undefined;
 
-  const [form, setForm] = useState<FormData>(buildInitialForm());
+  const [form, setForm] = useState<FormData>(() => {
+    const initial = buildInitialForm();
+    const prefillTitle = searchParams.get("title");
+    if (!isEdit && prefillTitle) {
+      initial.title = prefillTitle;
+    }
+    return initial;
+  });
   const [initialized, setInitialized] = useState(!isEdit);
 
   // Cover search state
