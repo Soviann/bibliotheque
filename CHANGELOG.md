@@ -7,6 +7,24 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Shared Element Transitions** : animation fluide des couvertures entre la grille et la page détail via View Transition API
+- **Ambiance dynamique** : gradient radial basé sur la couleur dominante, barres de progression teintées, glow intensifié au tap
+- **Mode Étagères** : vue alternative de la Home groupant les séries par statut en rangées horizontales scrollables
+- **Quick Add** : page d'ajout rapide (scan barcode ou recherche par titre), mode batch, lien vers l'ajout détaillé avec pré-remplissage
+- **Recherche manuelle** : la recherche par titre se lance au clic, plus en auto (Quick Add et ajout détaillé)
+
+### Changed
+
+- **Hero Carousel** : section "Récemment ajoutés" extraite en composant dédié
+- **BottomNav** : le bouton "+" pointe vers la page Quick Add
+- **Scheduler DDEV** : retiré du démarrage automatique, lancement via `make scheduler`
+
+### Fixed
+
+- **Micro-interactions** : bounce sur les checkboxes, blur subtil au pull-to-refresh
+
 ## [v2.22.0] - 2026-03-26
 
 ### Added
