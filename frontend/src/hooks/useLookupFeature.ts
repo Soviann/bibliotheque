@@ -18,6 +18,7 @@ export interface LookupFeature {
   setLookupIsbn: (v: string) => void;
   setLookupMode: (v: "isbn" | "title") => void;
   setLookupTitle: (v: string) => void;
+  submitTitleSearch: () => void;
   titleCandidates: UseQueryResult<LookupCandidatesResponse>;
 }
 
@@ -28,11 +29,12 @@ export function useLookupFeature(
   const [isApplying, setIsApplying] = useState(false);
   const [lookupIsbn, setLookupIsbn] = useState("");
   const [lookupTitle, setLookupTitle] = useState("");
+  const [submittedTitle, setSubmittedTitle] = useState("");
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("title");
   const [selectedCandidateTitle, setSelectedCandidateTitle] = useState<string | null>(null);
 
   const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
-  const titleCandidates = useLookupTitleCandidates(lookupMode === "title" ? lookupTitle : "", form.type);
+  const titleCandidates = useLookupTitleCandidates(lookupMode === "title" ? submittedTitle : "", form.type);
   const targetedLookup = useLookupTitle(selectedCandidateTitle ?? "", form.type);
   const lookupResult = lookupMode === "isbn" ? isbnLookup : targetedLookup;
 
@@ -52,6 +54,13 @@ export function useLookupFeature(
         "authors",
         authorNames.map((name, i) => ({ "@id": "", followedForNewSeries: false, id: -(i + 1), name })),
       );
+    }
+  };
+
+  const submitTitleSearch = () => {
+    const trimmed = lookupTitle.trim();
+    if (trimmed.length >= 2) {
+      setSubmittedTitle(trimmed);
     }
   };
 
@@ -99,6 +108,7 @@ export function useLookupFeature(
     setLookupIsbn,
     setLookupMode,
     setLookupTitle,
+    submitTitleSearch,
     titleCandidates,
   };
 }

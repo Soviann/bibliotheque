@@ -278,6 +278,7 @@ export function useComicForm() {
     setLookupIsbn: lookup.setLookupIsbn,
     setLookupMode: lookup.setLookupMode,
     setLookupTitle: lookup.setLookupTitle,
+    submitTitleSearch: lookup.submitTitleSearch,
     titleCandidates: lookup.titleCandidates,
     // Tome management
     tomeManager,
