@@ -32,9 +32,9 @@ const tabs: Tab[] = [
     color: "text-primary-500 dark:text-primary-400",
     dotColor: "bg-primary-500",
     icon: Plus,
-    isActive: (pathname) => pathname === "/comic/new",
+    isActive: (pathname) => pathname === "/quick-add",
     label: "Ajouter",
-    to: "/comic/new",
+    to: "/quick-add",
   },
   {
     color: "text-accent-danger dark:text-accent-danger",

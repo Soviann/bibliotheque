@@ -67,6 +67,7 @@ const Suggestions = lazyWithRetry(() => import("./pages/Suggestions"));
 const HelpPage = lazyWithRetry(() => import("./pages/HelpPage"));
 const Tools = lazyWithRetry(() => import("./pages/Tools"));
 const Trash = lazyWithRetry(() => import("./pages/Trash"));
+const QuickAdd = lazyWithRetry(() => import("./pages/QuickAdd"));
 
 function Loading() {
   return (
@@ -107,6 +108,7 @@ const router = createBrowserRouter(
         <Route element={<ComicForm />} path="comic/new" />
         <Route element={<ComicDetail />} path="comic/:id" />
         <Route element={<ComicForm />} path="comic/:id/edit" />
+        <Route element={<QuickAdd />} path="quick-add" />
         <Route element={<Tools />} path="tools" />
         <Route element={<EnrichmentReview />} path="tools/enrichment-review" />
         <Route element={<ImportTool />} path="tools/import" />
