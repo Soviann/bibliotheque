@@ -169,6 +169,13 @@ sf: ## Lancer une commande Symfony (usage : make sf CMD="debug:router")
 jwt: ## Générer les clés JWT
 	$(MAKE) sf CMD="lexik:jwt:generate-keypair --skip-if-exists"
 
+# ── Scheduler ─────────────────────────────────────
+
+.PHONY: scheduler
+
+scheduler: ## Lancer le scheduler manuellement
+	cd $(BACK) && php bin/console messenger:consume scheduler_default --time-limit=3600
+
 # ── Production ────────────────────────────────────
 
 .PHONY: deploy
