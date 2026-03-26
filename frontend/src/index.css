@@ -141,6 +141,18 @@ body {
   }
 }
 
+/* ── Micro-interactions ── */
+@keyframes checkbox-bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* Checkbox bounce on change */
+input[type="checkbox"]:checked {
+  animation: checkbox-bounce 0.25s ease-out;
+}
+
 @utility animate-fade-in-up {
   animation: fade-in-up 0.4s ease-out both;
 }
