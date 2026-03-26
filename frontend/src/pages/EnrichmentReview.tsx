@@ -105,7 +105,7 @@ export default function EnrichmentReview() {
     if (!proposals) return [];
     const searchLower = search.toLowerCase();
     return proposals.filter((p) => {
-      if (searchLower && !p.comicSeries.title.toLowerCase().includes(searchLower)) return false;
+      if (searchLower && !p.comicSeries.title?.toLowerCase().includes(searchLower)) return false;
       if (fieldFilter && p.field !== fieldFilter) return false;
       if (confidenceFilter && p.confidence !== confidenceFilter) return false;
       if (sourceFilter && p.source !== sourceFilter) return false;
