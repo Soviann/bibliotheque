@@ -5,6 +5,7 @@ Nettoie Livres.xlsx → clean-livres.xlsx
 Enrichit les tomes achetés depuis Livres.xlsx dans le fichier fusionné.
 """
 
+import difflib
 import os
 import re
 import sys
@@ -71,7 +72,7 @@ CATEGORY_SHEET_MAP = {
 
 
 def normalize(s):
-    """Normalize title for fuzzy matching (same logic as ComicSeriesRepository)."""
+    """Normalize title for exact key matching (same logic as ComicSeriesRepository)."""
     if s is None:
         return ""
     s = str(s).strip().lower()
@@ -80,6 +81,89 @@ def normalize(s):
     s = re.sub(r"[-'\u2019.,!?():]+", "", s)
     s = re.sub(r"\s+", " ", s).strip()
     return s
+
+
+def normalize_deep(s):
+    """Aggressive normalization for fuzzy dedup.
+
+    Goes beyond normalize() to catch near-duplicates:
+    - & and + → et, vs/versus unified
+    - Remove $, [], {}
+    - Strip ALL parenthetical/bracket content: (integrale), (T01-05), [Dark Horse]
+    - Strip trailing version markers: V1, v01
+    - Strip trailing date ranges: 2015-2016, 2017
+    - Strip trailing issue ranges: 001-003, 01-06
+    - Strip leading articles: l', le, la, les
+    - Collapse spaces in single-letter sequences (acronyms)
+    """
+    if s is None:
+        return ""
+    s = str(s).strip().lower()
+    s = unicodedata.normalize("NFD", s)
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    # & and + → et
+    s = re.sub(r"[&+]", "et", s)
+    # versus → vs
+    s = s.replace("versus", "vs")
+    # Remove $, [], {}
+    s = re.sub(r"[$\[\]{}]", "", s)
+    # Strip ALL parenthetical/bracket content BEFORE removing punctuation
+    while re.search(r"\([^)]*\)", s):
+        s = re.sub(r"\([^)]*\)", "", s)
+    while re.search(r"\[[^\]]*\]", s):
+        s = re.sub(r"\[[^\]]*\]", "", s)
+    # Remove punctuation
+    s = re.sub(r"[-'\u2019.,!?():]+", " ", s)
+    # Strip leading articles
+    s = re.sub(r"^(l |le |la |les )", "", s)
+    # Strip trailing version/date/issue markers
+    s = re.sub(r"\s+v\d+\s*$", "", s)
+    s = re.sub(r"\s+\d{4}(-\d{4})?\s*$", "", s)
+    s = re.sub(r"\s+\d{2,3}(-\d{2,3})?\s*$", "", s)
+    # Strip noise words at end
+    s = re.sub(r"\s+(integrale|omnibus|integrales?)\s*$", "", s)
+    # Collapse single-letter sequences (acronyms): "W I L D C A T S" → "wildcats"
+    s = re.sub(r"\b(\w) (\w) (\w)", lambda m: m.group(0).replace(" ", ""), s)
+    # Collapse spaces
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def are_fuzzy_duplicates(key_a, key_b, title_a, title_b):
+    """Check if two titles are near-duplicates using multiple strategies."""
+    # Strategy 1: deep-normalized exact match
+    deep_a = normalize_deep(title_a)
+    deep_b = normalize_deep(title_b)
+    if deep_a == deep_b:
+        return True
+
+    # Strategy 2: one is a prefix of the other (base series + variant)
+    if len(deep_a) >= 5 and len(deep_b) >= 5:
+        shorter, longer = sorted([deep_a, deep_b], key=len)
+        if longer.startswith(shorter):
+            extra = longer[len(shorter):].strip()
+            extra_words = len(extra.split()) if extra else 0
+            # Reject if extra is a roman numeral or arabic number (sequel)
+            if re.match(r"^[ivxlc]+$|^\d+$", extra):
+                pass
+            # Reject if shorter is a single common word and extra adds a real word
+            elif len(shorter.split()) == 1 and extra_words >= 1:
+                pass
+            # Accept if shorter is 60%+ of longer, or at most 1 noise extra word
+            elif len(shorter) >= 12 and (len(shorter) >= len(longer) * 0.6 or extra_words <= 1):
+                return True
+            # Shorter multi-word titles: require 70%+ overlap
+            elif len(shorter) >= 8 and len(shorter.split()) >= 2 and len(shorter) >= len(longer) * 0.7:
+                return True
+
+    # Strategy 3: high string similarity (catches typos, singular/plural)
+    ratio = difflib.SequenceMatcher(None, deep_a, deep_b).ratio()
+    # Higher threshold for short titles to avoid "Aster"→"Asterix", "Crusaders"→"Crusades"
+    min_ratio = 0.92 if min(len(deep_a), len(deep_b)) < 12 else 0.85
+    if ratio >= min_ratio and min(len(deep_a), len(deep_b)) >= 5:
+        return True
+
+    return False
 
 
 def extract_series(title):
