@@ -14,9 +14,9 @@ import openpyxl
 
 # --- Paths ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BIBLIO_PATH = os.path.expanduser("~/Downloads/Bibliotheque.xlsx")
+BIBLIO_PATH = os.path.join(BASE_DIR, "var", "Bibliotheque.xlsx")
 NAS_PATH = os.path.join(BASE_DIR, "var", "nas-import.xlsx")
-LIVRES_PATH = os.path.expanduser("~/Downloads/Livres.xlsx")
+LIVRES_PATH = os.path.join(BASE_DIR, "var", "Livres.xlsx")
 OUTPUT_MERGED = os.path.join(BASE_DIR, "var", "merged-import.xlsx")
 OUTPUT_LIVRES = os.path.join(BASE_DIR, "var", "clean-livres.xlsx")
 
@@ -103,6 +103,11 @@ def detect_sheet_type(categories):
     return None
 
 
+def clean_title(title):
+    """Remove trailing dots and spaces from a title."""
+    return title.rstrip(". ") if title else title
+
+
 def read_sheet_rows(ws, max_cols=8):
     """Read all data rows from a worksheet, returning list of lists."""
     rows = []
@@ -114,8 +119,8 @@ def read_sheet_rows(ws, max_cols=8):
         values = list(row[:max_cols])
         while len(values) < max_cols:
             values.append(None)
-        # Ensure title is string
-        values[0] = str(values[0]).strip() if values[0] is not None else None
+        # Ensure title is string, clean trailing dots/spaces
+        values[0] = clean_title(str(values[0]).strip()) if values[0] is not None else None
         rows.append(values)
     return rows
 
@@ -151,9 +156,9 @@ def nas_row_to_output(nas_row):
     for nas_idx, out_idx in NAS_COL_MAP.items():
         if nas_idx < len(nas_row):
             output[out_idx] = nas_row[nas_idx]
-    # Ensure title is string
+    # Ensure title is string, clean trailing dots/spaces
     if output[0] is not None:
-        output[0] = str(output[0]).strip()
+        output[0] = clean_title(str(output[0]).strip())
     return output
 
 
@@ -414,6 +419,64 @@ def main():
     stats["Livre"] = {"total": len(livre_rows), "enriched": enriched_livre}
     print(f"  {len(livre_rows)} séries (enrichis Livres: {enriched_livre})")
 
+    # === Step 3b: Deduplicate cross-sheet entries ===
+    print("\n--- Déduplication cross-onglets ---")
+    # Build index of all titles across sheets
+    sheet_priority = {"BD": 1, "Mangas": 2, "Comics": 3, "Livre": 4}
+    all_entries = {}  # normalized_key -> list of (sheet_name, row_idx, has_data)
+
+    for sheet_name in wb_out.sheetnames:
+        ws = wb_out[sheet_name]
+        for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
+            title = str(row[0].value).strip() if row[0].value else ""
+            key = normalize(title)
+            if not key:
+                continue
+            has_data = any(cell.value is not None for cell in row[1:8])
+            all_entries.setdefault(key, []).append({
+                "sheet": sheet_name,
+                "row_idx": row_idx,
+                "has_data": has_data,
+                "priority": sheet_priority.get(sheet_name, 99),
+            })
+
+    rows_to_delete = {}  # sheet_name -> list of row_idx
+    cross_dupes = 0
+
+    for key, entries in all_entries.items():
+        sheets = set(e["sheet"] for e in entries)
+        if len(sheets) <= 1:
+            continue
+
+        # Keep entry with data + best priority; merge data into keeper
+        entries.sort(key=lambda e: (not e["has_data"], e["priority"]))
+        keeper = entries[0]
+        ws_keeper = wb_out[keeper["sheet"]]
+
+        for other in entries[1:]:
+            ws_other = wb_out[other["sheet"]]
+            # Merge non-null values from other into keeper
+            for col in range(2, 9):  # columns B-H
+                if ws_keeper.cell(row=keeper["row_idx"], column=col).value is None:
+                    other_val = ws_other.cell(row=other["row_idx"], column=col).value
+                    if other_val is not None:
+                        ws_keeper.cell(row=keeper["row_idx"], column=col).value = other_val
+
+            rows_to_delete.setdefault(other["sheet"], []).append(other["row_idx"])
+            cross_dupes += 1
+            title = ws_other.cell(row=other["row_idx"], column=1).value
+            print(f"  '{title}' [{other['sheet']}] fusionné dans [{keeper['sheet']}]")
+
+    for sheet_name, indices in rows_to_delete.items():
+        ws = wb_out[sheet_name]
+        for row_idx in sorted(indices, reverse=True):
+            ws.delete_rows(row_idx)
+
+    if cross_dupes:
+        print(f"  {cross_dupes} doublons cross-onglets fusionnés")
+    else:
+        print("  Aucun doublon cross-onglets")
+
     # Save merged file
     wb_out.save(OUTPUT_MERGED)
     print(f"\n✓ Fichier fusionné : {OUTPUT_MERGED}")
@@ -456,8 +519,38 @@ def main():
         ws_clean.append([isbn, str(title), author, publisher, cover, categories, description])
         book_count += 1
 
+    # Deduplicate by ISBN and normalized title
+    seen_isbn = set()
+    seen_title = set()
+    rows_to_delete = []
+
+    for row_idx, row in enumerate(ws_clean.iter_rows(min_row=2, values_only=False), start=2):
+        isbn = str(row[0].value).strip() if row[0].value else ""
+        title = str(row[1].value).strip() if row[1].value else ""
+        title_key = normalize(title)
+
+        is_dupe = False
+        if isbn and isbn != "None" and isbn in seen_isbn:
+            is_dupe = True
+        elif title_key and title_key in seen_title:
+            is_dupe = True
+
+        if is_dupe:
+            rows_to_delete.append(row_idx)
+        else:
+            if isbn and isbn != "None":
+                seen_isbn.add(isbn)
+            if title_key:
+                seen_title.add(title_key)
+
+    for row_idx in sorted(rows_to_delete, reverse=True):
+        ws_clean.delete_rows(row_idx)
+
+    dupes_removed = len(rows_to_delete)
+    book_count -= dupes_removed
+
     wb_clean.save(OUTPUT_LIVRES)
-    print(f"  {book_count} livres ({file_urls_cleaned} URLs file:// supprimées)")
+    print(f"  {book_count} livres ({file_urls_cleaned} URLs file:// supprimées, {dupes_removed} doublons supprimés)")
     print(f"✓ Fichier nettoyé : {OUTPUT_LIVRES}")
 
     # Close source workbooks
