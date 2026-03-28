@@ -32,7 +32,7 @@ export default function EmptyState({
           strokeWidth={1.5}
         />
       </div>
-      <h2 className="font-display text-lg font-semibold text-text-primary dark:font-body">{title}</h2>
+      <h2 className="font-display text-lg font-semibold text-text-primary">{title}</h2>
       {description && (
         <p className="mt-1 text-sm text-text-muted" data-testid="empty-state-description">
           {description}

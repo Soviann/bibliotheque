@@ -73,9 +73,9 @@ export default function CoverSearchModal({
     <Dialog className="relative z-50" onClose={onClose} open={open}>
       <DialogBackdrop className="fixed inset-0 bg-black/30 transition duration-200 ease-out data-closed:opacity-0" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl bg-surface-primary shadow-lg transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0">
+        <DialogPanel className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl bg-surface-primary shadow-layered-xl transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0">
           <div className="flex items-center justify-between border-b border-surface-border px-4 py-3">
-            <DialogTitle className="text-lg font-semibold text-text-primary">
+            <DialogTitle className="font-display text-lg font-semibold text-text-primary">
               Rechercher une couverture
             </DialogTitle>
             <button

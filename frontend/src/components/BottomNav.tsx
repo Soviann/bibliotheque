@@ -50,7 +50,7 @@ export default function BottomNav() {
   const { pathname } = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto h-[var(--bottom-nav-h)] border-t border-surface-border bg-surface-primary/95 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:backdrop-blur-xl lg:max-w-4xl lg:left-1/2 lg:-translate-x-1/2 lg:rounded-t-xl lg:border-x">
+    <nav className="grain fixed bottom-0 left-0 right-0 z-50 mx-auto h-[var(--bottom-nav-h)] border-t border-surface-border bg-surface-primary/95 backdrop-blur-md dark:border-white/10 dark:bg-surface-primary/85 dark:backdrop-blur-xl lg:max-w-4xl lg:left-1/2 lg:-translate-x-1/2 lg:rounded-t-xl lg:border-x">
       <div className="flex h-full items-center justify-around">
         {tabs.map(({ color, dotColor, icon: Icon, isActive, label, to }) => {
           const active = isActive(pathname);
@@ -58,7 +58,7 @@ export default function BottomNav() {
             <Link
               aria-current={active ? "page" : undefined}
               className={`relative flex flex-col items-center justify-center gap-1 px-3 text-xs font-medium transition-colors ${
-                active ? color : "text-text-muted"
+                active ? color : "text-text-muted dark:text-text-secondary"
               }`}
               key={label}
               to={to}

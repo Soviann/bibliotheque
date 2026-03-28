@@ -147,10 +147,10 @@ export default function SeriesMultiSelect({
       >
         <DialogBackdrop className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel className="w-full max-w-md rounded-xl bg-surface-primary p-6 shadow-lg">
+          <DialogPanel className="w-full max-w-md rounded-xl bg-surface-primary p-6 shadow-layered-xl">
             {detailComic && (
               <>
-                <DialogTitle className="text-lg font-semibold text-text-primary">
+                <DialogTitle className="font-display text-lg font-semibold text-text-primary">
                   {detailComic.title}
                 </DialogTitle>
                 <dl className="mt-4 space-y-2 text-sm">

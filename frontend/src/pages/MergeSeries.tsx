@@ -155,7 +155,7 @@ export default function MergeSeries() {
     <>
       <div className="mx-auto max-w-4xl px-4 py-6">
         <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Fusion de séries" }]} />
-        <h1 className="text-xl font-bold text-text-primary">
+        <h1 className="font-display text-xl font-bold text-text-primary">
           Fusion de séries
         </h1>
 

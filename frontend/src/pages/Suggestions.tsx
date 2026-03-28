@@ -27,7 +27,7 @@ export default function Suggestions() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Suggestions" }]} />
-      <h1 className="text-xl font-bold text-text-primary">Suggestions de séries</h1>
+      <h1 className="font-display text-xl font-bold text-text-primary">Suggestions de séries</h1>
       <p className="mt-1 text-sm text-text-secondary">
         Séries similaires à votre collection, suggérées par IA.
       </p>

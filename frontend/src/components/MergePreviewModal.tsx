@@ -38,10 +38,10 @@ export default function MergePreviewModal({
     <Dialog className="relative z-50" onClose={onClose} open={open}>
       <DialogBackdrop className="fixed inset-0 bg-black/30 transition duration-200 ease-out data-closed:opacity-0" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-surface-primary shadow-lg transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0">
+        <DialogPanel className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-surface-primary shadow-layered-xl transition duration-200 ease-out data-closed:scale-95 data-closed:opacity-0">
           {/* Header + metadata (non-scrollable) */}
           <div className="shrink-0 px-6 pt-6">
-            <DialogTitle className="text-lg font-semibold text-text-primary">
+            <DialogTitle className="font-display text-lg font-semibold text-text-primary">
               Aperçu de la fusion
             </DialogTitle>
           </div>

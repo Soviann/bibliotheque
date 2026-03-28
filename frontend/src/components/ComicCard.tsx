@@ -111,7 +111,7 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
       {/* Info — minimal: title + tome count */}
       <div className="flex items-start gap-1 px-2 py-1.5">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-sm font-semibold text-text-primary dark:font-body dark:font-medium">
+          <h3 className="truncate font-display text-sm font-semibold text-text-primary">
             {comic._syncPending && <SyncPendingIndicator className="mr-1" />}
             {comic.title}
           </h3>
@@ -152,7 +152,7 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
               >
                 <EllipsisVertical className="h-4 w-4" strokeWidth={1.5} />
               </MenuButton>
-              <MenuItems anchor="bottom end" className="z-50 w-36 rounded-xl border border-surface-border bg-surface-primary py-1 shadow-lg dark:border-white/10 dark:bg-surface-elevated">
+              <MenuItems anchor="bottom end" className="z-50 w-36 rounded-xl border border-surface-border bg-surface-primary py-1 shadow-layered-lg dark:border-white/10 dark:bg-surface-elevated">
                 <MenuItem>
                   <button
                     className="flex w-full items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-surface-tertiary"

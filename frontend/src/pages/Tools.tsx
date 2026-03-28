@@ -76,7 +76,7 @@ export default function Tools() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1 className="mb-6 font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold dark:uppercase dark:tracking-wider">
+      <h1 className="mb-6 font-display text-2xl font-bold text-text-primary">
         Outils
       </h1>
 
@@ -93,7 +93,7 @@ export default function Tools() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-text-primary">{title}</h2>
+                <h2 className="font-display font-semibold text-text-primary">{title}</h2>
                 <ArrowRight className="h-4 w-4 text-text-muted opacity-0 transition group-hover:opacity-100" strokeWidth={1.5} />
               </div>
               <p className="mt-1 text-sm text-text-secondary">{description}</p>
@@ -113,7 +113,7 @@ export default function Tools() {
               : <DatabaseZap className="h-5 w-5 text-accent-danger" strokeWidth={1.5} />}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-text-primary">{clearing ? "Vidage en cours…" : "Vider le cache"}</h2>
+            <h2 className="font-display font-semibold text-text-primary">{clearing ? "Vidage en cours…" : "Vider le cache"}</h2>
             <p className="mt-1 text-sm text-text-secondary">Supprimer le cache local et recharger les données depuis le serveur.</p>
           </div>
         </button>

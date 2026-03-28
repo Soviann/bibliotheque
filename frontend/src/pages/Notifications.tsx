@@ -54,7 +54,7 @@ export default function Notifications() {
     <div className="mx-auto max-w-2xl px-4 py-6">
       <Breadcrumb items={[{ label: "Notifications" }]} />
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-text-primary">Notifications</h1>
+        <h1 className="font-display text-xl font-bold text-text-primary">Notifications</h1>
         <div className="flex items-center gap-2">
           <button
             className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-text-secondary hover:bg-surface-tertiary disabled:opacity-50"

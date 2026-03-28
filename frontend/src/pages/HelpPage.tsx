@@ -252,7 +252,7 @@ export default function HelpPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Aide" }]} />
-      <h1 className="mb-6 font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold dark:uppercase dark:tracking-wider">
+      <h1 className="mb-6 font-display text-2xl font-bold text-text-primary">
         Aide
       </h1>
       <div className="space-y-3">

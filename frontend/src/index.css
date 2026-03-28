@@ -1,4 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+/* ── Google Sans (self-hosted, OFL license) ── */
+@font-face {
+  font-family: "Google Sans";
+  src: url("/fonts/GoogleSans-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Google Sans";
+  src: url("/fonts/GoogleSans-Italic-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
 @import "tailwindcss";
 
 :root {
@@ -15,7 +32,7 @@ body {
 
 @theme {
   /* ── Typography ── */
-  --font-display: "Playfair Display", Georgia, serif;
+  --font-display: "Google Sans", system-ui, sans-serif;
   --font-body: "DM Sans", system-ui, sans-serif;
   --font-mono: "DM Mono", ui-monospace, monospace;
 
@@ -184,6 +201,29 @@ input[type="checkbox"]:checked {
   -webkit-backdrop-filter: blur(20px);
 }
 
+/* ── Noise grain texture (frosted glass effect) ── */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  z-index: -1;
+}
+
+.dark .grain::after {
+  opacity: 0.06;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain::after {
+    display: none;
+  }
+}
+
 /* ── Font utilities ── */
 @utility font-display {
   font-family: var(--font-display);
@@ -197,28 +237,68 @@ input[type="checkbox"]:checked {
   font-family: var(--font-mono);
 }
 
-/* ── Card ambient glow (dark mode) ── */
+/* ── Card ambient glow (dark mode) — layered for depth ── */
 .dark .card-glow {
-  box-shadow: 0 4px 20px rgba(var(--glow-rgb, 99, 102, 241), 0.15);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 8px 24px rgba(var(--glow-rgb, 99, 102, 241), 0.12);
   transition: box-shadow 0.3s ease;
 }
 .dark .card-glow:hover {
-  box-shadow: 0 8px 30px rgba(var(--glow-rgb, 99, 102, 241), 0.25);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 8px 20px rgba(0, 0, 0, 0.25),
+    0 16px 40px rgba(var(--glow-rgb, 99, 102, 241), 0.2);
 }
 .dark .card-glow:active {
-  box-shadow: 0 4px 40px rgba(var(--glow-rgb, 99, 102, 241), 0.35);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 8px 32px rgba(var(--glow-rgb, 99, 102, 241), 0.3);
 }
 
-/* Light mode card shadow */
+/* Light mode card shadow — layered for natural depth */
 .card-glow {
-  box-shadow: 0 2px 8px rgba(44, 36, 32, 0.06);
+  box-shadow:
+    0 1px 2px rgba(44, 36, 32, 0.06),
+    0 4px 8px rgba(44, 36, 32, 0.04),
+    0 8px 24px rgba(44, 36, 32, 0.03);
   transition: box-shadow 0.3s ease;
 }
 .card-glow:hover {
-  box-shadow: 0 4px 16px rgba(44, 36, 32, 0.12);
+  box-shadow:
+    0 2px 4px rgba(44, 36, 32, 0.08),
+    0 8px 16px rgba(44, 36, 32, 0.08),
+    0 16px 40px rgba(44, 36, 32, 0.06);
 }
 .card-glow:active {
-  box-shadow: 0 4px 12px rgba(44, 36, 32, 0.16);
+  box-shadow:
+    0 1px 2px rgba(44, 36, 32, 0.1),
+    0 4px 12px rgba(44, 36, 32, 0.1),
+    0 8px 24px rgba(44, 36, 32, 0.08);
+}
+
+/* ── Layered shadow utilities ── */
+@utility shadow-layered {
+  box-shadow:
+    0 1px 2px rgba(44, 36, 32, 0.06),
+    0 4px 8px rgba(44, 36, 32, 0.04),
+    0 8px 24px rgba(44, 36, 32, 0.03);
+}
+
+@utility shadow-layered-lg {
+  box-shadow:
+    0 2px 4px rgba(44, 36, 32, 0.06),
+    0 8px 16px rgba(44, 36, 32, 0.06),
+    0 16px 48px rgba(44, 36, 32, 0.08);
+}
+
+@utility shadow-layered-xl {
+  box-shadow:
+    0 4px 8px rgba(44, 36, 32, 0.08),
+    0 12px 24px rgba(44, 36, 32, 0.08),
+    0 24px 64px rgba(44, 36, 32, 0.1);
 }
 
 /* ── Désactiver les transitions si l'utilisateur préfère un mouvement réduit ── */

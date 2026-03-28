@@ -191,7 +191,7 @@ export default function Home() {
         </div>
       )}
 
-      <h1 className="font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold dark:uppercase dark:tracking-wider">
+      <h1 className="font-display text-2xl font-bold text-text-primary">
         Ma bibliothèque
       </h1>
 
@@ -202,7 +202,7 @@ export default function Home() {
       {showHero && (
         <div className="flex items-center gap-3">
           <hr className="flex-1 border-surface-border dark:border-white/5" />
-          <span className="font-display text-sm font-semibold text-text-secondary dark:font-body dark:text-xs dark:uppercase dark:tracking-widest dark:text-text-muted">
+          <span className="font-display text-sm font-semibold text-text-secondary">
             Toute la collection
           </span>
           <hr className="flex-1 border-surface-border dark:border-white/5" />

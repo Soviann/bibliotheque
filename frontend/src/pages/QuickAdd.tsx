@@ -43,7 +43,7 @@ export default function QuickAdd() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex flex-col items-center">
-            <h1 className="text-base font-semibold text-text-primary">Ajout rapide</h1>
+            <h1 className="font-display text-base font-semibold text-text-primary">Ajout rapide</h1>
             <Link
               className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400"
               to={`/comic/new${searchQuery || searchType !== "bd" ? `?${new URLSearchParams({ ...(searchQuery ? { title: searchQuery } : {}), ...(searchType !== "bd" ? { type: searchType } : {}) })}` : ""}`}

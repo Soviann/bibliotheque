@@ -11,7 +11,7 @@ interface HeroCarouselProps {
 export default function HeroCarousel({ comics }: HeroCarouselProps) {
   return (
     <section className="space-y-2">
-      <h2 className="font-display text-sm font-semibold text-text-secondary dark:font-body dark:text-xs dark:uppercase dark:tracking-widest dark:text-text-muted">
+      <h2 className="font-display text-sm font-semibold text-text-secondary">
         Récemment ajoutés
       </h2>
       <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 scrollbar-none">
@@ -40,7 +40,7 @@ export default function HeroCarousel({ comics }: HeroCarouselProps) {
                   width={180}
                 />
               </div>
-              <h3 className="truncate font-display text-sm font-medium text-text-primary dark:font-body dark:text-xs">
+              <h3 className="truncate font-display text-sm font-medium text-text-primary">
                 {comic.title}
               </h3>
               {!comic.isOneShot && (
