@@ -9,7 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Changed
 
-- **Identité visuelle premium** : typographie Playfair Display systématique sur tous les titres, texture grain de bruit sur les barres de navigation, ombres multicouches sur les cartes et modales
+- **Identité visuelle premium** : typographie Google Sans sur tous les titres (remplace Playfair Display), texture grain de bruit sur les barres de navigation, ombres multicouches sur les cartes et modales
 
 ## [v2.23.0] - 2026-03-26
 

@@ -110,7 +110,7 @@ export default function QuickAddScan({ batchMode, onAdd }: QuickAddScanProps) {
           />
         )}
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-text-primary">{preview.title}</h3>
+          <h3 className="font-display text-lg font-semibold text-text-primary">{preview.title}</h3>
           {preview.tomeNumber && (
             <p className="text-sm text-text-muted">Tome {preview.tomeNumber}</p>
           )}
