@@ -201,6 +201,8 @@ final readonly class ImportExcelService
             $onNas,
             $latestPublishedIssue,
             $publishedCount->hsCount,
+            $lastBought->specificValues,
+            $lastDownloaded->specificValues,
         );
 
         return new ImportResult(isUpdate: $isUpdate, series: $comic, tomesCount: $tomesCount);
@@ -208,6 +210,10 @@ final readonly class ImportExcelService
 
     /**
      * Synchronise les tomes pour une série (crée les manquants, met à jour les existants).
+     */
+    /**
+     * @param list<int>|null $specificBoughtValues     Tomes spécifiques achetés (format CSV)
+     * @param list<int>|null $specificDownloadedValues Tomes spécifiques téléchargés (format CSV)
      */
     private function syncTomes(
         ComicSeries $comic,
@@ -220,6 +226,8 @@ final readonly class ImportExcelService
         bool $onNas,
         ?int $latestPublishedIssue,
         ?int $hsCount = null,
+        ?array $specificBoughtValues = null,
+        ?array $specificDownloadedValues = null,
     ): int {
         $maxTomeNumber = $this->determineMaxTomeNumber(
             $currentIssueValue,
@@ -241,9 +249,11 @@ final readonly class ImportExcelService
 
             for ($number = 1; $number <= $maxTomeNumber; ++$number) {
                 $isBought = $lastBoughtComplete
-                    || (null !== $lastBoughtValue && $number <= $lastBoughtValue);
+                    || (null !== $specificBoughtValues && \in_array($number, $specificBoughtValues, true))
+                    || (null === $specificBoughtValues && null !== $lastBoughtValue && $number <= $lastBoughtValue);
                 $isDownloaded = $lastDownloadedComplete
-                    || (null !== $lastDownloadedValue && $number <= $lastDownloadedValue);
+                    || (null !== $specificDownloadedValues && \in_array($number, $specificDownloadedValues, true))
+                    || (null === $specificDownloadedValues && null !== $lastDownloadedValue && $number <= $lastDownloadedValue);
 
                 if (isset($existingRegular[$number])) {
                     $existingRegular[$number]->setBought($isBought);
@@ -383,19 +393,19 @@ final readonly class ImportExcelService
     private function parseIntegerValue(mixed $value): ParsedIntegerValue
     {
         if (null === $value) {
-            return new ParsedIntegerValue(hsCount: null, isComplete: false, value: null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: false, specificValues: null, value: null);
         }
 
         $value = \is_scalar($value) ? \trim((string) $value) : '';
 
         if ('' === $value) {
-            return new ParsedIntegerValue(hsCount: null, isComplete: false, value: null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: false, specificValues: null, value: null);
         }
 
         $lowerValue = \mb_strtolower($value);
 
         if ('fini' === $lowerValue) {
-            return new ParsedIntegerValue(hsCount: null, isComplete: true, value: null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: true, specificValues: null, value: null);
         }
 
         // Format "fini N+MHS" ou "fini N+HS" : parution terminée avec hors-série
@@ -406,6 +416,7 @@ final readonly class ImportExcelService
             return new ParsedIntegerValue(
                 hsCount: $hsCount > 0 ? $hsCount : null,
                 isComplete: true,
+                specificValues: null,
                 value: $intValue > 0 ? $intValue : null,
             );
         }
@@ -414,7 +425,7 @@ final readonly class ImportExcelService
         if (1 === \preg_match('/^fini\s+(\d+)$/i', $value, $finiMatches)) {
             $intValue = (int) $finiMatches[1];
 
-            return new ParsedIntegerValue(hsCount: null, isComplete: true, value: $intValue > 0 ? $intValue : null);
+            return new ParsedIntegerValue(hsCount: null, isComplete: true, specificValues: null, value: $intValue > 0 ? $intValue : null);
         }
 
         // Format "N+MHS" ou "N+HS" : tomes réguliers + hors-série
@@ -425,25 +436,35 @@ final readonly class ImportExcelService
             return new ParsedIntegerValue(
                 hsCount: $hsCount > 0 ? $hsCount : null,
                 isComplete: false,
+                specificValues: null,
                 value: $intValue > 0 ? $intValue : null,
             );
         }
 
+        // Format CSV "2, 5, 8" : liste de tomes spécifiques
         if (\str_contains($value, ',')) {
             $parts = \explode(',', $value);
-            $maxVal = 0;
+            $specificValues = [];
             foreach ($parts as $part) {
                 $intVal = (int) \trim($part);
-                if ($intVal > $maxVal) {
-                    $maxVal = $intVal;
+                if ($intVal > 0) {
+                    $specificValues[] = $intVal;
                 }
             }
 
-            return new ParsedIntegerValue(hsCount: null, isComplete: false, value: $maxVal > 0 ? $maxVal : null);
+            \sort($specificValues);
+            $maxVal = \count($specificValues) > 0 ? \max($specificValues) : 0;
+
+            return new ParsedIntegerValue(
+                hsCount: null,
+                isComplete: false,
+                specificValues: \count($specificValues) > 0 ? $specificValues : null,
+                value: $maxVal > 0 ? $maxVal : null,
+            );
         }
 
         $intValue = (int) $value;
 
-        return new ParsedIntegerValue(hsCount: null, isComplete: false, value: $intValue > 0 ? $intValue : null);
+        return new ParsedIntegerValue(hsCount: null, isComplete: false, specificValues: null, value: $intValue > 0 ? $intValue : null);
     }
 }

@@ -380,6 +380,106 @@ final class ImportExcelCommandTest extends KernelTestCase
     }
 
     /**
+     * Teste qu'une liste CSV dans "Last bought" marque uniquement les tomes spécifiques comme achetés.
+     */
+    public function testCsvLastBoughtMarksOnlySpecificTomesAsBought(): void
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('BD');
+        $sheet->setCellValue('A1', 'Titre');
+        $sheet->setCellValue('B1', 'Buy?');
+        $sheet->setCellValue('C1', 'Last bought');
+        $sheet->setCellValue('D1', 'Current');
+        $sheet->setCellValue('E1', 'Parution');
+        $sheet->setCellValue('F1', 'Last dled');
+        $sheet->setCellValue('G1', 'On NAS?');
+        // Last bought = "2, 5" → seuls les tomes 2 et 5 doivent être achetés
+        $sheet->setCellValue('A2', 'CSV Bought Series');
+        $sheet->setCellValue('B2', 'oui');
+        $sheet->setCellValue('C2', '2, 5');
+        $sheet->setCellValue('E2', '10');
+
+        $tmpFile = \tempnam(\sys_get_temp_dir(), 'test_import_').'.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tmpFile);
+
+        try {
+            $this->commandTester->execute(['file' => $tmpFile]);
+
+            self::assertSame(Command::SUCCESS, $this->commandTester->getStatusCode());
+
+            $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'CSV Bought Series']);
+            self::assertNotNull($series);
+
+            $boughtNumbers = [];
+            $notBoughtNumbers = [];
+            foreach ($series->getTomes() as $tome) {
+                if ($tome->isBought()) {
+                    $boughtNumbers[] = $tome->getNumber();
+                } else {
+                    $notBoughtNumbers[] = $tome->getNumber();
+                }
+            }
+
+            \sort($boughtNumbers);
+            \sort($notBoughtNumbers);
+
+            self::assertSame([2, 5], $boughtNumbers, 'Seuls les tomes 2 et 5 doivent être achetés');
+            self::assertSame([1, 3, 4], $notBoughtNumbers, 'Les tomes 1, 3, 4 ne doivent pas être achetés');
+        } finally {
+            @\unlink($tmpFile);
+        }
+    }
+
+    /**
+     * Teste qu'une liste CSV dans "Last dled" marque uniquement les tomes spécifiques comme téléchargés.
+     */
+    public function testCsvLastDownloadedMarksOnlySpecificTomesAsDownloaded(): void
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('BD');
+        $sheet->setCellValue('A1', 'Titre');
+        $sheet->setCellValue('B1', 'Buy?');
+        $sheet->setCellValue('C1', 'Last bought');
+        $sheet->setCellValue('D1', 'Current');
+        $sheet->setCellValue('E1', 'Parution');
+        $sheet->setCellValue('F1', 'Last dled');
+        $sheet->setCellValue('G1', 'On NAS?');
+        // Last dled = "1, 3" → seuls les tomes 1 et 3 doivent être téléchargés
+        $sheet->setCellValue('A2', 'CSV Dled Series');
+        $sheet->setCellValue('E2', '5');
+        $sheet->setCellValue('F2', '1, 3');
+
+        $tmpFile = \tempnam(\sys_get_temp_dir(), 'test_import_').'.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tmpFile);
+
+        try {
+            $this->commandTester->execute(['file' => $tmpFile]);
+
+            self::assertSame(Command::SUCCESS, $this->commandTester->getStatusCode());
+
+            $series = $this->em->getRepository(ComicSeries::class)->findOneBy(['title' => 'CSV Dled Series']);
+            self::assertNotNull($series);
+
+            $dledNumbers = [];
+            foreach ($series->getTomes() as $tome) {
+                if ($tome->isDownloaded()) {
+                    $dledNumbers[] = $tome->getNumber();
+                }
+            }
+
+            \sort($dledNumbers);
+
+            self::assertSame([1, 3], $dledNumbers, 'Seuls les tomes 1 et 3 doivent être téléchargés');
+        } finally {
+            @\unlink($tmpFile);
+        }
+    }
+
+    /**
      * Teste parseIntegerValue avec "0, 0" → ParsedIntegerValue(isComplete: false, value: null).
      */
     public function testParseIntegerValueWithZeroCommaZeroReturnsNull(): void
