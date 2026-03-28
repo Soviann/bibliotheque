@@ -71,9 +71,9 @@ function FilterDrawer({
   return (
     <Dialog onClose={onClose} open={open}>
       <DialogBackdrop className="fixed inset-0 z-40 bg-black/40 transition duration-300 ease-out data-closed:opacity-0" />
-      <DialogPanel className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-surface-primary p-5 shadow-xl transition duration-300 ease-out data-closed:translate-y-full">
+      <DialogPanel className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-surface-primary p-5 shadow-layered-xl transition duration-300 ease-out data-closed:translate-y-full">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-text-primary">Filtres</h2>
+          <h2 className="font-display text-lg font-semibold text-text-primary">Filtres</h2>
           <button
             aria-label="Fermer"
             className="rounded-lg p-1.5 text-text-muted hover:bg-surface-secondary"

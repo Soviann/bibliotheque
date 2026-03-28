@@ -60,7 +60,7 @@ export default function AuthorAutocomplete({
             onChange={(e) => setAuthorSearch(e.target.value)}
             placeholder="Rechercher ou créer un auteur…"
           />
-          <ComboboxOptions className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary shadow-lg">
+          <ComboboxOptions className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-surface-border bg-surface-primary shadow-layered-lg">
             {authorOptions.map((author) => (
               <ComboboxOption
                 className="cursor-pointer px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"

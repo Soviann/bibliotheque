@@ -11,7 +11,7 @@ export default function Login() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <img alt="" className="mx-auto h-20 w-20 rounded-2xl shadow-lg" src="/app-icon.png" />
-          <h1 className="mt-4 font-display text-3xl font-bold text-text-primary dark:font-body dark:text-2xl dark:font-semibold">
+          <h1 className="mt-4 font-display text-3xl font-bold text-text-primary">
             Bibliothèque
           </h1>
         </div>

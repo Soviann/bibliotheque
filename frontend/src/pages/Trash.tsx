@@ -19,7 +19,7 @@ export default function Trash() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold dark:uppercase dark:tracking-wider">Corbeille</h1>
+      <h1 className="font-display text-2xl font-bold text-text-primary">Corbeille</h1>
 
       {isLoading ? (
         <div className="space-y-2" data-testid="trash-skeleton">

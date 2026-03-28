@@ -184,7 +184,7 @@ export default function ImportTool() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Import Excel" }]} />
-      <h1 className="text-xl font-bold text-text-primary">Import Excel</h1>
+      <h1 className="font-display text-xl font-bold text-text-primary">Import Excel</h1>
 
       <TabGroup className="mt-4">
         <TabList className="flex gap-1 rounded-lg bg-surface-secondary p-1">

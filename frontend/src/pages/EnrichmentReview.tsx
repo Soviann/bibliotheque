@@ -102,7 +102,7 @@ export default function EnrichmentReview() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Revue d'enrichissement" }]} />
-      <h1 className="text-xl font-bold text-text-primary">Revue d&apos;enrichissement</h1>
+      <h1 className="font-display text-xl font-bold text-text-primary">Revue d&apos;enrichissement</h1>
 
       {!isLoading && proposals && proposals.length > 0 && (
         <div className="mt-4 space-y-3">

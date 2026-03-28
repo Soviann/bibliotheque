@@ -12,7 +12,7 @@ export default function NotFound() {
       </div>
       <div>
         <h1 className="text-7xl font-extrabold tracking-tight text-text-muted/30">404</h1>
-        <p className="mt-2 text-xl font-semibold text-text-primary">Page introuvable</p>
+        <p className="mt-2 font-display text-xl font-semibold text-text-primary">Page introuvable</p>
         <p className="mt-1 text-sm text-text-muted">
           Cette page semble avoir disparu de la collection.
         </p>

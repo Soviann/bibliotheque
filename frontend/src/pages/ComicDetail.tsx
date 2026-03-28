@@ -341,7 +341,7 @@ export default function ComicDetail() {
         <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary" onClick={goBack} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 font-display text-2xl font-bold text-text-primary dark:font-body dark:text-xl dark:font-semibold">
+        <h1 className="flex-1 font-display text-2xl font-bold text-text-primary">
           {comic._syncPending && <SyncPendingIndicator className="mr-1.5" />}
           {comic.title}
         </h1>
@@ -505,7 +505,7 @@ export default function ComicDetail() {
       {!comic.isOneShot && optimisticTomes.length > 0 && (
         <ComponentErrorBoundary label="les tomes">
           <div>
-            <h2 className="mb-3 font-display text-lg font-semibold text-text-primary dark:font-body">
+            <h2 className="mb-3 font-display text-lg font-semibold text-text-primary">
               Tomes ({optimisticTomes.length})
             </h2>
             <div className="overflow-x-auto rounded-xl border border-surface-border dark:border-white/10">

@@ -108,7 +108,7 @@ export default function ComicForm() {
         <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" onClick={() => goBack()} type="button">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-xl font-bold text-text-primary">
+        <h1 className="font-display text-xl font-bold text-text-primary">
           {isEdit ? "Modifier la série" : "Nouvelle série"}
         </h1>
       </div>

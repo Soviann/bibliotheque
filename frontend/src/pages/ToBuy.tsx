@@ -113,7 +113,7 @@ export default function ToBuy() {
       {/* Hero — Récemment ajoutés */}
       {showHero && (
         <section className="space-y-2">
-          <h2 className="font-display text-sm font-semibold text-text-secondary dark:font-body dark:text-xs dark:uppercase dark:tracking-widest dark:text-text-muted">
+          <h2 className="font-display text-sm font-semibold text-text-secondary">
             Récemment ajoutés
           </h2>
           <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 scrollbar-none">
@@ -138,7 +138,7 @@ export default function ToBuy() {
                       width={180}
                     />
                   </div>
-                  <h3 className="truncate font-display text-sm font-medium text-text-primary dark:font-body dark:text-xs">
+                  <h3 className="truncate font-display text-sm font-medium text-text-primary">
                     {comic.title}
                   </h3>
                   <p className="font-mono-stats text-xs text-accent-sage">
@@ -155,7 +155,7 @@ export default function ToBuy() {
       {showHero && (
         <div className="flex items-center gap-3">
           <hr className="flex-1 border-surface-border dark:border-white/5" />
-          <span className="font-display text-sm font-semibold text-text-secondary dark:font-body dark:text-xs dark:uppercase dark:tracking-widest dark:text-text-muted">
+          <span className="font-display text-sm font-semibold text-text-secondary">
             Toutes les séries
           </span>
           <hr className="flex-1 border-surface-border dark:border-white/5" />

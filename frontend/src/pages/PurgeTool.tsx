@@ -28,7 +28,7 @@ export default function PurgeTool() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Purge de la corbeille" }]} />
-      <h1 className="text-xl font-bold text-text-primary">
+      <h1 className="font-display text-xl font-bold text-text-primary">
         Purge de la corbeille
       </h1>
 

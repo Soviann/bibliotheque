@@ -41,13 +41,13 @@ export default function Layout() {
       <SyncErrorBanner />
 
       {/* Header */}
-      <header className="sticky top-0 z-40 overflow-hidden border-b border-surface-border bg-surface-primary/90 px-4 py-2.5 backdrop-blur-md dark:border-transparent dark:bg-surface-primary/70">
+      <header className="grain sticky top-0 z-40 overflow-hidden border-b border-surface-border bg-surface-primary/90 px-4 py-2.5 backdrop-blur-md dark:border-transparent dark:bg-surface-primary/70">
         <div className="relative flex items-center justify-between">
           {/* Contenu normal (logo + actions) */}
           <div className={`flex min-w-0 flex-1 items-center justify-between transition-all duration-300 ${searchOpen ? "pointer-events-none -translate-x-4 opacity-0" : "translate-x-0 opacity-100"}`}>
             <Link className="flex items-center gap-2.5" to="/" viewTransition>
               <img alt="" className="h-8 w-8 rounded-lg" src="/app-icon.png" />
-              <span className="font-display text-lg font-bold tracking-tight text-text-primary dark:font-body dark:text-sm dark:font-semibold dark:uppercase dark:tracking-widest">
+              <span className="font-display text-lg font-bold tracking-tight text-text-primary">
                 Bibliothèque
               </span>
             </Link>

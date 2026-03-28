@@ -18,7 +18,7 @@ function OfflineFallback() {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 text-center">
       <WifiOff className="h-12 w-12 text-amber-500" />
-      <h2 className="text-xl font-bold text-text-primary">
+      <h2 className="font-display text-xl font-bold text-text-primary">
         Page non disponible hors ligne
       </h2>
       <p className="max-w-md text-text-secondary">
