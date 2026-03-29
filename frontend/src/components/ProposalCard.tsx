@@ -45,6 +45,7 @@ export default function ProposalCard({
             {EnrichmentConfidenceLabel[proposal.confidence as EnrichmentConfidence]}
           </span>
           <span className="text-xs text-text-tertiary">{proposal.source}</span>
+          <span className="text-xs text-text-tertiary">{formatDate(proposal.createdAt)}</span>
           {readonly && (
             <>
               <span
