@@ -59,8 +59,9 @@ export default function CollectionMap({ latestPublishedIssue, tomes }: Collectio
 
   if (latestPublishedIssue === null) return null;
 
-  const boughtCount = countCoveredTomes(tomes, (t) => t.bought);
-  const readCount = countCoveredTomes(tomes, (t) => t.read);
+  const regularTomes = tomes.filter((t) => !t.isHorsSerie);
+  const boughtCount = countCoveredTomes(regularTomes, (t) => t.bought);
+  const readCount = countCoveredTomes(regularTomes, (t) => t.read);
   const ariaLabel = `Carte de collection : ${boughtCount} acheté${boughtCount > 1 ? "s" : ""}, ${readCount} lu${readCount > 1 ? "s" : ""} sur ${latestPublishedIssue} parus`;
 
   const cells = Array.from({ length: latestPublishedIssue }, (_, i) => i + 1);

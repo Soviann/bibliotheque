@@ -168,6 +168,11 @@ export default function ComicDetail() {
     return () => clearTimeout(toggleTimerRef.current);
   }, []);
 
+  const handleTomeViewChange = useCallback((mode: "map" | "table") => {
+    setTomeView(mode);
+    localStorage.setItem("tome-view-mode", mode);
+  }, []);
+
   const handleToggleTome = useCallback(
     (tome: Tome, field: "bought" | "downloaded" | "onNas" | "read") => {
       const newValue = !tome[field];
@@ -514,7 +519,7 @@ export default function ComicDetail() {
                 <button
                   aria-label="Vue carte"
                   className={`rounded-md px-2 py-1 ${tomeView === "map" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/40 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
-                  onClick={() => { setTomeView("map"); localStorage.setItem("tome-view-mode", "map"); }}
+                  onClick={() => handleTomeViewChange("map")}
                   type="button"
                 >
                   <LayoutGrid className="h-4 w-4" />
@@ -522,7 +527,7 @@ export default function ComicDetail() {
                 <button
                   aria-label="Vue tableau"
                   className={`rounded-md px-2 py-1 ${tomeView === "table" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/40 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
-                  onClick={() => { setTomeView("table"); localStorage.setItem("tome-view-mode", "table"); }}
+                  onClick={() => handleTomeViewChange("table")}
                   type="button"
                 >
                   <Table2 className="h-4 w-4" />
@@ -533,7 +538,7 @@ export default function ComicDetail() {
               <CollectionMap latestPublishedIssue={comic.latestPublishedIssue} tomes={optimisticTomes} />
             )}
             {tomeView === "table" && (
-            <div className="overflow-x-auto rounded-xl border border-surface-border dark:border-white/10">
+              <div className="overflow-x-auto rounded-xl border border-surface-border dark:border-white/10">
               <table className="w-full text-sm">
                 <thead className="bg-surface-elevated dark:bg-surface-elevated/50">
                   <tr>
@@ -587,7 +592,7 @@ export default function ComicDetail() {
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
             )}
           </div>
         </ComponentErrorBoundary>
