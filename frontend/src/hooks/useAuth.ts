@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { del } from "idb-keyval";
 import {
   isAuthenticated,
+  loginWithDev as apiLoginWithDev,
   loginWithGoogle as apiLoginWithGoogle,
   removeToken,
 } from "../services/api";
@@ -14,6 +15,14 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: (credential: string) => apiLoginWithGoogle(credential),
+    onSuccess: () => {
+      navigate("/", { viewTransition: true });
+    },
+  });
+
+  const devLoginMutation = useMutation({
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      apiLoginWithDev(username, password),
     onSuccess: () => {
       navigate("/", { viewTransition: true });
     },
@@ -31,6 +40,9 @@ export function useAuth() {
   }, [navigate, queryClient]);
 
   return {
+    devLogin: devLoginMutation.mutate,
+    devLoginError: devLoginMutation.error,
+    devLoginPending: devLoginMutation.isPending,
     isAuthenticated: isAuthenticated(),
     login: loginMutation.mutate,
     loginError: loginMutation.error,

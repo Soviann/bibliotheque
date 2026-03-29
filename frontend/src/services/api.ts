@@ -199,6 +199,25 @@ export async function fetchSSE<TMessage, TComplete>(
   }
 }
 
+export async function loginWithDev(
+  username: string,
+  password: string,
+): Promise<string> {
+  const response = await fetch(`${API_BASE}${endpoints.login.dev}`, {
+    body: JSON.stringify({ username, password }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error("Échec de la connexion dev");
+  }
+
+  const data = (await response.json()) as { token: string };
+  setToken(data.token);
+  return data.token;
+}
+
 export async function loginWithGoogle(credential: string): Promise<string> {
   const response = await fetch(`${API_BASE}${endpoints.login.google}`, {
     body: JSON.stringify({ credential }),

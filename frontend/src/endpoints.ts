@@ -20,6 +20,7 @@ export const endpoints = {
     excel: "/tools/import/excel",
   },
   login: {
+    dev: "/login/dev",
     google: "/login/google",
   },
   lookup: {
