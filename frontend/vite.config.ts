@@ -74,19 +74,6 @@ export default defineConfig({
   ],
   build: {
     target: "chrome64",
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-query": [
-            "@tanstack/react-query",
-            "@tanstack/react-query-persist-client",
-            "@tanstack/react-virtual",
-          ],
-          "vendor-ui": ["@headlessui/react", "lucide-react"],
-        },
-      },
-    },
   },
   server: {
     host: "0.0.0.0",

@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.25.2] - 2026-03-29
+
+### Fixed
+
+- **Build frontend** : supprime le `manualChunks` qui causait une dépendance circulaire entre les chunks React et TanStack Query
+
 ## [v2.25.1] - 2026-03-29
 
 ### Added
