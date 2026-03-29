@@ -38,6 +38,7 @@ describe("ComicDetail", () => {
   beforeEach(() => {
     localStorage.clear();
     localStorage.setItem("jwt_token", "fake-jwt-token");
+    localStorage.setItem("tome-view-mode", "table");
   });
 
   it("shows skeleton loader initially", () => {

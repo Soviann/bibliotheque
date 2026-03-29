@@ -305,6 +305,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `BarcodeScanner` | html5-qrcode ISBN scanner |
 | `BottomNav` | Mobile nav (Home, Wishlist→`/?status=wishlist`, Add, Trash) |
 | `CardActionBar` | Mobile fixed bottom overlay: Edit/Delete |
+| `CollectionMap` | Visual grid of numbered tome squares (bought/downloaded/read/missing) with series color |
 | `ComicCard` | Card: cover, title, type, tomes, progress, menu |
 | `ContinueReading` | Horizontal slider of series with unread tomes (readCount < max(boughtCount, downloadedCount)) |
 | `ComponentErrorBoundary` | Contextual error boundary (label + retry, onReset, resetKeys) — wraps TomeTable, VirtualGrid, LookupSection |
@@ -402,7 +403,7 @@ Three-tier: Unit + Integration. Vitest 4 + jsdom + RTL + MSW.
 | `unit/types/` | enums (typeOptions, statusOptions) |
 | `unit/utils/` | coverUtils, releaseUtils, searchComics, sortComics, syncLabels |
 | `integration/hooks/` | All 22 hooks |
-| `integration/components/` | All 21 components (incl. ComponentErrorBoundary, ContinueReading, MergeGroupCard, SelectListbox, SeriesMultiSelect) |
+| `integration/components/` | All 22 components (incl. CollectionMap, ComponentErrorBoundary, ContinueReading, MergeGroupCard, SelectListbox, SeriesMultiSelect) |
 | `integration/pages/` | All 11 pages + ComicDetailToggle (incl. Tools) |
 
 ### Frontend Config

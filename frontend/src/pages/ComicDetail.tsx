@@ -1,8 +1,9 @@
-import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, Bell, BellOff, BookOpen, Edit, ExternalLink, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, Bell, BellOff, BookOpen, Edit, ExternalLink, LayoutGrid, Table2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGoBack } from "../hooks/useGoBack";
 import { toast } from "sonner";
+import CollectionMap from "../components/CollectionMap";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import CoverImage from "../components/CoverImage";
 import CoverLightbox from "../components/CoverLightbox";
@@ -127,6 +128,9 @@ export default function ComicDetail() {
   const [dominantColor, extractColor] = useDominantColor(coverSrc);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [optimisticTomes, setOptimisticTomes] = useState<Tome[]>([]);
+  const [tomeView, setTomeView] = useState<"map" | "table">(
+    () => (localStorage.getItem("tome-view-mode") as "map" | "table") ?? "map",
+  );
   const [sort, dispatchSort] = useReducer(
     (state: { direction: SortDirection; key: SortKey }, key: SortKey): { direction: SortDirection; key: SortKey } =>
       state.key === key
@@ -502,9 +506,33 @@ export default function ComicDetail() {
       {!comic.isOneShot && optimisticTomes.length > 0 && (
         <ComponentErrorBoundary label="les tomes">
           <div>
-            <h2 className="mb-3 font-display text-lg font-semibold text-text-primary">
-              Tomes ({optimisticTomes.length})
-            </h2>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-lg font-semibold text-text-primary">
+                Tomes ({optimisticTomes.length})
+              </h2>
+              <div className="flex rounded-lg border border-surface-border p-0.5 dark:border-white/10">
+                <button
+                  aria-label="Vue carte"
+                  className={`rounded-md px-2 py-1 ${tomeView === "map" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/40 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
+                  onClick={() => { setTomeView("map"); localStorage.setItem("tome-view-mode", "map"); }}
+                  type="button"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  aria-label="Vue tableau"
+                  className={`rounded-md px-2 py-1 ${tomeView === "table" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/40 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
+                  onClick={() => { setTomeView("table"); localStorage.setItem("tome-view-mode", "table"); }}
+                  type="button"
+                >
+                  <Table2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            {tomeView === "map" && (
+              <CollectionMap latestPublishedIssue={comic.latestPublishedIssue} tomes={optimisticTomes} />
+            )}
+            {tomeView === "table" && (
             <div className="overflow-x-auto rounded-xl border border-surface-border dark:border-white/10">
               <table className="w-full text-sm">
                 <thead className="bg-surface-elevated dark:bg-surface-elevated/50">
@@ -560,6 +588,7 @@ export default function ComicDetail() {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </ComponentErrorBoundary>
       )}

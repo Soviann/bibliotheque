@@ -35,6 +35,7 @@ describe("ComicDetail — inline tome toggle", () => {
   beforeEach(() => {
     localStorage.clear();
     localStorage.setItem("jwt_token", "fake-jwt-token");
+    localStorage.setItem("tome-view-mode", "table");
     Object.defineProperty(navigator, "onLine", {
       configurable: true,
       value: true,
