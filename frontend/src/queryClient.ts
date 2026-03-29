@@ -2,6 +2,12 @@ import { QueryClient } from "@tanstack/react-query";
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
 
+// Safari < 16.4 fallback
+const scheduleIdle: typeof requestIdleCallback =
+  typeof requestIdleCallback === "function"
+    ? requestIdleCallback
+    : (cb) => setTimeout(cb, 1) as unknown as number;
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -19,10 +25,16 @@ export const queryClient = new QueryClient({
 
 function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery"): Persister {
   return {
-    persistClient: async (client: PersistedClient) => {
+    persistClient: (client: PersistedClient) => {
+      // Schedule off main thread to avoid blocking renders.
       // JSON round-trip strips non-cloneable values (Promises from TanStack Query v5 suspense)
-      // that would cause DataCloneError with IndexedDB's structured clone algorithm
-      await set(idbValidKey, JSON.parse(JSON.stringify(client)) as PersistedClient);
+      // that would cause DataCloneError with IndexedDB's structured clone algorithm.
+      return new Promise<void>((resolve, reject) => {
+        scheduleIdle(() => {
+          const cleaned = JSON.parse(JSON.stringify(client)) as PersistedClient;
+          set(idbValidKey, cleaned).then(resolve, reject);
+        });
+      });
     },
     removeClient: async () => {
       await del(idbValidKey);
