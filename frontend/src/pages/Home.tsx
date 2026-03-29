@@ -180,10 +180,6 @@ export default function Home() {
         </div>
       )}
 
-      <h1 className="font-display text-2xl font-bold text-text-primary">
-        Ma bibliothèque
-      </h1>
-
       {/* Continuer la lecture */}
       {showContinueReading && <ContinueReading comics={allComics} />}
 

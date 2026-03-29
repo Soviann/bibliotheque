@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.24.0] - 2026-03-29
+
 ### Added
 
 - **Liste de courses — mode magasin** : page « À acheter » refaite avec regroupement par type (Manga, BD, Comics, Livre), badges individuels cliquables par tome manquant (one-tap achat), actions rapides (détail, Amazon), feedback optimiste
@@ -21,6 +23,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Removed
 
 - **HeroCarousel sur la page d'accueil** : la section « Récemment ajoutés » est remplacée par « Continuer la lecture »
+- **Titre « Ma bibliothèque »** : supprimé de la page d'accueil
 
 ### Fixed
 

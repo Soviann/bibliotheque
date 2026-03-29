@@ -118,12 +118,6 @@ describe("Home", () => {
     expect(screen.getByText(/XYZNOTFOUND/)).toBeInTheDocument();
   });
 
-  it("shows h1 title 'Ma bibliothèque'", () => {
-    renderWithProviders(<Home />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "Ma bibliothèque" })).toBeInTheDocument();
-  });
-
   it("shows empty filter results state when filters yield nothing", async () => {
     const comics = [
       createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic", type: ComicType.MANGA }),
