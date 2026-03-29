@@ -7,6 +7,22 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.25.1] - 2026-03-29
+
+### Added
+
+- **Connexion dev** : login automatique pour l'automatisation navigateur
+
+### Changed
+
+- **SEO** : blocage de l'indexation par les moteurs de recherche
+- **Sécurité** : environnement par défaut forcé en production
+
+### Fixed
+
+- **Couvertures** : suppression des view-transition-name causant des conflits
+- **Formulaires** : harmonisation de la position des boutons d'action
+
 ## [v2.25.0] - 2026-03-29
 
 ### Added
