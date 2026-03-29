@@ -7,10 +7,10 @@ import CardActionBar from "../components/CardActionBar";
 import ComicCard from "../components/ComicCard";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import ComicCardSkeleton from "../components/ComicCardSkeleton";
+import ContinueReading from "../components/ContinueReading";
 import EmptyState from "../components/EmptyState";
 import FilterChips from "../components/FilterChips";
 import Filters from "../components/Filters";
-import HeroCarousel from "../components/HeroCarousel";
 import SearchInput from "../components/SearchInput";
 import ShelfView from "../components/ShelfView";
 import VirtualGrid from "../components/VirtualGrid";
@@ -34,9 +34,6 @@ const VALID_SORTS: Set<string> = new Set([
   "tomes-asc",
   "tomes-desc",
 ]);
-
-/** Nombre de séries affichées dans la section hero */
-const HERO_COUNT = 10;
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -148,14 +145,6 @@ export default function Home() {
     return sortComics(searchComics(preFiltered, debouncedSearch), sort);
   }, [allComics, debouncedSearch, sort, status, type]);
 
-  // Récemment ajoutés — triés par date de création décroissante
-  const recentlyAdded = useMemo(() => {
-    if (allComics.length === 0) return [];
-    return [...allComics]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, HERO_COUNT);
-  }, [allComics]);
-
   const handleResetFilters = useCallback(() => {
     setSearchParams(
       (prev) => {
@@ -172,8 +161,8 @@ export default function Home() {
   const pullIndicatorHeight = isRefreshing ? 48 : Math.min(pullDistance, 80);
   const pullProgress = Math.min(pullDistance / 80, 1);
 
-  // N'afficher la section hero que sur la vue par défaut (pas de filtre/recherche)
-  const showHero = !isLoading && !debouncedSearch && !type && !status && recentlyAdded.length > 0;
+  // N'afficher la section « Continuer la lecture » que sur la vue par défaut (pas de filtre/recherche)
+  const showContinueReading = !isLoading && !debouncedSearch && !type && !status;
 
   return (
     <div className={`space-y-4 transition-[filter] duration-300 ${isRefreshing ? "blur-[1px]" : ""}`}>
@@ -195,19 +184,8 @@ export default function Home() {
         Ma bibliothèque
       </h1>
 
-      {/* Hero — Récemment ajoutés */}
-      {showHero && <HeroCarousel comics={recentlyAdded} />}
-
-      {/* Séparateur visuel */}
-      {showHero && (
-        <div className="flex items-center gap-3">
-          <hr className="flex-1 border-surface-border dark:border-white/5" />
-          <span className="font-display text-sm font-semibold text-text-secondary">
-            Toute la collection
-          </span>
-          <hr className="flex-1 border-surface-border dark:border-white/5" />
-        </div>
-      )}
+      {/* Continuer la lecture */}
+      {showContinueReading && <ContinueReading comics={allComics} />}
 
       {/* Search bar + filter button (mobile) + count */}
       <div className="flex items-center gap-2">
