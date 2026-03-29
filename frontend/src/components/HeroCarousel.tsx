@@ -14,20 +14,17 @@ export default function HeroCarousel({ comics }: HeroCarouselProps) {
       <h2 className="font-display text-sm font-semibold text-text-secondary">
         Récemment ajoutés
       </h2>
-      <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 scrollbar-none">
-        {comics.map((comic, index) => {
+      <div className="-mx-4 -mt-2 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 pt-2 scrollbar-none">
+        {comics.map((comic) => {
           const src = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
-          const isCenter = index === 0;
           return (
             <Link
-              className={`group flex shrink-0 snap-center flex-col gap-1.5 transition-all duration-300 ${
-                isCenter ? "w-[160px] sm:w-[180px]" : "w-[140px] sm:w-[160px]"
-              }`}
+              className="group flex w-[140px] shrink-0 snap-center flex-col gap-1.5 transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02] sm:w-[160px]"
               key={comic.id}
               to={`/comic/${comic.id}`}
               viewTransition
             >
-              <div className="card-glow overflow-hidden rounded-xl transition-transform duration-200 group-hover:-translate-y-1 group-hover:scale-[1.02]"
+              <div className="card-glow overflow-hidden rounded-xl"
                 style={{ ["--glow-rgb" as string]: "99, 102, 241" }}
               >
                 <CoverImage

@@ -305,7 +305,7 @@ export default function ComicDetail() {
   const actionButtons = (
     <>
       <Link
-        className="flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-primary-700"
+        className="focus-ring-series btn-series-color flex items-center gap-2 rounded-xl px-5 py-2.5 text-base font-medium text-white transition-colors"
         to={`/comic/${comic.id}/edit`}
         viewTransition
       >
@@ -314,7 +314,7 @@ export default function ComicDetail() {
       </Link>
       {comic.status === ComicStatus.BUYING && comic.amazonUrl && (
         <a
-          className="flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-amber-700"
+          className="focus-ring-series flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-amber-700"
           href={comic.amazonUrl}
           rel="noopener noreferrer"
           target="_blank"
@@ -324,7 +324,7 @@ export default function ComicDetail() {
         </a>
       )}
       <button
-        className="flex items-center gap-2 rounded-xl border border-accent-danger px-5 py-2.5 text-base font-medium text-accent-danger transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
+        className="focus-ring-series flex items-center gap-2 rounded-xl border border-accent-danger px-5 py-2.5 text-base font-medium text-accent-danger transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
         onClick={handleDelete}
         type="button"
       >
@@ -335,7 +335,7 @@ export default function ComicDetail() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6" style={{ ["--series-color" as string]: dominantColor }}>
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3">
         <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary" onClick={goBack} type="button">
@@ -472,10 +472,7 @@ export default function ComicDetail() {
 
       {/* Progression */}
       {showProgress && (
-        <div
-          className="grid gap-3 sm:grid-cols-3"
-          style={{ ["--series-color" as string]: dominantColor }}
-        >
+        <div className="grid gap-3 sm:grid-cols-3">
           <ProgressBar color="bg-[rgb(var(--series-color))]" current={boughtCount} label="Achetés" total={progressTotal} />
           <ProgressBar color="bg-[rgb(var(--series-color))]" current={readCount} label="Lus" total={progressTotal} />
           <ProgressBar color="bg-[rgb(var(--series-color))]" current={downloadedCount} label="Téléchargés" total={progressTotal} />

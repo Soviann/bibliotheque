@@ -1504,4 +1504,54 @@ describe("ComicDetail", () => {
       );
     });
   });
+
+  describe("dynamic theming — dominant color", () => {
+    it("applies --series-color on a container wrapping both title and action buttons", async () => {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({ id: 1, title: "Themed Series" }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Themed Series")).toBeInTheDocument();
+      });
+
+      // Both the title and the Modifier button should share a common ancestor with --series-color
+      const title = screen.getByText("Themed Series");
+      const editLink = screen.getByRole("link", { name: /modifier/i });
+      const titleContainer = title.closest("[style*='--series-color']");
+      const editContainer = editLink.closest("[style*='--series-color']");
+      expect(titleContainer).toBeInTheDocument();
+      expect(editContainer).toBeInTheDocument();
+      // They share the same themed ancestor
+      expect(titleContainer).toBe(editContainer);
+    });
+
+    it("tints the Modifier button with the series color", async () => {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({ id: 1, title: "Color Button" }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Color Button")).toBeInTheDocument();
+      });
+
+      const editLink = screen.getByRole("link", { name: /modifier/i });
+      // The button should use the btn-series-color class for dynamic background
+      expect(editLink).toHaveClass("btn-series-color");
+      // And focus-ring-series for focus ring
+      expect(editLink).toHaveClass("focus-ring-series");
+    });
+  });
 });
