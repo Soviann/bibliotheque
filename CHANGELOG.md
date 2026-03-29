@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.25.3] - 2026-03-29
+
+### Fixed
+
+- **Worker Docker** : corrige les chemins dans l'entrypoint et supervisord (`/var/www/html/backend/` → `/var/www/html/`)
+
 ## [v2.25.2] - 2026-03-29
 
 ### Fixed

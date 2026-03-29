@@ -40,7 +40,7 @@ RUN mkdir -p public/uploads public/media var/cache var/log \
 
 COPY docker/php/healthcheck.conf /usr/local/etc/php-fpm.d/zz-healthcheck.conf
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY docker/worker/supervisord.conf /var/www/html/backend/docker/worker/supervisord.conf
+COPY docker/worker/supervisord.conf /var/www/html/docker/worker/supervisord.conf
 COPY docker/worker/docker-entrypoint.sh /usr/local/bin/worker-entrypoint.sh
 
 EXPOSE 9000
