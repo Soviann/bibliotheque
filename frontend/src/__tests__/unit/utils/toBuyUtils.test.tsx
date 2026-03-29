@@ -1,53 +1,37 @@
-import type { ComicSeries } from "../../../types/api";
+import { describe, expect, it } from "vitest";
+import { createMockComicSeries } from "../../helpers/factories";
 import { filterSeriesToBuy, formatTomeRanges, getNextTomesToBuy } from "../../../utils/toBuyUtils";
 
-function makeSeries(overrides: Partial<ComicSeries> = {}): ComicSeries {
-  return {
-    "@id": "/api/comics/1",
-    authors: [],
-    boughtCount: 0,
-    coveredCount: 0,
-    coverImage: null,
-    coverUrl: null,
-    createdAt: "2024-01-01T00:00:00+00:00",
-    defaultTomeBought: true,
-    defaultTomeDownloaded: false,
-    defaultTomeRead: false,
-    description: null,
-    downloadedCount: 0,
-    id: 1,
-    isOneShot: false,
-    latestPublishedIssue: null,
-    latestPublishedIssueComplete: false,
-    latestPublishedIssueUpdatedAt: null,
-    maxTomeNumber: null,
-    publishedDate: null,
-    publisher: null,
-    readCount: 0,
-    status: "buying",
-    title: "Test Series",
-    tomesCount: 0,
-    type: "manga",
-    unboughtTomeNumbers: [],
-    updatedAt: "2024-01-01T00:00:00+00:00",
-    ...overrides,
-  };
-}
-
 describe("getNextTomesToBuy", () => {
-  it("returns empty array when all tomes are bought", () => {
-    const series = makeSeries({ unboughtTomeNumbers: [] });
+  it("returns empty array when no unbought tomes", () => {
+    const series = createMockComicSeries({ unboughtTomes: [] });
     expect(getNextTomesToBuy(series)).toEqual([]);
   });
 
-  it("returns unbought tome numbers sorted", () => {
-    const series = makeSeries({ unboughtTomeNumbers: [3, 2] });
-    expect(getNextTomesToBuy(series)).toEqual([2, 3]);
+  it("returns unbought tomes sorted by number", () => {
+    const series = createMockComicSeries({
+      unboughtTomes: [
+        { id: 30, isHorsSerie: false, number: 3 },
+        { id: 20, isHorsSerie: false, number: 2 },
+      ],
+    });
+    const result = getNextTomesToBuy(series);
+    expect(result).toEqual([
+      { id: 20, isHorsSerie: false, number: 2 },
+      { id: 30, isHorsSerie: false, number: 3 },
+    ]);
   });
 
-  it("returns empty array when series has no tomes", () => {
-    const series = makeSeries({ unboughtTomeNumbers: [] });
-    expect(getNextTomesToBuy(series)).toEqual([]);
+  it("places hors-série after regular tomes", () => {
+    const series = createMockComicSeries({
+      unboughtTomes: [
+        { id: 200, isHorsSerie: true, number: 1 },
+        { id: 100, isHorsSerie: false, number: 1 },
+      ],
+    });
+    const result = getNextTomesToBuy(series);
+    expect(result[0].isHorsSerie).toBe(false);
+    expect(result[1].isHorsSerie).toBe(true);
   });
 });
 
@@ -79,36 +63,31 @@ describe("formatTomeRanges", () => {
 
 describe("filterSeriesToBuy", () => {
   it("includes buying series with unbought tomes", () => {
-    const series = makeSeries({
+    const series = createMockComicSeries({
       status: "buying",
-      unboughtTomeNumbers: [1],
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
     });
     expect(filterSeriesToBuy([series])).toEqual([series]);
   });
 
   it("excludes non-buying series", () => {
-    const series = makeSeries({
+    const series = createMockComicSeries({
       status: "finished",
-      unboughtTomeNumbers: [1],
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
     });
     expect(filterSeriesToBuy([series])).toEqual([]);
   });
 
   it("excludes one-shots", () => {
-    const series = makeSeries({
+    const series = createMockComicSeries({
       isOneShot: true,
-      unboughtTomeNumbers: [1],
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
     });
     expect(filterSeriesToBuy([series])).toEqual([]);
   });
 
   it("excludes series with all tomes bought", () => {
-    const series = makeSeries({ unboughtTomeNumbers: [] });
-    expect(filterSeriesToBuy([series])).toEqual([]);
-  });
-
-  it("excludes series with no tomes", () => {
-    const series = makeSeries({ unboughtTomeNumbers: [] });
+    const series = createMockComicSeries({ unboughtTomes: [] });
     expect(filterSeriesToBuy([series])).toEqual([]);
   });
 });

@@ -77,7 +77,7 @@ export interface ComicSeries {
   tomes?: Tome[];
   tomesCount: number;
   type: ComicType;
-  unboughtTomeNumbers: number[];
+  unboughtTomes: Array<{ id: number; isHorsSerie: boolean; number: number }>;
   updatedAt: string;
 }
 

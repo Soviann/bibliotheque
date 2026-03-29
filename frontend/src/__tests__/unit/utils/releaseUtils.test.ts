@@ -31,7 +31,7 @@ function makeComic(overrides: Partial<ComicSeries> = {}): ComicSeries {
     title: "Test",
     tomesCount: 0,
     type: ComicType.MANGA,
-    unboughtTomeNumbers: [],
+    unboughtTomes: [],
     updatedAt: "2024-01-01T00:00:00+00:00",
     ...overrides,
   };

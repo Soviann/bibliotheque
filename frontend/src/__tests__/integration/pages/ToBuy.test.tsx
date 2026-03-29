@@ -1,51 +1,21 @@
-import { screen } from "@testing-library/react";
-import { queryKeys } from "../../../queryKeys";
-import type { ComicSeries } from "../../../types/api";
-import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import ToBuy from "../../../pages/ToBuy";
+import { queryKeys } from "../../../queryKeys";
+import { createMockComicSeries, createMockHydraCollection } from "../../helpers/factories";
+import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
 
-function makeSeries(id: number, title: string, overrides: Partial<ComicSeries> = {}): ComicSeries {
-  return {
-    "@id": `/api/comics/${id}`,
-    authors: [],
-    boughtCount: 0,
-    coveredCount: 0,
-    coverImage: null,
-    coverUrl: null,
-    createdAt: "2024-01-01T00:00:00+00:00",
-    defaultTomeBought: true,
-    defaultTomeDownloaded: false,
-    defaultTomeRead: false,
-    description: null,
-    downloadedCount: 0,
-    id,
-    isOneShot: false,
-    latestPublishedIssue: null,
-    latestPublishedIssueComplete: false,
-    latestPublishedIssueUpdatedAt: null,
-    maxTomeNumber: null,
-    publishedDate: null,
-    publisher: null,
-    readCount: 0,
-    status: "buying",
-    title,
-    tomesCount: 0,
-    type: "manga",
-    unboughtTomeNumbers: [],
-    updatedAt: "2024-01-01T00:00:00+00:00",
-    ...overrides,
-  };
-}
+const server = setupServer();
+beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 function renderWithComics(comics: ComicSeries[]) {
   const queryClient = createTestQueryClient();
-  queryClient.setQueryData(queryKeys.comics.all, {
-    "@context": "/api/contexts/ComicSeries",
-    "@id": "/api/comics",
-    "@type": "Collection",
-    member: comics,
-    totalItems: comics.length,
-  });
+  queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection(comics));
   return renderWithProviders(<ToBuy />, { initialEntries: ["/to-buy"], queryClient });
 }
 
@@ -55,59 +25,168 @@ describe("ToBuy", () => {
     expect(screen.getByText("Rien à acheter")).toBeInTheDocument();
   });
 
-  it("shows buying series with unbought tomes as ranges", () => {
-    const series = makeSeries(1, "One Piece", {
-      unboughtTomeNumbers: [2, 3, 4, 7, 8, 10],
+  it("groups series by type with section headers", () => {
+    const manga = createMockComicSeries({
+      id: 1,
+      title: "One Piece",
+      type: "manga",
+      unboughtTomes: [{ id: 10, isHorsSerie: false, number: 1 }],
+    });
+    const bd = createMockComicSeries({
+      id: 2,
+      title: "Astérix",
+      type: "bd",
+      unboughtTomes: [{ id: 20, isHorsSerie: false, number: 2 }],
+    });
+    renderWithComics([manga, bd]);
+
+    expect(screen.getByText("Manga")).toBeInTheDocument();
+    expect(screen.getByText("BD")).toBeInTheDocument();
+  });
+
+  it("shows individual tome badges with numbers", () => {
+    const series = createMockComicSeries({
+      id: 1,
+      title: "Naruto",
+      type: "manga",
+      unboughtTomes: [
+        { id: 10, isHorsSerie: false, number: 3 },
+        { id: 20, isHorsSerie: false, number: 5 },
+      ],
     });
     renderWithComics([series]);
-    expect(screen.getAllByText("One Piece")[0]).toBeInTheDocument();
-    expect(screen.getAllByText("Prochain : T.2-4, T.7-8, T.10")[0]).toBeInTheDocument();
+
+    expect(screen.getByRole("button", { name: "Marquer le tome 3 comme acheté" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Marquer le tome 5 comme acheté" })).toBeInTheDocument();
+  });
+
+  it("displays hors-série badges with HS prefix", () => {
+    const series = createMockComicSeries({
+      id: 1,
+      title: "Dragon Ball",
+      type: "manga",
+      unboughtTomes: [
+        { id: 10, isHorsSerie: true, number: 1 },
+      ],
+    });
+    renderWithComics([series]);
+
+    expect(screen.getByRole("button", { name: "Marquer le tome HS 1 comme acheté" })).toBeInTheDocument();
+  });
+
+  it("sorts series alphabetically within each group", () => {
+    const comics = [
+      createMockComicSeries({
+        id: 1,
+        title: "Zetman",
+        type: "manga",
+        unboughtTomes: [{ id: 10, isHorsSerie: false, number: 1 }],
+      }),
+      createMockComicSeries({
+        id: 2,
+        title: "Akira",
+        type: "manga",
+        unboughtTomes: [{ id: 20, isHorsSerie: false, number: 1 }],
+      }),
+    ];
+    renderWithComics(comics);
+
+    const mangaSection = screen.getByTestId("type-section-manga");
+    const titles = within(mangaSection).getAllByTestId("series-title");
+    expect(titles[0]).toHaveTextContent("Akira");
+    expect(titles[1]).toHaveTextContent("Zetman");
+  });
+
+  it("shows eye icon link to detail page", () => {
+    const series = createMockComicSeries({
+      id: 42,
+      title: "Bleach",
+      type: "manga",
+      unboughtTomes: [{ id: 10, isHorsSerie: false, number: 1 }],
+    });
+    renderWithComics([series]);
+
+    const detailLink = screen.getByRole("link", { name: /détail/i });
+    expect(detailLink).toHaveAttribute("href", "/comic/42");
+  });
+
+  it("shows Amazon link when amazonUrl exists", () => {
+    const series = createMockComicSeries({
+      amazonUrl: "https://amazon.fr/bleach",
+      id: 1,
+      title: "Bleach",
+      type: "manga",
+      unboughtTomes: [{ id: 10, isHorsSerie: false, number: 1 }],
+    });
+    renderWithComics([series]);
+
+    const amazonLink = screen.getByRole("link", { name: /amazon/i });
+    expect(amazonLink).toHaveAttribute("href", "https://amazon.fr/bleach");
+  });
+
+  it("hides Amazon link when no amazonUrl", () => {
+    const series = createMockComicSeries({
+      amazonUrl: null,
+      id: 1,
+      title: "Bleach",
+      type: "manga",
+      unboughtTomes: [{ id: 10, isHorsSerie: false, number: 1 }],
+    });
+    renderWithComics([series]);
+
+    expect(screen.queryByRole("link", { name: /amazon/i })).not.toBeInTheDocument();
+  });
+
+  it("calls PATCH endpoint on badge click", async () => {
+    const user = userEvent.setup();
+    let patchCalled = false;
+    const series = createMockComicSeries({
+      id: 1,
+      title: "Solo",
+      type: "manga",
+      unboughtTomes: [
+        { id: 10, isHorsSerie: false, number: 2 },
+        { id: 20, isHorsSerie: false, number: 3 },
+      ],
+    });
+
+    server.use(
+      http.patch("*/api/tomes/10", () => {
+        patchCalled = true;
+        return HttpResponse.json({ id: 10, bought: true });
+      }),
+      http.get("*/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection([{
+          ...series,
+          unboughtTomes: [{ id: 20, isHorsSerie: false, number: 3 }],
+        }]))),
+    );
+
+    renderWithComics([series]);
+
+    const badge = screen.getByRole("button", { name: "Marquer le tome 2 comme acheté" });
+    await user.click(badge);
+
+    await waitFor(() => {
+      expect(patchCalled).toBe(true);
+    });
   });
 
   it("excludes finished series", () => {
-    const series = makeSeries(1, "Naruto", {
+    const series = createMockComicSeries({
       status: "finished",
-      unboughtTomeNumbers: [1],
+      unboughtTomes: [{ id: 10, isHorsSerie: false, number: 1 }],
     });
     renderWithComics([series]);
-    expect(screen.queryByText("Naruto")).not.toBeInTheDocument();
     expect(screen.getByText("Rien à acheter")).toBeInTheDocument();
   });
 
   it("excludes one-shots", () => {
-    const series = makeSeries(1, "Akira", {
+    const series = createMockComicSeries({
       isOneShot: true,
-      unboughtTomeNumbers: [1],
+      unboughtTomes: [{ id: 10, isHorsSerie: false, number: 1 }],
     });
     renderWithComics([series]);
-    expect(screen.queryByText("Akira")).not.toBeInTheDocument();
-  });
-
-  it("excludes series with all tomes bought", () => {
-    const series = makeSeries(1, "Bleach", {
-      unboughtTomeNumbers: [],
-    });
-    renderWithComics([series]);
-    expect(screen.queryByText("Bleach")).not.toBeInTheDocument();
-  });
-
-  it("sorts series by title", () => {
-    const series = [
-      makeSeries(1, "Zetman", { unboughtTomeNumbers: [1] }),
-      makeSeries(2, "Akira Toriyama", { unboughtTomeNumbers: [1] }),
-    ];
-    renderWithComics(series);
-    // Les liens de la grille (après la section hero) sont triés par titre
-    const gridLinks = screen.getByTestId("virtual-grid").querySelectorAll("a");
-    expect(gridLinks[0]).toHaveTextContent("Akira Toriyama");
-    expect(gridLinks[1]).toHaveTextContent("Zetman");
-  });
-
-  it("shows single tome as 'Prochain : T.X'", () => {
-    const series = makeSeries(1, "Solo", {
-      unboughtTomeNumbers: [2],
-    });
-    renderWithComics([series]);
-    expect(screen.getAllByText("Prochain : T.2")[0]).toBeInTheDocument();
+    expect(screen.getByText("Rien à acheter")).toBeInTheDocument();
   });
 });

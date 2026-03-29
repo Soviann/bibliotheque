@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Liste de courses — mode magasin** : page « À acheter » refaite avec regroupement par type (Manga, BD, Comics, Livre), badges individuels cliquables par tome manquant (one-tap achat), actions rapides (détail, Amazon), feedback optimiste
 - **Continuer la lecture** : section horizontale en haut de la page d'accueil affichant les séries avec des tomes non lus, indiquant le prochain tome à lire
 - **Thématisation dynamique** : bouton « Modifier » teinté par la couleur dominante de la couverture, focus rings dynamiques sur les boutons d'action, variable CSS `--series-color` étendue à toute la page détail
 - **Collection Map** : grille visuelle compacte des tomes sur la page détail avec code couleur (acheté/téléchargé/lu/manquant), toggle carte/tableau persisté en localStorage

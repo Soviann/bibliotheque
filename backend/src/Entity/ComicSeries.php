@@ -868,18 +868,34 @@ class ComicSeries implements SoftDeletableInterface
     }
 
     /**
-     * Numéros des tomes non achetés.
+     * Tomes non achetés avec ID, numéro et indicateur hors-série.
      *
-     * @return int[]
+     * Triés par isHorsSerie ASC puis number ASC (réguliers d'abord, puis hors-série).
+     *
+     * @return list<array{id: int, isHorsSerie: bool, number: int}>
      */
     #[ApiProperty]
     #[Groups(['comic:list'])]
-    public function getUnboughtTomeNumbers(): array
+    public function getUnboughtTomes(): array
     {
-        return $this->tomes
+        $unbought = $this->tomes
             ->filter(static fn (Tome $t): bool => !$t->isBought())
-            ->map(static fn (Tome $t): int => $t->getNumber())
+            ->map(static fn (Tome $t): array => [
+                'id' => (int) $t->getId(),
+                'isHorsSerie' => $t->isHorsSerie(),
+                'number' => $t->getNumber(),
+            ])
             ->toArray();
+
+        \usort($unbought, static function (array $a, array $b): int {
+            if ($a['isHorsSerie'] !== $b['isHorsSerie']) {
+                return $a['isHorsSerie'] <=> $b['isHorsSerie'];
+            }
+
+            return $a['number'] <=> $b['number'];
+        });
+
+        return $unbought;
     }
 
     /**

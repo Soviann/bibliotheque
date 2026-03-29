@@ -48,7 +48,7 @@ export function useCreateComic() {
           title: variables.title ?? "",
           tomesCount: 0,
           type: variables.type ?? ComicType.BD,
-          unboughtTomeNumbers: [],
+          unboughtTomes: [],
           updatedAt: new Date().toISOString(),
         };
         return {
