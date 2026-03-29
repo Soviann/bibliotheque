@@ -38,6 +38,7 @@ describe("ComicDetail", () => {
   beforeEach(() => {
     localStorage.clear();
     localStorage.setItem("jwt_token", "fake-jwt-token");
+    localStorage.setItem("tome-view-mode", "table");
   });
 
   it("shows skeleton loader initially", () => {
@@ -1552,6 +1553,64 @@ describe("ComicDetail", () => {
       expect(editLink).toHaveClass("btn-series-color");
       // And focus-ring-series for focus ring
       expect(editLink).toHaveClass("focus-ring-series");
+    });
+  });
+
+  describe("tome view toggle", () => {
+    const tomeSeries = () =>
+      createMockComicSeries({
+        id: 1,
+        isOneShot: false,
+        latestPublishedIssue: 3,
+        title: "Toggle Test",
+        tomes: [
+          createMockTome({ bought: true, id: 10, number: 1 }),
+          createMockTome({ bought: false, id: 11, number: 2 }),
+        ],
+      });
+
+    it("switches from table to map view when clicking toggle", async () => {
+      const user = userEvent.setup();
+      server.use(
+        http.get("/api/comic_series/1", () => HttpResponse.json(tomeSeries())),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Toggle Test")).toBeInTheDocument();
+      });
+
+      // Table view is active (set in beforeEach)
+      expect(screen.getByRole("table")).toBeInTheDocument();
+
+      // Click map toggle
+      await user.click(screen.getByLabelText("Vue carte"));
+
+      // Table should be gone, collection map grid should appear
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      expect(screen.getByRole("img", { name: /carte de collection/i })).toBeInTheDocument();
+
+      // localStorage should be updated
+      expect(localStorage.getItem("tome-view-mode")).toBe("map");
+    });
+
+    it("defaults to map view when no localStorage preference", async () => {
+      localStorage.removeItem("tome-view-mode");
+
+      server.use(
+        http.get("/api/comic_series/1", () => HttpResponse.json(tomeSeries())),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Toggle Test")).toBeInTheDocument();
+      });
+
+      // Map should be visible, not table
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      expect(screen.getByRole("img", { name: /carte de collection/i })).toBeInTheDocument();
     });
   });
 });
