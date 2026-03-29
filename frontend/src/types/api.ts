@@ -273,6 +273,7 @@ export interface EnrichmentProposal {
   reviewedAt: string | null;
   source: string;
   status: ProposalStatus;
+  triggeredBy: string | null;
 }
 
 export interface SeriesSuggestion {

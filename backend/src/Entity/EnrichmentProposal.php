@@ -96,6 +96,10 @@ class EnrichmentProposal
     #[Groups(['enrichment:read'])]
     private ProposalStatus $status;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['enrichment:read'])]
+    private ?string $triggeredBy = null;
+
     public function __construct(
         ComicSeries $comicSeries,
         EnrichmentConfidence $confidence,
@@ -103,6 +107,7 @@ class EnrichmentProposal
         EnrichableField $field,
         mixed $proposedValue,
         string $source,
+        ?string $triggeredBy = null,
     ) {
         $this->comicSeries = $comicSeries;
         $this->confidence = $confidence;
@@ -112,6 +117,7 @@ class EnrichmentProposal
         $this->proposedValue = $proposedValue;
         $this->source = $source;
         $this->status = ProposalStatus::PENDING;
+        $this->triggeredBy = $triggeredBy;
     }
 
     public function getComicSeries(): ComicSeries
@@ -162,6 +168,11 @@ class EnrichmentProposal
     public function getStatus(): ProposalStatus
     {
         return $this->status;
+    }
+
+    public function getTriggeredBy(): ?string
+    {
+        return $this->triggeredBy;
     }
 
     public function accept(): void

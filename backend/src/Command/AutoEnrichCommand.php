@@ -124,6 +124,7 @@ final class AutoEnrichCommand extends Command
                             $result,
                             LookupMode::TITLE,
                             $sources,
+                            'command:auto-enrich',
                         );
 
                         $series->setLookupCompletedAt(new \DateTimeImmutable());

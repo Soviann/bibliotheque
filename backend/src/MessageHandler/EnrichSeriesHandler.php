@@ -67,6 +67,7 @@ final readonly class EnrichSeriesHandler
                 $result,
                 LookupMode::TITLE,
                 $sources,
+                $message->triggeredBy,
             );
 
             $this->logger->info('Enrichissement de "{title}" : confiance {confidence}', [

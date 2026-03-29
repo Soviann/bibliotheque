@@ -83,6 +83,47 @@ final class EnrichmentServiceTest extends TestCase
     }
 
     /**
+     * Teste que triggeredBy est propagé aux propositions créées.
+     */
+    public function testTriggeredByIsPropagatedToProposals(): void
+    {
+        $series = $this->createSeries();
+        $result = new LookupResult(description: 'Nouvelle description', publisher: 'Glénat', source: 'bnf');
+
+        $this->confidenceScorer->method('score')->willReturn(EnrichmentConfidence::MEDIUM);
+        $this->proposalRepository->method('findPendingBySeriesAndField')->willReturn(null);
+
+        $this->enrichmentService->enrich($series, $result, LookupMode::TITLE, ['bnf'], 'command:auto-enrich');
+
+        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        self::assertGreaterThanOrEqual(1, \count($proposals));
+
+        /** @var EnrichmentProposal $proposal */
+        $proposal = \array_values($proposals)[0];
+        self::assertSame('command:auto-enrich', $proposal->getTriggeredBy());
+    }
+
+    /**
+     * Teste que triggeredBy est null par défaut.
+     */
+    public function testTriggeredByIsNullByDefault(): void
+    {
+        $series = $this->createSeries();
+        $result = new LookupResult(description: 'Nouvelle description', source: 'bnf');
+
+        $this->confidenceScorer->method('score')->willReturn(EnrichmentConfidence::MEDIUM);
+        $this->proposalRepository->method('findPendingBySeriesAndField')->willReturn(null);
+
+        $this->enrichmentService->enrich($series, $result, LookupMode::TITLE, ['bnf']);
+
+        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+
+        /** @var EnrichmentProposal $proposal */
+        $proposal = \array_values($proposals)[0];
+        self::assertNull($proposal->getTriggeredBy());
+    }
+
+    /**
      * Teste que MEDIUM crée des propositions PENDING pour les champs modifiables.
      */
     public function testMediumConfidenceCreatesProposals(): void

@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Enrichissement — traçabilité** : affichage de l'horodatage et du déclencheur (`via création`, `via mise à jour`, `via auto-enrich`) sur les propositions d'enrichissement
+
 ## [v2.24.0] - 2026-03-29
 
 ### Added

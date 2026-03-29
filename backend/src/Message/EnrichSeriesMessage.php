@@ -11,6 +11,7 @@ final readonly class EnrichSeriesMessage
 {
     public function __construct(
         public int $seriesId,
+        public ?string $triggeredBy = null,
     ) {
     }
 }

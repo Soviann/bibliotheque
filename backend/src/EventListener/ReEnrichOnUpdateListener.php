@@ -45,6 +45,6 @@ final readonly class ReEnrichOnUpdateListener
             return;
         }
 
-        $this->messageBus->dispatch(new EnrichSeriesMessage($id));
+        $this->messageBus->dispatch(new EnrichSeriesMessage($id, 'event:update'));
     }
 }
