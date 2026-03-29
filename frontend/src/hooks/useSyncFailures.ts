@@ -14,7 +14,10 @@ export function useSyncFailures() {
   const { data: failures = [] } = useQuery<SyncFailure[]>({
     queryFn: getSyncFailures,
     queryKey: queryKeys.offline.syncFailures,
-    refetchInterval: 3000,
+    refetchInterval: (query) => {
+      const count = query.state.data?.length ?? 0;
+      return count > 0 ? 3000 : false;
+    },
   });
 
   // Écouter les messages du SW pour rafraîchir immédiatement
