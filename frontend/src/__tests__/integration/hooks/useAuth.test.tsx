@@ -167,7 +167,8 @@ describe("useAuth", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/login", { viewTransition: true });
   });
 
-  it("logout clears SW api-cache", () => {
+  it("logout clears SW api-cache after navigation", async () => {
+    vi.useFakeTimers();
     localStorage.setItem("jwt_token", "some-token");
 
     const { result } = renderHook(() => useAuth(), {
@@ -178,6 +179,12 @@ describe("useAuth", () => {
       result.current.logout();
     });
 
+    // Cache clearing is deferred via setTimeout(0) to avoid blocking navigation
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
     expect(caches.delete).toHaveBeenCalledWith("api-cache");
+    vi.useRealTimers();
   });
 });

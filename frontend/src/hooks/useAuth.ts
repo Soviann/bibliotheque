@@ -20,11 +20,14 @@ export function useAuth() {
   });
 
   const logout = useCallback(() => {
-    queryClient.clear();
-    del("bibliotheque-query-cache");
-    void caches.delete("api-cache");
     removeToken();
     navigate("/login", { viewTransition: true });
+    // Defer cache clearing — the user already sees the login page
+    setTimeout(() => {
+      queryClient.clear();
+      void del("bibliotheque-query-cache");
+      void caches.delete("api-cache");
+    }, 0);
   }, [navigate, queryClient]);
 
   return {

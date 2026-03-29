@@ -26,6 +26,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **Freezes de l'interface** : persistance IndexedDB du cache déplacée hors du thread principal via `requestIdleCallback`, detail queries retirées de la déhydratation (doublon avec la collection), seeding par lot au lieu de N appels individuels
 - **Polling inutile** : `useSyncFailures` ne poll plus quand il n'y a aucun échec de synchronisation ; `getPendingCount` utilise les index IndexedDB au lieu de charger tous les enregistrements
+- **Freeze au logout** : `queryClient.clear()` différé via `setTimeout(0)` pour ne pas bloquer la navigation ou l'affichage du spinner
 
 ## [v2.23.0] - 2026-03-26
 

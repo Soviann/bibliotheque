@@ -65,6 +65,8 @@ export default function Tools() {
   const handleClearCache = async () => {
     setClearing(true);
     try {
+      // Yield to browser to paint spinner before synchronous clear
+      await new Promise((r) => setTimeout(r, 0));
       queryClient.clear();
       await del("bibliotheque-query-cache");
       await queryClient.refetchQueries();
