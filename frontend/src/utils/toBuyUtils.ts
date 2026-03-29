@@ -1,7 +1,12 @@
 import type { ComicSeries } from "../types/api";
 
-export function getNextTomesToBuy(series: ComicSeries): number[] {
-  return [...series.unboughtTomeNumbers].sort((a, b) => a - b);
+type UnboughtTome = ComicSeries["unboughtTomes"][number];
+
+export function getNextTomesToBuy(series: ComicSeries): UnboughtTome[] {
+  return [...series.unboughtTomes].sort((a, b) => {
+    if (a.isHorsSerie !== b.isHorsSerie) return a.isHorsSerie ? 1 : -1;
+    return a.number - b.number;
+  });
 }
 
 /**
@@ -31,6 +36,6 @@ export function formatTomeRanges(numbers: number[]): string {
 
 export function filterSeriesToBuy(series: ComicSeries[]): ComicSeries[] {
   return series.filter(
-    (s) => s.status === "buying" && !s.isOneShot && s.unboughtTomeNumbers.length > 0,
+    (s) => s.status === "buying" && !s.isOneShot && s.unboughtTomes.length > 0,
   );
 }

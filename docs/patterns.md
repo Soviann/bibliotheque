@@ -342,6 +342,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | Hook | Purpose |
 |------|---------|
 | `useAuth` | Google login mutation, logout |
+| `useBuyTome` | PATCH tome as bought with optimistic update on comics list (ToBuy page) |
 | `useAuthors` | GET `/api/authors?name=...` (autocomplete) |
 | `useBatchLookup` | Preview query + SSE streaming (start/cancel/progress/summary) |
 | `useComic` / `useComics` | GET single / GET collection with filters |

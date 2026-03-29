@@ -67,7 +67,7 @@ export function createMockComicSeries(
     title: `Series ${id}`,
     tomesCount: 0,
     type: ComicType.BD,
-    unboughtTomeNumbers: [],
+    unboughtTomes: [],
     updatedAt: "2025-01-01T00:00:00+00:00",
     ...overrides,
   };

@@ -33,7 +33,7 @@ const mockComic = (id: number, title: string, status: string): ComicSeries => ({
   title,
   tomesCount: 3,
   type: "manga",
-  unboughtTomeNumbers: [],
+  unboughtTomes: [],
   updatedAt: "2026-01-01T00:00:00+00:00",
 });
 

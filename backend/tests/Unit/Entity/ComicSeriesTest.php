@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Entity;
 
 use App\Entity\ComicSeries;
+use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Tests\Factory\EntityFactory;
@@ -846,5 +847,65 @@ final class ComicSeriesTest extends TestCase
 
         self::assertInstanceOf(\DateTimeImmutable::class, $comic->getUpdatedAt());
         self::assertGreaterThan($originalUpdatedAt, $comic->getUpdatedAt());
+    }
+
+    // ---------------------------------------------------------------
+    // getUnboughtTomes()
+    // ---------------------------------------------------------------
+
+    public function testGetUnboughtTomesReturnsIdNumberAndHorsSerie(): void
+    {
+        $comic = EntityFactory::createComicSeries();
+
+        $tome1 = EntityFactory::createTome(number: 1, bought: false);
+        $tome2 = EntityFactory::createTome(number: 2, bought: true);
+        $tome3 = EntityFactory::createTome(number: 3, bought: false);
+
+        $ref = new \ReflectionProperty(Tome::class, 'id');
+        $ref->setValue($tome1, 10);
+        $ref->setValue($tome2, 20);
+        $ref->setValue($tome3, 30);
+
+        $comic->addTome($tome1);
+        $comic->addTome($tome2);
+        $comic->addTome($tome3);
+
+        $result = $comic->getUnboughtTomes();
+
+        self::assertCount(2, $result);
+        self::assertSame(['id' => 10, 'isHorsSerie' => false, 'number' => 1], $result[0]);
+        self::assertSame(['id' => 30, 'isHorsSerie' => false, 'number' => 3], $result[1]);
+    }
+
+    public function testGetUnboughtTomesIncludesHorsSerieAfterRegular(): void
+    {
+        $comic = EntityFactory::createComicSeries();
+
+        $tomeReg = EntityFactory::createTome(number: 1, bought: false);
+        $tomeHs = EntityFactory::createTome(number: 1, bought: false);
+        $tomeHs->setIsHorsSerie(true);
+
+        $ref = new \ReflectionProperty(Tome::class, 'id');
+        $ref->setValue($tomeReg, 100);
+        $ref->setValue($tomeHs, 200);
+
+        $comic->addTome($tomeHs);
+        $comic->addTome($tomeReg);
+
+        $result = $comic->getUnboughtTomes();
+
+        self::assertCount(2, $result);
+        // Regular first, then hors-série
+        self::assertSame(['id' => 100, 'isHorsSerie' => false, 'number' => 1], $result[0]);
+        self::assertSame(['id' => 200, 'isHorsSerie' => true, 'number' => 1], $result[1]);
+    }
+
+    public function testGetUnboughtTomesReturnsEmptyWhenAllBought(): void
+    {
+        $comic = EntityFactory::createComicSeries();
+        $tome = EntityFactory::createTome(number: 1, bought: true);
+        $comic->addTome($tome);
+
+        self::assertSame([], $comic->getUnboughtTomes());
     }
 }
