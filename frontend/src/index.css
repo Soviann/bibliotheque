@@ -311,11 +311,11 @@ input[type="checkbox"]:checked {
 }
 
 /* ── Dynamic series color — button & focus ring ── */
-.btn-series-color {
+@utility btn-series-color {
   background-color: rgb(var(--series-color, 99, 102, 241));
-}
-.btn-series-color:hover {
-  filter: brightness(0.85);
+  &:hover {
+    filter: brightness(0.85);
+  }
 }
 
 @utility focus-ring-series {

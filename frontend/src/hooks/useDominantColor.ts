@@ -3,6 +3,22 @@ import { useCallback, useState } from "react";
 const colorCache = new Map<string, string>();
 const DEFAULT_GLOW = "99, 102, 241"; // indigo fallback
 
+// Luminosité relative (rec. 709) — clampe pour garantir le contraste en light/dark
+const MIN_LUMINANCE = 0.15; // plancher : pas trop sombre (dark mode)
+const MAX_LUMINANCE = 0.65; // plafond : pas trop clair (texte blanc lisible)
+
+function clampLuminance(r: number, g: number, b: number): [number, number, number] {
+  const luminance = 0.2126 * (r / 255) + 0.7152 * (g / 255) + 0.0722 * (b / 255);
+  if (luminance >= MIN_LUMINANCE && luminance <= MAX_LUMINANCE) return [r, g, b];
+  const target = luminance < MIN_LUMINANCE ? MIN_LUMINANCE : MAX_LUMINANCE;
+  const scale = target / Math.max(luminance, 0.001);
+  return [
+    Math.min(255, Math.round(r * scale)),
+    Math.min(255, Math.round(g * scale)),
+    Math.min(255, Math.round(b * scale)),
+  ];
+}
+
 /**
  * Extrait la couleur dominante d'une image via canvas.
  * Retourne [couleur RGB, callback onLoad à brancher sur l'img existante].
@@ -45,7 +61,8 @@ export function useDominantColor(src: string | null | undefined): [string, (img:
       }
 
       if (count > 0) {
-        const result = `${Math.round(r / count)}, ${Math.round(g / count)}, ${Math.round(b / count)}`;
+        const [cr, cg, cb] = clampLuminance(Math.round(r / count), Math.round(g / count), Math.round(b / count));
+        const result = `${cr}, ${cg}, ${cb}`;
         colorCache.set(src, result);
         setColor(result);
       }

@@ -1549,9 +1549,9 @@ describe("ComicDetail", () => {
 
       const editLink = screen.getByRole("link", { name: /modifier/i });
       // The button should use the btn-series-color class for dynamic background
-      expect(editLink.className).toContain("btn-series-color");
+      expect(editLink).toHaveClass("btn-series-color");
       // And focus-ring-series for focus ring
-      expect(editLink.className).toContain("focus-ring-series");
+      expect(editLink).toHaveClass("focus-ring-series");
     });
   });
 });

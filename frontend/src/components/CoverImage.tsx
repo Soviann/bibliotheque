@@ -38,6 +38,9 @@ export default function CoverImage({
           data-testid="cover-skeleton"
         />
       )}
+      {/* crossOrigin="anonymous" : toutes les couvertures sont servies localement
+           (téléchargées via app:download-covers). Nécessaire pour l'extraction canvas
+           de la couleur dominante (useDominantColor). */}
       <img
         alt={alt}
         className={`h-full w-full ${objectFit === "contain" ? "object-contain" : "object-cover"} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
