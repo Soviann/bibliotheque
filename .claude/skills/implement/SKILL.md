@@ -14,6 +14,6 @@
 10. Provide the user a quick summary of what's been done and ask for approval before resuming.
 11. Commit and push.
 12. Request code review using `superpowers:requesting-code-review`. Fix review comments using `superpowers:receiving-code-review`. Repeat until review is clean. If review modified code, run linters and tests until everything is clean.
-13. Create a PR via `gh pr create` (only after review is clean). **Immediately after creating the PR, enable auto-merge**: `gh pr merge <number> --squash --auto`.
-14. Check PR status, if it's complete but not merged, merge it. Only proceed to next point when PR is merged.
+13. Create a PR via `gh pr create` (only after review is clean).
+14. Wait for CI to pass (`gh pr checks <number> --watch`), then merge: `gh pr merge <number> --squash`. Only proceed to next point when PR is merged.
 15. Clean up: switch back to `main`, pull, and delete the local feature branch (`git branch -d`).
