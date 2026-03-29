@@ -63,6 +63,29 @@ describe("useSyncFailures", () => {
     });
   });
 
+  it("stops polling when no failures exist", async () => {
+    const queryClient = createTestQueryClient();
+
+    const { result } = renderHook(() => useSyncFailures(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    // Wait for the query to have fetched at least once
+    await waitFor(() => {
+      const queries = queryClient.getQueryCache().findAll({ queryKey: ["syncFailures"] });
+      expect(queries[0]?.state.dataUpdateCount).toBeGreaterThanOrEqual(1);
+    });
+
+    const query = queryClient.getQueryCache().findAll({ queryKey: ["syncFailures"] })[0];
+    const fetchCount = query.state.dataUpdateCount;
+
+    // Wait longer than the 3s polling interval — no additional fetches should happen
+    await new Promise((r) => setTimeout(r, 4000));
+
+    expect(query.state.dataUpdateCount).toBe(fetchCount);
+    expect(result.current.failures).toEqual([]);
+  }, 10000);
+
   it("removes a failure", async () => {
     const id = await addSyncFailure({
       error: "Error",

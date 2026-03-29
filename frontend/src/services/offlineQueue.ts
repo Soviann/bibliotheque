@@ -143,8 +143,9 @@ export async function clearQueue(): Promise<void> {
 
 export async function getPendingCount(): Promise<number> {
   const db = await getDb();
-  const all = await db.getAll("offlineQueue");
-  return all.filter((item) => item.status === "pending" || item.status === "failed").length;
+  const pending = await db.countFromIndex("offlineQueue", "by-status", "pending");
+  const failed = await db.countFromIndex("offlineQueue", "by-status", "failed");
+  return pending + failed;
 }
 
 export async function addSyncFailure(
