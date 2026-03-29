@@ -44,7 +44,7 @@ export default function ShelfRow({ comics, onSeeAll, title }: ShelfRowProps) {
                   fallbackSrc={ComicTypePlaceholder[comic.type]}
                   height={133}
                   src={src ?? ComicTypePlaceholder[comic.type]}
-                  viewTransitionName={`comic-cover-${comic.id}`}
+
                   width={100}
                 />
               </div>

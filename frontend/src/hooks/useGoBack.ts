@@ -14,7 +14,7 @@ export function useGoBack(fallback = "/"): () => void {
     if (idx > 0) {
       navigate(-1);
     } else {
-      navigate(fallback, { viewTransition: true });
+      navigate(fallback);
     }
   }, [fallback, navigate]);
 }

@@ -43,7 +43,7 @@ export default function ContinueReading({ comics }: ContinueReadingProps) {
                   fallbackSrc={ComicTypePlaceholder[comic.type]}
                   height={240}
                   src={src ?? ComicTypePlaceholder[comic.type]}
-                  viewTransitionName={`comic-cover-${comic.id}`}
+
                   width={180}
                 />
               </div>

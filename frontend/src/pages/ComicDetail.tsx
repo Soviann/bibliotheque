@@ -393,7 +393,7 @@ export default function ComicDetail() {
             onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
             onImageLoad={extractColor}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
-            viewTransitionName={`comic-cover-${id}`}
+
           />
         </div>
 

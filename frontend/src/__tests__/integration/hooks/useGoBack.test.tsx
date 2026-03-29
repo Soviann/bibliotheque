@@ -49,7 +49,7 @@ describe("useGoBack", () => {
       result.current();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/", { viewTransition: true });
+    expect(mockNavigate).toHaveBeenCalledWith("/");
   });
 
   it("navigates to fallback when history.state is null", () => {
@@ -65,7 +65,7 @@ describe("useGoBack", () => {
       result.current();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/", { viewTransition: true });
+    expect(mockNavigate).toHaveBeenCalledWith("/");
   });
 
   it("navigates to custom fallback path when provided", () => {
@@ -81,6 +81,6 @@ describe("useGoBack", () => {
       result.current();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/trash", { viewTransition: true });
+    expect(mockNavigate).toHaveBeenCalledWith("/trash");
   });
 });
