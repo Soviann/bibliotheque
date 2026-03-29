@@ -113,4 +113,33 @@ describe("useComics", () => {
     const cachedComic = queryClient.getQueryData(queryKeys.comics.detail(42));
     expect(cachedComic).toEqual(series);
   });
+
+  it("seeds detail cache for multiple series without using queryClient.setQueryData", async () => {
+    const series1 = createMockComicSeries({ id: 1, title: "Naruto" });
+    const series2 = createMockComicSeries({ id: 2, title: "One Piece" });
+    const series3 = createMockComicSeries({ id: 3, title: "Bleach" });
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection([series1, series2, series3])),
+      ),
+    );
+
+    const queryClient = createTestQueryClient();
+
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    const { result } = renderHook(() => useComics(), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // All 3 series should be seeded in detail cache
+    expect(queryClient.getQueryData(queryKeys.comics.detail(1))).toEqual(series1);
+    expect(queryClient.getQueryData(queryKeys.comics.detail(2))).toEqual(series2);
+    expect(queryClient.getQueryData(queryKeys.comics.detail(3))).toEqual(series3);
+  });
 });

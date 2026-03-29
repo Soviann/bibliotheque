@@ -4,6 +4,20 @@ import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
 import type { ComicSeries, HydraCollection } from "../types/api";
 
+/**
+ * Seed le cache détail de chaque série sans déclencher N notifications individuelles.
+ * Écrit directement dans le QueryCache pour éviter les cascades de persist.
+ */
+function seedDetailCache(queryClient: ReturnType<typeof useQueryClient>, members: ComicSeries[]): void {
+  const cache = queryClient.getQueryCache();
+  for (const series of members) {
+    const query = cache.build(queryClient, {
+      queryKey: queryKeys.comics.detail(series.id),
+    });
+    query.setData(series);
+  }
+}
+
 export function useComics() {
   const queryClient = useQueryClient();
 
@@ -11,10 +25,7 @@ export function useComics() {
     queryFn: async () => {
       const data =
         await apiFetch<HydraCollection<ComicSeries>>(endpoints.comicSeries.collection);
-      // Seeder le cache individuel pour la navigation hors ligne
-      data.member.forEach((series) => {
-        queryClient.setQueryData(queryKeys.comics.detail(series.id), series);
-      });
+      seedDetailCache(queryClient, data.member);
       return data;
     },
     queryKey: queryKeys.comics.all,

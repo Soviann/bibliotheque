@@ -136,8 +136,7 @@ export default function App() {
           persistOptions={{
             dehydrateOptions: {
               shouldDehydrateQuery: (query) => {
-                const key = query.queryKey[0];
-                return key === queryKeys.comics.all[0] || key === queryKeys.comics.detailPrefix[0];
+                return query.queryKey[0] === queryKeys.comics.all[0];
               },
             },
             maxAge: 60 * 60 * 1000,
