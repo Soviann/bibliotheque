@@ -306,6 +306,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `BottomNav` | Mobile nav (Home, Wishlist→`/?status=wishlist`, Add, Trash) |
 | `CardActionBar` | Mobile fixed bottom overlay: Edit/Delete |
 | `ComicCard` | Card: cover, title, type, tomes, progress, menu |
+| `ContinueReading` | Horizontal slider of series with unread tomes (readCount < max(boughtCount, downloadedCount)) |
 | `ComponentErrorBoundary` | Contextual error boundary (label + retry, onReset, resetKeys) — wraps TomeTable, VirtualGrid, LookupSection |
 | `ConfirmModal` | Headless UI destructive confirmation |
 | `CoverLightbox` | Fullscreen cover image overlay (Headless UI Dialog) |
@@ -401,7 +402,7 @@ Three-tier: Unit + Integration. Vitest 4 + jsdom + RTL + MSW.
 | `unit/types/` | enums (typeOptions, statusOptions) |
 | `unit/utils/` | coverUtils, releaseUtils, searchComics, sortComics, syncLabels |
 | `integration/hooks/` | All 22 hooks |
-| `integration/components/` | All 20 components (incl. ComponentErrorBoundary, MergeGroupCard, SelectListbox, SeriesMultiSelect) |
+| `integration/components/` | All 21 components (incl. ComponentErrorBoundary, ContinueReading, MergeGroupCard, SelectListbox, SeriesMultiSelect) |
 | `integration/pages/` | All 11 pages + ComicDetailToggle (incl. Tools) |
 
 ### Frontend Config

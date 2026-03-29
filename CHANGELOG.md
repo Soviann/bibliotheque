@@ -9,11 +9,16 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Continuer la lecture** : section horizontale en haut de la page d'accueil affichant les séries avec des tomes non lus, indiquant le prochain tome à lire
 - **Thématisation dynamique** : bouton « Modifier » teinté par la couleur dominante de la couverture, focus rings dynamiques sur les boutons d'action, variable CSS `--series-color` étendue à toute la page détail
 
 ### Changed
 
 - **Identité visuelle premium** : typographie Google Sans sur tous les titres (remplace Playfair Display), texture grain de bruit sur les barres de navigation, ombres multicouches sur les cartes et modales
+
+### Removed
+
+- **HeroCarousel sur la page d'accueil** : la section « Récemment ajoutés » est remplacée par « Continuer la lecture »
 
 ## [v2.23.0] - 2026-03-26
 
