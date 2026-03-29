@@ -75,6 +75,7 @@ class EnrichmentService
         LookupResult $result,
         LookupMode $mode,
         array $sources,
+        ?string $triggeredBy = null,
     ): EnrichmentConfidence {
         $confidence = $this->confidenceScorer->score(
             $series->getTitle(),
@@ -85,9 +86,9 @@ class EnrichmentService
         );
 
         match ($confidence) {
-            EnrichmentConfidence::HIGH => $this->autoApply($series, $result, $confidence, $sources),
-            EnrichmentConfidence::MEDIUM => $this->createProposals($series, $result, $confidence, $sources),
-            EnrichmentConfidence::LOW => $this->logSkip($series, $result, $confidence, $sources),
+            EnrichmentConfidence::HIGH => $this->autoApply($series, $result, $confidence, $sources, $triggeredBy),
+            EnrichmentConfidence::MEDIUM => $this->createProposals($series, $result, $confidence, $sources, $triggeredBy),
+            EnrichmentConfidence::LOW => $this->logSkip($series, $result, $confidence, $sources, $triggeredBy),
         };
 
         return $confidence;
@@ -156,6 +157,7 @@ class EnrichmentService
         LookupResult $result,
         EnrichmentConfidence $confidence,
         array $sources,
+        ?string $triggeredBy,
     ): void {
         $source = \implode(', ', $sources);
 
@@ -184,6 +186,7 @@ class EnrichmentService
                 field: $enrichableField,
                 proposedValue: $newValue,
                 source: $source,
+                triggeredBy: $triggeredBy,
             );
             $proposal->preAccept();
             $this->entityManager->persist($proposal);
@@ -203,6 +206,7 @@ class EnrichmentService
         LookupResult $result,
         EnrichmentConfidence $confidence,
         array $sources,
+        ?string $triggeredBy,
     ): void {
         $source = \implode(', ', $sources);
 
@@ -232,6 +236,7 @@ class EnrichmentService
                 field: $enrichableField,
                 proposedValue: $proposedValue,
                 source: $source,
+                triggeredBy: $triggeredBy,
             );
             $this->entityManager->persist($proposal);
         }
@@ -245,6 +250,7 @@ class EnrichmentService
         LookupResult $result,
         EnrichmentConfidence $confidence,
         array $sources,
+        ?string $triggeredBy,
     ): void {
         $source = \implode(', ', $sources);
 
@@ -264,6 +270,7 @@ class EnrichmentService
                 field: $enrichableField,
                 proposedValue: $proposedValue,
                 source: $source,
+                triggeredBy: $triggeredBy,
             );
             $proposal->skip();
             $this->entityManager->persist($proposal);

@@ -38,7 +38,7 @@ final class EnrichOnCreateListener
             return;
         }
 
-        $this->messageBus->dispatch(new EnrichSeriesMessage($id));
+        $this->messageBus->dispatch(new EnrichSeriesMessage($id, 'event:create'));
     }
 
     public static function disable(): void

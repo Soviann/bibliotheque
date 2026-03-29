@@ -11,7 +11,7 @@ Reference for implementing features without exploring the codebase.
 | `Author` | name:string(unique), followedForNewSeries:bool(default false) | `comicSeries:M2M(mappedBy)` | GetCollection(search by name), Get, Patch, Post |
 | `SeriesSuggestion` | title, type:`ComicType`, authors:JSON, reason:string, status:`SuggestionStatus`(default PENDING) | `sourceSeries:M2O→ComicSeries(SET NULL)` | GetCollection(filter status), Patch(status) |
 | `User` | email:string(unique), googleId?, roles, tokenVersion:int(default=1) | — | — |
-| `EnrichmentProposal` | field:`EnrichableField`, confidence:`EnrichmentConfidence`, currentValue:JSON?, proposedValue:JSON, source:string, status:`ProposalStatus`(default PENDING), reviewedAt? | `comicSeries:M2O→ComicSeries(CASCADE)` | GetCollection(filter status/comicSeries), Get, Patch(/accept), Patch(/reject) |
+| `EnrichmentProposal` | field:`EnrichableField`, confidence:`EnrichmentConfidence`, currentValue:JSON?, proposedValue:JSON, source:string, triggeredBy?:string(100), status:`ProposalStatus`(default PENDING), reviewedAt? | `comicSeries:M2O→ComicSeries(CASCADE)` | GetCollection(filter status/comicSeries), Get, Patch(/accept), Patch(/reject) |
 | `Notification` | title, message, type:`NotificationType`, read:bool, relatedEntityType?:`NotificationEntityType`, relatedEntityId?:int, metadata?:JSON | `user:M2O→User(CASCADE)` | GetCollection(filter read/type, paginated), Get, Patch(read), Delete |
 | `NotificationPreference` | type:`NotificationType`, channel:`NotificationChannel`(default IN_APP) | `user:M2O→User(CASCADE)` | GetCollection(provider: initializer), Patch |
 | `PushSubscription` | endpoint:string(unique), publicKey, authToken, expirationTime? | `user:M2O→User(CASCADE)` | GetCollection, Post, Delete |

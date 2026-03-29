@@ -11,6 +11,12 @@ import {
 } from "../types/enums";
 import { formatEnrichmentValue } from "../utils/enrichmentUtils";
 
+const TriggeredByLabel: Record<string, string> = {
+  "command:auto-enrich": "auto-enrich",
+  "event:create": "création",
+  "event:update": "mise à jour",
+};
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -45,6 +51,11 @@ export default function ProposalCard({
             {EnrichmentConfidenceLabel[proposal.confidence as EnrichmentConfidence]}
           </span>
           <span className="text-xs text-text-tertiary">{proposal.source}</span>
+          {proposal.triggeredBy && (
+            <span className="text-xs text-text-tertiary">
+              via {TriggeredByLabel[proposal.triggeredBy] ?? proposal.triggeredBy}
+            </span>
+          )}
           <span className="text-xs text-text-tertiary">{formatDate(proposal.createdAt)}</span>
           {readonly && (
             <>
