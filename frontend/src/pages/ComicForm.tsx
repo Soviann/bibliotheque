@@ -370,13 +370,6 @@ export default function ComicForm() {
       {/* Sticky save/cancel bar */}
       <div className="sticky bottom-[var(--bottom-nav-h)] z-40 flex justify-center gap-3 border-t border-surface-border bg-surface-primary px-4 py-3">
         <button
-          className="rounded-lg px-5 py-2.5 text-base font-medium text-text-secondary hover:bg-surface-tertiary"
-          onClick={() => goBack()}
-          type="button"
-        >
-          Annuler
-        </button>
-        <button
           className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-base font-medium text-white hover:bg-primary-700 disabled:opacity-50"
           disabled={isSaving || !form.title}
           onClick={handleSubmit}
@@ -384,6 +377,13 @@ export default function ComicForm() {
         >
           {isSaving && <Loader2 className="h-5 w-5 animate-spin" />}
           {isEdit ? "Enregistrer" : "Créer"}
+        </button>
+        <button
+          className="rounded-lg px-5 py-2.5 text-base font-medium text-text-secondary hover:bg-surface-tertiary"
+          onClick={() => goBack()}
+          type="button"
+        >
+          Annuler
         </button>
       </div>
     </div>
