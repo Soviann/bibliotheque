@@ -310,6 +310,21 @@ input[type="checkbox"]:checked {
   }
 }
 
+/* ── Dynamic series color — button & focus ring ── */
+.btn-series-color {
+  background-color: rgb(var(--series-color, 99, 102, 241));
+}
+.btn-series-color:hover {
+  filter: brightness(0.85);
+}
+
+@utility focus-ring-series {
+  &:focus-visible {
+    outline: 2px solid rgb(var(--series-color, 99, 102, 241));
+    outline-offset: 2px;
+  }
+}
+
 /* ── Hide native search cancel button ── */
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {

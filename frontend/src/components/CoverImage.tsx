@@ -41,6 +41,7 @@ export default function CoverImage({
       <img
         alt={alt}
         className={`h-full w-full ${objectFit === "contain" ? "object-contain" : "object-cover"} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+        crossOrigin="anonymous"
         height={height}
         loading={loading}
         onClick={onClick}

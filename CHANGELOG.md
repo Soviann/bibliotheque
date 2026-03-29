@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Thématisation dynamique** : bouton « Modifier » teinté par la couleur dominante de la couverture, focus rings dynamiques sur les boutons d'action, variable CSS `--series-color` étendue à toute la page détail
+
 ### Changed
 
 - **Identité visuelle premium** : typographie Google Sans sur tous les titres (remplace Playfair Display), texture grain de bruit sur les barres de navigation, ombres multicouches sur les cartes et modales
