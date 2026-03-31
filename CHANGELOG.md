@@ -7,12 +7,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.0] - 2026-03-31
+
 ### Changed
 
-- **Import** : commande unique `app:import` remplaçant `app:import-excel` et `app:import-books`, fichier Excel 14 colonnes (tracking + métadonnées)
+- **Import** : commande unique `app:import` remplaçant `app:import-excel` et `app:import-books`, fichier Excel 15 colonnes (onglet unique avec colonne Type, tracking + métadonnées, ISBN multi-tomes)
 - **Import** : suppression de l'API web d'import (`/api/tools/import/*`), import uniquement via CLI
 - **Tome** : suppression du champ `downloaded` au profit de `onNas` (renommage `defaultTomeDownloaded` → `defaultTomeOnNas`)
-- **Scripts Python** : fichier de sortie unique `import.xlsx` au lieu de `merged-import.xlsx` + `clean-livres.xlsx`
+- **Scripts Python** : fichier de sortie unique `import.xlsx` (onglet unique) au lieu de `merged-import.xlsx` + `clean-livres.xlsx`
 
 ### Added
 
