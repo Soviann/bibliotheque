@@ -26,7 +26,7 @@ const mockPreview: MergePreview = {
   authors: ["Kishimoto"],
   coverUrl: null,
   defaultTomeBought: false,
-  defaultTomeDownloaded: false,
+  defaultTomeOnNas: false,
   defaultTomeRead: false,
   description: null,
   isOneShot: false,
@@ -40,8 +40,8 @@ const mockPreview: MergePreview = {
   status: "buying",
   title: "Naruto",
   tomes: [
-    { bought: false, downloaded: false, isbn: null, number: 1, onNas: false, read: false, title: null, tomeEnd: null },
-    { bought: false, downloaded: false, isbn: null, number: 3, onNas: false, read: false, title: null, tomeEnd: null },
+    { bought: false, isbn: null, number: 1, onNas: false, read: false, title: null, tomeEnd: null },
+    { bought: false, isbn: null, number: 3, onNas: false, read: false, title: null, tomeEnd: null },
   ],
   type: "manga",
 };

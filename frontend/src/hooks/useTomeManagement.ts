@@ -22,7 +22,7 @@ export interface TomeManager {
 const maxBatchSize = 100;
 
 function emptyTome(number: number, isHorsSerie = false): TomeFormData {
-  return { bought: false, downloaded: false, isHorsSerie, isbn: "", number, onNas: false, read: false, title: "", tomeEnd: "" };
+  return { bought: false, isHorsSerie, isbn: "", number, onNas: false, read: false, title: "", tomeEnd: "" };
 }
 
 export function useTomeManagement(

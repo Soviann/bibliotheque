@@ -35,7 +35,6 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
             <th className="min-w-[140px] px-2 py-2 font-medium">Titre</th>
             <th className="min-w-[120px] px-2 py-2 font-medium">ISBN</th>
             <th className="px-2 py-2 text-center font-medium">Achat</th>
-            <th className="px-2 py-2 text-center font-medium">DL</th>
             <th className="px-2 py-2 text-center font-medium">Lu</th>
             <th className="px-2 py-2 text-center font-medium">NAS</th>
             <th className="w-10 px-2 py-2" />
@@ -95,15 +94,6 @@ export default function MergeTomeTable({ dispatch, duplicateNumbers, tomes }: Me
                     checked={tome.bought}
                     className={formCheckboxFocusClassName}
                     onChange={(e) => dispatch({ type: "UPDATE_TOME", index, patch: { bought: e.target.checked } })}
-                    type="checkbox"
-                  />
-                </td>
-                <td className="px-2 py-1.5 text-center">
-                  <input
-                    aria-label={`Tome ${tome.number} téléchargé`}
-                    checked={tome.downloaded}
-                    className={formCheckboxFocusClassName}
-                    onChange={(e) => dispatch({ type: "UPDATE_TOME", index, patch: { downloaded: e.target.checked } })}
                     type="checkbox"
                   />
                 </td>

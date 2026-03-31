@@ -301,7 +301,6 @@ final class TomeApiTest extends ApiTestCase
             'json' => [
                 'bought' => true,
                 'comicSeries' => '/api/comic_series/'.$seriesId,
-                'downloaded' => true,
                 'onNas' => true,
                 'read' => true,
             ],
@@ -312,7 +311,6 @@ final class TomeApiTest extends ApiTestCase
         $data = $client->getResponse()->toArray();
 
         self::assertTrue($data['bought']);
-        self::assertTrue($data['downloaded']);
         self::assertTrue($data['onNas']);
         self::assertTrue($data['read']);
     }
@@ -367,9 +365,8 @@ final class TomeApiTest extends ApiTestCase
 
         self::assertTrue($data['bought']);
         self::assertSame('Titre Original', $data['title']);
-        self::assertFalse($data['downloaded']);
-        self::assertFalse($data['read']);
         self::assertFalse($data['onNas']);
+        self::assertFalse($data['read']);
     }
 
     public function testPatchTomeUnauthenticatedReturns401(): void

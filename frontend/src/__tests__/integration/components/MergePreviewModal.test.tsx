@@ -6,7 +6,6 @@ import type { MergePreview, MergePreviewTome } from "../../../types/api";
 function createMockTome(overrides: Partial<MergePreviewTome> = {}): MergePreviewTome {
   return {
     bought: false,
-    downloaded: false,
     isbn: null,
     number: 1,
     onNas: false,
@@ -23,7 +22,7 @@ function createMockPreview(overrides: Partial<MergePreview> = {}): MergePreview 
     authors: [],
     coverUrl: null,
     defaultTomeBought: false,
-    defaultTomeDownloaded: false,
+    defaultTomeOnNas: false,
     defaultTomeRead: false,
     description: null,
     isOneShot: false,

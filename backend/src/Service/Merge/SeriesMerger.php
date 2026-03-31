@@ -45,7 +45,7 @@ final readonly class SeriesMerger
         $primary->setAmazonUrl($preview->amazonUrl);
         $primary->setCoverUrl($preview->coverUrl);
         $primary->setDefaultTomeBought($preview->defaultTomeBought);
-        $primary->setDefaultTomeDownloaded($preview->defaultTomeDownloaded);
+        $primary->setDefaultTomeOnNas($preview->defaultTomeOnNas);
         $primary->setDefaultTomeRead($preview->defaultTomeRead);
         $primary->setDescription($preview->description);
         $primary->setIsOneShot($preview->isOneShot);
@@ -99,7 +99,6 @@ final readonly class SeriesMerger
     {
         $tome = new Tome();
         $tome->setBought($previewTome->bought);
-        $tome->setDownloaded($previewTome->downloaded);
         $tome->setIsbn($previewTome->isbn);
         $tome->setNumber($previewTome->number);
         $tome->setOnNas($previewTome->onNas);

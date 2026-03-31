@@ -40,7 +40,6 @@ final class EntityFactory
     public static function createTome(
         int $number = 1,
         bool $bought = false,
-        bool $downloaded = false,
         bool $onNas = false,
         bool $read = false,
         ?int $tomeEnd = null,
@@ -48,7 +47,6 @@ final class EntityFactory
         $tome = new Tome();
         $tome->setNumber($number);
         $tome->setBought($bought);
-        $tome->setDownloaded($downloaded);
         $tome->setOnNas($onNas);
         $tome->setRead($read);
         $tome->setTomeEnd($tomeEnd);

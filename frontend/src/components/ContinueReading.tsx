@@ -12,7 +12,7 @@ interface ContinueReadingProps {
 export default function ContinueReading({ comics }: ContinueReadingProps) {
   const toRead = useMemo(() =>
     comics.filter((c) =>
-      !c.isOneShot && c.readCount < Math.max(c.boughtCount, c.downloadedCount),
+      !c.isOneShot && c.readCount < Math.max(c.boughtCount, c.onNasCount),
     ),
   [comics]);
 

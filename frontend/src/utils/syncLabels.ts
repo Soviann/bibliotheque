@@ -14,7 +14,7 @@ export const fieldLabels: Record<string, string> = {
   bought: "Acheté",
   coverUrl: "Couverture",
   description: "Description",
-  downloaded: "Téléchargé",
+  defaultTomeOnNas: "Sur NAS par défaut",
   isbn: "ISBN",
   isOneShot: "One-shot",
   latestPublishedIssue: "Dernier tome paru",

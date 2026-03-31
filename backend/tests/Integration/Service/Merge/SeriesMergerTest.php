@@ -47,7 +47,7 @@ final class SeriesMergerTest extends KernelTestCase
 
         $series3 = EntityFactory::createComicSeries('Astérix T3', type: ComicType::BD);
         $series3->setIsOneShot(true);
-        $tome3 = EntityFactory::createTome(1, bought: true, downloaded: true, onNas: true);
+        $tome3 = EntityFactory::createTome(1, bought: true, onNas: true);
         $tome3->setTitle('Astérix et les Goths');
         $series3->addTome($tome3);
 
@@ -66,7 +66,7 @@ final class SeriesMergerTest extends KernelTestCase
             authors: ['Goscinny', 'Uderzo'],
             coverUrl: 'https://example.com/asterix.jpg',
             defaultTomeBought: false,
-            defaultTomeDownloaded: false,
+            defaultTomeOnNas: false,
             defaultTomeRead: false,
             description: 'Les aventures d\'Astérix le Gaulois',
             isOneShot: false,
@@ -80,9 +80,9 @@ final class SeriesMergerTest extends KernelTestCase
             status: 'buying',
             title: 'Astérix',
             tomes: [
-                new MergePreviewTome(bought: true, downloaded: false, isbn: '978-2-0001-0001-1', number: 1, onNas: false, read: true, title: 'Astérix le Gaulois', tomeEnd: null),
-                new MergePreviewTome(bought: true, downloaded: false, isbn: null, number: 2, onNas: false, read: false, title: 'La Serpe d\'or', tomeEnd: null),
-                new MergePreviewTome(bought: true, downloaded: true, isbn: null, number: 3, onNas: true, read: false, title: 'Astérix et les Goths', tomeEnd: null),
+                new MergePreviewTome(bought: true, isbn: '978-2-0001-0001-1', number: 1, onNas: false, read: true, title: 'Astérix le Gaulois', tomeEnd: null),
+                new MergePreviewTome(bought: true, isbn: null, number: 2, onNas: false, read: false, title: 'La Serpe d\'or', tomeEnd: null),
+                new MergePreviewTome(bought: true, isbn: null, number: 3, onNas: true, read: false, title: 'Astérix et les Goths', tomeEnd: null),
             ],
             type: 'bd',
         );
@@ -133,7 +133,7 @@ final class SeriesMergerTest extends KernelTestCase
         self::assertTrue($tomes[1]->isBought());
 
         self::assertSame(3, $tomes[2]->getNumber());
-        self::assertTrue($tomes[2]->isDownloaded());
+        self::assertTrue($tomes[2]->isOnNas());
         self::assertTrue($tomes[2]->isOnNas());
 
         // Vérifier que les séries secondaires sont supprimées

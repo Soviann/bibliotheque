@@ -6,7 +6,7 @@ export interface MergeFormState {
   authors: string;
   coverUrl: string;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string;
   isOneShot: boolean;
@@ -38,7 +38,7 @@ function initState(preview: MergePreview): MergeFormState {
     authors: preview.authors.join(", "),
     coverUrl: preview.coverUrl ?? "",
     defaultTomeBought: preview.defaultTomeBought,
-    defaultTomeDownloaded: preview.defaultTomeDownloaded,
+    defaultTomeOnNas: preview.defaultTomeOnNas,
     defaultTomeRead: preview.defaultTomeRead,
     description: preview.description ?? "",
     isOneShot: preview.isOneShot,
@@ -98,7 +98,6 @@ function reducer(state: MergeFormState, action: MergeFormAction): MergeFormState
           ...state.tomes,
           {
             bought: false,
-            downloaded: false,
             isbn: null,
             number: maxNumber + 1,
             onNas: false,
@@ -117,7 +116,7 @@ const emptyState: MergeFormState = {
   authors: "",
   coverUrl: "",
   defaultTomeBought: false,
-  defaultTomeDownloaded: false,
+  defaultTomeOnNas: false,
   defaultTomeRead: false,
   description: "",
   isOneShot: false,
@@ -180,7 +179,7 @@ export function useMergePreviewForm(
       authors,
       coverUrl: state.coverUrl || null,
       defaultTomeBought: state.defaultTomeBought,
-      defaultTomeDownloaded: state.defaultTomeDownloaded,
+      defaultTomeOnNas: state.defaultTomeOnNas,
       defaultTomeRead: state.defaultTomeRead,
       description: state.description || null,
       isOneShot: state.isOneShot,

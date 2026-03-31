@@ -24,8 +24,8 @@ describe("CollectionMap", () => {
     expect(cell.className).toMatch(/bg-\[rgb\(var\(--series-color\)\)\]/);
   });
 
-  it("applies outline style to downloaded (not bought) tome", () => {
-    const tomes = [createMockTome({ id: 1, number: 1, downloaded: true })];
+  it("applies outline style to onNas (not bought) tome", () => {
+    const tomes = [createMockTome({ id: 1, number: 1, onNas: true })];
     render(<CollectionMap latestPublishedIssue={1} tomes={tomes} />);
     const cell = screen.getByTitle(/Tome 1/);
     expect(cell.className).toMatch(/border-\[rgb\(var\(--series-color\)\)\]/);

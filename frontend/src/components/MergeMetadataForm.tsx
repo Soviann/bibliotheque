@@ -181,12 +181,12 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
         </label>
         <label className="flex items-center gap-1.5">
           <input
-            checked={state.defaultTomeDownloaded}
+            checked={state.defaultTomeOnNas}
             className={formCheckboxClassName}
-            onChange={(e) => setField("defaultTomeDownloaded", e.target.checked)}
+            onChange={(e) => setField("defaultTomeOnNas", e.target.checked)}
             type="checkbox"
           />
-          <span className="text-sm text-text-secondary">Téléchargés</span>
+          <span className="text-sm text-text-secondary">Sur NAS</span>
         </label>
         <label className="flex items-center gap-1.5">
           <input

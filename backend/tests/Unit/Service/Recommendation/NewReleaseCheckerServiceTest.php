@@ -198,7 +198,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series = EntityFactory::createComicSeries('Test');
         $series->setLatestPublishedIssue(2);
         $series->setDefaultTomeBought(true);
-        $series->setDefaultTomeDownloaded(true);
+        $series->setDefaultTomeOnNas(true);
         $series->setDefaultTomeRead(false);
         $series->addTome(EntityFactory::createTome(1, bought: true));
         $series->addTome(EntityFactory::createTome(2, bought: true));
@@ -217,7 +217,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
 
         foreach ($newTomes as $tome) {
             self::assertTrue($tome->isBought());
-            self::assertTrue($tome->isDownloaded());
+            self::assertTrue($tome->isOnNas());
             self::assertFalse($tome->isRead());
         }
     }

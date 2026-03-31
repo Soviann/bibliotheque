@@ -177,7 +177,7 @@ describe("ComicCard", () => {
     const comic = createMockComicSeries({
       boughtCount: 2,
       coveredCount: 3,
-      downloadedCount: 1,
+      onNasCount: 1,
       isOneShot: false,
       latestPublishedIssue: 10,
       readCount: 1,
@@ -189,7 +189,7 @@ describe("ComicCard", () => {
 
     expect(screen.getByTitle("Achetés")).toHaveTextContent("2/10");
     expect(screen.getByTitle("Lus")).toHaveTextContent("1/10");
-    expect(screen.getByTitle("Téléchargés")).toHaveTextContent("1/10");
+    expect(screen.getByTitle("Sur NAS")).toHaveTextContent("1/10");
   });
 
   it("uses tome count as total when latestPublishedIssue is null", () => {

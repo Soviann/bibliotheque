@@ -34,7 +34,7 @@ class MergePreviewBuilderTest extends TestCase
         $this->addTome($series2, 1, bought: true);
 
         $series3 = $this->createSeries(3, 'Astérix et Cléopâtre', ComicType::BD, isOneShot: true);
-        $this->addTome($series3, 1, downloaded: true);
+        $this->addTome($series3, 1, onNas: true);
 
         $group = new MergeGroup(
             entries: [
@@ -60,7 +60,7 @@ class MergePreviewBuilderTest extends TestCase
 
         self::assertSame(6, $preview->tomes[1]->number);
         self::assertSame('Astérix et Cléopâtre', $preview->tomes[1]->title);
-        self::assertTrue($preview->tomes[1]->downloaded);
+        self::assertTrue($preview->tomes[1]->onNas);
 
         self::assertSame(8, $preview->tomes[2]->number);
         self::assertSame('Astérix chez les Bretons', $preview->tomes[2]->title);
@@ -79,7 +79,7 @@ class MergePreviewBuilderTest extends TestCase
         $this->addTome($series1, 3);
 
         $series2 = $this->createSeries(2, 'Naruto - Gaiden', ComicType::MANGA, isOneShot: true);
-        $this->addTome($series2, 1, bought: true, downloaded: true);
+        $this->addTome($series2, 1, bought: true, onNas: true);
 
         $group = new MergeGroup(
             entries: [
@@ -110,7 +110,7 @@ class MergePreviewBuilderTest extends TestCase
         self::assertSame(4, $preview->tomes[3]->number);
         self::assertSame('Naruto - Gaiden', $preview->tomes[3]->title);
         self::assertTrue($preview->tomes[3]->bought);
-        self::assertTrue($preview->tomes[3]->downloaded);
+        self::assertTrue($preview->tomes[3]->onNas);
     }
 
     /**
@@ -336,7 +336,6 @@ class MergePreviewBuilderTest extends TestCase
         ComicSeries $series,
         int $number,
         bool $bought = false,
-        bool $downloaded = false,
         bool $onNas = false,
         bool $read = false,
         ?string $isbn = null,
@@ -345,7 +344,6 @@ class MergePreviewBuilderTest extends TestCase
     ): Tome {
         $tome = new Tome();
         $tome->setBought($bought);
-        $tome->setDownloaded($downloaded);
         $tome->setIsbn($isbn);
         $tome->setNumber($number);
         $tome->setOnNas($onNas);

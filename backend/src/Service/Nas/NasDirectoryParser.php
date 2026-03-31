@@ -203,25 +203,25 @@ final class NasDirectoryParser
             }
 
             $files = $filesByDir[$entry] ?? [];
-            $lastDownloaded = $this->getMaxTomeFromFiles($files, $parsed['title']);
+            $lastOnNas = $this->getMaxTomeFromFiles($files, $parsed['title']);
 
             // Si pas de fichiers BD, essayer d'extraire depuis le nom du dossier lui-même
             // Mais seulement si le nombre n'est pas partie intégrante du titre (ex: "Block 109")
-            if (null === $lastDownloaded && !$this->hasOnlyPageFiles($files)) {
+            if (null === $lastOnNas && !$this->hasOnlyPageFiles($files)) {
                 $candidate = $this->extractTomeNumber($entry);
                 if (null !== $candidate && !$this->isNumberPartOfTitle($parsed['title'], $candidate)) {
-                    $lastDownloaded = $candidate;
+                    $lastOnNas = $candidate;
                 }
             }
 
             // One-shot : pas de numéro de tome (les fichiers sont des pages)
             if ($parsed['isOneShot']) {
-                $lastDownloaded = null;
+                $lastOnNas = null;
             }
 
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
-                lastDownloaded: $lastDownloaded,
+                lastOnNas: $lastOnNas,
                 readUpTo: null,
                 readComplete: false,
                 title: $parsed['title'],
@@ -255,18 +255,18 @@ final class NasDirectoryParser
                 continue;
             }
 
-            $lastDownloaded = $this->getMaxTomeFromFiles($filesByDir[$entry] ?? [], $parsed['title']);
+            $lastOnNas = $this->getMaxTomeFromFiles($filesByDir[$entry] ?? [], $parsed['title']);
 
             if ($parsed['isOneShot']) {
-                $lastDownloaded = null;
+                $lastOnNas = null;
             }
 
             // _lus = tomes lus, pas nécessairement série terminée
             // readComplete seulement si marqué (complet)
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
-                lastDownloaded: $lastDownloaded,
-                readUpTo: $parsed['isComplete'] ? null : $lastDownloaded,
+                lastOnNas: $lastOnNas,
+                readUpTo: $parsed['isComplete'] ? null : $lastOnNas,
                 readComplete: $parsed['isComplete'],
                 title: $parsed['title'],
                 publisher: $publisher,
@@ -304,11 +304,11 @@ final class NasDirectoryParser
             $titleNumber = $this->extractTitleNumber($parsed['title']);
             $tomeNumbers = $this->extractAllTomeNumbers($files, $titleNumber);
 
-            $lastDownloaded = [] !== $tomeNumbers ? \max($tomeNumbers) : null;
+            $lastOnNas = [] !== $tomeNumbers ? \max($tomeNumbers) : null;
             $minTome = [] !== $tomeNumbers ? \min($tomeNumbers) : null;
 
             if ($parsed['isOneShot']) {
-                $lastDownloaded = null;
+                $lastOnNas = null;
                 $minTome = null;
             }
 
@@ -317,7 +317,7 @@ final class NasDirectoryParser
 
             $series[] = new NasSeriesData(
                 isComplete: $parsed['isComplete'],
-                lastDownloaded: $lastDownloaded,
+                lastOnNas: $lastOnNas,
                 readUpTo: $readUpTo,
                 readComplete: false,
                 title: $parsed['title'],
@@ -744,7 +744,7 @@ final class NasDirectoryParser
     {
         return new NasSeriesData(
             isComplete: $a->isComplete || $b->isComplete,
-            lastDownloaded: $this->maxNullable($a->lastDownloaded, $b->lastDownloaded),
+            lastOnNas: $this->maxNullable($a->lastOnNas, $b->lastOnNas),
             readUpTo: $this->maxNullable($a->readUpTo, $b->readUpTo),
             readComplete: $a->readComplete || $b->readComplete,
             title: $a->title,

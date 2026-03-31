@@ -208,14 +208,14 @@ final class NasDirectoryParserTest extends TestCase
         // Androides : pas complet, 7 tomes, pas lu
         self::assertSame('Androides', $result[0]->title);
         self::assertFalse($result[0]->isComplete);
-        self::assertSame(7, $result[0]->lastDownloaded);
+        self::assertSame(7, $result[0]->lastOnNas);
         self::assertNull($result[0]->readUpTo);
         self::assertFalse($result[0]->readComplete);
 
         // 4 Princes : complet, 4 tomes, pas lu
         self::assertSame('4 Princes De Ganahan (les)', $result[1]->title);
         self::assertTrue($result[1]->isComplete);
-        self::assertSame(4, $result[1]->lastDownloaded);
+        self::assertSame(4, $result[1]->lastOnNas);
         self::assertNull($result[1]->readUpTo);
         self::assertFalse($result[1]->readComplete);
     }
@@ -246,13 +246,13 @@ final class NasDirectoryParserTest extends TestCase
 
         // Blake & Mortimer : pas (complet), 4 tomes lus
         self::assertSame('Blake & Mortimer', $result[0]->title);
-        self::assertSame(4, $result[0]->lastDownloaded);
+        self::assertSame(4, $result[0]->lastOnNas);
         self::assertFalse($result[0]->readComplete);
         self::assertSame(4, $result[0]->readUpTo);
 
         // Cedric : pas (complet), 10 tomes lus
         self::assertSame('Cedric', $result[1]->title);
-        self::assertSame(10, $result[1]->lastDownloaded);
+        self::assertSame(10, $result[1]->lastOnNas);
         self::assertFalse($result[1]->readComplete);
         self::assertSame(10, $result[1]->readUpTo);
     }
@@ -288,20 +288,20 @@ final class NasDirectoryParserTest extends TestCase
 
         // Achille Talon : commence au T10, donc T1-T9 lus → readUpTo = 9
         self::assertSame('Achille Talon', $result[0]->title);
-        self::assertSame(45, $result[0]->lastDownloaded);
+        self::assertSame(45, $result[0]->lastOnNas);
         self::assertSame(9, $result[0]->readUpTo);
         self::assertFalse($result[0]->readComplete);
 
         // Angor : commence au T4, donc T1-T3 lus → readUpTo = 3
         self::assertSame('Angor', $result[1]->title);
-        self::assertSame(5, $result[1]->lastDownloaded);
+        self::assertSame(5, $result[1]->lastOnNas);
         self::assertSame(3, $result[1]->readUpTo);
         self::assertFalse($result[1]->readComplete);
 
         // Anachron (complet) : commence au T1, donc readUpTo = null (pas de tomes précédents lus)
         self::assertSame('Anachron', $result[2]->title);
         self::assertTrue($result[2]->isComplete);
-        self::assertSame(3, $result[2]->lastDownloaded);
+        self::assertSame(3, $result[2]->lastOnNas);
         self::assertNull($result[2]->readUpTo);
         self::assertFalse($result[2]->readComplete);
     }
@@ -327,7 +327,7 @@ final class NasDirectoryParserTest extends TestCase
         // Anachron (complet) dans _lus : readComplete = true
         self::assertSame('Anachron', $result[0]->title);
         self::assertTrue($result[0]->isComplete);
-        self::assertSame(3, $result[0]->lastDownloaded);
+        self::assertSame(3, $result[0]->lastOnNas);
         self::assertTrue($result[0]->readComplete);
         self::assertNull($result[0]->readUpTo);
     }
@@ -353,7 +353,7 @@ final class NasDirectoryParserTest extends TestCase
             // Depuis BD/ : 15 tomes téléchargés, pas lu
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 15,
+                lastOnNas: 15,
                 readUpTo: null,
                 readComplete: false,
                 title: 'Blake et Mortimer',
@@ -361,7 +361,7 @@ final class NasDirectoryParserTest extends TestCase
             // Depuis BD/_lus/ : 10 tomes lus
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 10,
+                lastOnNas: 10,
                 readUpTo: 10,
                 readComplete: false,
                 title: 'Blake et Mortimer',
@@ -372,7 +372,7 @@ final class NasDirectoryParserTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('Blake et Mortimer', $result[0]->title);
-        self::assertSame(15, $result[0]->lastDownloaded);
+        self::assertSame(15, $result[0]->lastOnNas);
         self::assertSame(10, $result[0]->readUpTo);
         self::assertFalse($result[0]->readComplete);
         self::assertFalse($result[0]->isComplete);
@@ -384,7 +384,7 @@ final class NasDirectoryParserTest extends TestCase
             // Depuis BD/ : marqué (complet), 4 tomes
             new NasSeriesData(
                 isComplete: true,
-                lastDownloaded: 4,
+                lastOnNas: 4,
                 readUpTo: null,
                 readComplete: false,
                 title: 'Anachron',
@@ -392,7 +392,7 @@ final class NasDirectoryParserTest extends TestCase
             // Depuis BD/_lus/ : 2 tomes lus
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 2,
+                lastOnNas: 2,
                 readUpTo: 2,
                 readComplete: false,
                 title: 'Anachron',
@@ -403,7 +403,7 @@ final class NasDirectoryParserTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('Anachron', $result[0]->title);
-        self::assertSame(4, $result[0]->lastDownloaded);
+        self::assertSame(4, $result[0]->lastOnNas);
         self::assertSame(2, $result[0]->readUpTo);
         self::assertTrue($result[0]->isComplete);
         self::assertFalse($result[0]->readComplete);
@@ -415,7 +415,7 @@ final class NasDirectoryParserTest extends TestCase
             // Depuis BD/ : 20 tomes téléchargés
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 20,
+                lastOnNas: 20,
                 readUpTo: null,
                 readComplete: false,
                 title: 'One Piece',
@@ -423,7 +423,7 @@ final class NasDirectoryParserTest extends TestCase
             // Depuis BD/_lus/ : 15 tomes lus
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 15,
+                lastOnNas: 15,
                 readUpTo: 15,
                 readComplete: false,
                 title: 'One Piece',
@@ -431,7 +431,7 @@ final class NasDirectoryParserTest extends TestCase
             // Depuis /lecture en cours/ : tomes 16-18, readUpTo = 15
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 18,
+                lastOnNas: 18,
                 readUpTo: 15,
                 readComplete: false,
                 title: 'One Piece',
@@ -442,7 +442,7 @@ final class NasDirectoryParserTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('One Piece', $result[0]->title);
-        self::assertSame(20, $result[0]->lastDownloaded);
+        self::assertSame(20, $result[0]->lastOnNas);
         self::assertSame(15, $result[0]->readUpTo);
     }
 
@@ -451,14 +451,14 @@ final class NasDirectoryParserTest extends TestCase
         $series = [
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 5,
+                lastOnNas: 5,
                 readUpTo: null,
                 readComplete: false,
                 title: 'Androides',
             ),
             new NasSeriesData(
                 isComplete: true,
-                lastDownloaded: 3,
+                lastOnNas: 3,
                 readUpTo: null,
                 readComplete: true,
                 title: 'Blake et Mortimer',
@@ -499,14 +499,14 @@ final class NasDirectoryParserTest extends TestCase
         $series = [
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 15,
+                lastOnNas: 15,
                 readUpTo: null,
                 readComplete: false,
                 title: 'Blake et Morter',
             ),
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 10,
+                lastOnNas: 10,
                 readUpTo: 10,
                 readComplete: false,
                 title: 'Blake & Mortimer',
@@ -516,7 +516,7 @@ final class NasDirectoryParserTest extends TestCase
         $result = $this->parser->mergeDuplicateSeries($series);
 
         self::assertCount(1, $result);
-        self::assertSame(15, $result[0]->lastDownloaded);
+        self::assertSame(15, $result[0]->lastOnNas);
         self::assertSame(10, $result[0]->readUpTo);
     }
 
@@ -525,14 +525,14 @@ final class NasDirectoryParserTest extends TestCase
         $series = [
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 5,
+                lastOnNas: 5,
                 readUpTo: null,
                 readComplete: false,
                 title: 'Naruto',
             ),
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 3,
+                lastOnNas: 3,
                 readUpTo: null,
                 readComplete: false,
                 title: 'Narutaru',
@@ -565,7 +565,7 @@ final class NasDirectoryParserTest extends TestCase
         $series = [
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 5,
+                lastOnNas: 5,
                 readUpTo: null,
                 readComplete: false,
                 title: 'Batman',
@@ -573,7 +573,7 @@ final class NasDirectoryParserTest extends TestCase
             ),
             new NasSeriesData(
                 isComplete: false,
-                lastDownloaded: 3,
+                lastOnNas: 3,
                 readUpTo: 3,
                 readComplete: false,
                 title: 'Batman',
@@ -604,7 +604,7 @@ final class NasDirectoryParserTest extends TestCase
         $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
 
         self::assertCount(1, $result);
-        self::assertSame(2, $result[0]->lastDownloaded);
+        self::assertSame(2, $result[0]->lastOnNas);
     }
 
     public function testParseUnreadSeriesCleansGetComicsFromFilenames(): void
@@ -620,7 +620,7 @@ final class NasDirectoryParserTest extends TestCase
         $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
 
         self::assertCount(1, $result);
-        self::assertSame(2, $result[0]->lastDownloaded);
+        self::assertSame(2, $result[0]->lastOnNas);
     }
 
     // --- groupLooseFiles ---
@@ -716,7 +716,7 @@ final class NasDirectoryParserTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('Artica', $result[0]->title);
-        self::assertSame(6, $result[0]->lastDownloaded);
+        self::assertSame(6, $result[0]->lastOnNas);
     }
 
     public function testParseRangeTomeFormatWithA(): void
@@ -728,7 +728,7 @@ final class NasDirectoryParserTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('Anahire', $result[0]->title);
-        self::assertSame(4, $result[0]->lastDownloaded);
+        self::assertSame(4, $result[0]->lastOnNas);
     }
 
     // --- Fixes pour problèmes identifiés ---
@@ -761,8 +761,8 @@ final class NasDirectoryParserTest extends TestCase
         $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
 
         self::assertCount(1, $result);
-        // Les images ne sont pas des fichiers BD, donc lastDownloaded = null (pas de fallback sur le nom)
-        self::assertNull($result[0]->lastDownloaded);
+        // Les images ne sont pas des fichiers BD, donc lastOnNas = null (pas de fallback sur le nom)
+        self::assertNull($result[0]->lastOnNas);
     }
 
     public function testHighTomeNumberFromFilesIsCapped(): void
@@ -776,7 +776,7 @@ final class NasDirectoryParserTest extends TestCase
         $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
 
         self::assertCount(1, $result);
-        self::assertNull($result[0]->lastDownloaded);
+        self::assertNull($result[0]->lastOnNas);
     }
 
     public function testContainerDirectoryIsDetected(): void
@@ -811,7 +811,7 @@ final class NasDirectoryParserTest extends TestCase
         $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
 
         self::assertCount(1, $result);
-        self::assertSame(115, $result[0]->lastDownloaded);
+        self::assertSame(115, $result[0]->lastOnNas);
     }
 
     public function testLegitHighTomeCountNotFlagged(): void
@@ -827,7 +827,7 @@ final class NasDirectoryParserTest extends TestCase
         $result = $this->parser->parseUnreadSeries($listing, $filesByDir);
 
         self::assertCount(1, $result);
-        self::assertSame(49, $result[0]->lastDownloaded);
+        self::assertSame(49, $result[0]->lastOnNas);
     }
 
     public function testBlockNumberInTitleNotExtracted(): void
@@ -840,7 +840,7 @@ final class NasDirectoryParserTest extends TestCase
         self::assertCount(1, $result);
         self::assertSame('Block 109', $result[0]->title);
         // 109 is part of the title, not a tome number
-        self::assertNull($result[0]->lastDownloaded);
+        self::assertNull($result[0]->lastOnNas);
     }
 
     public function testIgnoredSeriesInReadAndInProgress(): void

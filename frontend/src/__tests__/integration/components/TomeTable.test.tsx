@@ -28,7 +28,7 @@ function createMockForm(overrides: Partial<FormData> = {}): FormData {
     authors: [],
     coverUrl: "",
     defaultTomeBought: false,
-    defaultTomeDownloaded: false,
+    defaultTomeOnNas: false,
     defaultTomeRead: false,
     description: "",
     isOneShot: false,
@@ -68,7 +68,8 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: false,
-          downloaded: false,
+
+
           id: 1,
           isbn: "",
           isHorsSerie: false,
@@ -108,7 +109,8 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: false,
-          downloaded: false,
+
+
           id: 1,
           isbn: "",
           isHorsSerie: false,
@@ -147,7 +149,8 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: true,
-          downloaded: false,
+
+
           id: 1,
           isbn: "978-2-1234-5678-0",
           isHorsSerie: false,
@@ -159,7 +162,8 @@ describe("TomeTable", () => {
         },
         {
           bought: false,
-          downloaded: false,
+
+
           id: 2,
           isbn: "",
           isHorsSerie: false,
@@ -196,7 +200,8 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: true,
-          downloaded: false,
+
+
           id: 1,
           isbn: "978-2-1234-5678-0",
           isHorsSerie: false,
@@ -233,7 +238,8 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: false,
-          downloaded: false,
+
+
           id: 1,
           isbn: "",
           isHorsSerie: false,
@@ -266,7 +272,8 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: false,
-          downloaded: false,
+
+
           id: undefined,
           isbn: "",
           isHorsSerie: false,

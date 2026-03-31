@@ -126,11 +126,11 @@ class ComicSeries implements SoftDeletableInterface
     private bool $defaultTomeBought = false;
 
     /**
-     * Les nouveaux tomes créés par le lookup doivent être marqués téléchargés.
+     * Les nouveaux tomes créés par le lookup doivent être marqués présents sur le NAS.
      */
     #[Groups(['comic:list', 'comic:read', 'comic:write'])]
     #[ORM\Column]
-    private bool $defaultTomeDownloaded = false;
+    private bool $defaultTomeOnNas = false;
 
     /**
      * Les nouveaux tomes créés par le lookup doivent être marqués lus.
@@ -343,14 +343,14 @@ class ComicSeries implements SoftDeletableInterface
         return $this;
     }
 
-    public function isDefaultTomeDownloaded(): bool
+    public function isDefaultTomeOnNas(): bool
     {
-        return $this->defaultTomeDownloaded;
+        return $this->defaultTomeOnNas;
     }
 
-    public function setDefaultTomeDownloaded(bool $defaultTomeDownloaded): static
+    public function setDefaultTomeOnNas(bool $defaultTomeOnNas): static
     {
-        $this->defaultTomeDownloaded = $defaultTomeDownloaded;
+        $this->defaultTomeOnNas = $defaultTomeOnNas;
 
         return $this;
     }
@@ -461,11 +461,11 @@ class ComicSeries implements SoftDeletableInterface
     }
 
     /**
-     * Retourne le dernier numéro de tome téléchargé.
+     * Retourne le dernier numéro de tome présent sur le NAS.
      */
-    public function getLastDownloaded(): ?int
+    public function getLastOnNas(): ?int
     {
-        return $this->computeMaxTomeNumber(static fn (Tome $t): bool => $t->isDownloaded());
+        return $this->computeMaxTomeNumber(static fn (Tome $t): bool => $t->isOnNas());
     }
 
     /**
@@ -681,7 +681,7 @@ class ComicSeries implements SoftDeletableInterface
 
             $tome = new Tome();
             $tome->setBought($this->defaultTomeBought);
-            $tome->setDownloaded($this->defaultTomeDownloaded);
+            $tome->setOnNas($this->defaultTomeOnNas);
             $tome->setNumber($number);
             $tome->setRead($this->defaultTomeRead);
             $this->addTome($tome);
@@ -768,11 +768,11 @@ class ComicSeries implements SoftDeletableInterface
     }
 
     /**
-     * Indique si le dernier tome téléchargé correspond au dernier tome paru.
+     * Indique si le dernier tome sur le NAS correspond au dernier tome paru.
      */
-    public function isLastDownloadedComplete(): bool
+    public function isLastOnNasComplete(): bool
     {
-        return $this->isIssueComplete($this->getLastDownloaded());
+        return $this->isIssueComplete($this->getLastOnNas());
     }
 
     /**
@@ -828,13 +828,13 @@ class ComicSeries implements SoftDeletableInterface
     }
 
     /**
-     * Nombre de tomes téléchargés (en tenant compte des plages tomeEnd).
+     * Nombre de tomes présents sur le NAS (en tenant compte des plages tomeEnd).
      */
     #[ApiProperty]
     #[Groups(['comic:list'])]
-    public function getDownloadedCount(): int
+    public function getOnNasCount(): int
     {
-        return $this->countCoveredTomes(static fn (Tome $t): bool => $t->isDownloaded());
+        return $this->countCoveredTomes(static fn (Tome $t): bool => $t->isOnNas());
     }
 
     /**

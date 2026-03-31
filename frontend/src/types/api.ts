@@ -34,7 +34,6 @@ export interface Tome {
   _syncPending?: boolean;
   bought: boolean;
   createdAt: string;
-  downloaded: boolean;
   id: number;
   isHorsSerie: boolean;
   isbn: string | null;
@@ -57,10 +56,10 @@ export interface ComicSeries {
   coverUrl: string | null;
   createdAt: string;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string | null;
-  downloadedCount: number;
+  onNasCount: number;
   id: number;
   isOneShot: boolean;
   maxTomeNumber: number | null;
@@ -103,7 +102,7 @@ export interface MergePreview {
   authors: string[];
   coverUrl: string | null;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string | null;
   isOneShot: boolean;
@@ -122,7 +121,6 @@ export interface MergePreview {
 
 export interface MergePreviewTome {
   bought: boolean;
-  downloaded: boolean;
   isbn: string | null;
   number: number;
   onNas: boolean;
@@ -181,7 +179,7 @@ export interface CreateComicPayload {
   authors: string[];
   coverUrl: string | null;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string | null;
   isOneShot: boolean;
@@ -203,7 +201,6 @@ export interface UpdateComicPayload extends Partial<CreateComicPayload> {
 export interface TomePayload {
   "@id"?: string;
   bought: boolean;
-  downloaded: boolean;
   isHorsSerie: boolean;
   isbn: string | null;
   number: number;
@@ -215,7 +212,6 @@ export interface TomePayload {
 
 export interface CreateTomePayload {
   bought: boolean;
-  downloaded: boolean;
   isHorsSerie: boolean;
   isbn: string | null;
   number: number;

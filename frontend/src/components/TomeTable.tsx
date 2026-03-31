@@ -217,16 +217,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                         : <Search className="h-4 w-4" />}
                     </button>
                   </div>
-                  <div className="grid grid-cols-3 gap-x-4 gap-y-1">
-                    <label className="flex items-center gap-2 text-sm text-text-secondary">
-                      <input
-                        checked={tome.downloaded}
-                        className={formCheckboxClassName}
-                        onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
-                        type="checkbox"
-                      />
-                      DL
-                    </label>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                     <label className="flex items-center gap-2 text-sm text-text-secondary">
                       <input
                         checked={tome.read}
@@ -264,7 +255,6 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
               <th className="px-3 py-2 text-left font-medium text-text-secondary">Titre</th>
               <th className="px-3 py-2 text-left font-medium text-text-secondary">ISBN</th>
               <th className="px-3 py-2 text-center font-medium text-text-secondary">Acheté</th>
-              <th className="px-3 py-2 text-center font-medium text-text-secondary">DL</th>
               <th className="px-3 py-2 text-center font-medium text-text-secondary">Lu</th>
               <th className="px-3 py-2 text-center font-medium text-text-secondary">NAS</th>
               <th className="px-3 py-2" />
@@ -344,14 +334,6 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                     checked={tome.bought}
                     className={formCheckboxClassName}
                     onChange={(e) => updateTome(i, "bought", e.target.checked)}
-                    type="checkbox"
-                  />
-                </td>
-                <td className="px-3 py-1.5 text-center">
-                  <input
-                    checked={tome.downloaded}
-                    className={formCheckboxClassName}
-                    onChange={(e) => updateTome(i, "downloaded", e.target.checked)}
                     type="checkbox"
                   />
                 </td>
