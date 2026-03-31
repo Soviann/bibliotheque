@@ -134,22 +134,6 @@ export interface MergeSuggestion {
   title: string;
 }
 
-export interface ImportExcelResult {
-  sheetDetails: Record<
-    string,
-    { created: number; tomes: number; updated: number }
-  >;
-  totalCreated: number;
-  totalTomes: number;
-  totalUpdated: number;
-}
-
-export interface ImportBooksResult {
-  created: number;
-  enriched: number;
-  groupCount: number;
-}
-
 export interface CoverSearchResult {
   height: number;
   thumbnail: string;

@@ -91,27 +91,6 @@ final class RateLimitTest extends ApiTestCase
     // ---------------------------------------------------------------
     // Import : première requête réussit
     // ---------------------------------------------------------------
-
-    public function testImportExcelEndpointRespondsNormally(): void
-    {
-        $client = $this->createAuthenticatedClient();
-
-        // Sans fichier = 400 (validation), pas 429
-        $client->request('POST', '/api/tools/import/excel');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    public function testImportBooksEndpointRespondsNormally(): void
-    {
-        $client = $this->createAuthenticatedClient();
-
-        $client->request('POST', '/api/tools/import/books');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    // ---------------------------------------------------------------
     // Purge execute : première requête réussit
     // ---------------------------------------------------------------
 

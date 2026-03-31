@@ -10,10 +10,10 @@ namespace App\DTO;
 final readonly class ImportResult implements \JsonSerializable
 {
     /**
-     * @param array<string, array{created: int, enriched: int, tomes: int, updated: int}> $sheetDetails
+     * @param array<string, array{created: int, enriched: int, tomes: int, updated: int}> $typeDetails
      */
     public function __construct(
-        public array $sheetDetails,
+        public array $typeDetails,
         public int $totalCreated,
         public int $totalEnriched,
         public int $totalTomes,
@@ -22,12 +22,12 @@ final readonly class ImportResult implements \JsonSerializable
     }
 
     /**
-     * @return array{sheetDetails: array<string, array{created: int, enriched: int, tomes: int, updated: int}>, totalCreated: int, totalEnriched: int, totalTomes: int, totalUpdated: int}
+     * @return array{typeDetails: array<string, array{created: int, enriched: int, tomes: int, updated: int}>, totalCreated: int, totalEnriched: int, totalTomes: int, totalUpdated: int}
      */
     public function jsonSerialize(): array
     {
         return [
-            'sheetDetails' => $this->sheetDetails,
+            'typeDetails' => $this->typeDetails,
             'totalCreated' => $this->totalCreated,
             'totalEnriched' => $this->totalEnriched,
             'totalTomes' => $this->totalTomes,

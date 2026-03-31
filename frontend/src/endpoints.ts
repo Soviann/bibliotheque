@@ -15,10 +15,6 @@ export const endpoints = {
     restore: (id: number) => `/comic_series/${id}/restore`,
     tomes: (seriesId: number) => `/comic_series/${seriesId}/tomes`,
   },
-  import: {
-    books: "/tools/import/books",
-    excel: "/tools/import/excel",
-  },
   login: {
     dev: "/login/dev",
     google: "/login/google",

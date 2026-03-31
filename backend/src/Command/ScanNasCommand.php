@@ -26,7 +26,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class ScanNasCommand extends Command
 {
     /**
-     * Correspondance type → nom d'onglet Excel (doit correspondre à ImportExcelService::SHEET_TYPE_MAP).
+     * Correspondance type → nom d'onglet Excel (lu par merge-excel.py).
      */
     private const array TYPE_SHEET_MAP = [
         'BD' => 'BD',

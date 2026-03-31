@@ -70,10 +70,10 @@ final class ImportCommand extends Command
             EnrichOnCreateListener::enable();
         }
 
-        foreach ($result->sheetDetails as $sheetName => $details) {
+        foreach ($result->typeDetails as $typeName => $details) {
             $io->success(\sprintf(
                 '"%s" : %d créées, %d mises à jour, %d enrichies, %d nouveaux tomes.',
-                $sheetName,
+                $typeName,
                 $details['created'],
                 $details['updated'],
                 $details['enriched'],

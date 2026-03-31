@@ -7,6 +7,21 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Import** : commande unique `app:import` remplaçant `app:import-excel` et `app:import-books`, fichier Excel 14 colonnes (tracking + métadonnées)
+- **Import** : suppression de l'API web d'import (`/api/tools/import/*`), import uniquement via CLI
+- **Tome** : suppression du champ `downloaded` au profit de `onNas` (renommage `defaultTomeDownloaded` → `defaultTomeOnNas`)
+- **Scripts Python** : fichier de sortie unique `import.xlsx` au lieu de `merged-import.xlsx` + `clean-livres.xlsx`
+
+### Added
+
+- **Makefile** : target `make import FILE=... [DRY_RUN=1]` pour l'import à distance via SSH
+
+### Removed
+
+- **Import web** : page ImportTool, hook useImport, endpoints `/api/tools/import/*`
+
 ## [v2.25.3] - 2026-03-29
 
 ### Fixed

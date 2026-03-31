@@ -1328,7 +1328,6 @@ describe("ComicForm", () => {
 
       const cardsView = screen.getByTestId("tomes-cards");
       expect(within(cardsView).getByText("Acheté")).toBeInTheDocument();
-      expect(within(cardsView).getByText("DL")).toBeInTheDocument();
       expect(within(cardsView).getByText("Lu")).toBeInTheDocument();
       expect(within(cardsView).getByText("NAS")).toBeInTheDocument();
     });

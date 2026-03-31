@@ -36,16 +36,6 @@ describe("endpoints", () => {
     });
   });
 
-  describe("import", () => {
-    it("retourne le chemin books", () => {
-      expect(endpoints.import.books).toBe("/tools/import/books");
-    });
-
-    it("retourne le chemin excel", () => {
-      expect(endpoints.import.excel).toBe("/tools/import/excel");
-    });
-  });
-
   describe("login", () => {
     it("retourne le chemin google", () => {
       expect(endpoints.login.google).toBe("/login/google");

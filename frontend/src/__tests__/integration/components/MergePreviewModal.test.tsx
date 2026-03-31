@@ -60,7 +60,6 @@ describe("MergePreviewModal — accessibility", () => {
     );
 
     expect(screen.getByLabelText("Tome 1 acheté")).toBeInTheDocument();
-    expect(screen.getByLabelText("Tome 1 téléchargé")).toBeInTheDocument();
     expect(screen.getByLabelText("Tome 1 lu")).toBeInTheDocument();
     expect(screen.getByLabelText("Tome 1 sur NAS")).toBeInTheDocument();
     expect(screen.getByLabelText("Tome 2 acheté")).toBeInTheDocument();

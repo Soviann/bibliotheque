@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-Enrichit les fichiers Excel produits par merge-excel.py :
+Enrichit import.xlsx produit par merge-excel.py :
 1. Parution "fini" sans nombre → cherche le nombre total de tomes sur Wikipedia
-2. Séries achetées sans ISBN dans clean-livres → cherche l'ISBN du 1er tome sur Google Books
+2. Séries achetées sans ISBN → cherche l'ISBN du 1er tome sur Google Books (col 9)
+
+Format : feuille unique "Import" avec colonne Type en col 0.
 
 Filtre strict : un résultat n'est accepté que si le titre trouvé
 partage suffisamment de mots significatifs avec le titre recherché.
@@ -21,15 +23,14 @@ import openpyxl
 
 # --- Paths ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MERGED_PATH = os.path.join(BASE_DIR, "var", "merged-import.xlsx")
-LIVRES_PATH = os.path.join(BASE_DIR, "var", "clean-livres.xlsx")
+MERGED_PATH = os.path.join(BASE_DIR, "var", "import.xlsx")
 
 HEADERS = {"User-Agent": "BibliothequeBot/1.0 (bibliotheque merge-excel enrichment)"}
 
 TYPE_KEYWORDS = {
     "BD": "bande dessinée",
     "Comics": "comics",
-    "Mangas": "manga",
+    "Manga": "manga",
     "Livre": "roman",
 }
 
@@ -40,18 +41,6 @@ STOP_WORDS = {
     "tome", "volume", "n", "no", "t", "bd", "manga", "comics",
     "serie", "integrale", "edition", "nouvelle",
 }
-
-# --- Tome extraction (same as merge-excel.py) ---
-TOME_PATTERNS = [
-    r"^(.+?)\s*[-–]\s*[Tt]ome\s+(\d+)",
-    r"^(.+?),\s*[Tt]ome\s+(\d+)",
-    r"^(.+?)\s*[-–]\s*[Tt](\d+)\s",
-    r"^(.+?)\s*[-–]\s*[Tt](\d+)$",
-    r"^(.+?)\s+[Tt](\d+)\s*[-–:]",
-    r"^(.+?)\s+[Tt](\d+)$",
-    r"^(.+?),\s*[Tt](\d+)\s*[-–:]",
-    r"^(.+?)\s*[-–]\s*n[oº°]?\s*(\d+)",
-]
 
 
 def normalize(s):
@@ -96,14 +85,6 @@ def titles_match(searched_title, found_title):
 
     # Longer titles: at least 50%
     return len(overlap) >= (word_count + 1) // 2
-
-
-def extract_series(title):
-    for pat in TOME_PATTERNS:
-        m = re.match(pat, title, re.UNICODE)
-        if m:
-            return normalize(m.group(1).strip())
-    return normalize(title.strip())
 
 
 # ===================================================================
@@ -243,11 +224,10 @@ def lookup_isbn(series_name, tome_number=1):
 # ===================================================================
 
 def main():
-    for path, name in [(MERGED_PATH, "merged-import.xlsx"), (LIVRES_PATH, "clean-livres.xlsx")]:
-        if not os.path.exists(path):
-            print(f"ERREUR : {name} introuvable → {path}")
-            print("Lancez d'abord: python3 scripts/merge-excel.py")
-            sys.exit(1)
+    if not os.path.exists(MERGED_PATH):
+        print(f"ERREUR : import.xlsx introuvable → {MERGED_PATH}")
+        print("Lancez d'abord: python3 scripts/merge-excel.py")
+        sys.exit(1)
 
     # === Task 1: Enrich "fini" series with volume count from Wikipedia ===
     print("=== Enrichissement des parutions « fini » via Wikipedia ===\n")
@@ -257,115 +237,102 @@ def main():
     wiki_not_found = []
     wiki_total = 0
 
-    for sheet_name in wb_merged.sheetnames:
-        ws = wb_merged[sheet_name]
-        type_keyword = TYPE_KEYWORDS.get(sheet_name, "")
+    ws = wb_merged["Import"]
 
-        for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
-            parution_cell = row[4]  # Column E = Parution
-            parution = str(parution_cell.value).strip().lower() if parution_cell.value is not None else ""
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
+        type_value = str(row[0].value).strip() if row[0].value else ""
+        type_keyword = TYPE_KEYWORDS.get(type_value, "")
 
-            if "fini" not in parution:
-                continue
+        parution_cell = row[5]  # Column F = Parution (0-indexed col 5)
+        parution = str(parution_cell.value).strip().lower() if parution_cell.value is not None else ""
 
-            # Already has a number?
-            if re.search(r"\d+", parution):
-                continue
+        if "fini" not in parution:
+            continue
 
-            title = str(row[0].value).strip() if row[0].value else ""
-            if not title:
-                continue
+        # Already has a number?
+        if re.search(r"\d+", parution):
+            continue
 
-            wiki_total += 1
-            count, wiki_title = lookup_volume_count(title, type_keyword)
-            time.sleep(0.3)  # Rate limit
+        title = str(row[1].value).strip() if row[1].value else ""
+        if not title:
+            continue
 
-            if count is not None:
-                ws.cell(row=row_idx, column=5).value = f"fini {count}"
-                wiki_found += 1
-                print(f"  ✓ [{sheet_name}] {title} → {count} tomes (via {wiki_title})")
-            else:
-                wiki_not_found.append((sheet_name, title))
-                print(f"  ✗ [{sheet_name}] {title} → non trouvé")
+        wiki_total += 1
+        count, wiki_title = lookup_volume_count(title, type_keyword)
+        time.sleep(0.3)  # Rate limit
+
+        if count is not None:
+            ws.cell(row=row_idx, column=6).value = f"fini {count}"  # Column F (1-indexed = 6)
+            wiki_found += 1
+            print(f"  ✓ [{type_value}] {title} → {count} tomes (via {wiki_title})")
+        else:
+            wiki_not_found.append((type_value, title))
+            print(f"  ✗ [{type_value}] {title} → non trouvé")
 
     wb_merged.save(MERGED_PATH)
     print(f"\nWikipedia : {wiki_found}/{wiki_total} trouvés")
     if wiki_not_found:
         print(f"Non trouvés ({len(wiki_not_found)}) :")
-        for sheet, title in wiki_not_found:
-            print(f"  [{sheet}] {title}")
+        for type_val, title in wiki_not_found:
+            print(f"  [{type_val}] {title}")
 
-    # === Task 2: Add ISBNs for bought series to clean-livres.xlsx ===
+    # === Task 2: Add ISBNs for bought series without ISBN in import.xlsx ===
     print("\n=== Recherche d'ISBN via Google Books ===\n")
 
     # Reload merged file (freshly saved)
-    wb_merged = openpyxl.load_workbook(MERGED_PATH, read_only=True, data_only=True)
+    wb_merged = openpyxl.load_workbook(MERGED_PATH)
 
-    # Get existing series in clean-livres
-    wb_livres = openpyxl.load_workbook(LIVRES_PATH)
-    ws_livres = wb_livres[wb_livres.sheetnames[0]]
-
-    existing_livres = set()
-    for row in ws_livres.iter_rows(min_row=2, values_only=True):
-        if row[1]:
-            existing_livres.add(extract_series(str(row[1])))
-
-    # Find bought series not in clean-livres
+    # Find bought series without ISBN (col 9, 0-indexed)
     bought_series = []
-    for sheet_name in wb_merged.sheetnames:
-        for row in wb_merged[sheet_name].iter_rows(min_row=2, values_only=True):
-            title = str(row[0]).strip() if row[0] else ""
-            buy_status = str(row[1]).strip().lower() if row[1] is not None else ""
-            bought = str(row[2]).strip() if row[2] is not None else ""
+    ws = wb_merged["Import"]
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
+        type_value = str(row[0].value).strip() if row[0].value else ""
+        title = str(row[1].value).strip() if row[1].value else ""
+        buy_status = str(row[2].value).strip().lower() if row[2].value is not None else ""
+        bought = str(row[3].value).strip() if row[3].value is not None else ""
+        isbn_cell = row[9] if len(row) > 9 else None  # Column J = ISBN (0-indexed col 9)
+        existing_isbn = isbn_cell.value if isbn_cell else None
 
-            has_bought = bought != "" and bought.lower() != "non"
-            has_buy = buy_status in ("oui", "fini")
+        has_bought = bought != "" and bought.lower() != "non"
+        has_buy = buy_status in ("oui", "fini")
 
-            if (has_bought or has_buy) and normalize(title) not in existing_livres:
-                # Determine first bought tome number
-                first_tome = 1
-                if "," in bought:
-                    nums = [int(x.strip()) for x in bought.split(",") if x.strip().isdigit() and int(x.strip()) > 0]
-                    if nums:
-                        first_tome = min(nums)
+        if (has_bought or has_buy) and not existing_isbn:
+            # Determine first bought tome number
+            first_tome = 1
+            if "," in bought:
+                nums = [int(x.strip()) for x in bought.split(",") if x.strip().isdigit() and int(x.strip()) > 0]
+                if nums:
+                    first_tome = min(nums)
 
-                category = {
-                    "BD": "BD",
-                    "Comics": "Comics",
-                    "Mangas": "Manga",
-                    "Livre": "Livre",
-                }.get(sheet_name, "BD")
-
-                bought_series.append((title, first_tome, category))
-
-    wb_merged.close()
+            bought_series.append((type_value, row_idx, title, first_tome))
 
     isbn_found = 0
     isbn_not_found = []
 
-    for title, first_tome, category in bought_series:
+    for type_value, row_idx, title, first_tome in bought_series:
         isbn, book_title = lookup_isbn(title, first_tome)
         time.sleep(0.3)  # Rate limit
 
         if isbn:
-            ws_livres.append([isbn, book_title or title, None, None, None, category, None])
+            ws = wb_merged["Import"]
+            ws.cell(row=row_idx, column=10).value = isbn  # Column J = ISBN (1-indexed = 10)
             isbn_found += 1
-            print(f"  ✓ {title} T{first_tome} → {isbn} ({book_title})")
+            print(f"  ✓ [{type_value}] {title} T{first_tome} → {isbn} ({book_title})")
         else:
-            isbn_not_found.append((title, first_tome, category))
-            print(f"  ✗ {title} T{first_tome} → non trouvé")
+            isbn_not_found.append((type_value, title, first_tome))
+            print(f"  ✗ [{type_value}] {title} T{first_tome} → non trouvé")
 
-    wb_livres.save(LIVRES_PATH)
+    wb_merged.save(MERGED_PATH)
     print(f"\nGoogle Books : {isbn_found}/{len(bought_series)} ISBN trouvés")
     if isbn_not_found:
         print(f"Non trouvés ({len(isbn_not_found)}) :")
-        for title, tome, cat in isbn_not_found:
-            print(f"  [{cat}] {title} T{tome}")
+        for type_val, title, tome in isbn_not_found:
+            print(f"  [{type_val}] {title} T{tome}")
 
     # === Summary ===
     print("\n=== RÉSUMÉ ===")
     print(f"Wikipedia (parutions fini) : {wiki_found}/{wiki_total} enrichis")
-    print(f"Google Books (ISBN)        : {isbn_found}/{len(bought_series)} ajoutés à clean-livres.xlsx")
+    print(f"Google Books (ISBN)        : {isbn_found}/{len(bought_series)} ajoutés à import.xlsx")
 
 
 if __name__ == "__main__":
