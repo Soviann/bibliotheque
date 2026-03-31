@@ -340,12 +340,12 @@ export default function ComicForm() {
               </label>
               <label className="flex items-center gap-1.5">
                 <input
-                  checked={form.defaultTomeDownloaded}
+                  checked={form.defaultTomeOnNas}
                   className={formCheckboxClassName}
-                  onChange={(e) => update("defaultTomeDownloaded", e.target.checked)}
+                  onChange={(e) => update("defaultTomeOnNas", e.target.checked)}
                   type="checkbox"
                 />
-                <span className="text-sm text-text-secondary">Téléchargés</span>
+                <span className="text-sm text-text-secondary">Sur NAS</span>
               </label>
               <label className="flex items-center gap-1.5">
                 <input

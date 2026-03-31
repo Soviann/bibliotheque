@@ -343,7 +343,7 @@ parameters:
 			path: tests/Unit/Service/Import/ImportExcelServiceTest.php
 
 		-
-			message: '#^Cannot access offset ''sheetDetails'' on mixed\.$#'
+			message: '#^Cannot access offset ''typeDetails'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: tests/Unit/Service/Import/ImportExcelServiceTest.php

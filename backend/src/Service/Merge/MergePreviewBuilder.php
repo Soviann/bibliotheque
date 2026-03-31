@@ -98,7 +98,7 @@ final readonly class MergePreviewBuilder
             authors: $this->reconcileAuthors($seriesList),
             coverUrl: $this->reconcileCoverUrl($seriesList),
             defaultTomeBought: false,
-            defaultTomeDownloaded: false,
+            defaultTomeOnNas: false,
             defaultTomeRead: false,
             description: $this->reconcileDescription($seriesList),
             isOneShot: false,
@@ -282,7 +282,6 @@ final readonly class MergePreviewBuilder
 
                 $tomes[] = new MergePreviewTome(
                     bought: $tome->isBought(),
-                    downloaded: $tome->isDownloaded(),
                     isbn: $tome->getIsbn(),
                     number: $number,
                     onNas: $tome->isOnNas(),

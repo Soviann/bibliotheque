@@ -40,7 +40,7 @@ final class ComicSeriesTest extends TestCase
         self::assertSame(ComicStatus::BUYING, $comic->getStatus());
         self::assertSame(ComicType::BD, $comic->getType());
         self::assertFalse($comic->isDefaultTomeBought());
-        self::assertFalse($comic->isDefaultTomeDownloaded());
+        self::assertFalse($comic->isDefaultTomeOnNas());
         self::assertFalse($comic->isDefaultTomeRead());
         self::assertNull($comic->getLatestPublishedIssue());
         self::assertFalse($comic->isLatestPublishedIssueComplete());
@@ -100,13 +100,13 @@ final class ComicSeriesTest extends TestCase
         self::assertTrue($comic->isDefaultTomeBought());
     }
 
-    public function testSetDefaultTomeDownloadedReturnsFluent(): void
+    public function testSetDefaultTomeOnNasReturnsFluent(): void
     {
         $comic = new ComicSeries();
-        $result = $comic->setDefaultTomeDownloaded(true);
+        $result = $comic->setDefaultTomeOnNas(true);
 
         self::assertSame($comic, $result);
-        self::assertTrue($comic->isDefaultTomeDownloaded());
+        self::assertTrue($comic->isDefaultTomeOnNas());
     }
 
     public function testSetDefaultTomeReadReturnsFluent(): void
@@ -452,7 +452,7 @@ final class ComicSeriesTest extends TestCase
     }
 
     // ---------------------------------------------------------------
-    // getLastBought / getLastDownloaded / getLastRead
+    // getLastBought / getLastOnNas / getLastRead
     // ---------------------------------------------------------------
 
     public function testGetLastBoughtNoTomesReturnsNull(): void
@@ -480,29 +480,29 @@ final class ComicSeriesTest extends TestCase
         self::assertSame(3, $comic->getLastBought());
     }
 
-    public function testGetLastDownloadedNoTomesReturnsNull(): void
+    public function testGetLastOnNasNoTomesReturnsNull(): void
     {
         $comic = EntityFactory::createComicSeries();
 
-        self::assertNull($comic->getLastDownloaded());
+        self::assertNull($comic->getLastOnNas());
     }
 
-    public function testGetLastDownloadedNoneDownloadedReturnsNull(): void
+    public function testGetLastOnNasNoneOnNasReturnsNull(): void
     {
         $comic = EntityFactory::createComicSeries();
-        $comic->addTome(EntityFactory::createTome(1, downloaded: false));
+        $comic->addTome(EntityFactory::createTome(1, onNas: false));
 
-        self::assertNull($comic->getLastDownloaded());
+        self::assertNull($comic->getLastOnNas());
     }
 
-    public function testGetLastDownloadedReturnsMaxDownloadedNumber(): void
+    public function testGetLastOnNasReturnsMaxOnNasNumber(): void
     {
         $comic = EntityFactory::createComicSeries();
-        $comic->addTome(EntityFactory::createTome(1, downloaded: true));
-        $comic->addTome(EntityFactory::createTome(2, downloaded: false));
-        $comic->addTome(EntityFactory::createTome(4, downloaded: true));
+        $comic->addTome(EntityFactory::createTome(1, onNas: true));
+        $comic->addTome(EntityFactory::createTome(2, onNas: false));
+        $comic->addTome(EntityFactory::createTome(4, onNas: true));
 
-        self::assertSame(4, $comic->getLastDownloaded());
+        self::assertSame(4, $comic->getLastOnNas());
     }
 
     public function testGetLastReadNoTomesReturnsNull(): void
@@ -727,22 +727,22 @@ final class ComicSeriesTest extends TestCase
         self::assertFalse($comic->isLastBoughtComplete());
     }
 
-    public function testIsLastDownloadedCompleteReturnsTrue(): void
+    public function testIsLastOnNasCompleteReturnsTrue(): void
     {
         $comic = EntityFactory::createComicSeries();
         $comic->setLatestPublishedIssue(3);
-        $comic->addTome(EntityFactory::createTome(3, downloaded: true));
+        $comic->addTome(EntityFactory::createTome(3, onNas: true));
 
-        self::assertTrue($comic->isLastDownloadedComplete());
+        self::assertTrue($comic->isLastOnNasComplete());
     }
 
-    public function testIsLastDownloadedCompleteReturnsFalseNoDownloaded(): void
+    public function testIsLastOnNasCompleteReturnsFalseNoOnNas(): void
     {
         $comic = EntityFactory::createComicSeries();
         $comic->setLatestPublishedIssue(3);
-        $comic->addTome(EntityFactory::createTome(3, downloaded: false));
+        $comic->addTome(EntityFactory::createTome(3, onNas: false));
 
-        self::assertFalse($comic->isLastDownloadedComplete());
+        self::assertFalse($comic->isLastOnNasComplete());
     }
 
     public function testIsLastReadCompleteReturnsTrue(): void

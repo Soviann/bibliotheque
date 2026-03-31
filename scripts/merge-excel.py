@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Fusionne Bibliotheque.xlsx + nas-import.xlsx → merged-import.xlsx
-Nettoie Livres.xlsx → clean-livres.xlsx
+Fusionne Bibliotheque.xlsx + nas-import.xlsx + Livres.xlsx → import.xlsx
 Enrichit les tomes achetés depuis Livres.xlsx dans le fichier fusionné.
+
+Format de sortie : feuille unique "Import" avec colonne Type en premier.
 """
 
 import difflib
@@ -18,37 +19,46 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BIBLIO_PATH = os.path.join(BASE_DIR, "var", "Bibliotheque.xlsx")
 NAS_PATH = os.path.join(BASE_DIR, "var", "nas-import.xlsx")
 LIVRES_PATH = os.path.join(BASE_DIR, "var", "Livres.xlsx")
-OUTPUT_MERGED = os.path.join(BASE_DIR, "var", "merged-import.xlsx")
-OUTPUT_LIVRES = os.path.join(BASE_DIR, "var", "clean-livres.xlsx")
+OUTPUT_MERGED = os.path.join(BASE_DIR, "var", "import.xlsx")
 
 # --- Column mappings ---
-# ImportExcelService expects: Titre(0), Buy?(1), Last bought(2), Current(3),
-#                             Parution(4), Last dled(5), On NAS?(6), Parution terminée(7)
+# Output format: Type(0), Titre(1), Buy?(2), Last bought(3), Current(4),
+#                Parution(5), Last dled(6), On NAS?(7), Parution terminée(8),
+#                ISBN(9), Auteur(10), Couverture(11), Éditeur(12), Catégories(13), Description(14)
 BIBLIO_HEADERS = [
-    "Titre", "Buy?", "Last bought", "Current",
+    "Type", "Titre", "Buy?", "Last bought", "Current",
     "Parution", "Last dled", "On NAS ?", "Parution terminée",
+    "ISBN", "Auteur", "Couverture", "Éditeur", "Catégories", "Description",
 ]
 
-# nas-import.xlsx columns → index in output
+# nas-import.xlsx columns → index in output (shifted +1 for Type column)
 NAS_COL_MAP = {
-    0: 0,  # Titre → Titre
-    1: 1,  # Statut → Buy?
-    2: 2,  # Dernier acheté → Last bought
-    3: 3,  # Lu jusqu'à → Current
-    4: 4,  # Nombre publié → Parution
-    5: 5,  # Dernier téléchargé → Last dled
-    6: 6,  # Sur NAS → On NAS ?
-    7: 7,  # Parution terminée → Parution terminée
+    0: 1,  # Titre → Titre
+    1: 2,  # Statut → Buy?
+    2: 3,  # Dernier acheté → Last bought
+    3: 4,  # Lu jusqu'à → Current
+    4: 5,  # Nombre publié → Parution
+    5: 6,  # Dernier téléchargé → Last dled
+    6: 7,  # Sur NAS → On NAS ?
+    7: 8,  # Parution terminée → Parution terminée
     # 8: Éditeur — not in ImportExcelService format, dropped
 }
 
 # Columns where Bibliotheque.xlsx takes priority on conflict
-BIBLIO_PRIORITY_COLS = {1, 2, 3}  # Buy?, Last bought, Current
+BIBLIO_PRIORITY_COLS = {2, 3, 4}  # Buy?, Last bought, Current
 # Columns where nas-import.xlsx takes priority on conflict
-NAS_PRIORITY_COLS = {5, 6}  # Last dled, On NAS ?
-# Columns where we keep whichever is non-null (or Biblio if both set): 4, 7
+NAS_PRIORITY_COLS = {6, 7}  # Last dled, On NAS ?
+# Columns where we keep whichever is non-null (or Biblio if both set): 5, 8
 
 SHEETS = ["BD", "Comics", "Mangas"]
+
+# Sheet name → Type column value
+SHEET_TYPE_VALUE = {
+    "BD": "BD",
+    "Comics": "Comics",
+    "Mangas": "Manga",
+    "Livre": "Livre",
+}
 
 # Tome extraction patterns (same as ImportBooksService)
 TOME_PATTERNS = [
@@ -62,11 +72,11 @@ TOME_PATTERNS = [
     r"^(.+?)\s*[-–]\s*n[oº°]?\s*(\d+)",
 ]
 
-# Category → sheet type mapping
-CATEGORY_SHEET_MAP = {
+# Category → type value mapping
+CATEGORY_TYPE_MAP = {
     "bd": "BD",
     "comics": "Comics",
-    "manga": "Mangas",
+    "manga": "Manga",
     "livre": "Livre",
 }
 
@@ -175,15 +185,15 @@ def extract_series(title):
     return title.strip(), None
 
 
-def detect_sheet_type(categories):
-    """Determine which sheet a Livres.xlsx entry belongs to based on categories."""
+def detect_type_value(categories):
+    """Determine the Type column value based on categories."""
     if not categories:
         return None
     cats = str(categories).lower()
     # Priority order: BD > Comics > Manga > Livre
-    for keyword, sheet in [("bd", "BD"), ("comics", "Comics"), ("manga", "Mangas"), ("livre", "Livre")]:
+    for keyword, type_val in [("bd", "BD"), ("comics", "Comics"), ("manga", "Manga"), ("livre", "Livre")]:
         if keyword in cats:
-            return sheet
+            return type_val
     return None
 
 
@@ -192,30 +202,38 @@ def clean_title(title):
     return title.rstrip(". ") if title else title
 
 
-def read_sheet_rows(ws, max_cols=8):
-    """Read all data rows from a worksheet, returning list of lists."""
+def read_sheet_rows(ws, max_cols=14):
+    """Read all data rows from a worksheet, returning list of 15-element lists with type at index 0.
+
+    The source sheets have 14 columns (no Type). This function reads them and returns
+    15-element rows with None at index 0 (Type to be filled by caller).
+    """
     rows = []
     for row in ws.iter_rows(min_row=2, values_only=True):
         title = row[0] if row else None
         if title is None:
             continue
-        # Normalize to max_cols columns
+        # Read source columns (14 cols), prepend None for Type
         values = list(row[:max_cols])
         while len(values) < max_cols:
             values.append(None)
         # Ensure title is string, clean trailing dots/spaces
         values[0] = clean_title(str(values[0]).strip()) if values[0] is not None else None
+        # Prepend Type placeholder (index 0)
+        values = [None] + values
         rows.append(values)
     return rows
 
 
 def merge_rows(biblio_row, nas_row):
     """Merge two rows, taking the best value from each source."""
-    merged = [None] * 8
-    # Title: prefer Bibliotheque (original user data)
+    merged = [None] * 15
+    # Type: preserve from biblio_row
     merged[0] = biblio_row[0]
+    # Title: prefer Bibliotheque (original user data)
+    merged[1] = biblio_row[1]
 
-    for col in range(1, 8):
+    for col in range(2, 15):
         bval = biblio_row[col] if col < len(biblio_row) else None
         nval = nas_row[col] if col < len(nas_row) else None
 
@@ -235,14 +253,14 @@ def merge_rows(biblio_row, nas_row):
 
 
 def nas_row_to_output(nas_row):
-    """Convert a nas-import row to the output format."""
-    output = [None] * 8
+    """Convert a nas-import row to the output format (15 elements with Type at index 0)."""
+    output = [None] * 15
     for nas_idx, out_idx in NAS_COL_MAP.items():
         if nas_idx < len(nas_row):
             output[out_idx] = nas_row[nas_idx]
     # Ensure title is string, clean trailing dots/spaces
-    if output[0] is not None:
-        output[0] = clean_title(str(output[0]).strip())
+    if output[1] is not None:
+        output[1] = clean_title(str(output[1]).strip())
     return output
 
 
@@ -282,6 +300,13 @@ def format_specific_tomes(tomes):
     return ", ".join(str(t) for t in sorted(tomes))
 
 
+def format_tome_isbns(tome_isbns):
+    """Format tome→ISBN mapping as 'ISBN1:T1,ISBN2:T8,...' string."""
+    if not tome_isbns:
+        return None
+    return ",".join(f"{isbn}:T{num}" for num, isbn in sorted(tome_isbns.items()))
+
+
 def main():
     # Verify all input files exist
     for path, name in [(BIBLIO_PATH, "Bibliotheque.xlsx"), (NAS_PATH, "nas-import.xlsx"), (LIVRES_PATH, "Livres.xlsx")]:
@@ -298,7 +323,7 @@ def main():
     print("\n--- Extraction des tomes achetés depuis Livres.xlsx ---")
     ws_livres = wb_livres[wb_livres.sheetnames[0]]
 
-    # series_key → {sheet_type, max_tome, name, count}
+    # series_key → {type_value, max_tome, name, count, tome_isbns, author, cover, publisher, categories, description}
     bought_tomes = {}
     for row in ws_livres.iter_rows(min_row=2, values_only=True):
         title = row[1]
@@ -306,16 +331,38 @@ def main():
         if not title:
             continue
         series_name, tome_num = extract_series(str(title))
-        sheet_type = detect_sheet_type(categories)
+        type_value = detect_type_value(categories)
         key = normalize(series_name)
 
+        # Clean ISBN: remove .0 suffix from Excel
+        isbn = row[0]
+        if isbn is not None:
+            isbn_str = str(isbn)
+            if isbn_str.endswith(".0"):
+                isbn_str = isbn_str[:-2]
+            isbn = isbn_str if isbn_str else None
+
+        # Clean cover: replace file:// URLs with None
+        cover = row[4]
+        if cover and str(cover).startswith("file://"):
+            cover = None
+
         if key not in bought_tomes:
+            tome_isbns = {}
+            if isbn and tome_num is not None:
+                tome_isbns[tome_num] = isbn
             bought_tomes[key] = {
                 "name": series_name,
-                "sheet_type": sheet_type,
+                "type_value": type_value,
                 "max_tome": tome_num,
                 "specific_tomes": {tome_num} if tome_num else set(),
                 "count": 1,
+                "tome_isbns": tome_isbns,
+                "author": row[2],
+                "cover": cover,
+                "publisher": row[3],
+                "categories": categories,
+                "description": row[6],
             }
         else:
             bought_tomes[key]["count"] += 1
@@ -324,18 +371,29 @@ def main():
                 current_max = bought_tomes[key]["max_tome"]
                 if current_max is None or tome_num > current_max:
                     bought_tomes[key]["max_tome"] = tome_num
+                if isbn:
+                    bought_tomes[key]["tome_isbns"][tome_num] = isbn
+            if bought_tomes[key]["author"] is None and row[2]:
+                bought_tomes[key]["author"] = row[2]
+            if bought_tomes[key]["cover"] is None and cover:
+                bought_tomes[key]["cover"] = cover
+            if bought_tomes[key]["publisher"] is None and row[3]:
+                bought_tomes[key]["publisher"] = row[3]
+            if bought_tomes[key]["categories"] is None and categories:
+                bought_tomes[key]["categories"] = categories
+            if bought_tomes[key]["description"] is None and row[6]:
+                bought_tomes[key]["description"] = row[6]
 
     print(f"  {len(bought_tomes)} séries extraites ({sum(1 for v in bought_tomes.values() if v['max_tome'])} avec tomes)")
 
-    # === Step 2: Merge Bibliotheque + NAS per sheet ===
-    wb_out = openpyxl.Workbook()
-    wb_out.remove(wb_out.active)
-
+    # === Step 2: Merge Bibliotheque + NAS per sheet, collect all rows ===
+    all_rows = []  # All rows with Type at index 0
     stats = {}
     enrichment_stats = {"matched": 0, "updated_bought": 0}
 
     for sheet_name in SHEETS:
         print(f"\n--- Fusion onglet {sheet_name} ---")
+        type_value = SHEET_TYPE_VALUE[sheet_name]
 
         # Read both sources
         biblio_rows = read_sheet_rows(wb_biblio[sheet_name]) if sheet_name in wb_biblio.sheetnames else []
@@ -347,16 +405,22 @@ def main():
                     converted = nas_row_to_output(list(row))
                     nas_rows.append(converted)
 
+        # Set type for all source rows
+        for row in biblio_rows:
+            row[0] = type_value
+        for row in nas_rows:
+            row[0] = type_value
+
         # Index by normalized title
         biblio_index = {}
         for row in biblio_rows:
-            key = normalize(row[0])
+            key = normalize(row[1])
             if key:
                 biblio_index[key] = row
 
         nas_index = {}
         for row in nas_rows:
-            key = normalize(row[0])
+            key = normalize(row[1])
             if key:
                 nas_index[key] = row
 
@@ -369,7 +433,7 @@ def main():
 
         # Process Bibliotheque rows first (preserving order)
         for row in biblio_rows:
-            key = normalize(row[0])
+            key = normalize(row[1])
             if not key or key in merged_keys:
                 continue
             merged_keys.add(key)
@@ -378,12 +442,15 @@ def main():
                 merged_rows.append(merge_rows(row, nas_index[key]))
                 both_count += 1
             else:
-                merged_rows.append(list(row[:8]))
+                padded = list(row[:15])
+                while len(padded) < 15:
+                    padded.append(None)
+                merged_rows.append(padded)
                 only_biblio += 1
 
         # Add NAS-only rows
         for row in nas_rows:
-            key = normalize(row[0])
+            key = normalize(row[1])
             if not key or key in merged_keys:
                 continue
             merged_keys.add(key)
@@ -392,20 +459,37 @@ def main():
 
         # Enrich with Livres.xlsx bought tomes
         enriched_in_sheet = 0
-        merged_by_key = {normalize(r[0]): r for r in merged_rows}
+        merged_by_key = {normalize(r[1]): r for r in merged_rows}
+
+        def find_merged_row(livres_key):
+            """Find matching row: exact match first, then check if any merged key starts with livres_key or vice versa."""
+            if livres_key in merged_by_key:
+                return merged_by_key[livres_key]
+            # Fuzzy: livres_key is a prefix of a merged key, or merged key is a prefix of livres_key
+            for mkey, mrow in merged_by_key.items():
+                if len(livres_key) >= 4 and len(mkey) >= 4:
+                    if mkey.startswith(livres_key) or livres_key.startswith(mkey):
+                        return mrow
+            return None
+
+        # Match Livres.xlsx entries to this sheet's type
+        # For "Mangas" sheet, match type_value "Manga" from Livres.xlsx
+        livres_match_types = {type_value}
+        if sheet_name == "Mangas":
+            livres_match_types.add("Manga")
 
         for key, info in bought_tomes.items():
-            if info["sheet_type"] != sheet_name:
+            if info["type_value"] not in livres_match_types:
                 continue
-            if key not in merged_by_key:
+            row = find_merged_row(key)
+            if row is None:
                 continue
-
-            row = merged_by_key[key]
             enrichment_stats["matched"] += 1
+            info["_matched"] = True
 
-            # Update "Last bought" (col 2) with specific tomes from Livres.xlsx
+            # Update "Last bought" (col 3) with specific tomes from Livres.xlsx
             if info["max_tome"] is not None:
-                existing_specific, existing_max, existing_complete = parse_bought_value(row[2])
+                existing_specific, existing_max, existing_complete = parse_bought_value(row[3])
 
                 if existing_complete:
                     # Already "fini" — all tomes bought, nothing to add
@@ -413,7 +497,7 @@ def main():
                 elif existing_specific is not None:
                     # Existing is a CSV list — merge the specific tomes
                     merged_tomes = existing_specific | info["specific_tomes"]
-                    row[2] = format_specific_tomes(merged_tomes)
+                    row[3] = format_specific_tomes(merged_tomes)
                     if merged_tomes != existing_specific:
                         enrichment_stats["updated_bought"] += 1
                         enriched_in_sheet += 1
@@ -424,27 +508,34 @@ def main():
                     if extra:
                         # Convert to specific list: 1..existing_max + extras
                         all_tomes = set(range(1, existing_max + 1)) | extra
-                        row[2] = format_specific_tomes(all_tomes)
+                        row[3] = format_specific_tomes(all_tomes)
                         enrichment_stats["updated_bought"] += 1
                         enriched_in_sheet += 1
                 else:
                     # No existing value — set specific tomes from Livres.xlsx
-                    row[2] = format_specific_tomes(info["specific_tomes"])
+                    row[3] = format_specific_tomes(info["specific_tomes"])
                     enrichment_stats["updated_bought"] += 1
                     enriched_in_sheet += 1
 
             # Set Buy? = "oui" if not already set
-            if row[1] is None:
-                row[1] = "oui"
+            if row[2] is None:
+                row[2] = "oui"
 
-        # Sort by title
-        merged_rows.sort(key=lambda r: normalize(r[0]))
+            # Populate metadata cols 9-14 from Livres.xlsx
+            if row[9] is None and format_tome_isbns(info["tome_isbns"]):
+                row[9] = format_tome_isbns(info["tome_isbns"])
+            if row[10] is None and info["author"]:
+                row[10] = info["author"]
+            if row[11] is None and info["cover"]:
+                row[11] = info["cover"]
+            if row[12] is None and info["publisher"]:
+                row[12] = info["publisher"]
+            if row[13] is None and info["categories"]:
+                row[13] = info["categories"]
+            if row[14] is None and info["description"]:
+                row[14] = info["description"]
 
-        # Write sheet
-        ws_out = wb_out.create_sheet(title=sheet_name)
-        ws_out.append(BIBLIO_HEADERS)
-        for row in merged_rows:
-            ws_out.append(row)
+        all_rows.extend(merged_rows)
 
         total = len(merged_rows)
         stats[sheet_name] = {
@@ -456,186 +547,149 @@ def main():
         }
         print(f"  {total} séries (commun: {both_count}, biblio seul: {only_biblio}, NAS seul: {only_nas}, enrichis Livres: {enriched_in_sheet})")
 
-    # === Step 3: Copy Livre sheet from Bibliotheque ===
+    # === Step 3: Process Livre sheet from Bibliotheque ===
     print("\n--- Onglet Livre ---")
     livre_rows = read_sheet_rows(wb_biblio["Livre"]) if "Livre" in wb_biblio.sheetnames else []
+    for row in livre_rows:
+        row[0] = "Livre"
 
-    # Enrich Livre sheet with Livres.xlsx
-    livre_by_key = {normalize(r[0]): r for r in livre_rows}
+    # Enrich Livre rows with Livres.xlsx
+    livre_by_key = {normalize(r[1]): r for r in livre_rows}
     enriched_livre = 0
     for key, info in bought_tomes.items():
-        if info["sheet_type"] != "Livre":
+        if info["type_value"] != "Livre":
             continue
         if key not in livre_by_key:
             continue
         row = livre_by_key[key]
         enrichment_stats["matched"] += 1
+        info["_matched"] = True
         if info["max_tome"] is not None:
-            existing_specific, existing_max, existing_complete = parse_bought_value(row[2])
+            existing_specific, existing_max, existing_complete = parse_bought_value(row[3])
             if not existing_complete:
                 if existing_specific is not None:
                     merged_tomes = existing_specific | info["specific_tomes"]
                     if merged_tomes != existing_specific:
-                        row[2] = format_specific_tomes(merged_tomes)
+                        row[3] = format_specific_tomes(merged_tomes)
                         enrichment_stats["updated_bought"] += 1
                         enriched_livre += 1
                 elif existing_max is not None:
                     extra = {t for t in info["specific_tomes"] if t > existing_max}
                     if extra:
                         all_tomes = set(range(1, existing_max + 1)) | extra
-                        row[2] = format_specific_tomes(all_tomes)
+                        row[3] = format_specific_tomes(all_tomes)
                         enrichment_stats["updated_bought"] += 1
                         enriched_livre += 1
                 else:
-                    row[2] = format_specific_tomes(info["specific_tomes"])
+                    row[3] = format_specific_tomes(info["specific_tomes"])
                     enrichment_stats["updated_bought"] += 1
                     enriched_livre += 1
-        if row[1] is None:
-            row[1] = "oui"
+        if row[2] is None:
+            row[2] = "oui"
 
-    livre_rows.sort(key=lambda r: normalize(r[0]))
+        # Populate metadata cols 9-14 from Livres.xlsx
+        if row[9] is None and format_tome_isbns(info["tome_isbns"]):
+            row[9] = format_tome_isbns(info["tome_isbns"])
+        if row[10] is None and info["author"]:
+            row[10] = info["author"]
+        if row[11] is None and info["cover"]:
+            row[11] = info["cover"]
+        if row[12] is None and info["publisher"]:
+            row[12] = info["publisher"]
+        if row[13] is None and info["categories"]:
+            row[13] = info["categories"]
+        if row[14] is None and info["description"]:
+            row[14] = info["description"]
 
-    ws_livre = wb_out.create_sheet(title="Livre")
-    ws_livre.append(BIBLIO_HEADERS)
-    for row in livre_rows:
-        ws_livre.append(row)
+    # Add unmatched Livres.xlsx entries to Livre rows
+    unmatched_added = 0
+    for key, info in bought_tomes.items():
+        if info.get("_matched"):
+            continue
+        # New row: type + title + metadata in cols 9-14, tracking cols 2-8 empty
+        new_row = [None] * 15
+        new_row[0] = "Livre"
+        new_row[1] = info["name"]
+        new_row[9] = format_tome_isbns(info["tome_isbns"])
+        new_row[10] = info["author"]
+        new_row[11] = info["cover"]
+        new_row[12] = info["publisher"]
+        new_row[13] = info["categories"]
+        new_row[14] = info["description"]
+        livre_rows.append(new_row)
+        unmatched_added += 1
 
-    stats["Livre"] = {"total": len(livre_rows), "enriched": enriched_livre}
-    print(f"  {len(livre_rows)} séries (enrichis Livres: {enriched_livre})")
+    all_rows.extend(livre_rows)
 
-    # === Step 3b: Deduplicate cross-sheet entries ===
-    print("\n--- Déduplication cross-onglets ---")
-    # Build index of all titles across sheets
-    sheet_priority = {"BD": 1, "Mangas": 2, "Comics": 3, "Livre": 4}
-    all_entries = {}  # normalized_key -> list of (sheet_name, row_idx, has_data)
+    stats["Livre"] = {"total": len(livre_rows), "enriched": enriched_livre, "unmatched_added": unmatched_added}
+    print(f"  {len(livre_rows)} séries (enrichis Livres: {enriched_livre}, ajoutés non-matchés: {unmatched_added})")
 
-    for sheet_name in wb_out.sheetnames:
-        ws = wb_out[sheet_name]
-        for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
-            title = str(row[0].value).strip() if row[0].value else ""
-            key = normalize(title)
-            if not key:
-                continue
-            has_data = any(cell.value is not None for cell in row[1:8])
-            all_entries.setdefault(key, []).append({
-                "sheet": sheet_name,
-                "row_idx": row_idx,
-                "has_data": has_data,
-                "priority": sheet_priority.get(sheet_name, 99),
-            })
+    # === Step 3b: Deduplicate cross-type entries ===
+    print("\n--- Déduplication cross-types ---")
+    type_priority = {"BD": 1, "Manga": 2, "Comics": 3, "Livre": 4}
 
-    rows_to_delete = {}  # sheet_name -> list of row_idx
+    # Build index of all titles
+    all_entries = {}  # normalized_key -> list of (index, type, has_data)
+    for idx, row in enumerate(all_rows):
+        title = str(row[1]).strip() if row[1] else ""
+        key = normalize(title)
+        if not key:
+            continue
+        has_data = any(v is not None for v in row[2:15])
+        all_entries.setdefault(key, []).append({
+            "idx": idx,
+            "type": row[0],
+            "has_data": has_data,
+            "priority": type_priority.get(row[0], 99),
+        })
+
+    indices_to_delete = set()
     cross_dupes = 0
 
     for key, entries in all_entries.items():
-        sheets = set(e["sheet"] for e in entries)
-        if len(sheets) <= 1:
+        types = set(e["type"] for e in entries)
+        if len(types) <= 1:
             continue
 
         # Keep entry with data + best priority; merge data into keeper
         entries.sort(key=lambda e: (not e["has_data"], e["priority"]))
         keeper = entries[0]
-        ws_keeper = wb_out[keeper["sheet"]]
 
         for other in entries[1:]:
-            ws_other = wb_out[other["sheet"]]
             # Merge non-null values from other into keeper
-            for col in range(2, 9):  # columns B-H
-                if ws_keeper.cell(row=keeper["row_idx"], column=col).value is None:
-                    other_val = ws_other.cell(row=other["row_idx"], column=col).value
+            for col in range(2, 15):
+                if all_rows[keeper["idx"]][col] is None:
+                    other_val = all_rows[other["idx"]][col]
                     if other_val is not None:
-                        ws_keeper.cell(row=keeper["row_idx"], column=col).value = other_val
+                        all_rows[keeper["idx"]][col] = other_val
 
-            rows_to_delete.setdefault(other["sheet"], []).append(other["row_idx"])
+            indices_to_delete.add(other["idx"])
             cross_dupes += 1
-            title = ws_other.cell(row=other["row_idx"], column=1).value
-            print(f"  '{title}' [{other['sheet']}] fusionné dans [{keeper['sheet']}]")
+            title = all_rows[other["idx"]][1]
+            print(f"  '{title}' [{other['type']}] fusionné dans [{keeper['type']}]")
 
-    for sheet_name, indices in rows_to_delete.items():
-        ws = wb_out[sheet_name]
-        for row_idx in sorted(indices, reverse=True):
-            ws.delete_rows(row_idx)
+    # Remove duplicates (reverse order to preserve indices)
+    for idx in sorted(indices_to_delete, reverse=True):
+        del all_rows[idx]
 
     if cross_dupes:
-        print(f"  {cross_dupes} doublons cross-onglets fusionnés")
+        print(f"  {cross_dupes} doublons cross-types fusionnés")
     else:
-        print("  Aucun doublon cross-onglets")
+        print("  Aucun doublon cross-types")
 
-    # Save merged file
+    # Sort all rows by type priority then title
+    all_rows.sort(key=lambda r: (type_priority.get(r[0], 99), normalize(r[1])))
+
+    # === Write single "Import" sheet ===
+    wb_out = openpyxl.Workbook()
+    ws_out = wb_out.active
+    ws_out.title = "Import"
+    ws_out.append(BIBLIO_HEADERS)
+    for row in all_rows:
+        ws_out.append(row)
+
     wb_out.save(OUTPUT_MERGED)
     print(f"\n✓ Fichier fusionné : {OUTPUT_MERGED}")
-
-    # === Step 4: Clean Livres.xlsx ===
-    print("\n--- Nettoyage Livres.xlsx ---")
-    wb_clean = openpyxl.Workbook()
-    ws_clean = wb_clean.active
-    ws_clean.title = "Bibliothèque"
-
-    clean_headers = ["Code-barres", "Titre", "Auteur", "Éditeur", "Couverture", "Catégories", "Description"]
-    ws_clean.append(clean_headers)
-
-    book_count = 0
-    file_urls_cleaned = 0
-    for row in wb_livres[wb_livres.sheetnames[0]].iter_rows(min_row=2, values_only=True):
-        title = row[1]
-        if not title:
-            continue
-
-        isbn = row[0]
-        # Clean ISBN: remove .0 suffix from Excel
-        if isbn is not None:
-            isbn_str = str(isbn)
-            if isbn_str.endswith(".0"):
-                isbn_str = isbn_str[:-2]
-            isbn = isbn_str
-
-        author = row[2]
-        publisher = row[3]
-        cover = row[4]
-        categories = row[5]
-        description = row[6]
-
-        # Replace file:// URLs with None
-        if cover and str(cover).startswith("file://"):
-            cover = None
-            file_urls_cleaned += 1
-
-        ws_clean.append([isbn, str(title), author, publisher, cover, categories, description])
-        book_count += 1
-
-    # Deduplicate by ISBN and normalized title
-    seen_isbn = set()
-    seen_title = set()
-    rows_to_delete = []
-
-    for row_idx, row in enumerate(ws_clean.iter_rows(min_row=2, values_only=False), start=2):
-        isbn = str(row[0].value).strip() if row[0].value else ""
-        title = str(row[1].value).strip() if row[1].value else ""
-        title_key = normalize(title)
-
-        is_dupe = False
-        if isbn and isbn != "None" and isbn in seen_isbn:
-            is_dupe = True
-        elif title_key and title_key in seen_title:
-            is_dupe = True
-
-        if is_dupe:
-            rows_to_delete.append(row_idx)
-        else:
-            if isbn and isbn != "None":
-                seen_isbn.add(isbn)
-            if title_key:
-                seen_title.add(title_key)
-
-    for row_idx in sorted(rows_to_delete, reverse=True):
-        ws_clean.delete_rows(row_idx)
-
-    dupes_removed = len(rows_to_delete)
-    book_count -= dupes_removed
-
-    wb_clean.save(OUTPUT_LIVRES)
-    print(f"  {book_count} livres ({file_urls_cleaned} URLs file:// supprimées, {dupes_removed} doublons supprimés)")
-    print(f"✓ Fichier nettoyé : {OUTPUT_LIVRES}")
 
     # Close source workbooks
     wb_biblio.close()
@@ -644,12 +698,10 @@ def main():
 
     # === Summary ===
     print("\n=== RÉSUMÉ ===")
-    grand_total = sum(s["total"] for s in stats.values())
-    print(f"Total séries dans merged-import.xlsx : {grand_total}")
+    print(f"Total séries dans import.xlsx : {len(all_rows)}")
     for sheet_name, s in stats.items():
         print(f"  {sheet_name}: {s['total']}")
     print(f"Enrichissements Livres.xlsx : {enrichment_stats['matched']} matchés, {enrichment_stats['updated_bought']} 'Last bought' mis à jour")
-    print(f"clean-livres.xlsx : {book_count} livres")
 
 
 if __name__ == "__main__":

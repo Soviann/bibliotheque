@@ -19,7 +19,7 @@ final readonly class MergePreview implements \JsonSerializable
         public array $authors,
         public ?string $coverUrl,
         public bool $defaultTomeBought,
-        public bool $defaultTomeDownloaded,
+        public bool $defaultTomeOnNas,
         public bool $defaultTomeRead,
         public ?string $description,
         public bool $isOneShot,
@@ -38,7 +38,7 @@ final readonly class MergePreview implements \JsonSerializable
     }
 
     /**
-     * @return array{amazonUrl: ?string, authors: list<string>, coverUrl: ?string, defaultTomeBought: bool, defaultTomeDownloaded: bool, defaultTomeRead: bool, description: ?string, isOneShot: bool, latestPublishedIssue: ?int, latestPublishedIssueComplete: bool, notInterestedBuy: bool, notInterestedNas: bool, publishedDate: ?string, publisher: ?string, sourceSeriesIds: list<int>, status: string, title: string, tomes: list<MergePreviewTome>, type: string}
+     * @return array{amazonUrl: ?string, authors: list<string>, coverUrl: ?string, defaultTomeBought: bool, defaultTomeOnNas: bool, defaultTomeRead: bool, description: ?string, isOneShot: bool, latestPublishedIssue: ?int, latestPublishedIssueComplete: bool, notInterestedBuy: bool, notInterestedNas: bool, publishedDate: ?string, publisher: ?string, sourceSeriesIds: list<int>, status: string, title: string, tomes: list<MergePreviewTome>, type: string}
      */
     public function jsonSerialize(): array
     {
@@ -47,7 +47,7 @@ final readonly class MergePreview implements \JsonSerializable
             'authors' => $this->authors,
             'coverUrl' => $this->coverUrl,
             'defaultTomeBought' => $this->defaultTomeBought,
-            'defaultTomeDownloaded' => $this->defaultTomeDownloaded,
+            'defaultTomeOnNas' => $this->defaultTomeOnNas,
             'defaultTomeRead' => $this->defaultTomeRead,
             'description' => $this->description,
             'isOneShot' => $this->isOneShot,

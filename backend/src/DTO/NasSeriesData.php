@@ -11,7 +11,7 @@ final readonly class NasSeriesData
 {
     public function __construct(
         public bool $isComplete,
-        public ?int $lastDownloaded,
+        public ?int $lastOnNas,
         public ?int $readUpTo,
         public bool $readComplete,
         public string $title,

@@ -45,7 +45,7 @@ describe("ComicDetail — inline tome toggle", () => {
 
   it("renders checkboxes for tome boolean fields", async () => {
     const tomes = [
-      createMockTome({ bought: true, downloaded: false, id: 10, number: 1, onNas: false, read: false }),
+      createMockTome({ bought: true, id: 10, number: 1, onNas: false, read: false }),
     ];
 
     server.use(
@@ -64,13 +64,12 @@ describe("ComicDetail — inline tome toggle", () => {
 
     const row = screen.getByText("1").closest("tr")!;
     const checkboxes = within(row).getAllByRole("checkbox");
-    expect(checkboxes).toHaveLength(4); // bought, downloaded, read, onNas
+    expect(checkboxes).toHaveLength(3); // bought, read, onNas
 
     // bought is checked, others are not
     expect(checkboxes[0]).toBeChecked();      // bought
-    expect(checkboxes[1]).not.toBeChecked();   // downloaded
-    expect(checkboxes[2]).not.toBeChecked();   // read
-    expect(checkboxes[3]).not.toBeChecked();   // onNas
+    expect(checkboxes[1]).not.toBeChecked();   // read
+    expect(checkboxes[2]).not.toBeChecked();   // onNas
   });
 
   it("sends PATCH request when toggling a tome checkbox", async () => {
@@ -137,7 +136,7 @@ describe("ComicDetail — inline tome toggle", () => {
     });
 
     const row = screen.getByText("1").closest("tr")!;
-    const readCheckbox = within(row).getAllByRole("checkbox")[2]; // read is 3rd checkbox
+    const readCheckbox = within(row).getAllByRole("checkbox")[1]; // read is 2nd checkbox
 
     expect(readCheckbox).not.toBeChecked();
 
@@ -212,7 +211,7 @@ describe("ComicDetail — inline tome toggle", () => {
     });
 
     const row = screen.getByText("3").closest("tr")!;
-    const readCheckbox = within(row).getAllByRole("checkbox")[2];
+    const readCheckbox = within(row).getAllByRole("checkbox")[1];
 
     await user.click(readCheckbox);
 
@@ -254,7 +253,7 @@ describe("ComicDetail — inline tome toggle", () => {
     // Toggle 3 tomes rapidly
     const rows = screen.getAllByRole("row").slice(1);
     for (const row of rows) {
-      const readCheckbox = within(row).getAllByRole("checkbox")[2];
+      const readCheckbox = within(row).getAllByRole("checkbox")[1];
       await user.click(readCheckbox);
     }
 
@@ -269,8 +268,8 @@ describe("ComicDetail — inline tome toggle", () => {
 
   it("renders header checkboxes for bulk toggle", async () => {
     const tomes = [
-      createMockTome({ bought: true, downloaded: false, id: 10, number: 1, onNas: false, read: false }),
-      createMockTome({ bought: true, downloaded: false, id: 11, number: 2, onNas: false, read: false }),
+      createMockTome({ bought: true, id: 10, number: 1, onNas: false, read: false }),
+      createMockTome({ bought: true, id: 11, number: 2, onNas: false, read: false }),
     ];
 
     server.use(
@@ -288,7 +287,6 @@ describe("ComicDetail — inline tome toggle", () => {
     });
 
     expect(screen.getByRole("checkbox", { name: /tout cocher acheté/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /tout cocher téléchargé/i })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /tout cocher lu/i })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /tout cocher nas/i })).toBeInTheDocument();
   });
@@ -413,9 +411,9 @@ describe("ComicDetail — inline tome toggle", () => {
     const patchedIds: number[] = [];
 
     const tomes = [
-      createMockTome({ downloaded: true, id: 10, number: 1 }),
-      createMockTome({ downloaded: false, id: 11, number: 2 }),
-      createMockTome({ downloaded: true, id: 12, number: 3 }),
+      createMockTome({ onNas: true, id: 10, number: 1 }),
+      createMockTome({ onNas: false, id: 11, number: 2 }),
+      createMockTome({ onNas: true, id: 12, number: 3 }),
     ];
 
     server.use(
@@ -426,7 +424,7 @@ describe("ComicDetail — inline tome toggle", () => {
       ),
       http.patch("/api/tomes/:id", async ({ params }) => {
         patchedIds.push(Number(params.id));
-        return HttpResponse.json(createMockTome({ downloaded: true, id: Number(params.id) }));
+        return HttpResponse.json(createMockTome({ onNas: true, id: Number(params.id) }));
       }),
     );
 
@@ -436,8 +434,8 @@ describe("ComicDetail — inline tome toggle", () => {
       expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
     });
 
-    // Click "select all downloaded" — only tome 11 needs changing
-    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher téléchargé/i });
+    // Click "select all NAS" — only tome 11 needs changing
+    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher nas/i });
     await user.click(headerCheckbox);
 
     await waitFor(() => {
@@ -467,7 +465,6 @@ describe("ComicDetail — inline tome toggle", () => {
 
     // Each checkbox should have an accessible label
     expect(screen.getByRole("checkbox", { name: /tome 3.*acheté/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /tome 3.*téléchargé/i })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /tome 3.*lu/i })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /tome 3.*nas/i })).toBeInTheDocument();
   });

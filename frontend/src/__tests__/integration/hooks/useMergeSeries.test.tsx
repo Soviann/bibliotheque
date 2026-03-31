@@ -89,7 +89,8 @@ describe("useMergeSeries", () => {
             tomes: [
               {
                 bought: true,
-                downloaded: false,
+
+
                 isbn: "978-2-01-210-1",
                 number: 1,
                 onNas: false,
@@ -99,7 +100,8 @@ describe("useMergeSeries", () => {
               },
               {
                 bought: true,
-                downloaded: false,
+
+
                 isbn: null,
                 number: 2,
                 onNas: false,
@@ -176,7 +178,7 @@ describe("useMergeSeries", () => {
         authors: ["Goscinny"],
         coverUrl: null,
         defaultTomeBought: false,
-        defaultTomeDownloaded: false,
+        defaultTomeOnNas: false,
         defaultTomeRead: false,
         description: null,
         isOneShot: false,

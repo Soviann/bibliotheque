@@ -4,99 +4,126 @@ declare(strict_types=1);
 
 namespace App\Service\Import;
 
-use App\DTO\ImportExcelResult;
 use App\DTO\ImportResult;
 use App\DTO\ParsedIntegerValue;
+use App\DTO\RowImportResult;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
+use App\Repository\AuthorRepository;
 use App\Repository\ComicSeriesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
- * Service d'import des données depuis un fichier Excel de suivi.
+ * Service d'import unifié : tracking + métadonnées depuis un fichier Excel unique.
+ *
+ * Feuille unique "Import" avec colonnes :
+ * 0: Type, 1: Titre, 2: Achète?, 3: Dernier acheté, 4: Lu, 5: Parution,
+ * 6: Dernier DL, 7: Sur NAS?, 8: Parution terminée,
+ * 9: ISBN, 10: Auteur, 11: Couverture, 12: Éditeur, 13: Catégories, 14: Description
  */
-final readonly class ImportExcelService
+final readonly class ImportService
 {
-    private const array SHEET_TYPE_MAP = [
+    /**
+     * Correspondance catégorie → ComicType (par ordre de priorité).
+     */
+    private const array CATEGORY_TYPE_MAP = [
+        'BD' => ComicType::BD,
+        'Comics' => ComicType::COMICS,
+        'Manga' => ComicType::MANGA,
+    ];
+
+    /**
+     * Correspondance valeur de la colonne Type → ComicType.
+     */
+    private const array TYPE_VALUE_MAP = [
         'BD' => ComicType::BD,
         'Comics' => ComicType::COMICS,
         'Livre' => ComicType::LIVRE,
-        'Mangas' => ComicType::MANGA,
+        'Manga' => ComicType::MANGA,
     ];
 
     public function __construct(
+        private AuthorRepository $authorRepository,
         private ComicSeriesRepository $comicSeriesRepository,
         private EntityManagerInterface $entityManager,
     ) {
     }
 
     /**
-     * Importe les données depuis un fichier Excel.
+     * Importe les données depuis un fichier Excel unifié (feuille unique "Import").
      */
-    public function import(string $filePath, bool $dryRun): ImportExcelResult
+    public function import(string $filePath, bool $dryRun): ImportResult
     {
         $spreadsheet = IOFactory::load($filePath);
+        $sheet = $spreadsheet->getSheet(0);
 
-        $sheetDetails = [];
+        /** @var array<int, array<int, mixed>> $data */
+        $data = $sheet->toArray();
+
+        $typeDetails = [];
         $totalCreated = 0;
+        $totalEnriched = 0;
         $totalTomes = 0;
         $totalUpdated = 0;
 
-        foreach (self::SHEET_TYPE_MAP as $sheetName => $comicType) {
-            $sheet = $spreadsheet->getSheetByName($sheetName);
+        $counter = \count($data);
 
-            if (!$sheet instanceof Worksheet) {
+        for ($i = 1; $i < $counter; ++$i) {
+            $row = $data[$i];
+            $typeString = \is_scalar($row[0]) ? \trim((string) $row[0]) : '';
+            $title = \is_scalar($row[1]) ? \trim((string) $row[1]) : '';
+
+            if ('' === $title || '' === $typeString) {
                 continue;
             }
 
-            /** @var array<int, array<int, mixed>> $data */
-            $data = $sheet->toArray();
-            $created = 0;
-            $tomesCount = 0;
-            $updated = 0;
-            $counter = \count($data);
+            $comicType = self::TYPE_VALUE_MAP[$typeString] ?? null;
 
-            for ($i = 1; $i < $counter; ++$i) {
-                $row = $data[$i];
-                $title = \is_scalar($row[0]) ? \trim((string) $row[0]) : '';
-
-                if ('' === $title) {
-                    continue;
-                }
-
-                $result = $this->importRow($row, $comicType);
-
-                if ($result instanceof ImportResult) {
-                    if (!$dryRun) {
-                        $this->entityManager->persist($result->series);
-                    }
-
-                    if ($result->isUpdate) {
-                        ++$updated;
-                    } else {
-                        ++$created;
-                    }
-                    $tomesCount += $result->tomesCount;
-                }
+            if (!$comicType instanceof ComicType) {
+                continue;
             }
 
-            if (!$dryRun) {
-                $this->entityManager->flush();
-            }
+            $result = $this->importRow($row, $comicType);
 
-            $sheetDetails[$sheetName] = ['created' => $created, 'tomes' => $tomesCount, 'updated' => $updated];
-            $totalCreated += $created;
-            $totalTomes += $tomesCount;
-            $totalUpdated += $updated;
+            if ($result instanceof RowImportResult) {
+                if (!$dryRun) {
+                    $this->entityManager->persist($result->series);
+                }
+
+                if (!isset($typeDetails[$typeString])) {
+                    $typeDetails[$typeString] = ['created' => 0, 'enriched' => 0, 'tomes' => 0, 'updated' => 0];
+                }
+
+                if ($result->isUpdate) {
+                    ++$typeDetails[$typeString]['updated'];
+                } else {
+                    ++$typeDetails[$typeString]['created'];
+                }
+                if ($result->metadataApplied) {
+                    ++$typeDetails[$typeString]['enriched'];
+                }
+                $typeDetails[$typeString]['tomes'] += $result->tomesCount;
+
+                $totalCreated += $result->isUpdate ? 0 : 1;
+                $totalUpdated += $result->isUpdate ? 1 : 0;
+                if ($result->metadataApplied) {
+                    ++$totalEnriched;
+                }
+                $totalTomes += $result->tomesCount;
+            }
         }
 
-        return new ImportExcelResult(
-            sheetDetails: $sheetDetails,
+        if (!$dryRun) {
+            $this->entityManager->flush();
+        }
+
+        return new ImportResult(
+            typeDetails: $typeDetails,
             totalCreated: $totalCreated,
+            totalEnriched: $totalEnriched,
             totalTomes: $totalTomes,
             totalUpdated: $totalUpdated,
         );
@@ -126,9 +153,9 @@ final readonly class ImportExcelService
      *
      * @param array<int, mixed> $row
      */
-    private function importRow(array $row, ComicType $comicType): ?ImportResult
+    private function importRow(array $row, ComicType $comicType): ?RowImportResult
     {
-        $title = \is_scalar($row[0]) ? \trim((string) $row[0]) : '';
+        $title = \is_scalar($row[1]) ? \trim((string) $row[1]) : '';
 
         if ('' === $title) {
             return null;
@@ -136,36 +163,36 @@ final readonly class ImportExcelService
 
         $title = self::normalizeTitle($title);
 
-        $statusValue = isset($row[1]) && \is_string($row[1]) ? $row[1] : null;
-        $lastBought = $this->parseIntegerValue($row[2] ?? null);
-        $currentIssue = $this->parseIntegerValue($row[3] ?? null);
-        $publishedCount = $this->parseIntegerValue($row[4] ?? null);
-        $lastDownloaded = $this->parseIntegerValue($row[5] ?? null);
+        $statusValue = isset($row[2]) && \is_string($row[2]) ? $row[2] : null;
+        $lastBought = $this->parseIntegerValue($row[3] ?? null);
+        $currentIssue = $this->parseIntegerValue($row[4] ?? null);
+        $publishedCount = $this->parseIntegerValue($row[5] ?? null);
+        $lastOnNas = $this->parseIntegerValue($row[6] ?? null);
         $notInterestedBuy = $this->isNonValue($statusValue);
-        $notInterestedNas = $this->isNonValue($row[6] ?? null);
-        $onNas = $this->determineOnNas($row[6] ?? null);
-        $onNasFini = $this->isFiniValue($row[6] ?? null);
-        $publicationFinished = $this->isOuiValue($row[7] ?? null);
-        $statusFini = $this->isFiniValue($row[1] ?? null);
+        $notInterestedNas = $this->isNonValue($row[7] ?? null);
+        $onNas = $this->determineOnNas($row[7] ?? null);
+        $onNasFini = $this->isFiniValue($row[7] ?? null);
+        $publicationFinished = $this->isOuiValue($row[8] ?? null);
+        $statusFini = $this->isFiniValue($row[2] ?? null);
 
         $latestPublishedIssue = $publishedCount->value;
         $latestPublishedIssueComplete = $publicationFinished
             || $publishedCount->isComplete
             || $lastBought->isComplete
             || $currentIssue->isComplete
-            || $lastDownloaded->isComplete
+            || $lastOnNas->isComplete
             || $onNasFini
             || $statusFini;
 
         $defaultTomeBought = $lastBought->isComplete || $statusFini;
-        $defaultTomeDownloaded = $lastDownloaded->isComplete || $onNasFini;
+        $defaultTomeOnNas = $lastOnNas->isComplete || $onNasFini;
         $defaultTomeRead = $currentIssue->isComplete;
 
         if ($latestPublishedIssueComplete && null === $publishedCount->value) {
             $latestPublishedIssue = \max(
                 $currentIssue->value ?? 0,
                 $lastBought->value ?? 0,
-                $lastDownloaded->value ?? 0
+                $lastOnNas->value ?? 0
             );
             if (0 === $latestPublishedIssue) {
                 $latestPublishedIssue = null;
@@ -182,7 +209,7 @@ final readonly class ImportExcelService
         }
 
         $comic->setDefaultTomeBought($defaultTomeBought);
-        $comic->setDefaultTomeDownloaded($defaultTomeDownloaded);
+        $comic->setDefaultTomeOnNas($defaultTomeOnNas);
         $comic->setDefaultTomeRead($defaultTomeRead);
         $comic->setLatestPublishedIssue($latestPublishedIssue);
         $comic->setLatestPublishedIssueComplete($latestPublishedIssueComplete);
@@ -196,24 +223,76 @@ final readonly class ImportExcelService
             $currentIssue->isComplete,
             $lastBought->value,
             $lastBought->isComplete,
-            $lastDownloaded->value,
-            $lastDownloaded->isComplete,
+            $lastOnNas->value,
+            $lastOnNas->isComplete,
             $onNas,
             $latestPublishedIssue,
             $publishedCount->hsCount,
             $lastBought->specificValues,
-            $lastDownloaded->specificValues,
+            $lastOnNas->specificValues,
         );
 
-        return new ImportResult(isUpdate: $isUpdate, series: $comic, tomesCount: $tomesCount);
+        $metadataApplied = $this->enrichRow($comic, $row);
+
+        return new RowImportResult(isUpdate: $isUpdate, metadataApplied: $metadataApplied, series: $comic, tomesCount: $tomesCount);
+    }
+
+    /**
+     * Enrichit une série avec les métadonnées des colonnes 9-14.
+     *
+     * @param array<int, mixed> $row
+     */
+    private function enrichRow(ComicSeries $comic, array $row): bool
+    {
+        $isbnField = isset($row[9]) && \is_scalar($row[9]) ? \trim((string) $row[9]) : '';
+        $authorField = isset($row[10]) && \is_scalar($row[10]) ? \trim((string) $row[10]) : '';
+        $coverUrl = isset($row[11]) && \is_scalar($row[11]) ? \trim((string) $row[11]) : '';
+        $publisher = isset($row[12]) && \is_scalar($row[12]) ? \trim((string) $row[12]) : '';
+        $categories = isset($row[13]) && \is_scalar($row[13]) ? \trim((string) $row[13]) : '';
+        $description = isset($row[14]) && \is_scalar($row[14]) ? \trim((string) $row[14]) : '';
+
+        if ('' === $isbnField && '' === $authorField && '' === $coverUrl && '' === $publisher && '' === $description) {
+            return false;
+        }
+
+        if ('' !== $coverUrl && !\str_starts_with($coverUrl, 'file://') && null === $comic->getCoverUrl()) {
+            $comic->setCoverUrl($coverUrl);
+        }
+
+        if ('' !== $description && null === $comic->getDescription()) {
+            $comic->setDescription($description);
+        }
+
+        if ('' !== $publisher && null === $comic->getPublisher()) {
+            $comic->setPublisher($publisher);
+        }
+
+        if ('' !== $authorField && $comic->getAuthors()->isEmpty()) {
+            $authorNames = $this->collectAuthorNames($authorField);
+            if ([] !== $authorNames) {
+                $authors = $this->authorRepository->findOrCreateMultiple($authorNames);
+                foreach ($authors as $author) {
+                    $comic->addAuthor($author);
+                }
+            }
+        }
+
+        if ('' !== $isbnField) {
+            $this->applyTomeIsbns($comic, $isbnField);
+        }
+
+        if ('' !== $categories && ComicType::LIVRE === $comic->getType()) {
+            $comic->setType($this->determineType($categories));
+        }
+
+        return true;
     }
 
     /**
      * Synchronise les tomes pour une série (crée les manquants, met à jour les existants).
-     */
-    /**
-     * @param list<int>|null $specificBoughtValues     Tomes spécifiques achetés (format CSV)
-     * @param list<int>|null $specificDownloadedValues Tomes spécifiques téléchargés (format CSV)
+     *
+     * @param list<int>|null $specificBoughtValues Tomes spécifiques achetés (format CSV)
+     * @param list<int>|null $specificOnNasValues  Tomes spécifiques sur le NAS (format CSV)
      */
     private function syncTomes(
         ComicSeries $comic,
@@ -221,19 +300,19 @@ final readonly class ImportExcelService
         bool $currentIssueComplete,
         ?int $lastBoughtValue,
         bool $lastBoughtComplete,
-        ?int $lastDownloadedValue,
-        bool $lastDownloadedComplete,
+        ?int $lastOnNasValue,
+        bool $lastOnNasComplete,
         bool $onNas,
         ?int $latestPublishedIssue,
         ?int $hsCount = null,
         ?array $specificBoughtValues = null,
-        ?array $specificDownloadedValues = null,
+        ?array $specificOnNasValues = null,
     ): int {
         $maxTomeNumber = $this->determineMaxTomeNumber(
             $currentIssueValue,
             $currentIssueComplete,
             $lastBoughtValue,
-            $lastDownloadedValue,
+            $lastOnNasValue,
             $latestPublishedIssue
         );
 
@@ -251,20 +330,18 @@ final readonly class ImportExcelService
                 $isBought = $lastBoughtComplete
                     || (null !== $specificBoughtValues && \in_array($number, $specificBoughtValues, true))
                     || (null === $specificBoughtValues && null !== $lastBoughtValue && $number <= $lastBoughtValue);
-                $isDownloaded = $lastDownloadedComplete
-                    || (null !== $specificDownloadedValues && \in_array($number, $specificDownloadedValues, true))
-                    || (null === $specificDownloadedValues && null !== $lastDownloadedValue && $number <= $lastDownloadedValue);
+                $isOnNas = $lastOnNasComplete
+                    || (null !== $specificOnNasValues && \in_array($number, $specificOnNasValues, true))
+                    || (null === $specificOnNasValues && null !== $lastOnNasValue && $number <= $lastOnNasValue);
 
                 if (isset($existingRegular[$number])) {
                     $existingRegular[$number]->setBought($isBought);
-                    $existingRegular[$number]->setDownloaded($isDownloaded);
-                    $existingRegular[$number]->setOnNas($onNas);
+                    $existingRegular[$number]->setOnNas($onNas || $isOnNas);
                 } else {
                     $tome = new Tome();
                     $tome->setBought($isBought);
-                    $tome->setDownloaded($isDownloaded);
                     $tome->setNumber($number);
-                    $tome->setOnNas($onNas);
+                    $tome->setOnNas($onNas || $isOnNas);
                     $comic->addTome($tome);
                     ++$newTomesCount;
                 }
@@ -302,7 +379,7 @@ final readonly class ImportExcelService
         ?int $currentIssueValue,
         bool $currentIssueComplete,
         ?int $lastBoughtValue,
-        ?int $lastDownloadedValue,
+        ?int $lastOnNasValue,
         ?int $latestPublishedIssue,
     ): ?int {
         $candidates = [];
@@ -318,8 +395,8 @@ final readonly class ImportExcelService
         if (null !== $lastBoughtValue) {
             $candidates[] = $lastBoughtValue;
         }
-        if (null !== $lastDownloadedValue) {
-            $candidates[] = $lastDownloadedValue;
+        if (null !== $lastOnNasValue) {
+            $candidates[] = $lastOnNasValue;
         }
 
         if ([] === $candidates) {
@@ -344,9 +421,6 @@ final readonly class ImportExcelService
         };
     }
 
-    /**
-     * Vérifie si une valeur est "fini".
-     */
     /**
      * Normalise une valeur mixte en chaîne minuscule trimée.
      */
@@ -466,5 +540,111 @@ final readonly class ImportExcelService
         $intValue = (int) $value;
 
         return new ParsedIntegerValue(hsCount: null, isComplete: false, specificValues: null, value: $intValue > 0 ? $intValue : null);
+    }
+
+    /**
+     * Collecte les noms d'auteurs uniques depuis un champ texte.
+     *
+     * @return string[]
+     */
+    private function collectAuthorNames(string $authorField): array
+    {
+        $names = [];
+        foreach (\explode(',', $authorField) as $name) {
+            $name = \trim($name);
+            if ('' !== $name && !\in_array(\mb_strtolower($name), \array_map(mb_strtolower(...), $names), true)) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * Nettoie un ISBN (supprime le .0 ajouté par Excel).
+     */
+    private function cleanIsbn(mixed $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        $isbn = \trim(\is_scalar($value) ? (string) $value : '');
+
+        if ('' === $isbn) {
+            return null;
+        }
+
+        if (\str_ends_with($isbn, '.0')) {
+            $isbn = \substr($isbn, 0, -2);
+        }
+
+        return $isbn;
+    }
+
+    /**
+     * Détermine le ComicType à partir des catégories.
+     */
+    private function determineType(string $categories): ComicType
+    {
+        $upper = \mb_strtoupper($categories);
+
+        foreach (self::CATEGORY_TYPE_MAP as $keyword => $type) {
+            if (\str_contains($upper, \mb_strtoupper($keyword))) {
+                return $type;
+            }
+        }
+
+        return ComicType::LIVRE;
+    }
+
+    /**
+     * Applique les ISBN aux tomes correspondants.
+     *
+     * Format : "ISBN1:T1,ISBN2:T8,..." ou simple ISBN (appliqué au tome 1).
+     */
+    private function applyTomeIsbns(ComicSeries $comic, string $isbnField): void
+    {
+        $tomeIsbns = $this->parseTomeIsbns($isbnField);
+
+        foreach ($comic->getTomes() as $tome) {
+            if ($tome->isHorsSerie() || null !== $tome->getIsbn()) {
+                continue;
+            }
+
+            $number = $tome->getNumber();
+            if (isset($tomeIsbns[$number])) {
+                $tome->setIsbn($tomeIsbns[$number]);
+            }
+        }
+    }
+
+    /**
+     * Parse le champ ISBN multi-valeurs.
+     *
+     * @return array<int, string> numéro de tome → ISBN
+     */
+    private function parseTomeIsbns(string $isbnField): array
+    {
+        // Format "ISBN1:T1,ISBN2:T8,..."
+        if (\str_contains($isbnField, ':T')) {
+            $result = [];
+            foreach (\explode(',', $isbnField) as $part) {
+                $part = \trim($part);
+                if (1 === \preg_match('/^(.+):T(\d+)$/', $part, $matches)) {
+                    $isbn = $this->cleanIsbn($matches[1]);
+                    if (null !== $isbn) {
+                        $result[(int) $matches[2]] = $isbn;
+                    }
+                }
+            }
+
+            return $result;
+        }
+
+        // Simple ISBN → apply to tome 1
+        $isbn = $this->cleanIsbn($isbnField);
+
+        return null !== $isbn ? [1 => $isbn] : [];
     }
 }

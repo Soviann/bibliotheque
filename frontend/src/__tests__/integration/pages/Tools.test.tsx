@@ -15,11 +15,10 @@ describe("Tools", () => {
     expect(screen.getByText("Outils")).toBeInTheDocument();
   });
 
-  it("renders 4 tool cards", () => {
+  it("renders tool cards", () => {
     renderWithProviders(<Tools />);
 
     expect(screen.getByText("Fusion de series")).toBeInTheDocument();
-    expect(screen.getByText("Import Excel")).toBeInTheDocument();
     expect(screen.getByText("Lookup metadonnees")).toBeInTheDocument();
     expect(screen.getByText("Purge corbeille")).toBeInTheDocument();
   });
@@ -31,7 +30,6 @@ describe("Tools", () => {
     const hrefs = links.map((link) => link.getAttribute("href"));
 
     expect(hrefs).toContain("/tools/merge-series");
-    expect(hrefs).toContain("/tools/import");
     expect(hrefs).toContain("/tools/lookup");
     expect(hrefs).toContain("/tools/purge");
   });

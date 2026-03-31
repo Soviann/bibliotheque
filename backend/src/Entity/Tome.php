@@ -87,13 +87,6 @@ class Tome
     private \DateTimeImmutable $createdAt;
 
     /**
-     * Indique si le tome a été téléchargé.
-     */
-    #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
-    #[ORM\Column]
-    private bool $downloaded = false;
-
-    /**
      * Numéro ISBN du tome.
      */
     #[Groups(['comic:read', 'comic:write', 'tome:read', 'tome:write'])]
@@ -192,18 +185,6 @@ class Tome
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function isDownloaded(): bool
-    {
-        return $this->downloaded;
-    }
-
-    public function setDownloaded(bool $downloaded): static
-    {
-        $this->downloaded = $downloaded;
 
         return $this;
     }

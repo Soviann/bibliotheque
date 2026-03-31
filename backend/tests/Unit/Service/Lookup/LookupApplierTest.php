@@ -205,7 +205,7 @@ final class LookupApplierTest extends TestCase
 
         foreach ($series->getTomes() as $tome) {
             self::assertFalse($tome->isBought());
-            self::assertFalse($tome->isDownloaded());
+            self::assertFalse($tome->isOnNas());
             self::assertFalse($tome->isRead());
         }
     }
@@ -214,7 +214,7 @@ final class LookupApplierTest extends TestCase
     {
         $series = EntityFactory::createComicSeries('Test');
         $series->setDefaultTomeBought(true);
-        $series->setDefaultTomeDownloaded(true);
+        $series->setDefaultTomeOnNas(true);
         $series->setDefaultTomeRead(true);
 
         $result = new LookupResult(
@@ -228,7 +228,7 @@ final class LookupApplierTest extends TestCase
 
         foreach ($series->getTomes() as $tome) {
             self::assertTrue($tome->isBought());
-            self::assertTrue($tome->isDownloaded());
+            self::assertTrue($tome->isOnNas());
             self::assertTrue($tome->isRead());
         }
     }

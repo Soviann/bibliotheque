@@ -6,7 +6,6 @@ import type { MergePreview, MergePreviewTome } from "../../../types/api";
 function createMockTome(overrides: Partial<MergePreviewTome> = {}): MergePreviewTome {
   return {
     bought: false,
-    downloaded: false,
     isbn: null,
     number: 1,
     onNas: false,
@@ -23,7 +22,7 @@ function createMockPreview(overrides: Partial<MergePreview> = {}): MergePreview 
     authors: [],
     coverUrl: null,
     defaultTomeBought: false,
-    defaultTomeDownloaded: false,
+    defaultTomeOnNas: false,
     defaultTomeRead: false,
     description: null,
     isOneShot: false,
@@ -61,7 +60,6 @@ describe("MergePreviewModal — accessibility", () => {
     );
 
     expect(screen.getByLabelText("Tome 1 acheté")).toBeInTheDocument();
-    expect(screen.getByLabelText("Tome 1 téléchargé")).toBeInTheDocument();
     expect(screen.getByLabelText("Tome 1 lu")).toBeInTheDocument();
     expect(screen.getByLabelText("Tome 1 sur NAS")).toBeInTheDocument();
     expect(screen.getByLabelText("Tome 2 acheté")).toBeInTheDocument();

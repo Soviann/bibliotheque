@@ -47,7 +47,6 @@ final class MergePreviewHydrator
 
                 return new MergePreviewTome(
                     bought: (bool) ($tomeData['bought'] ?? false),
-                    downloaded: (bool) ($tomeData['downloaded'] ?? false),
                     isbn: isset($tomeData['isbn']) && \is_string($tomeData['isbn']) ? $tomeData['isbn'] : null,
                     number: \is_numeric($tomeData['number'] ?? null) ? (int) $tomeData['number'] : 0,
                     onNas: (bool) ($tomeData['onNas'] ?? false),
@@ -70,7 +69,7 @@ final class MergePreviewHydrator
             authors: $authors,
             coverUrl: isset($data['coverUrl']) && \is_string($data['coverUrl']) ? $data['coverUrl'] : null,
             defaultTomeBought: (bool) ($data['defaultTomeBought'] ?? false),
-            defaultTomeDownloaded: (bool) ($data['defaultTomeDownloaded'] ?? false),
+            defaultTomeOnNas: (bool) ($data['defaultTomeOnNas'] ?? false),
             defaultTomeRead: (bool) ($data['defaultTomeRead'] ?? false),
             description: isset($data['description']) && \is_string($data['description']) ? $data['description'] : null,
             isOneShot: (bool) ($data['isOneShot'] ?? false),

@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { del } from "idb-keyval";
-import { ArrowRight, DatabaseZap, FileSpreadsheet, HelpCircle, Lightbulb, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
+import { ArrowRight, DatabaseZap, HelpCircle, Lightbulb, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
 import { type ComponentType, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,12 +24,6 @@ const tools: ToolCard[] = [
     icon: Merge,
     title: "Fusion de series",
     to: "/tools/merge-series",
-  },
-  {
-    description: "Importer des series depuis un fichier Excel (format Livres.xlsx ou suivi).",
-    icon: FileSpreadsheet,
-    title: "Import Excel",
-    to: "/tools/import",
   },
   {
     description: "Rechercher automatiquement les metadonnees manquantes pour les series.",

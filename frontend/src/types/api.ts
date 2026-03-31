@@ -34,7 +34,6 @@ export interface Tome {
   _syncPending?: boolean;
   bought: boolean;
   createdAt: string;
-  downloaded: boolean;
   id: number;
   isHorsSerie: boolean;
   isbn: string | null;
@@ -57,10 +56,10 @@ export interface ComicSeries {
   coverUrl: string | null;
   createdAt: string;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string | null;
-  downloadedCount: number;
+  onNasCount: number;
   id: number;
   isOneShot: boolean;
   maxTomeNumber: number | null;
@@ -103,7 +102,7 @@ export interface MergePreview {
   authors: string[];
   coverUrl: string | null;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string | null;
   isOneShot: boolean;
@@ -122,7 +121,6 @@ export interface MergePreview {
 
 export interface MergePreviewTome {
   bought: boolean;
-  downloaded: boolean;
   isbn: string | null;
   number: number;
   onNas: boolean;
@@ -134,22 +132,6 @@ export interface MergePreviewTome {
 export interface MergeSuggestion {
   entries: { id: number; tomeNumber: number | null }[];
   title: string;
-}
-
-export interface ImportExcelResult {
-  sheetDetails: Record<
-    string,
-    { created: number; tomes: number; updated: number }
-  >;
-  totalCreated: number;
-  totalTomes: number;
-  totalUpdated: number;
-}
-
-export interface ImportBooksResult {
-  created: number;
-  enriched: number;
-  groupCount: number;
 }
 
 export interface CoverSearchResult {
@@ -181,7 +163,7 @@ export interface CreateComicPayload {
   authors: string[];
   coverUrl: string | null;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string | null;
   isOneShot: boolean;
@@ -203,7 +185,6 @@ export interface UpdateComicPayload extends Partial<CreateComicPayload> {
 export interface TomePayload {
   "@id"?: string;
   bought: boolean;
-  downloaded: boolean;
   isHorsSerie: boolean;
   isbn: string | null;
   number: number;
@@ -215,7 +196,6 @@ export interface TomePayload {
 
 export interface CreateTomePayload {
   bought: boolean;
-  downloaded: boolean;
   isHorsSerie: boolean;
   isbn: string | null;
   number: number;

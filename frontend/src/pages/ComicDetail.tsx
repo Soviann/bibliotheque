@@ -44,13 +44,12 @@ function AuthorWithFollow({ author }: { author: { followedForNewSeries: boolean;
   );
 }
 
-type BooleanField = "bought" | "downloaded" | "onNas" | "read";
+type BooleanField = "bought" | "onNas" | "read";
 type SortKey = "number" | "title" | BooleanField;
 type SortDirection = "asc" | "desc";
 
 const FIELD_LABELS: Record<BooleanField, string> = {
   bought: "acheté",
-  downloaded: "téléchargé",
   onNas: "NAS",
   read: "lu",
 };
@@ -146,13 +145,13 @@ export default function ComicDetail() {
     [optimisticTomes, sort.key, sort.direction],
   );
 
-  const { boughtCount, downloadedCount, missingTomesCount, progressTotal, readCount } = useMemo(() => {
+  const { boughtCount, onNasCount, missingTomesCount, progressTotal, readCount } = useMemo(() => {
     const covered = countCoveredTomes(optimisticTomes);
     const published = comic?.latestPublishedIssue ?? 0;
     return {
       boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
-      downloadedCount: countCoveredTomes(optimisticTomes, (t) => t.downloaded),
       missingTomesCount: published > covered ? published - covered : 0,
+      onNasCount: countCoveredTomes(optimisticTomes, (t) => t.onNas),
       progressTotal: Math.max(published, covered),
       readCount: countCoveredTomes(optimisticTomes, (t) => t.read),
     };
@@ -174,7 +173,7 @@ export default function ComicDetail() {
   }, []);
 
   const handleToggleTome = useCallback(
-    (tome: Tome, field: "bought" | "downloaded" | "onNas" | "read") => {
+    (tome: Tome, field: "bought" | "onNas" | "read") => {
       const newValue = !tome[field];
 
       // Optimistic update
@@ -213,7 +212,7 @@ export default function ComicDetail() {
   );
 
   const handleToggleAllTomes = useCallback(
-    (field: "bought" | "downloaded" | "onNas" | "read") => {
+    (field: "bought" | "onNas" | "read") => {
       const allChecked = optimisticTomes.every((t) => t[field]);
       const targetValue = !allChecked;
 
@@ -457,13 +456,13 @@ export default function ComicDetail() {
                 </dd>
               </>
             )}
-            {(comic.defaultTomeBought || comic.defaultTomeDownloaded || comic.defaultTomeRead) && (
+            {(comic.defaultTomeBought || comic.defaultTomeOnNas || comic.defaultTomeRead) && (
               <>
                 <dt className="font-medium text-text-secondary">Nouveaux tomes</dt>
                 <dd className="text-text-secondary">
                   {[
                     comic.defaultTomeBought && "achetés",
-                    comic.defaultTomeDownloaded && "téléchargés",
+                    comic.defaultTomeOnNas && "sur NAS",
                     comic.defaultTomeRead && "lus",
                   ].filter(Boolean).join(", ")}
                 </dd>
@@ -484,7 +483,7 @@ export default function ComicDetail() {
         <div className="grid gap-3 sm:grid-cols-3">
           <ProgressBar color="bg-[rgb(var(--series-color))]" current={boughtCount} label="Achetés" total={progressTotal} />
           <ProgressBar color="bg-[rgb(var(--series-color))]" current={readCount} label="Lus" total={progressTotal} />
-          <ProgressBar color="bg-[rgb(var(--series-color))]" current={downloadedCount} label="Téléchargés" total={progressTotal} />
+          <ProgressBar color="bg-[rgb(var(--series-color))]" current={onNasCount} label="Sur NAS" total={progressTotal} />
         </div>
       )}
 
@@ -554,11 +553,11 @@ export default function ComicDetail() {
                         <SortIcon active={sort.key === "title"} direction={sort.direction} />
                       </button>
                     </th>
-                    {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
+                    {(["bought", "read", "onNas"] as const).map((field) => (
                       <th className="px-4 py-2 text-center font-medium text-text-secondary" key={field}>
                         <div className="flex flex-col items-center gap-1">
                           <button className="inline-flex items-center gap-1" onClick={() => dispatchSort(field)} type="button">
-                            <span>{field === "bought" ? "Acheté" : field === "downloaded" ? "Téléchargé" : field === "read" ? "Lu" : "NAS"}</span>
+                            <span>{field === "bought" ? "Acheté" : field === "read" ? "Lu" : "NAS"}</span>
                             <SortIcon active={sort.key === field} direction={sort.direction} />
                           </button>
                           <HeaderCheckbox field={field} onChange={() => handleToggleAllTomes(field)} tomes={optimisticTomes} />
@@ -575,11 +574,11 @@ export default function ComicDetail() {
                         {tome.isHorsSerie ? "HS" : ""}{tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
                       </td>
                       <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
-                      {(["bought", "downloaded", "read", "onNas"] as const).map((field) => (
+                      {(["bought", "read", "onNas"] as const).map((field) => (
                         <td className="px-4 py-2 text-center" key={field}>
                           <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
                             <input
-                              aria-label={`Tome ${tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number} ${field === "bought" ? "acheté" : field === "downloaded" ? "téléchargé" : field === "read" ? "lu" : "NAS"}`}
+                              aria-label={`Tome ${tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number} ${field === "bought" ? "acheté" : field === "read" ? "lu" : "NAS"}`}
                               checked={tome[field]}
                               className="h-5 w-5 cursor-pointer accent-primary-600"
                               onChange={() => handleToggleTome(tome, field)}

@@ -37,7 +37,6 @@ final class MergePreviewHydratorTest extends TestCase
             'tomes' => [
                 [
                     'bought' => true,
-                    'downloaded' => false,
                     'isbn' => '978-2-7234-1234-5',
                     'number' => 1,
                     'onNas' => true,

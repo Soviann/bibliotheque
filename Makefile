@@ -176,6 +176,22 @@ jwt: ## Générer les clés JWT
 scheduler: ## Lancer le scheduler manuellement
 	cd $(BACK) && php bin/console messenger:consume scheduler_default --time-limit=3600
 
+# ── Import ───────────────────────────────────────
+
+.PHONY: import
+
+import: ## Importer depuis un fichier Excel via SSH (usage : make import FILE=chemin.xlsx [DRY_RUN=1])
+ifndef FILE
+	$(error FILE est requis. Usage : make import FILE=chemin.xlsx [DRY_RUN=1])
+endif
+	docker cp $(FILE) bibliotheque-php-1:/tmp/import.xlsx
+ifdef DRY_RUN
+	docker exec bibliotheque-php-1 bin/console app:import /tmp/import.xlsx --dry-run
+else
+	docker exec bibliotheque-php-1 bin/console app:import /tmp/import.xlsx
+endif
+	docker exec bibliotheque-php-1 rm -f /tmp/import.xlsx
+
 # ── Production ────────────────────────────────────
 
 .PHONY: deploy

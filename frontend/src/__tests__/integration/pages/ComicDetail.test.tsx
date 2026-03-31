@@ -585,11 +585,11 @@ describe("ComicDetail", () => {
     });
   });
 
-  it("shows progress bars for bought, read, and downloaded", async () => {
+  it("shows progress bars for bought, read, and onNas", async () => {
     const tomes = [
-      createMockTome({ bought: true, downloaded: true, id: 1, number: 1, read: true }),
-      createMockTome({ bought: true, downloaded: false, id: 2, number: 2, read: false }),
-      createMockTome({ bought: false, downloaded: false, id: 3, number: 3, read: false }),
+      createMockTome({ bought: true, id: 1, number: 1, onNas: true, read: true }),
+      createMockTome({ bought: true, id: 2, number: 2, onNas: false, read: false }),
+      createMockTome({ bought: false, id: 3, number: 3, onNas: false, read: false }),
     ];
 
     server.use(
@@ -619,9 +619,9 @@ describe("ComicDetail", () => {
     // Achetés: 2/5
     expect(screen.getByText("2 / 5")).toBeInTheDocument();
 
-    // Lus: 1/5, Téléchargés: 1/5
+    // Lus: 1/5, Sur NAS: 1/5
     expect(screen.getByText("Lus")).toBeInTheDocument();
-    expect(screen.getByText("Téléchargés")).toBeInTheDocument();
+    expect(screen.getByText("Sur NAS")).toBeInTheDocument();
     expect(screen.getAllByText("1 / 5")).toHaveLength(2);
   });
 
@@ -656,8 +656,8 @@ describe("ComicDetail", () => {
 
   it("accounts for tome ranges in progress bars", async () => {
     const tomes = [
-      createMockTome({ bought: true, downloaded: true, id: 1, number: 1, read: true, tomeEnd: 2 }), // covers 2
-      createMockTome({ bought: true, downloaded: false, id: 2, number: 3, read: false }),            // covers 1
+      createMockTome({ bought: true, id: 1, number: 1, onNas: true, read: true, tomeEnd: 2 }), // covers 2
+      createMockTome({ bought: true, id: 2, number: 3, onNas: false, read: false }),            // covers 1
     ];
 
     server.use(
@@ -683,7 +683,7 @@ describe("ComicDetail", () => {
     // Achetés: tome 1-2 (bought) + tome 3 (bought) = 3 covered / 5 total
     expect(screen.getByText("3 / 5")).toBeInTheDocument();
     // Lus: only tome 1-2 (read) = 2 covered / 5 total
-    // Téléchargés: only tome 1-2 (downloaded) = 2 covered / 5 total
+    // Sur NAS: only tome 1-2 (onNas) = 2 covered / 5 total
     expect(screen.getAllByText("2 / 5")).toHaveLength(2);
   });
 
@@ -829,9 +829,9 @@ describe("ComicDetail", () => {
     expect(screen.queryByText("3-")).not.toBeInTheDocument();
   });
 
-  it("shows checked checkboxes for tome downloaded and onNas fields", async () => {
+  it("shows checked checkboxes for tome onNas field", async () => {
     const tomes = [
-      createMockTome({ downloaded: true, id: 1, number: 1, onNas: true, title: "Full Tome" }),
+      createMockTome({ id: 1, number: 1, onNas: true, title: "Full Tome" }),
     ];
 
     server.use(
@@ -848,7 +848,6 @@ describe("ComicDetail", () => {
       expect(screen.getByText("Full Tome")).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("checkbox", { name: /tome 1.*téléchargé/i })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: /tome 1.*nas/i })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: /tome 1.*acheté/i })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: /tome 1.*lu/i })).not.toBeChecked();
@@ -894,7 +893,7 @@ describe("ComicDetail", () => {
         HttpResponse.json(
           createMockComicSeries({
             defaultTomeBought: true,
-            defaultTomeDownloaded: true,
+            defaultTomeOnNas: true,
             defaultTomeRead: false,
             id: 1,
             title: "Flagged Series",
@@ -909,7 +908,7 @@ describe("ComicDetail", () => {
       expect(screen.getByText("Nouveaux tomes")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("achetés, téléchargés")).toBeInTheDocument();
+    expect(screen.getByText("achetés, sur NAS")).toBeInTheDocument();
   });
 
   it("shows latestPublishedIssueUpdatedAt as relative date", async () => {
@@ -1134,9 +1133,9 @@ describe("ComicDetail", () => {
 
   describe("tomes table sorting", () => {
     const sortableTomes = [
-      createMockTome({ bought: true, downloaded: false, id: 1, number: 1, read: false, title: "Alpha" }),
-      createMockTome({ bought: false, downloaded: true, id: 2, number: 3, read: true, title: "Gamma" }),
-      createMockTome({ bought: true, downloaded: true, id: 3, number: 2, read: false, title: "Beta" }),
+      createMockTome({ bought: true, id: 1, number: 1, onNas: false, read: false, title: "Alpha" }),
+      createMockTome({ bought: false, id: 2, number: 3, onNas: true, read: true, title: "Gamma" }),
+      createMockTome({ bought: true, id: 3, number: 2, onNas: true, read: false, title: "Beta" }),
     ];
 
     function setupSortableTable() {

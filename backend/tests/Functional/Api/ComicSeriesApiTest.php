@@ -279,7 +279,6 @@ final class ComicSeriesApiTest extends ApiTestCase
             $tomesPayload[] = [
                 '@id' => '/api/tomes/'.$tome->getId(),
                 'bought' => $tome->isBought(),
-                'downloaded' => $tome->isDownloaded(),
                 'isbn' => null,
                 'number' => $tome->getNumber(),
                 'onNas' => $tome->isOnNas(),
@@ -329,7 +328,6 @@ final class ComicSeriesApiTest extends ApiTestCase
             $tomesPayload[] = [
                 '@id' => '/api/tomes/'.$tome->getId(),
                 'bought' => true,
-                'downloaded' => false,
                 'isbn' => null,
                 'number' => $tome->getNumber(),
                 'onNas' => false,
@@ -338,8 +336,8 @@ final class ComicSeriesApiTest extends ApiTestCase
                 'tomeEnd' => null,
             ];
         }
-        $tomesPayload[] = ['bought' => false, 'downloaded' => false, 'isbn' => null, 'number' => 4, 'onNas' => false, 'read' => false, 'title' => null, 'tomeEnd' => null];
-        $tomesPayload[] = ['bought' => false, 'downloaded' => false, 'isbn' => null, 'number' => 5, 'onNas' => false, 'read' => false, 'title' => null, 'tomeEnd' => null];
+        $tomesPayload[] = ['bought' => false, 'isbn' => null, 'number' => 4, 'onNas' => false, 'read' => false, 'title' => null, 'tomeEnd' => null];
+        $tomesPayload[] = ['bought' => false, 'isbn' => null, 'number' => 5, 'onNas' => false, 'read' => false, 'title' => null, 'tomeEnd' => null];
 
         $client->request('PATCH', '/api/comic_series/'.$id, [
             'headers' => ['Content-Type' => 'application/merge-patch+json'],

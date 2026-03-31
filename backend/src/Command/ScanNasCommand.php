@@ -26,7 +26,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class ScanNasCommand extends Command
 {
     /**
-     * Correspondance type → nom d'onglet Excel (doit correspondre à ImportExcelService::SHEET_TYPE_MAP).
+     * Correspondance type → nom d'onglet Excel (lu par merge-excel.py).
      */
     private const array TYPE_SHEET_MAP = [
         'BD' => 'BD',
@@ -314,12 +314,12 @@ final class ScanNasCommand extends Command
                 $sheet->setCellValue([4, $row], $series->readUpTo);
             }
 
-            if ($series->isComplete && null !== $series->lastDownloaded) {
-                $sheet->setCellValue([5, $row], $series->lastDownloaded);
+            if ($series->isComplete && null !== $series->lastOnNas) {
+                $sheet->setCellValue([5, $row], $series->lastOnNas);
             }
 
-            if (null !== $series->lastDownloaded) {
-                $sheet->setCellValue([6, $row], $series->lastDownloaded);
+            if (null !== $series->lastOnNas) {
+                $sheet->setCellValue([6, $row], $series->lastOnNas);
             }
 
             $sheet->setCellValue([7, $row], 'oui');

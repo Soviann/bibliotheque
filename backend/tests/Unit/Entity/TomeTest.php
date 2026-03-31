@@ -24,7 +24,6 @@ final class TomeTest extends TestCase
 
         self::assertNull($tome->getId());
         self::assertFalse($tome->isBought());
-        self::assertFalse($tome->isDownloaded());
         self::assertFalse($tome->isOnNas());
         self::assertFalse($tome->isRead());
         self::assertSame(0, $tome->getNumber());
@@ -56,24 +55,6 @@ final class TomeTest extends TestCase
         $tome->setBought(false);
 
         self::assertFalse($tome->isBought());
-    }
-
-    public function testSetDownloadedReturnsFluent(): void
-    {
-        $tome = new Tome();
-        $result = $tome->setDownloaded(true);
-
-        self::assertSame($tome, $result);
-        self::assertTrue($tome->isDownloaded());
-    }
-
-    public function testSetDownloadedFalse(): void
-    {
-        $tome = new Tome();
-        $tome->setDownloaded(true);
-        $tome->setDownloaded(false);
-
-        self::assertFalse($tome->isDownloaded());
     }
 
     public function testSetOnNasReturnsFluent(): void
@@ -268,7 +249,6 @@ final class TomeTest extends TestCase
         $tome = EntityFactory::createTome(
             number: 7,
             bought: true,
-            downloaded: true,
             onNas: true,
             read: true,
             tomeEnd: 9,
@@ -276,7 +256,6 @@ final class TomeTest extends TestCase
 
         self::assertSame(7, $tome->getNumber());
         self::assertTrue($tome->isBought());
-        self::assertTrue($tome->isDownloaded());
         self::assertTrue($tome->isOnNas());
         self::assertTrue($tome->isRead());
         self::assertSame(9, $tome->getTomeEnd());

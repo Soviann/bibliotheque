@@ -29,7 +29,7 @@ final class TomeRepositoryTest extends KernelTestCase
     public function testPersistAndFindTome(): void
     {
         $series = EntityFactory::createComicSeries('Naruto');
-        $tome = EntityFactory::createTome(1, bought: true, downloaded: true, onNas: true, read: true);
+        $tome = EntityFactory::createTome(1, bought: true, onNas: true, read: true);
         $tome->setIsbn('978-2-505-00001-0');
         $tome->setTitle('Le debut');
         $series->addTome($tome);
@@ -47,7 +47,6 @@ final class TomeRepositoryTest extends KernelTestCase
         self::assertInstanceOf(Tome::class, $found);
         self::assertSame(1, $found->getNumber());
         self::assertTrue($found->isBought());
-        self::assertTrue($found->isDownloaded());
         self::assertTrue($found->isOnNas());
         self::assertTrue($found->isRead());
         self::assertSame('978-2-505-00001-0', $found->getIsbn());

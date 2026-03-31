@@ -69,7 +69,7 @@ final class SeriesMergerTest extends TestCase
             authors: [],
             coverUrl: null,
             defaultTomeBought: false,
-            defaultTomeDownloaded: false,
+            defaultTomeOnNas: false,
             defaultTomeRead: false,
             description: null,
             isOneShot: false,
@@ -83,9 +83,9 @@ final class SeriesMergerTest extends TestCase
             status: 'buying',
             title: 'Astérix',
             tomes: [
-                new MergePreviewTome(bought: true, downloaded: false, isbn: null, number: 1, onNas: false, read: false, title: 'Astérix le Gaulois', tomeEnd: null),
-                new MergePreviewTome(bought: true, downloaded: false, isbn: null, number: 2, onNas: false, read: false, title: 'La Serpe d\'or', tomeEnd: null),
-                new MergePreviewTome(bought: true, downloaded: false, isbn: null, number: 3, onNas: false, read: false, title: 'Astérix et les Goths', tomeEnd: null),
+                new MergePreviewTome(bought: true, isbn: null, number: 1, onNas: false, read: false, title: 'Astérix le Gaulois', tomeEnd: null),
+                new MergePreviewTome(bought: true, isbn: null, number: 2, onNas: false, read: false, title: 'La Serpe d\'or', tomeEnd: null),
+                new MergePreviewTome(bought: true, isbn: null, number: 3, onNas: false, read: false, title: 'Astérix et les Goths', tomeEnd: null),
             ],
             type: 'bd',
         );
@@ -113,7 +113,7 @@ final class SeriesMergerTest extends TestCase
             authors: [],
             coverUrl: 'https://example.com/cover.jpg',
             defaultTomeBought: false,
-            defaultTomeDownloaded: false,
+            defaultTomeOnNas: false,
             defaultTomeRead: false,
             description: 'Une belle description',
             isOneShot: true,
@@ -155,7 +155,7 @@ final class SeriesMergerTest extends TestCase
             authors: [],
             coverUrl: null,
             defaultTomeBought: false,
-            defaultTomeDownloaded: false,
+            defaultTomeOnNas: false,
             defaultTomeRead: false,
             description: null,
             isOneShot: false,
@@ -169,8 +169,8 @@ final class SeriesMergerTest extends TestCase
             status: 'buying',
             title: 'Test',
             tomes: [
-                new MergePreviewTome(bought: true, downloaded: true, isbn: '978-2-1234-5678-9', number: 1, onNas: true, read: true, title: 'Premier', tomeEnd: null),
-                new MergePreviewTome(bought: false, downloaded: false, isbn: null, number: 4, onNas: false, read: false, title: null, tomeEnd: 6),
+                new MergePreviewTome(bought: true, isbn: '978-2-1234-5678-9', number: 1, onNas: true, read: true, title: 'Premier', tomeEnd: null),
+                new MergePreviewTome(bought: false, isbn: null, number: 4, onNas: false, read: false, title: null, tomeEnd: 6),
             ],
             type: 'bd',
         );
@@ -185,7 +185,7 @@ final class SeriesMergerTest extends TestCase
         self::assertSame('Premier', $tome1->getTitle());
         self::assertSame('978-2-1234-5678-9', $tome1->getIsbn());
         self::assertTrue($tome1->isBought());
-        self::assertTrue($tome1->isDownloaded());
+        self::assertTrue($tome1->isOnNas());
         self::assertTrue($tome1->isOnNas());
         self::assertTrue($tome1->isRead());
         self::assertNull($tome1->getTomeEnd());
@@ -195,7 +195,7 @@ final class SeriesMergerTest extends TestCase
         self::assertNull($tome2->getTitle());
         self::assertNull($tome2->getIsbn());
         self::assertFalse($tome2->isBought());
-        self::assertFalse($tome2->isDownloaded());
+        self::assertFalse($tome2->isOnNas());
         self::assertFalse($tome2->isOnNas());
         self::assertFalse($tome2->isRead());
         self::assertSame(6, $tome2->getTomeEnd());
@@ -227,7 +227,7 @@ final class SeriesMergerTest extends TestCase
             authors: ['Goscinny', 'Uderzo'],
             coverUrl: null,
             defaultTomeBought: false,
-            defaultTomeDownloaded: false,
+            defaultTomeOnNas: false,
             defaultTomeRead: false,
             description: null,
             isOneShot: false,
@@ -268,7 +268,7 @@ final class SeriesMergerTest extends TestCase
             authors: [],
             coverUrl: null,
             defaultTomeBought: false,
-            defaultTomeDownloaded: false,
+            defaultTomeOnNas: false,
             defaultTomeRead: false,
             description: null,
             isOneShot: false,

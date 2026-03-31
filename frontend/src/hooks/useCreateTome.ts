@@ -24,7 +24,6 @@ export function useCreateTome(seriesId: number) {
           _syncPending: true,
           bought: variables.bought ?? false,
           createdAt: new Date().toISOString(),
-          downloaded: variables.downloaded ?? false,
           id: tempId!,
           isHorsSerie: variables.isHorsSerie ?? false,
           isbn: variables.isbn ?? null,

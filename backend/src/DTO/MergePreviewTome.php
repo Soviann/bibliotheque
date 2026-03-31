@@ -11,7 +11,6 @@ final readonly class MergePreviewTome implements \JsonSerializable
 {
     public function __construct(
         public bool $bought,
-        public bool $downloaded,
         public ?string $isbn,
         public int $number,
         public bool $onNas,
@@ -22,13 +21,12 @@ final readonly class MergePreviewTome implements \JsonSerializable
     }
 
     /**
-     * @return array{bought: bool, downloaded: bool, isbn: ?string, number: int, onNas: bool, read: bool, title: ?string, tomeEnd: ?int}
+     * @return array{bought: bool, isbn: ?string, number: int, onNas: bool, read: bool, title: ?string, tomeEnd: ?int}
      */
     public function jsonSerialize(): array
     {
         return [
             'bought' => $this->bought,
-            'downloaded' => $this->downloaded,
             'isbn' => $this->isbn,
             'number' => $this->number,
             'onNas' => $this->onNas,

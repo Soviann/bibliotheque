@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\EventListener\EnrichOnCreateListener;
-use App\Service\Import\ImportExcelService;
+use App\Service\Import\ImportService;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -16,16 +16,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Commande d'import des données depuis un fichier Excel.
+ * Commande d'import unifié depuis un fichier Excel.
  */
 #[AsCommand(
-    name: 'app:import-excel',
-    description: 'Importe les données depuis un fichier Excel',
+    name: 'app:import',
+    description: 'Importe les données depuis un fichier Excel unifié (tracking + métadonnées)',
 )]
-final class ImportExcelCommand extends Command
+final class ImportCommand extends Command
 {
     public function __construct(
-        private readonly ImportExcelService $importExcelService,
+        private readonly ImportService $importService,
     ) {
         parent::__construct();
     }
@@ -61,7 +61,7 @@ final class ImportExcelCommand extends Command
         EnrichOnCreateListener::disable();
 
         try {
-            $result = $this->importExcelService->import($filePath, $dryRun);
+            $result = $this->importService->import($filePath, $dryRun);
         } catch (ReaderException $e) {
             $io->error(\sprintf('Impossible de lire le fichier Excel : %s', $e->getMessage()));
 
@@ -70,26 +70,24 @@ final class ImportExcelCommand extends Command
             EnrichOnCreateListener::enable();
         }
 
-        foreach ($result->sheetDetails as $sheetName => $details) {
+        foreach ($result->typeDetails as $typeName => $details) {
             $io->success(\sprintf(
-                '"%s" : %d créées, %d mises à jour, %d nouveaux tomes.',
-                $sheetName,
+                '"%s" : %d créées, %d mises à jour, %d enrichies, %d nouveaux tomes.',
+                $typeName,
                 $details['created'],
                 $details['updated'],
+                $details['enriched'],
                 $details['tomes']
             ));
         }
 
         $io->success(\sprintf(
-            'Import terminé. Total : %d créées, %d mises à jour, %d nouveaux tomes.',
+            'Import terminé. Total : %d créées, %d mises à jour, %d enrichies, %d nouveaux tomes.',
             $result->totalCreated,
             $result->totalUpdated,
+            $result->totalEnriched,
             $result->totalTomes
         ));
-
-        if (($result->totalCreated > 0) && !$dryRun) {
-            $io->info('Pour compléter les données des séries importées, exécutez : bin/console app:auto-enrich');
-        }
 
         return Command::SUCCESS;
     }

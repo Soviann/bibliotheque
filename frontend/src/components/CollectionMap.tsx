@@ -32,11 +32,11 @@ function cellClasses(tome: Tome | undefined): string {
     return `${base} bg-[rgb(var(--series-color))] text-white`;
   }
 
-  if (tome.downloaded) {
+  if (tome.onNas) {
     return `${base} border-2 border-[rgb(var(--series-color))] text-[rgb(var(--series-color))]`;
   }
 
-  // Tome exists but neither bought nor downloaded
+  // Tome exists but neither bought nor on NAS
   return `${base} border border-dashed border-text-muted/30 text-text-muted/50`;
 }
 
@@ -46,7 +46,7 @@ function cellTitle(number: number, tome: Tome | undefined, hs = false): string {
 
   const states: string[] = [];
   if (tome.bought) states.push("acheté");
-  if (tome.downloaded && !tome.bought) states.push("téléchargé");
+  if (tome.onNas && !tome.bought) states.push("sur NAS");
   if (tome.read) states.push("lu");
   if (states.length === 0) return `${prefix} — en base`;
 

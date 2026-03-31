@@ -16,7 +16,6 @@ import { ComicStatus, ComicType } from "../types/enums";
 
 export interface TomeFormData {
   bought: boolean;
-  downloaded: boolean;
   id?: number;
   isHorsSerie: boolean;
   isbn: string;
@@ -32,7 +31,7 @@ export interface FormData {
   authors: Author[];
   coverUrl: string;
   defaultTomeBought: boolean;
-  defaultTomeDownloaded: boolean;
+  defaultTomeOnNas: boolean;
   defaultTomeRead: boolean;
   description: string;
   isOneShot: boolean;
@@ -59,7 +58,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
       authors: comic.authors,
       coverUrl: comic.coverUrl ?? "",
       defaultTomeBought: comic.defaultTomeBought,
-      defaultTomeDownloaded: comic.defaultTomeDownloaded,
+      defaultTomeOnNas: comic.defaultTomeOnNas,
       defaultTomeRead: comic.defaultTomeRead,
       description: comic.description ?? "",
       isOneShot: comic.isOneShot,
@@ -72,7 +71,6 @@ function buildInitialForm(comic?: ComicSeries): FormData {
       title: comic.title,
       tomes: (comic.tomes ?? []).map((t) => ({
         bought: t.bought,
-        downloaded: t.downloaded,
         id: t.id,
         isHorsSerie: t.isHorsSerie,
         isbn: t.isbn ?? "",
@@ -90,7 +88,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     authors: [],
     coverUrl: "",
     defaultTomeBought: false,
-    defaultTomeDownloaded: false,
+    defaultTomeOnNas: false,
     defaultTomeRead: false,
     description: "",
     isOneShot: false,
@@ -101,7 +99,7 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     publisher: "",
     status: ComicStatus.BUYING,
     title: "",
-    tomes: [{ bought: false, downloaded: false, isHorsSerie: false, isbn: "", number: 1, onNas: false, read: false, title: "", tomeEnd: "" }],
+    tomes: [{ bought: false, isHorsSerie: false, isbn: "", number: 1, onNas: false, read: false, title: "", tomeEnd: "" }],
     type: ComicType.BD,
   };
 }
@@ -184,7 +182,6 @@ export function useComicForm() {
       : [...form.tomes].sort(compareTomes).map((t) => ({
           ...(t.id ? { "@id": `/api/tomes/${t.id}` } : {}),
           bought: t.bought,
-          downloaded: t.downloaded,
           isHorsSerie: t.isHorsSerie,
           isbn: t.isbn || null,
           number: t.number,
@@ -200,7 +197,7 @@ export function useComicForm() {
       authors: authorIris,
       coverUrl: form.coverUrl || null,
       defaultTomeBought: form.defaultTomeBought,
-      defaultTomeDownloaded: form.defaultTomeDownloaded,
+      defaultTomeOnNas: form.defaultTomeOnNas,
       defaultTomeRead: form.defaultTomeRead,
       description: form.description || null,
       isOneShot: form.isOneShot,

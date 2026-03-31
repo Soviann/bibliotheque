@@ -6,8 +6,8 @@ Reference for implementing features without exploring the codebase.
 
 | Entity | Key fields | Relations | API |
 |--------|-----------|-----------|-----|
-| `ComicSeries` | title, status:`ComicStatus`, type:`ComicType`, latestPublishedIssue?:int, latestPublishedIssueComplete:bool, isOneShot:bool, defaultTome{Bought,Downloaded,Read}:bool, amazonUrl?, description?, publisher?, coverFile?:File, coverImage?, coverUrl?, deletedAt?, lookupCompletedAt?, mergeCheckedAt?, newReleasesCheckedAt? | `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)` | GetCollection, Get, Post, Patch, Delete(soft), Put(/restore), Delete(/trash/permanent) |
-| `Tome` | number:int, tomeEnd?:int, bought, downloaded, onNas, read, isbn?, title? | `comicSeries:M2O→ComicSeries` | Sub: `/comic_series/{id}/tomes` (GetCollection, Post), standalone: Get, Patch, Put, Delete |
+| `ComicSeries` | title, status:`ComicStatus`, type:`ComicType`, latestPublishedIssue?:int, latestPublishedIssueComplete:bool, isOneShot:bool, defaultTome{Bought,OnNas,Read}:bool, amazonUrl?, description?, publisher?, coverFile?:File, coverImage?, coverUrl?, deletedAt?, lookupCompletedAt?, mergeCheckedAt?, newReleasesCheckedAt? | `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)` | GetCollection, Get, Post, Patch, Delete(soft), Put(/restore), Delete(/trash/permanent) |
+| `Tome` | number:int, tomeEnd?:int, bought, onNas, read, isbn?, title? | `comicSeries:M2O→ComicSeries` | Sub: `/comic_series/{id}/tomes` (GetCollection, Post), standalone: Get, Patch, Put, Delete |
 | `Author` | name:string(unique), followedForNewSeries:bool(default false) | `comicSeries:M2M(mappedBy)` | GetCollection(search by name), Get, Patch, Post |
 | `SeriesSuggestion` | title, type:`ComicType`, authors:JSON, reason:string, status:`SuggestionStatus`(default PENDING) | `sourceSeries:M2O→ComicSeries(SET NULL)` | GetCollection(filter status), Patch(status) |
 | `User` | email:string(unique), googleId?, roles, tokenVersion:int(default=1) | — | — |
@@ -38,18 +38,17 @@ Reference for implementing features without exploring the codebase.
 |-----|---------|
 | `BatchLookupProgress` | Single lookup progress (JsonSerializable) |
 | `BatchLookupSummary` | Batch summary: failed/processed/skipped/updated (JsonSerializable) |
-| `BookGroup` / `BookRow` | Import grouping (ImportBooksCommand) |
+| `RowImportResult` | Per-row import result (isUpdate, metadataApplied, series, tomesCount) |
 | `ComicSeriesFilter` | Query filters for `findWithFilters()` |
 | `ComicSeriesListItem` | Cached API list item (JsonSerializable, `fromEntity()`, `__unserialize()` for cache compat) |
 | `CoverSearchResult` | Cover image search result (JsonSerializable) |
-| `ImportBooksResult` / `ImportExcelResult` / `ImportResult` | Import results (JsonSerializable) |
-| `NasSeriesData` | Series extracted from NAS (title, lastDownloaded, readUpTo, readComplete, isComplete) |
+| `ImportResult` | Global import result: typeDetails, totals (JsonSerializable) |
+| `NasSeriesData` | Series extracted from NAS (title, lastOnNas, readUpTo, readComplete, isComplete) |
 | `ParsedIntegerValue` | Parsed Excel integer/fini/fini N |
 | `MergeGroup` / `MergeGroupEntry` | Detected merge group + entries (JsonSerializable) |
 | `NewReleaseProgress` | New release check progress (JsonSerializable) |
 | `MergePreview` / `MergePreviewTome` | Full merge preview + tomes (JsonSerializable) |
 | `PurgeableSeries` | Series eligible for purge (JsonSerializable) |
-| `SeriesInfo` | Extracted series name + tome number |
 | `Service/Lookup/Contract/ApiMessage` | Lookup provider API status (JsonSerializable) |
 
 ## Domain Events (`backend/src/Event/`)
@@ -78,7 +77,6 @@ Reference for implementing features without exploring the codebase.
 | `ApiController` | `GET /api/lookup/{isbn,title}?...&type=...` (JWT, 30/min) |
 | `BatchLookupController` | `GET /api/tools/batch-lookup/preview`, `POST .../run` (SSE) |
 | `GoogleLoginController` | `POST /api/login/google` (public) |
-| `ImportController` | `POST /api/tools/import/{books,excel}` (multipart + dryRun) |
 | `MergeSeriesController` | `POST /api/merge-series/{detect,preview,execute}` |
 | `NotificationController` | `GET /api/notifications/unread-count`, `PATCH /api/notifications/read-all` |
 | `PurgeController` | `GET /api/tools/purge/preview?days=30`, `POST .../execute` |
@@ -139,8 +137,7 @@ Reference for implementing features without exploring the codebase.
 |---------|---------|
 | `Enrichment/ConfidenceScorer` | `score(query, type, mode, result, sources): EnrichmentConfidence` |
 | `Enrichment/EnrichmentService` | `enrich(series, result, mode, sources): EnrichmentConfidence` — routes HIGH→apply, MEDIUM→propose, LOW→skip |
-| `Import/ImportBooksService` | `import(filePath, dryRun): ImportBooksResult` |
-| `Import/ImportExcelService` | `import(filePath, dryRun): ImportExcelResult` — col H « Parution terminée », format « fini N » |
+| `Import/ImportService` | `import(filePath, dryRun): ImportResult` — tracking (cols 0-7) + métadonnées (cols 8-13) |
 | `Merge/SeriesGroupDetector` | `detect(): list<MergeGroup>` — Gemini AI grouping (batch size 50) |
 | `Merge/MergePreviewBuilder` | `buildFromGroup()`, `buildFromManualSelection()` — via GeminiClientPool |
 | `Merge/MergePreviewHydrator` | `hydrate(array): MergePreview` — JSON→DTO hydration |
@@ -211,8 +208,7 @@ Reference for implementing features without exploring the codebase.
 |---------|-----------|
 | `CheckNewReleasesCommand` | `app:check-new-releases [--dry-run] [--limit=0]` |
 | `DownloadCoversCommand` | `app:download-covers [--delay=1] [--dry-run] [--limit=0]` |
-| `ImportBooksCommand` | `app:import-books <file> [--dry-run]` |
-| `ImportExcelCommand` | `app:import-excel <file> [--dry-run]` |
+| `ImportCommand` | `app:import <file> [--dry-run]` |
 | `InvalidateTokensCommand` | `app:invalidate-tokens [--email=...]` |
 | `AutoEnrichCommand` | `app:auto-enrich [--delay=2] [--dry-run] [--force] [--limit=0] [--type=...]` — replaces lookup-missing with confidence scoring |
 | `PurgeDeletedCommand` | `app:purge-deleted [--days=30] [--dry-run]` |
@@ -289,7 +285,6 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `LookupTool` | `/tools/lookup` | Batch lookup with SSE progress |
 | `MergeSeries` | `/tools/merge-series` | Auto-detect (Gemini) + manual-select tabs |
 | `Tools` | `/tools` | Hub for admin tools |
-| `ImportTool` | `/tools/import` | Excel import: tracking + books tabs, dry run |
 | `PurgeTool` | `/tools/purge` | Purge soft-deleted: preview, confirm, bulk delete |
 | `EnrichmentReview` | `/tools/enrichment-review` | Review enrichment proposals (accept/reject) |
 | `Notifications` | `/notifications` | Notification list, mark read, delete |
@@ -305,9 +300,9 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `BarcodeScanner` | html5-qrcode ISBN scanner |
 | `BottomNav` | Mobile nav (Home, Wishlist→`/?status=wishlist`, Add, Trash) |
 | `CardActionBar` | Mobile fixed bottom overlay: Edit/Delete |
-| `CollectionMap` | Visual grid of numbered tome squares (bought/downloaded/read/missing) with series color |
+| `CollectionMap` | Visual grid of numbered tome squares (bought/onNas/read/missing) with series color |
 | `ComicCard` | Card: cover, title, type, tomes, progress, menu |
-| `ContinueReading` | Horizontal slider of series with unread tomes (readCount < max(boughtCount, downloadedCount)) |
+| `ContinueReading` | Horizontal slider of series with unread tomes (readCount < max(boughtCount, onNasCount)) |
 | `ComponentErrorBoundary` | Contextual error boundary (label + retry, onReset, resetKeys) — wraps TomeTable, VirtualGrid, LookupSection |
 | `ConfirmModal` | Headless UI destructive confirmation |
 | `CoverLightbox` | Fullscreen cover image overlay (Headless UI Dialog) |
@@ -354,7 +349,6 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `useGoBack` | Smart back navigation: `navigate(-1)` if in-app history, fallback to `/` otherwise |
 | `useCreateTome` / `useUpdateTome` / `useDeleteTome` | Tome CRUD (offline-capable, optimistic) |
 | `useDarkMode` | Toggle `.dark` on `<html>`, localStorage |
-| `useImport` | `useImportExcel()`, `useImportBooks()` — file upload |
 | `useLookup` | `useLookupIsbn()`, `useLookupTitle()` |
 | `useNotifications` | `useUnreadCount()` (refetchInterval 60s), `useNotifications()`, `useMarkAsRead()`, `useMarkAllRead()`, `useDeleteNotification()` |
 | `useNotificationPreferences` | `useNotificationPreferences()`, `useUpdatePreference()` |

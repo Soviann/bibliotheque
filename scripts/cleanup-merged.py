@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-Script one-shot : applique des fusions manuelles curatées sur merged-import.xlsx.
+Script one-shot : applique des fusions manuelles curatées sur import.xlsx.
 Chaque groupe liste les titres à fusionner. Le premier titre est le titre canonique.
 Les données non-nulles des doublons sont mergées dans l'entrée canonique.
+
+Format : feuille unique "Import" avec colonne Type en col 0.
 """
 
 import re
@@ -10,7 +12,7 @@ import unicodedata
 
 import openpyxl
 
-MERGED_PATH = "var/merged-import.xlsx"
+MERGED_PATH = "var/import.xlsx"
 
 def normalize(s):
     if s is None: return ""
@@ -23,9 +25,10 @@ def normalize(s):
 
 
 # === MERGE MAP ===
-# Format: { "sheet": [ ["canonical title", "dupe1", "dupe2", ...], ... ] }
+# Format: { "type_value": [ ["canonical title", "dupe1", "dupe2", ...], ... ] }
 # Le premier titre de chaque liste est conservé. Les suivants sont supprimés
 # après fusion de leurs données.
+# Type values match column 0: "BD", "Comics", "Manga", "Livre"
 
 MERGE_MAP = {
     "BD": [
@@ -46,9 +49,11 @@ MERGE_MAP = {
         ["Les Lamentations de l'agneau", "Lamentations de l'agneau (les)"],
         ["La Licorne", "Licorne"],
         ["La Ligue des gentlemen extraordinaires", "La Ligue des gentleman extarordinaires",
-         "la Ligue des gentlemen extraordinaires", "La Ligue des gentlemen extraordinaires - Century"],
-        ["Le 3ème testament", "Le 3eme testament", "Le 3eme testament - Julius",
-         "Le Troisieme testament", "Le Troisieme testament (integrale)", "Le Troisieme testament - julius"],
+         "la Ligue des gentlemen extraordinaires"],
+        ["Le 3ème testament", "Le 3eme testament",
+         "Le Troisieme testament", "Le Troisieme testament (integrale)"],
+        ["Le 3ème testament - Julius", "Le 3eme testament - Julius",
+         "Le Troisieme testament - julius"],
         ["Les Mondes d'Aldébaran", "Les Mondes d'aldebaran",
          "Les Mondes d'Aldebaran - Cycle 1 & 2 - Aldebaran & Betelgeuse"],
         ["Mjöllnir", "Mjollnir", "Mjollnir (legendes nordiques)"],
@@ -57,8 +62,7 @@ MERGE_MAP = {
         ["Uchronie(s) - New Byzance", "Uchronie new byzance"],
         ["Uchronie(s) - New York", "Uchronie new york"],
         ["Les Voleurs d'empires", "Les Voleurs d'empire"],
-        ["Universal War One", "Universal war one", "Universal war two"],
-        ["Crusades", "Crusaders"],
+        ["Universal War One", "Universal war one"],
     ],
     "Comics": [
         ["100% Marvel - Le Projet Marvels", "100% Marvel - le projet marvel"],
@@ -131,13 +135,16 @@ MERGE_MAP = {
         ["The Mighty Thor", "The mighty thor", "The mighty Thor 2015",
          "The mighty thor 700-706", "The mighty Thor 700-706 2017"],
         ["The Punisher", "The Punisher (Marvel Max) (T01-T18)",
-         "The Punisher v2", "The Punisher - Born (T01-04)"],
+         "The Punisher v2"],
+        ["The Punisher - Born", "The Punisher - Born (T01-04)"],
         ["The Royals - Masters of War", "The royales - masters of war",
          "The Royals - Masters of War 001-006"],
         ["The Witcher", "The Witcher intégrale"],
         ["Ultimate Secret", "Ultimate secret",
          "Ultimate Secret ( T 01 à 04 ) [ Intégrale ]"],
-        ["Ultimates", "Ultimates 2", "Ultimates 3", "Ultimates 3 (001-005)", "Ultimates HS"],
+        ["Ultimates", "Ultimates HS"],
+        ["Ultimates 2"],
+        ["Ultimates 3", "Ultimates 3 (001-005)"],
         ["Universe X", "Universe x", "Universe X (00-05)"],
         ["Venom Space Knight", "Venom space knight 2015-2016",
          "Venom Space Knight (2015-2016) ANAD (C)"],
@@ -166,20 +173,22 @@ def main():
     wb = openpyxl.load_workbook(MERGED_PATH)
     total_merged = 0
 
-    for sheet_name, groups in MERGE_MAP.items():
-        if sheet_name not in wb.sheetnames:
-            continue
-        ws = wb[sheet_name]
+    # Work on the single "Import" sheet
+    ws = wb["Import"]
 
-        # Build index: normalized title → row_idx
-        title_index = {}  # norm_key → (row_idx, original_title)
-        for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
-            title = str(row[0].value).strip() if row[0].value else ""
-            if title:
-                key = normalize(title)
-                title_index[key] = (row_idx, title)
+    # Build index per type: type_value → {normalized_title → (row_idx, original_title)}
+    type_index = {}  # type_value → {norm_key → (row_idx, title)}
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
+        type_value = str(row[0].value).strip() if row[0].value else ""
+        title = str(row[1].value).strip() if row[1].value else ""
+        if title and type_value:
+            key = normalize(title)
+            type_index.setdefault(type_value, {})[key] = (row_idx, title)
 
-        rows_to_delete = []
+    rows_to_delete = []
+
+    for type_value, groups in MERGE_MAP.items():
+        title_index = type_index.get(type_value, {})
 
         for group in groups:
             canonical = group[0]
@@ -207,16 +216,16 @@ def main():
                 canonical_row = found_entries[0][2]
                 canonical_key = found_entries[0][1]
 
-            # Set canonical title
-            ws.cell(row=canonical_row, column=1).value = canonical
+            # Set canonical title (col 2 = Titre, 1-indexed)
+            ws.cell(row=canonical_row, column=2).value = canonical
 
             # Merge data from dupes into canonical
             for title, key, row_idx in found_entries:
                 if row_idx == canonical_row:
                     continue
 
-                # Merge non-null values
-                for col in range(2, 9):
+                # Merge non-null values (cols 3-16 = Buy? through Description, 1-indexed)
+                for col in range(3, 16):
                     if ws.cell(row=canonical_row, column=col).value is None:
                         dupe_val = ws.cell(row=row_idx, column=col).value
                         if dupe_val is not None:
@@ -224,11 +233,11 @@ def main():
 
                 rows_to_delete.append(row_idx)
                 total_merged += 1
-                print(f"  [{sheet_name}] '{title}' → '{canonical}'")
+                print(f"  [{type_value}] '{title}' → '{canonical}'")
 
-        # Delete dupe rows (bottom to top)
-        for row_idx in sorted(rows_to_delete, reverse=True):
-            ws.delete_rows(row_idx)
+    # Delete dupe rows (bottom to top)
+    for row_idx in sorted(rows_to_delete, reverse=True):
+        ws.delete_rows(row_idx)
 
     wb.save(MERGED_PATH)
     print(f"\n✓ {total_merged} doublons fusionnés dans {MERGED_PATH}")

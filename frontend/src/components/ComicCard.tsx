@@ -100,9 +100,9 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
               <Eye className="h-3 w-3" strokeWidth={1.5} />
               {comic.readCount}/{total}
             </span>
-            <span className="flex items-center gap-0.5" title="Téléchargés">
+            <span className="flex items-center gap-0.5" title="Sur NAS">
               <HardDrive className="h-3 w-3" strokeWidth={1.5} />
-              {comic.downloadedCount}/{total}
+              {comic.onNasCount}/{total}
             </span>
           </div>
         )}
