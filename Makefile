@@ -181,15 +181,19 @@ scheduler: ## Lancer le scheduler manuellement
 .PHONY: import
 
 NAS_IMPORT_FILE := /volume1/downloads/import.xlsx
-NAS_SSH := sshpass -p '$(NAS_PASSWORD)' ssh -p $(NAS_PORT) $(NAS_USERNAME)@$(NAS_HOST)
-NAS_COMPOSE := cd /volume1/docker/bibliotheque/backend && echo $(NAS_PASSWORD) | sudo -S /usr/local/bin/docker compose --env-file .env.nas
+NAS_CONTAINER_FILE := /tmp/import.xlsx
+NAS_SSH := sshpass -p '$(NAS_PASSWORD)' ssh -p $(NAS_PORT) $(NAS_USERNAME)@192.168.1.49
+NAS_SUDO := echo $(NAS_PASSWORD) | sudo -S
+NAS_COMPOSE := cd /volume1/docker/bibliotheque/backend && $(NAS_SUDO) /usr/local/bin/docker compose --env-file .env.nas
 
 import: ## Importer depuis import.xlsx sur le NAS (usage : make import [DRY_RUN=1])
+	$(NAS_SSH) '$(NAS_SUDO) /usr/local/bin/docker cp $(NAS_IMPORT_FILE) backend-php-1:$(NAS_CONTAINER_FILE)'
 ifdef DRY_RUN
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php php bin/console app:import $(NAS_IMPORT_FILE) --dry-run --env=prod'
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php php bin/console app:import $(NAS_CONTAINER_FILE) --dry-run --env=prod'
 else
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php php bin/console app:import $(NAS_IMPORT_FILE) --env=prod'
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php php bin/console app:import $(NAS_CONTAINER_FILE) --env=prod'
 endif
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php rm -f $(NAS_CONTAINER_FILE)'
 
 # ── Production ────────────────────────────────────
 
