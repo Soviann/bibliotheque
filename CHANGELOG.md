@@ -7,6 +7,17 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.4] - 2026-04-01
+
+### Fixed
+
+- **Docker** : supprime `composer dump-env` des entrypoints PHP et worker (écrasait les vraies variables d'environnement Docker avec les placeholders de `.env`)
+- **Docker** : remplace `chown -R` par `rm -rf var/cache var/log` au démarrage (le parcours récursif bloquait le déploiement sur le NAS)
+
+### Added
+
+- **Déploiement** : nettoyage automatique des anciennes images Docker après un déploiement réussi
+
 ## [v2.26.3] - 2026-04-01
 
 ### Fixed

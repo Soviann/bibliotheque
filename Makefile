@@ -195,6 +195,11 @@ else
 endif
 	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php rm -f $(NAS_CONTAINER_FILE)'
 
+.PHONY: nas-db-reset
+
+nas-db-reset: ## Reset la BDD du NAS : drop + create + migrate
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php sh -c "php bin/console doctrine:database:drop --force --env=prod && php bin/console doctrine:database:create --env=prod && php bin/console doctrine:migrations:migrate -n --env=prod"'
+
 # ── Production ────────────────────────────────────
 
 .PHONY: deploy

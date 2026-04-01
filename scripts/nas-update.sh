@@ -110,6 +110,15 @@ if try_deploy; then
     # Miniatures de couverture (LiipImagine)
     docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console app:warm-thumbnails --env=prod 2>&1 | tee -a "$LOG_FILE"
     log "Miniatures de couverture générées."
+
+    # Supprimer les anciennes images bibliotheque (garde uniquement la version courante)
+    docker images --format '{{.Repository}}:{{.Tag}}' \
+        | grep 'ghcr.io/soviann/bibliotheque-' \
+        | grep -v ":${TAG}" \
+        | xargs -r docker rmi 2>&1 | tee -a "$LOG_FILE"
+    docker image prune -f 2>&1 | tee -a "$LOG_FILE"
+    log "Images Docker anciennes supprimées."
+
     log "=== Mise à jour terminée (${TARGET_TAG}) ==="
     exit 0
 fi
