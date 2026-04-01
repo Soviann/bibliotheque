@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.1] - 2026-04-01
+
+### Fixed
+
+- **Import** : corrige la cible `make import` pour exécuter via SSH sur le NAS (conteneur, commande SSH, chemin fichier)
+
 ## [v2.26.0] - 2026-03-31
 
 ### Changed
