@@ -3,13 +3,9 @@ set -e
 
 cd /var/www/html
 
-# Nettoie le volume persistant (cache/logs périmés des déploiements précédents)
-rm -rf var/cache var/log .env.local.php
-mkdir -p var/cache var/log
-chown -R www-data:www-data var
+# Supprime le .env.local.php s'il existe (volume persistant)
+rm -f .env.local.php
 
-# Warmup du cache Symfony
-gosu www-data php bin/console cache:warmup --env=prod --no-debug
-
+# Le cache est déjà chaud (le worker démarre après php via depends_on)
 # Lancer Supervisor (messenger + scheduler)
 exec /usr/bin/supervisord -c /var/www/html/docker/worker/supervisord.conf

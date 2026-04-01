@@ -57,7 +57,7 @@ services:
     image: ghcr.io/soviann/bibliotheque-php:${TAG:-latest}
     build: .
     depends_on:
-      db:
+      php:
         condition: service_healthy
     entrypoint: ["worker-entrypoint.sh"]
     command: []

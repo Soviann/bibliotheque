@@ -7,16 +7,23 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
-## [v2.26.4] - 2026-04-01
+## [v2.26.5] - 2026-04-01
 
 ### Fixed
 
-- **Docker** : supprime `composer dump-env` des entrypoints PHP et worker (écrasait les vraies variables d'environnement Docker avec les placeholders de `.env`)
-- **Docker** : remplace `chown -R` par `rm -rf var/cache var/log` au démarrage (le parcours récursif bloquait le déploiement sur le NAS)
+- **Docker** : supprime `composer dump-env` des entrypoints (écrasait les variables d'environnement Docker avec les placeholders de `.env`)
+- **Docker** : le worker attend que PHP soit healthy avant de démarrer (`depends_on: php`), élimine les conflits d'accès au volume partagé
+- **Docker** : remplace `chown -R` par `chown` sans récursion (évite le blocage sur le NAS)
 
 ### Added
 
 - **Déploiement** : nettoyage automatique des anciennes images Docker après un déploiement réussi
+
+## [v2.26.4] - 2026-04-01
+
+### Fixed
+
+- **Docker** : première tentative de correction des entrypoints (remplacé par v2.26.5)
 
 ## [v2.26.3] - 2026-04-01
 
