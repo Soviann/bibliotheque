@@ -180,17 +180,17 @@ scheduler: ## Lancer le scheduler manuellement
 
 .PHONY: import
 
-import: ## Importer depuis un fichier Excel via SSH (usage : make import FILE=chemin.xlsx [DRY_RUN=1])
+import: ## Importer depuis un fichier Excel via SSH sur le NAS (usage : make import FILE=chemin.xlsx [DRY_RUN=1])
 ifndef FILE
 	$(error FILE est requis. Usage : make import FILE=chemin.xlsx [DRY_RUN=1])
 endif
-	docker cp $(FILE) bibliotheque-php-1:/tmp/import.xlsx
+	sshpass -p '$(NAS_PASSWORD)' scp -P $(NAS_PORT) $(FILE) $(NAS_USERNAME)@$(NAS_HOST):/tmp/import.xlsx
 ifdef DRY_RUN
-	docker exec bibliotheque-php-1 bin/console app:import /tmp/import.xlsx --dry-run
+	sshpass -p '$(NAS_PASSWORD)' ssh -p $(NAS_PORT) $(NAS_USERNAME)@$(NAS_HOST) 'cd /volume1/docker/bibliotheque/backend && sudo docker compose --env-file .env.nas exec -T php php bin/console app:import /tmp/import.xlsx --dry-run --env=prod'
 else
-	docker exec bibliotheque-php-1 bin/console app:import /tmp/import.xlsx
+	sshpass -p '$(NAS_PASSWORD)' ssh -p $(NAS_PORT) $(NAS_USERNAME)@$(NAS_HOST) 'cd /volume1/docker/bibliotheque/backend && sudo docker compose --env-file .env.nas exec -T php php bin/console app:import /tmp/import.xlsx --env=prod'
 endif
-	docker exec bibliotheque-php-1 rm -f /tmp/import.xlsx
+	sshpass -p '$(NAS_PASSWORD)' ssh -p $(NAS_PORT) $(NAS_USERNAME)@$(NAS_HOST) 'cd /volume1/docker/bibliotheque/backend && sudo docker compose --env-file .env.nas exec -T php rm -f /tmp/import.xlsx'
 
 # ── Production ────────────────────────────────────
 
