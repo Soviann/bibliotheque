@@ -7,6 +7,18 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.3] - 2026-04-01
+
+### Fixed
+
+- **Messenger** : corrige l'erreur « table already exists » lors du reset BDD (désactive `auto_setup` sur les transports Doctrine)
+- **Import** : copie le fichier dans le conteneur via `docker cp` avant l'import
+- **Déploiement** : marque le job GitHub Actions en échec lors d'un rollback
+
+### Added
+
+- **NAS** : cible `make nas-db-reset` pour reset la BDD de production via SSH
+
 ## [v2.26.2] - 2026-04-01
 
 ### Fixed
