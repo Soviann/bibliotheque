@@ -7,8 +7,12 @@ framework:
         transports:
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: false
                 retry_strategy:
                     max_retries: 3
                     multiplier: 2
             failed:
                 dsn: 'doctrine://default?queue_name=failed'
+                options:
+                    auto_setup: false
