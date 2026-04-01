@@ -7,6 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.2] - 2026-04-01
+
+### Fixed
+
+- **Docker** : vide le cache Symfony au démarrage du conteneur (le volume persistant gardait un cache obsolète entre les déploiements)
+- **Déploiement** : utilise `--wait` au lieu d'un `sleep 10` pour attendre les healthchecks
+
 ## [v2.26.1] - 2026-04-01
 
 ### Fixed

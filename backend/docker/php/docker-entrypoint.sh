@@ -7,6 +7,9 @@ chown -R www-data:www-data var
 # Compile les variables d'environnement pour Symfony (performance)
 gosu www-data composer dump-env prod
 
+# Vide le cache Symfony (le volume app_var persiste entre les déploiements)
+gosu www-data php bin/console cache:clear --env=prod --no-debug
+
 # Warmup du cache Symfony (nécessite les env vars compilées ci-dessus)
 gosu www-data php bin/console cache:warmup --env=prod --no-debug
 

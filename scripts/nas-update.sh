@@ -45,18 +45,8 @@ try_deploy() {
         return 1
     fi
 
-    if ! docker compose --env-file "$ENV_FILE" up -d 2>&1 | tee -a "$LOG_FILE"; then
-        log "ERREUR: docker compose up a échoué."
-        return 1
-    fi
-
-    # Vérifier que tous les conteneurs sont running après un court délai
-    sleep 10
-    local not_running
-    not_running=$(docker compose --env-file "$ENV_FILE" ps --format '{{.State}}' 2>/dev/null | grep -civ "running")
-
-    if [ "$not_running" -gt 0 ]; then
-        log "ERREUR: des conteneurs ne sont pas running."
+    if ! docker compose --env-file "$ENV_FILE" up -d --wait 2>&1 | tee -a "$LOG_FILE"; then
+        log "ERREUR: docker compose up a échoué (conteneurs non healthy)."
         return 1
     fi
 
