@@ -134,7 +134,7 @@ for tag in $PREVIOUS_TAGS; do
         docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
         log "Migrations exécutées après rollback."
         log "=== Mise à jour terminée (rollback vers ${tag}) ==="
-        exit 0
+        exit 1
     fi
 done
 
