@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.6] - 2026-04-02
+
+### Fixed
+
+- **Import** : corrige les doublons d'auteurs lors de l'import (cache mémoire avant flush)
+
 ## [v2.26.5] - 2026-04-01
 
 ### Fixed
