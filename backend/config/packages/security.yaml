@@ -14,17 +14,15 @@ security:
             stateless: true
             jwt: ~
 
+    access_control:
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login/google$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/, roles: ROLE_USER }
+
 when@dev:
     security:
         access_control:
             - { path: ^/api/docs, roles: PUBLIC_ACCESS }
             - { path: ^/api/login/google$, roles: PUBLIC_ACCESS }
             - { path: ^/api/login/dev$, roles: PUBLIC_ACCESS }
-            - { path: ^/api/, roles: ROLE_USER }
-
-when@prod:
-    security:
-        access_control:
-            - { path: ^/api/docs, roles: PUBLIC_ACCESS }
-            - { path: ^/api/login/google$, roles: PUBLIC_ACCESS }
             - { path: ^/api/, roles: ROLE_USER }
