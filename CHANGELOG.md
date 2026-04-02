@@ -7,6 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.7] - 2026-04-02
+
+### Fixed
+
+- **Import** : corrige les doublons d'auteurs avec accents différents (ex: "Gimenez" vs "Giménez") via normalisation Unicode
+- **Sécurité** : corrige l'absence d'access_control en environnement test (requêtes sans préfixe Bearer passaient en anonyme)
+
 ## [v2.26.6] - 2026-04-02
 
 ### Fixed
