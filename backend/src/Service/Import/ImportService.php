@@ -7,6 +7,7 @@ namespace App\Service\Import;
 use App\DTO\ImportResult;
 use App\DTO\ParsedIntegerValue;
 use App\DTO\RowImportResult;
+use App\Entity\Author;
 use App\Entity\ComicSeries;
 use App\Entity\Tome;
 use App\Enum\ComicStatus;
@@ -24,7 +25,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  * 6: Dernier DL, 7: Sur NAS?, 8: Parution terminée,
  * 9: ISBN, 10: Auteur, 11: Couverture, 12: Éditeur, 13: Catégories, 14: Description
  */
-final readonly class ImportService
+final class ImportService
 {
     /**
      * Correspondance catégorie → ComicType (par ordre de priorité).
@@ -45,10 +46,19 @@ final readonly class ImportService
         'Manga' => ComicType::MANGA,
     ];
 
+    /**
+     * Cache mémoire des auteurs créés durant l'import mais pas encore flushés.
+     *
+     * Clé = nom normalisé (sans accents, minuscule) pour correspondre à la collation utf8mb4_unicode_ci.
+     *
+     * @var array<string, Author>
+     */
+    private array $pendingAuthors = [];
+
     public function __construct(
-        private AuthorRepository $authorRepository,
-        private ComicSeriesRepository $comicSeriesRepository,
-        private EntityManagerInterface $entityManager,
+        private readonly AuthorRepository $authorRepository,
+        private readonly ComicSeriesRepository $comicSeriesRepository,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -269,11 +279,8 @@ final readonly class ImportService
 
         if ('' !== $authorField && $comic->getAuthors()->isEmpty()) {
             $authorNames = $this->collectAuthorNames($authorField);
-            if ([] !== $authorNames) {
-                $authors = $this->authorRepository->findOrCreateMultiple($authorNames);
-                foreach ($authors as $author) {
-                    $comic->addAuthor($author);
-                }
+            foreach ($authorNames as $name) {
+                $comic->addAuthor($this->findOrCreateAuthor($name));
             }
         }
 
@@ -646,5 +653,47 @@ final readonly class ImportService
         $isbn = $this->cleanIsbn($isbnField);
 
         return null !== $isbn ? [1 => $isbn] : [];
+    }
+
+    /**
+     * Trouve ou crée un auteur, avec cache mémoire pour éviter les doublons avant flush.
+     *
+     * La clé du cache est normalisée (sans accents) pour correspondre à la collation
+     * utf8mb4_unicode_ci de MariaDB qui considère "Gimenez" et "Giménez" comme identiques.
+     */
+    private function findOrCreateAuthor(string $name): Author
+    {
+        $key = self::normalizeAuthorKey($name);
+
+        if (isset($this->pendingAuthors[$key])) {
+            return $this->pendingAuthors[$key];
+        }
+
+        $author = $this->authorRepository->findOneBy(['name' => $name]);
+
+        if (null === $author) {
+            $author = new Author();
+            $author->setName($name);
+            $this->entityManager->persist($author);
+        }
+
+        $this->pendingAuthors[$key] = $author;
+
+        return $author;
+    }
+
+    /**
+     * Normalise un nom pour le rendre insensible aux accents et à la casse.
+     */
+    private static function normalizeAuthorKey(string $name): string
+    {
+        $key = \mb_strtolower(\trim($name));
+        $decomposed = \Normalizer::normalize($key, \Normalizer::NFD);
+
+        if (false === $decomposed) {
+            return $key;
+        }
+
+        return \preg_replace('/\p{Mn}/u', '', $decomposed) ?? $key;
     }
 }
