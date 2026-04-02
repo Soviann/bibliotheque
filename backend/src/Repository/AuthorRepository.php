@@ -50,7 +50,7 @@ class AuthorRepository extends ServiceEntityRepository
     public function findOrCreate(string $name): Author
     {
         $name = \trim($name);
-        $key = \mb_strtolower($name);
+        $key = self::normalizeKey($name);
 
         if (isset($this->pendingAuthors[$key])) {
             return $this->pendingAuthors[$key];
@@ -87,5 +87,24 @@ class AuthorRepository extends ServiceEntityRepository
         }
 
         return $authors;
+    }
+
+    /**
+     * Normalise une clé pour la rendre insensible aux accents et à la casse.
+     *
+     * Correspond au comportement de la collation utf8mb4_unicode_ci de MariaDB.
+     */
+    private static function normalizeKey(string $name): string
+    {
+        $key = \mb_strtolower($name);
+
+        // Décompose les caractères accentués (é → e + accent combinant), puis supprime les accents
+        $decomposed = \Normalizer::normalize($key, \Normalizer::NFD);
+
+        if (false === $decomposed) {
+            return $key;
+        }
+
+        return \preg_replace('/\p{Mn}/u', '', $decomposed) ?? $key;
     }
 }
