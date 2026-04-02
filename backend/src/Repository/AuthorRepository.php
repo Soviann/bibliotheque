@@ -13,6 +13,13 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class AuthorRepository extends ServiceEntityRepository
 {
+    /**
+     * Cache mémoire des auteurs créés mais pas encore flushés (clé = nom en minuscule).
+     *
+     * @var array<string, Author>
+     */
+    private array $pendingAuthors = [];
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Author::class);
@@ -43,6 +50,11 @@ class AuthorRepository extends ServiceEntityRepository
     public function findOrCreate(string $name): Author
     {
         $name = \trim($name);
+        $key = \mb_strtolower($name);
+
+        if (isset($this->pendingAuthors[$key])) {
+            return $this->pendingAuthors[$key];
+        }
 
         $author = $this->findOneBy(['name' => $name]);
 
@@ -50,6 +62,7 @@ class AuthorRepository extends ServiceEntityRepository
             $author = new Author();
             $author->setName($name);
             $this->getEntityManager()->persist($author);
+            $this->pendingAuthors[$key] = $author;
         }
 
         return $author;
