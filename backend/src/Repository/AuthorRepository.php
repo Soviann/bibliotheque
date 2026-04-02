@@ -13,13 +13,6 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class AuthorRepository extends ServiceEntityRepository
 {
-    /**
-     * Cache mémoire des auteurs créés mais pas encore flushés (clé = nom en minuscule).
-     *
-     * @var array<string, Author>
-     */
-    private array $pendingAuthors = [];
-
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Author::class);
@@ -50,19 +43,12 @@ class AuthorRepository extends ServiceEntityRepository
     public function findOrCreate(string $name): Author
     {
         $name = \trim($name);
-        $key = self::normalizeKey($name);
-
-        if (isset($this->pendingAuthors[$key])) {
-            return $this->pendingAuthors[$key];
-        }
-
         $author = $this->findOneBy(['name' => $name]);
 
         if (null === $author) {
             $author = new Author();
             $author->setName($name);
             $this->getEntityManager()->persist($author);
-            $this->pendingAuthors[$key] = $author;
         }
 
         return $author;
@@ -87,24 +73,5 @@ class AuthorRepository extends ServiceEntityRepository
         }
 
         return $authors;
-    }
-
-    /**
-     * Normalise une clé pour la rendre insensible aux accents et à la casse.
-     *
-     * Correspond au comportement de la collation utf8mb4_unicode_ci de MariaDB.
-     */
-    private static function normalizeKey(string $name): string
-    {
-        $key = \mb_strtolower($name);
-
-        // Décompose les caractères accentués (é → e + accent combinant), puis supprime les accents
-        $decomposed = \Normalizer::normalize($key, \Normalizer::NFD);
-
-        if (false === $decomposed) {
-            return $key;
-        }
-
-        return \preg_replace('/\p{Mn}/u', '', $decomposed) ?? $key;
     }
 }
