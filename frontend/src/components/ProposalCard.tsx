@@ -71,9 +71,13 @@ export default function ProposalCard({
           )}
         </div>
         <div className="mt-1 break-all text-sm text-text-secondary">
-          <span className="text-text-tertiary">{formatEnrichmentValue(proposal.currentValue)}</span>
+          <span className="text-text-tertiary">
+            {formatEnrichmentValue(proposal.currentValue, proposal.field === "cover" ? Infinity : undefined)}
+          </span>
           {" → "}
-          <span className="font-medium text-text-primary">{formatEnrichmentValue(proposal.proposedValue)}</span>
+          <span className="font-medium text-text-primary">
+            {formatEnrichmentValue(proposal.proposedValue, proposal.field === "cover" ? Infinity : undefined)}
+          </span>
         </div>
       </div>
       {!readonly && onAccept && onReject && (

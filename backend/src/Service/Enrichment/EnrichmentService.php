@@ -106,7 +106,7 @@ class EnrichmentService
         match ($field) {
             EnrichableField::AMAZON_URL => $series->setAmazonUrl($stringValue),
             EnrichableField::AUTHORS => $this->applyAuthors($series, $value),
-            EnrichableField::COVER => $this->coverDownloader->downloadAndStore($series, $stringValue),
+            EnrichableField::COVER => $this->downloadCoverOrFail($series, $stringValue),
             EnrichableField::DESCRIPTION => $series->setDescription($stringValue),
             EnrichableField::ISBN => null,
             EnrichableField::IS_ONE_SHOT => $series->setIsOneShot((bool) $value),
@@ -319,6 +319,13 @@ class EnrichmentService
             'thumbnail' => $result->thumbnail,
             default => null,
         };
+    }
+
+    private function downloadCoverOrFail(ComicSeries $series, string $url): void
+    {
+        if (!$this->coverDownloader->downloadAndStore($series, $url)) {
+            throw new \RuntimeException(\sprintf('Échec du téléchargement de la couverture depuis %s', $url));
+        }
     }
 
     private function revertCover(ComicSeries $series, mixed $value, string $stringValue): void

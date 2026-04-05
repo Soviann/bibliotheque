@@ -43,6 +43,7 @@ export function useAcceptProposal() {
         queryKey: queryKeys.enrichment.proposalsPrefix,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix });
     },
   });
 }
@@ -60,6 +61,7 @@ export function useRejectProposal() {
         queryKey: queryKeys.enrichment.proposalsPrefix,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix });
     },
   });
 }
