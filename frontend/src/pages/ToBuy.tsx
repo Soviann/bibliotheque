@@ -127,7 +127,7 @@ export default function ToBuy() {
 
       {/* Search */}
       <div className="flex items-center gap-2">
-        <SearchInput onChange={handleSearchChange} value={search} />
+        <SearchInput autoFocus onChange={handleSearchChange} value={search} />
         <span className="flex shrink-0 items-center gap-1.5 font-mono-stats text-sm text-text-muted">
           {isFetching && !isLoading && (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

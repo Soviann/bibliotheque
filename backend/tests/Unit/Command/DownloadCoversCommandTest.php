@@ -61,7 +61,7 @@ final class DownloadCoversCommandTest extends TestCase
 
         $callCount = 0;
         $this->coverDownloader->method('downloadAndStore')
-            ->willReturnCallback(function () use (&$callCount): bool {
+            ->willReturnCallback(static function () use (&$callCount): bool {
                 ++$callCount;
                 if (1 === $callCount) {
                     throw EntityManagerClosed::create();

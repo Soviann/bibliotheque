@@ -72,7 +72,7 @@ final class AutoEnrichCommandTest extends TestCase
 
         // La première série déclenche une erreur qui ferme l'EM
         $this->lookupOrchestrator->method('lookupByTitle')
-            ->willReturnCallback(function (string $title) {
+            ->willReturnCallback(static function (string $title) {
                 if ('Série qui ferme EM' === $title) {
                     throw EntityManagerClosed::create();
                 }
