@@ -12,6 +12,7 @@ use App\Enum\LookupMode;
 use App\Repository\AuthorRepository;
 use App\Repository\EnrichmentProposalRepository;
 use App\Service\Cover\CoverDownloader;
+use App\Service\Cover\CoverRemoverInterface;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupApplier;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,6 +59,7 @@ class EnrichmentService
         private readonly AuthorRepository $authorRepository,
         private readonly ConfidenceScorer $confidenceScorer,
         private readonly CoverDownloader $coverDownloader,
+        private readonly CoverRemoverInterface $coverRemover,
         private readonly EntityManagerInterface $entityManager,
         private readonly LookupApplier $lookupApplier,
         private readonly LoggerInterface $logger,
@@ -123,7 +125,7 @@ class EnrichmentService
         match ($field) {
             EnrichableField::AMAZON_URL => $series->setAmazonUrl('' === $stringValue ? null : $stringValue),
             EnrichableField::AUTHORS => $this->revertAuthors($series, $value),
-            EnrichableField::COVER => $series->setCoverUrl(null === $value ? null : $stringValue),
+            EnrichableField::COVER => $this->revertCover($series, $value, $stringValue),
             EnrichableField::DESCRIPTION => $series->setDescription('' === $stringValue ? null : $stringValue),
             EnrichableField::ISBN => null,
             EnrichableField::IS_ONE_SHOT => $series->setIsOneShot((bool) $value),
@@ -317,6 +319,15 @@ class EnrichmentService
             'thumbnail' => $result->thumbnail,
             default => null,
         };
+    }
+
+    private function revertCover(ComicSeries $series, mixed $value, string $stringValue): void
+    {
+        if (null !== $series->getCoverImage()) {
+            $this->coverRemover->remove($series);
+        }
+
+        $series->setCoverUrl(null === $value ? null : $stringValue);
     }
 
     private function revertAuthors(ComicSeries $series, mixed $value): void

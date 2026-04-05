@@ -368,7 +368,7 @@ describe("ComicDetail", () => {
 
     await waitFor(() => {
       const img = screen.getByAltText("Cover Test");
-      expect(img).toHaveAttribute("src", "/uploads/covers/my-cover.webp");
+      expect(img.getAttribute("src")).toContain("/uploads/covers/my-cover.webp");
     });
   });
 

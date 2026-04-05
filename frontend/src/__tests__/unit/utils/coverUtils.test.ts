@@ -6,6 +6,18 @@ describe("getCoverSrc", () => {
       .toBe("/uploads/covers/abc.jpg");
   });
 
+  it("appends cache-busting param when updatedAt is provided", () => {
+    const updatedAt = "2025-01-15T10:30:00+00:00";
+    const timestamp = new Date(updatedAt).getTime();
+    expect(getCoverSrc({ coverImage: "abc.jpg", coverUrl: null, updatedAt }))
+      .toBe(`/uploads/covers/abc.jpg?v=${timestamp}`);
+  });
+
+  it("returns coverUrl without cache-busting param", () => {
+    expect(getCoverSrc({ coverImage: null, coverUrl: "https://example.com/img.jpg", updatedAt: "2025-01-15T10:30:00+00:00" }))
+      .toBe("https://example.com/img.jpg");
+  });
+
   it("returns coverUrl when coverImage is null", () => {
     expect(getCoverSrc({ coverImage: null, coverUrl: "https://example.com/img.jpg" }))
       .toBe("https://example.com/img.jpg");
@@ -48,6 +60,13 @@ describe("getCoverThumbnailSrc", () => {
   it("returns LiipImagine thumbnail path for local cover", () => {
     expect(getCoverThumbnailSrc({ coverImage: "abc.webp", coverUrl: null }))
       .toBe("/media/cache/cover_thumbnail/uploads/covers/abc.webp");
+  });
+
+  it("appends cache-busting param when updatedAt is provided", () => {
+    const updatedAt = "2025-01-15T10:30:00+00:00";
+    const timestamp = new Date(updatedAt).getTime();
+    expect(getCoverThumbnailSrc({ coverImage: "abc.webp", coverUrl: null, updatedAt }))
+      .toBe(`/media/cache/cover_thumbnail/uploads/covers/abc.webp?v=${timestamp}`);
   });
 
   it("returns null when no local cover", () => {
