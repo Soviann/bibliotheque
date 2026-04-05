@@ -187,6 +187,7 @@ export default function Home() {
       <div className="flex items-center gap-2">
         <SearchInput
           ariaLabel="Rechercher par titre, auteur, éditeur"
+          autoFocus
           onChange={handleSearchChange}
           placeholder="Rechercher par titre, auteur, éditeur…"
           value={search}
