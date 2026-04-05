@@ -85,14 +85,22 @@ PHP-CS-Fixer and PHPStan: run before committing, only on modified files.
 
 **DB queries**: All in repositories (`src/Repository/`). QueryBuilder only (no raw DQL). Services/controllers inject repositories, never `EntityManagerInterface` for queries.
 
-## Mandatory TDD
+## Testing
 
-1. **Test first**: write/modify test → must fail
-2. **Implement**: minimum to pass
-3. **Refactor**: green tests
+**Rule: nothing ships without tests.** Timing is flexible — what matters is coverage, not ceremony.
 
-**Backend**: `backend/src/X/Foo.php` → `backend/tests/{Unit,Integration,Functional}/X/FooTest.php`
-**Frontend**: `frontend/src/X/Foo.tsx` → `frontend/src/__tests__/{unit,integration}/X/Foo.test.tsx`
+| Situation | Approach |
+|-----------|----------|
+| Bug fix | **Test-first**: write a test that reproduces the bug → fix → green. Proves the bug existed. |
+| Complex business logic (multiple edge cases) | **Test-first**: enumerate cases upfront, then implement. |
+| New service / simple logic | **Write code + tests together**, run once. Skip the ceremonial "red" step when failure is obvious (class doesn't exist yet). |
+| API endpoint (functional test) | **Code first, test after**: too many moving parts (routing, serialization, DB) for a useful "red" step. |
+| React component | **Code first, test after**: component tests need DOM structure to exist. |
+| Refactoring | **Tests already exist**: green before, green after. |
+
+**Why not strict TDD everywhere**: the "verify it fails" step costs ~10s + tokens per run via DDEV. For an AI dev, it adds no information when the class/method doesn't exist yet. Reserve strict red-green-refactor for bug fixes and complex logic where it genuinely catches mistakes.
+
+**Paths**: `backend/src/X/Foo.php` → `backend/tests/{Unit,Integration,Functional}/X/FooTest.php` | `frontend/src/X/Foo.tsx` → `frontend/src/__tests__/{unit,integration}/X/Foo.test.tsx`
 **Test env**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 **Exceptions**: YAML config, migrations, assets, CSS.
 

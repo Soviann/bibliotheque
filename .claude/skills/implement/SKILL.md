@@ -6,7 +6,7 @@
 2. **Evaluate complexity — plan mode if needed**: After gathering context, assess whether the issue is straightforward (clear scope, existing patterns to follow) or complex (feasibility study, architectural decisions, multiple valid approaches, unclear requirements). If complex → enter plan mode (`EnterPlanMode`) and get user approval before coding. If straightforward → proceed directly.
 3. Update local main (`git checkout main && git pull`), then create a feature branch from main (follow CLAUDE.md branch naming convention). Do not push yet — push with the actual code in step 10.
 4. Move the GitHub issue on the project board to In Progress.
-5. Follow TDD using the `superpowers:test-driven-development` skill: write failing tests → implement → all tests pass → refactor.
+5. **Implement with tests** per CLAUDE.md Testing strategy: test-first for bug fixes and complex logic, code+tests together for new services, code-first for endpoints/components. All code must have tests before moving on.
 6. Run `superpowers:verification-before-completion`: all tests pass, lint clean (including PHP CS Fixer on staged `.php` files).
 7. Update CHANGELOG.md with the change.
 8. If the change affects deployment, CLI commands, or documented APIs, grep `docs/` for impacted terms and update relevant docs.
