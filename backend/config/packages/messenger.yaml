@@ -1,5 +1,9 @@
 framework:
     messenger:
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - doctrine_close_connection
         failure_transport: failed
         routing:
             App\Message\DownloadCoverMessage: async

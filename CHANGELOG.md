@@ -10,6 +10,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Fixed
 
 - **Couvertures** : corrige l'affichage inchangé après validation, changement manuel ou invalidation d'une couverture (cache-busting frontend + invalidation LiipImagine + nettoyage fichier au revert)
+- **Cron** : corrige les tâches planifiées qui échouaient en cascade après une erreur Doctrine (EntityManager fermé) — ajout du middleware `doctrine_close_connection` et réinitialisation de l'EM dans les commandes longues
 
 ## [v2.26.7] - 2026-04-02
 

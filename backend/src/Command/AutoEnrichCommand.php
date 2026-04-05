@@ -11,6 +11,7 @@ use App\Repository\ComicSeriesRepository;
 use App\Service\Enrichment\EnrichmentService;
 use App\Service\Lookup\LookupOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,9 +35,10 @@ final class AutoEnrichCommand extends Command
 
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private EntityManagerInterface $entityManager,
         private readonly EnrichmentService $enrichmentService,
         private readonly LookupOrchestrator $lookupOrchestrator,
+        private readonly ManagerRegistry $managerRegistry,
     ) {
         parent::__construct();
     }
@@ -103,6 +105,16 @@ final class AutoEnrichCommand extends Command
             ++$processed;
 
             try {
+                // Ré-attacher l'entité si elle a été détachée par un reset de l'EM
+                if (!$this->entityManager->contains($series)) {
+                    $series = $this->comicSeriesRepository->find($series->getId());
+
+                    if (null === $series) {
+                        ++$skipped;
+                        continue;
+                    }
+                }
+
                 $result = $this->lookupOrchestrator->lookupByTitle(
                     $series->getTitle(),
                     $series->getType(),
@@ -147,12 +159,18 @@ final class AutoEnrichCommand extends Command
                     }
                 }
 
-                if (!$dryRun && 0 === $processed % 10) {
+                if (!$dryRun && 0 === $processed % 10 && $this->entityManager->isOpen()) {
                     $this->entityManager->flush();
                 }
             } catch (\Throwable $e) {
                 $io->error(\sprintf('[%d/%d] %s — erreur : %s', $processed, \count($seriesList), $series->getTitle(), $e->getMessage()));
                 ++$failed;
+
+                if (!$this->entityManager->isOpen()) {
+                    /** @var EntityManagerInterface $resetEm */
+                    $resetEm = $this->managerRegistry->resetManager();
+                    $this->entityManager = $resetEm;
+                }
             }
 
             if ($index < \count($seriesList) - 1 && $delay > 0) {
@@ -160,7 +178,7 @@ final class AutoEnrichCommand extends Command
             }
         }
 
-        if (!$dryRun) {
+        if (!$dryRun && $this->entityManager->isOpen()) {
             $this->entityManager->flush();
         }
 

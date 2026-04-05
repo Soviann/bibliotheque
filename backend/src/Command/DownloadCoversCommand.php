@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Cover\CoverDownloader;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,7 +29,8 @@ final class DownloadCoversCommand extends Command
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
         private readonly CoverDownloader $coverDownloader,
-        private readonly EntityManagerInterface $entityManager,
+        private EntityManagerInterface $entityManager,
+        private readonly ManagerRegistry $managerRegistry,
     ) {
         parent::__construct();
     }
@@ -77,6 +79,16 @@ final class DownloadCoversCommand extends Command
 
         foreach ($series as $i => $comic) {
             ++$processed;
+
+            // Ré-attacher l'entité si elle a été détachée par un reset de l'EM
+            if (!$this->entityManager->contains($comic)) {
+                $comic = $this->comicSeriesRepository->find($comic->getId());
+
+                if (null === $comic) {
+                    continue;
+                }
+            }
+
             $coverUrl = $comic->getCoverUrl();
 
             if (null === $coverUrl) {
@@ -90,16 +102,27 @@ final class DownloadCoversCommand extends Command
                 continue;
             }
 
-            if ($this->coverDownloader->downloadAndStore($comic, $coverUrl)) {
-                ++$success;
-                $io->text('  → Couverture téléchargée');
-            } else {
-                ++$failed;
-                $io->text('  → Échec du téléchargement');
-            }
+            try {
+                if ($this->coverDownloader->downloadAndStore($comic, $coverUrl)) {
+                    ++$success;
+                    $io->text('  → Couverture téléchargée');
+                } else {
+                    ++$failed;
+                    $io->text('  → Échec du téléchargement');
+                }
 
-            if (0 === ($i + 1) % self::FLUSH_BATCH_SIZE) {
-                $this->entityManager->flush();
+                if (0 === ($i + 1) % self::FLUSH_BATCH_SIZE) {
+                    $this->entityManager->flush();
+                }
+            } catch (\Throwable $e) {
+                $io->error(\sprintf('  → Erreur : %s', $e->getMessage()));
+                ++$failed;
+
+                if (!$this->entityManager->isOpen()) {
+                    /** @var EntityManagerInterface $resetEm */
+                    $resetEm = $this->managerRegistry->resetManager();
+                    $this->entityManager = $resetEm;
+                }
             }
 
             if ($delay > 0 && $i < \count($series) - 1) {
@@ -107,7 +130,9 @@ final class DownloadCoversCommand extends Command
             }
         }
 
-        $this->entityManager->flush();
+        if ($this->entityManager->isOpen()) {
+            $this->entityManager->flush();
+        }
 
         $io->newLine();
         $io->success(\sprintf(
