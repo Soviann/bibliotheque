@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
+use Symfony\Component\DependencyInjection\Attribute\When;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
@@ -21,6 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * variables d'environnement, afin de faciliter l'automatisation navigateur
  * (Chrome DevTools MCP, Playwright).
  */
+#[When('dev')]
 final readonly class DevLoginController
 {
     public function __construct(
