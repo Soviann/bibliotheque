@@ -37,15 +37,15 @@ final class ThumbnailGeneratorTest extends TestCase
         );
     }
 
-    public function testGenerateCreatesThumbnailWhenNotCached(): void
+    public function testGenerateInvalidatesCacheThenRegenerates(): void
     {
         $path = '/uploads/covers/abc123.webp';
         $binary = new Binary('image-data', 'image/webp', 'webp');
         $filteredBinary = new Binary('thumbnail-data', 'image/webp', 'webp');
 
-        $this->cacheManager->method('isStored')
-            ->with($path, 'cover_thumbnail')
-            ->willReturn(false);
+        $this->cacheManager->expects(self::once())
+            ->method('remove')
+            ->with($path);
 
         $this->dataManager->expects(self::once())
             ->method('find')
@@ -64,28 +64,11 @@ final class ThumbnailGeneratorTest extends TestCase
         $this->generator->generate('abc123.webp');
     }
 
-    public function testGenerateSkipsWhenAlreadyCached(): void
-    {
-        $path = '/uploads/covers/abc123.webp';
-
-        $this->cacheManager->method('isStored')
-            ->with($path, 'cover_thumbnail')
-            ->willReturn(true);
-
-        $this->dataManager->expects(self::never())->method('find');
-        $this->filterManager->expects(self::never())->method('applyFilter');
-        $this->cacheManager->expects(self::never())->method('store');
-
-        $this->generator->generate('abc123.webp');
-    }
-
     public function testGenerateLogsErrorOnFailure(): void
     {
-        $path = '/uploads/covers/broken.webp';
+        $this->cacheManager->method('remove');
 
-        $this->cacheManager->method('isStored')
-            ->with($path, 'cover_thumbnail')
-            ->willReturn(false);
+        $this->cacheManager->expects(self::never())->method('store');
 
         $this->dataManager->method('find')
             ->willThrowException(new \RuntimeException('File not found'));

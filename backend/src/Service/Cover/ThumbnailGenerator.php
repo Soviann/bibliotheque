@@ -35,9 +35,8 @@ readonly class ThumbnailGenerator
     {
         $path = self::URI_PREFIX.$coverImage;
 
-        if ($this->cacheManager->isStored($path, self::FILTER)) {
-            return;
-        }
+        // Toujours supprimer l'ancien cache pour forcer la regénération
+        $this->cacheManager->remove($path);
 
         try {
             $binary = $this->dataManager->find(self::FILTER, $path);

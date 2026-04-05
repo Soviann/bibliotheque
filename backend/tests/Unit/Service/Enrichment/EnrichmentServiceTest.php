@@ -12,12 +12,15 @@ use App\Enum\LookupMode;
 use App\Enum\ProposalStatus;
 use App\Repository\AuthorRepository;
 use App\Repository\EnrichmentProposalRepository;
+use App\Enum\EnrichableField;
 use App\Service\Cover\CoverDownloader;
+use App\Service\Cover\CoverRemoverInterface;
 use App\Service\Enrichment\ConfidenceScorer;
 use App\Service\Enrichment\EnrichmentService;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupApplier;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -28,6 +31,7 @@ use Psr\Log\NullLogger;
 final class EnrichmentServiceTest extends TestCase
 {
     private Stub&ConfidenceScorer $confidenceScorer;
+    private MockObject&CoverRemoverInterface $coverRemover;
     private Stub&EntityManagerInterface $entityManager;
     private EnrichmentService $enrichmentService;
     private Stub&EnrichmentProposalRepository $proposalRepository;
@@ -39,6 +43,7 @@ final class EnrichmentServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->confidenceScorer = $this->createStub(ConfidenceScorer::class);
+        $this->coverRemover = $this->createMock(CoverRemoverInterface::class);
         $this->entityManager = $this->createStub(EntityManagerInterface::class);
         $this->lookupApplier = $this->createStub(LookupApplier::class);
         $this->proposalRepository = $this->createStub(EnrichmentProposalRepository::class);
@@ -51,6 +56,7 @@ final class EnrichmentServiceTest extends TestCase
             $this->createStub(AuthorRepository::class),
             $this->confidenceScorer,
             $this->createStub(CoverDownloader::class),
+            $this->coverRemover,
             $this->entityManager,
             $this->lookupApplier,
             new NullLogger(),
@@ -187,6 +193,38 @@ final class EnrichmentServiceTest extends TestCase
         $proposal = \array_values($proposals)[0];
         self::assertSame(ProposalStatus::SKIPPED, $proposal->getStatus());
         self::assertNotNull($proposal->getReviewedAt());
+    }
+
+    /**
+     * Teste que revertFieldValue supprime la couverture téléchargée et restaure coverUrl.
+     */
+    public function testRevertCoverFieldRemovesCoverAndRestoresUrl(): void
+    {
+        $series = $this->createSeries();
+        $series->setCoverImage('downloaded.webp');
+
+        $this->coverRemover->expects(self::once())
+            ->method('remove')
+            ->with($series);
+
+        $this->enrichmentService->revertFieldValue($series, EnrichableField::COVER, 'https://original.com/cover.jpg');
+
+        self::assertSame('https://original.com/cover.jpg', $series->getCoverUrl());
+    }
+
+    /**
+     * Teste que revertFieldValue ne supprime pas si coverImage est déjà null.
+     */
+    public function testRevertCoverFieldWithNullCoverImageSkipsRemoval(): void
+    {
+        $series = $this->createSeries();
+
+        $this->coverRemover->expects(self::never())
+            ->method('remove');
+
+        $this->enrichmentService->revertFieldValue($series, EnrichableField::COVER, null);
+
+        self::assertNull($series->getCoverUrl());
     }
 
     private function createSeries(): ComicSeries

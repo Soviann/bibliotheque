@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Couvertures** : corrige l'affichage inchangé après validation, changement manuel ou invalidation d'une couverture (cache-busting frontend + invalidation LiipImagine + nettoyage fichier au revert)
+
 ## [v2.26.7] - 2026-04-02
 
 ### Fixed
