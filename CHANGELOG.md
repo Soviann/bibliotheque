@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.26.8] - 2026-04-07
+
 ### Fixed
 
 - **Recherche** : ajout du bouton croix pour vider le champ de recherche (#452)
