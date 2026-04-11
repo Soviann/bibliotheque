@@ -432,7 +432,7 @@ Un **conteneur worker Docker** dédié avec Supervisor exécute Messenger et Sch
 
 | Composant | Description |
 |-----------|-------------|
-| `Layout` | Shell de l'app (header sticky, search, notifications, Outlet) |
+| `Layout` | Shell de l'app (header sticky, notifications, Outlet) |
 | `BottomNav` | Navigation bottom (mobile) avec glassmorphism et indicateurs dot |
 | `AuthGuard` | Redirige vers /login si non authentifié |
 | `ComicCard` | Carte d'une série (couverture, ambient glow, badges) |

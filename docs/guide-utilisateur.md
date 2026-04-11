@@ -91,7 +91,7 @@ La page **À acheter** (`/to-buy`) liste les tomes manquants des séries en cour
 
 ## Recherche
 
-La recherche est accessible depuis l'icône loupe dans le header. Le champ s'ouvre en pleine largeur avec un slide animé. La recherche se déclenche après saisie (délai anti-rebond de 300 ms) et redirige vers la page d'accueil avec le paramètre `?search=`.
+La recherche est accessible depuis le champ en haut de la page d'accueil. Elle filtre les séries par titre, auteur ou éditeur, avec un délai anti-rebond de 300 ms après saisie.
 
 ---
 
