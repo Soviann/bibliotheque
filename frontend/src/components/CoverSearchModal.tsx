@@ -102,9 +102,9 @@ export default function CoverSearchModal({
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative min-h-0 flex-1">
             <div
-              className="overflow-y-auto p-4"
+              className="h-full overflow-y-auto p-4"
               onScroll={handleScroll}
               ref={scrollRef}
             >
