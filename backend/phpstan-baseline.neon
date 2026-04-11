@@ -81,7 +81,7 @@ parameters:
 		-
 			message: '#^Cannot call method toArray\(\) on ApiPlatform\\Symfony\\Bundle\\Test\\Response\|null\.$#'
 			identifier: method.nonObject
-			count: 12
+			count: 13
 			path: tests/Functional/Api/ComicSeriesApiTest.php
 
 		-

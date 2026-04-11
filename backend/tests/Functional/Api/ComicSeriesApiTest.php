@@ -146,6 +146,23 @@ final class ComicSeriesApiTest extends ApiTestCase
         self::assertSame('manga', $data['type']);
     }
 
+    public function testPostCreateAcceptsDownloadingStatus(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $client->request('POST', '/api/comic_series', [
+            'headers' => ['Content-Type' => 'application/ld+json'],
+            'json' => [
+                'status' => 'downloading',
+                'title' => 'Série à télécharger',
+                'type' => 'manga',
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame('downloading', $client->getResponse()->toArray()['status']);
+    }
+
     public function testPostCreateWithAuthorsLinksAuthors(): void
     {
         $client = $this->createAuthenticatedClient();

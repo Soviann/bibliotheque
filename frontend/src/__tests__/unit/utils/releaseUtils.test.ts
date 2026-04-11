@@ -24,6 +24,8 @@ function makeComic(overrides: Partial<ComicSeries> = {}): ComicSeries {
     latestPublishedIssueComplete: false,
     latestPublishedIssueUpdatedAt: null,
     maxTomeNumber: null,
+    notInterestedBuy: false,
+    notInterestedNas: false,
     publishedDate: null,
     publisher: null,
     readCount: 0,
@@ -62,7 +64,7 @@ describe("hasNewRelease", () => {
     expect(hasNewRelease(comic)).toBe(true);
   });
 
-  it("returns false when not BUYING status", () => {
+  it("returns false when not an active acquisition status", () => {
     const comic = makeComic({
       latestPublishedIssue: 5,
       latestPublishedIssueUpdatedAt: recentDate(3),
@@ -70,6 +72,16 @@ describe("hasNewRelease", () => {
       status: ComicStatus.FINISHED,
     });
     expect(hasNewRelease(comic)).toBe(false);
+  });
+
+  it("returns true when status is DOWNLOADING", () => {
+    const comic = makeComic({
+      latestPublishedIssue: 5,
+      latestPublishedIssueUpdatedAt: recentDate(3),
+      maxTomeNumber: 2,
+      status: ComicStatus.DOWNLOADING,
+    });
+    expect(hasNewRelease(comic)).toBe(true);
   });
 
   it("returns false when update is older than 7 days", () => {

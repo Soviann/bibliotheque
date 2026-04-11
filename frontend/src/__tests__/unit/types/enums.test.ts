@@ -24,9 +24,15 @@ describe("typeOptions", () => {
 describe("statusOptions", () => {
   it("contains all statuses without 'all' prefix", () => {
     expect(statusOptions.map((o) => o.value)).toEqual(
-      expect.arrayContaining(["buying", "finished", "stopped", "wishlist"]),
+      expect.arrayContaining([
+        "buying",
+        "downloading",
+        "finished",
+        "stopped",
+        "wishlist",
+      ]),
     );
-    expect(statusOptions).toHaveLength(4);
+    expect(statusOptions).toHaveLength(5);
   });
 
   it("statusOptionsAll starts with 'Tous les statuts'", () => {

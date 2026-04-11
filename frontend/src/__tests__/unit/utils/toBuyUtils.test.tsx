@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createMockComicSeries } from "../../helpers/factories";
 import {
   filterSeriesToBuy,
+  filterSeriesToDownload,
   formatTomeRanges,
   getNextTomesToBuy,
 } from "../../../utils/toBuyUtils";
@@ -93,5 +94,48 @@ describe("filterSeriesToBuy", () => {
   it("excludes series with all tomes bought", () => {
     const series = createMockComicSeries({ unboughtTomes: [] });
     expect(filterSeriesToBuy([series])).toEqual([]);
+  });
+
+  it("excludes downloading series", () => {
+    const series = createMockComicSeries({
+      status: "downloading",
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
+    });
+    expect(filterSeriesToBuy([series])).toEqual([]);
+  });
+});
+
+describe("filterSeriesToDownload", () => {
+  it("includes downloading series with unbought tomes", () => {
+    const series = createMockComicSeries({
+      status: "downloading",
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
+    });
+    expect(filterSeriesToDownload([series])).toEqual([series]);
+  });
+
+  it("excludes buying series", () => {
+    const series = createMockComicSeries({
+      status: "buying",
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
+    });
+    expect(filterSeriesToDownload([series])).toEqual([]);
+  });
+
+  it("excludes one-shots", () => {
+    const series = createMockComicSeries({
+      isOneShot: true,
+      status: "downloading",
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
+    });
+    expect(filterSeriesToDownload([series])).toEqual([]);
+  });
+
+  it("excludes downloading series with all tomes bought", () => {
+    const series = createMockComicSeries({
+      status: "downloading",
+      unboughtTomes: [],
+    });
+    expect(filterSeriesToDownload([series])).toEqual([]);
   });
 });

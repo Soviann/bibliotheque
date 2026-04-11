@@ -55,6 +55,29 @@ describe("ShelfView", () => {
     expect(screen.getByText("Naruto")).toBeInTheDocument();
   });
 
+  it("places downloading shelf between buying and finished", () => {
+    const comics = [
+      mockComic(1, "One Piece", "buying"),
+      mockComic(2, "Naruto", "finished"),
+      mockComic(3, "Bleach", "downloading"),
+    ];
+    render(
+      <MemoryRouter>
+        <ShelfView comics={comics} onFilterByStatus={vi.fn()} />
+      </MemoryRouter>,
+    );
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    const labels = headings.map((h) => h.textContent ?? "");
+    const buyingIdx = labels.findIndex((l) => l.includes("En cours d'achat"));
+    const downloadingIdx = labels.findIndex((l) =>
+      l.includes("En cours de téléchargement"),
+    );
+    const finishedIdx = labels.findIndex((l) => l.includes("Terminé"));
+    expect(buyingIdx).toBeGreaterThanOrEqual(0);
+    expect(downloadingIdx).toBeGreaterThan(buyingIdx);
+    expect(finishedIdx).toBeGreaterThan(downloadingIdx);
+  });
+
   it("does not render empty status groups", () => {
     const comics = [mockComic(1, "One Piece", "buying")];
     render(

@@ -12,6 +12,7 @@ interface ShelfViewProps {
 /** Ordre d'affichage des étagères */
 const STATUS_ORDER: ComicStatus[] = [
   "buying",
+  "downloading",
   "finished",
   "wishlist",
   "stopped",

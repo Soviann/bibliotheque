@@ -104,17 +104,17 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retourne les séries en cours d'achat éligibles à la vérification de nouvelles parutions.
+     * Retourne les séries en cours d'acquisition (achat ou téléchargement) éligibles à la vérification de nouvelles parutions.
      *
      * @return ComicSeries[]
      */
-    public function findBuyingForReleaseCheck(?int $limit = null): array
+    public function findActiveForReleaseCheck(?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('c')
-            ->where('c.status = :status')
+            ->where('c.status IN (:statuses)')
             ->andWhere('c.latestPublishedIssueComplete = false')
             ->andWhere('c.isOneShot = false')
-            ->setParameter('status', ComicStatus::BUYING)
+            ->setParameter('statuses', [ComicStatus::BUYING, ComicStatus::DOWNLOADING])
             ->addOrderBy('c.newReleasesCheckedAt', 'ASC') // NULL values first in MariaDB
             ->addOrderBy('c.title', 'ASC');
 
@@ -224,7 +224,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
             ->andWhere('c.isOneShot = false')
             ->andWhere('c.latestPublishedIssue IS NOT NULL')
             ->orderBy('c.title', 'ASC')
-            ->setParameter('statuses', [ComicStatus::BUYING, ComicStatus::FINISHED])
+            ->setParameter('statuses', [ComicStatus::BUYING, ComicStatus::DOWNLOADING, ComicStatus::FINISHED])
             ->getQuery()
             ->getResult();
 

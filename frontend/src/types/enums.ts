@@ -1,5 +1,6 @@
 export const ComicStatus = {
   BUYING: "buying",
+  DOWNLOADING: "downloading",
   FINISHED: "finished",
   STOPPED: "stopped",
   WISHLIST: "wishlist",
@@ -10,6 +11,8 @@ export type ComicStatus = (typeof ComicStatus)[keyof typeof ComicStatus];
 export const ComicStatusColor: Record<ComicStatus, string> = {
   [ComicStatus.BUYING]:
     "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+  [ComicStatus.DOWNLOADING]:
+    "bg-cyan-100 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-400",
   [ComicStatus.FINISHED]:
     "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
   [ComicStatus.STOPPED]:
@@ -20,6 +23,7 @@ export const ComicStatusColor: Record<ComicStatus, string> = {
 
 export const ComicStatusLabel: Record<ComicStatus, string> = {
   [ComicStatus.BUYING]: "En cours d'achat",
+  [ComicStatus.DOWNLOADING]: "En cours de téléchargement",
   [ComicStatus.FINISHED]: "Terminé",
   [ComicStatus.STOPPED]: "Arrêté",
   [ComicStatus.WISHLIST]: "Liste de souhaits",
@@ -27,6 +31,7 @@ export const ComicStatusLabel: Record<ComicStatus, string> = {
 
 export const ComicStatusShortLabel: Record<ComicStatus, string> = {
   [ComicStatus.BUYING]: "En cours",
+  [ComicStatus.DOWNLOADING]: "Téléchargement",
   [ComicStatus.FINISHED]: "Terminé",
   [ComicStatus.STOPPED]: "Arrêté",
   [ComicStatus.WISHLIST]: "Souhaits",

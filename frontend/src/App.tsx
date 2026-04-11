@@ -76,6 +76,7 @@ const NotificationSettings = lazyWithRetry(
   () => import("./pages/NotificationSettings"),
 );
 const ToBuy = lazyWithRetry(() => import("./pages/ToBuy"));
+const ToDownload = lazyWithRetry(() => import("./pages/ToDownload"));
 const PurgeTool = lazyWithRetry(() => import("./pages/PurgeTool"));
 const Suggestions = lazyWithRetry(() => import("./pages/Suggestions"));
 const HelpPage = lazyWithRetry(() => import("./pages/HelpPage"));
@@ -141,6 +142,7 @@ const router = createBrowserRouter(
           path="settings/notifications"
         />
         <Route element={<ToBuy />} path="to-buy" />
+        <Route element={<ToDownload />} path="to-download" />
         <Route element={<Trash />} path="trash" />
         <Route element={<NotFound />} path="*" />
       </Route>

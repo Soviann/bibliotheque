@@ -11,7 +11,7 @@ use App\Service\Lookup\LookupOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Vérifie les nouvelles parutions pour les séries en cours d'achat.
+ * Vérifie les nouvelles parutions pour les séries en cours d'acquisition (achat ou téléchargement).
  */
 final readonly class NewReleaseCheckerService
 {
@@ -31,7 +31,7 @@ final readonly class NewReleaseCheckerService
      */
     public function run(bool $dryRun, ?int $limit): \Generator
     {
-        $seriesList = $this->repository->findBuyingForReleaseCheck(
+        $seriesList = $this->repository->findActiveForReleaseCheck(
             $limit > 0 ? $limit : null,
         );
 

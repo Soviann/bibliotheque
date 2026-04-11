@@ -1130,13 +1130,15 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
     }
 
     // ---------------------------------------------------------------
-    // findBuyingForReleaseCheck
+    // findActiveForReleaseCheck
     // ---------------------------------------------------------------
 
-    public function testFindBuyingForReleaseCheckReturnsBuyingNonOneShotNonComplete(): void
+    public function testFindActiveForReleaseCheckReturnsBuyingAndDownloadingNonOneShotNonComplete(): void
     {
         $buying = EntityFactory::createComicSeries('Buying Series');
         // status=BUYING, isOneShot=false, latestPublishedIssueComplete=false (defaults)
+
+        $downloading = EntityFactory::createComicSeries('Downloading Series', ComicStatus::DOWNLOADING);
 
         $finished = EntityFactory::createComicSeries('Finished Series', ComicStatus::FINISHED);
 
@@ -1148,14 +1150,17 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         $this->em->persist($buying);
         $this->em->persist($complete);
+        $this->em->persist($downloading);
         $this->em->persist($finished);
         $this->em->persist($oneShot);
         $this->em->flush();
 
-        $result = $this->repository->findBuyingForReleaseCheck();
+        $result = $this->repository->findActiveForReleaseCheck();
 
-        self::assertCount(1, $result);
-        self::assertSame('Buying Series', $result[0]->getTitle());
+        self::assertCount(2, $result);
+        $titles = \array_map(static fn ($s): string => $s->getTitle(), $result);
+        self::assertContains('Buying Series', $titles);
+        self::assertContains('Downloading Series', $titles);
     }
 
     public function testFindBuyingForReleaseCheckOrdersByNewReleasesCheckedAtNullFirst(): void
@@ -1173,7 +1178,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $this->em->persist($neverChecked);
         $this->em->flush();
 
-        $result = $this->repository->findBuyingForReleaseCheck();
+        $result = $this->repository->findActiveForReleaseCheck();
 
         self::assertCount(3, $result);
         self::assertSame('Never Checked', $result[0]->getTitle());
@@ -1188,7 +1193,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $this->em->persist(EntityFactory::createComicSeries('Charlie'));
         $this->em->flush();
 
-        $result = $this->repository->findBuyingForReleaseCheck(limit: 2);
+        $result = $this->repository->findActiveForReleaseCheck(limit: 2);
 
         self::assertCount(2, $result);
     }
@@ -1199,7 +1204,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $this->em->persist(EntityFactory::createComicSeries('Bravo'));
         $this->em->flush();
 
-        $result = $this->repository->findBuyingForReleaseCheck();
+        $result = $this->repository->findActiveForReleaseCheck();
 
         self::assertCount(2, $result);
     }

@@ -39,3 +39,10 @@ export function filterSeriesToBuy(series: ComicSeries[]): ComicSeries[] {
     (s) => s.status === "buying" && !s.isOneShot && s.unboughtTomes.length > 0,
   );
 }
+
+export function filterSeriesToDownload(series: ComicSeries[]): ComicSeries[] {
+  return series.filter(
+    (s) =>
+      s.status === "downloading" && !s.isOneShot && s.unboughtTomes.length > 0,
+  );
+}

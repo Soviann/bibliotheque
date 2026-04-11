@@ -21,6 +21,11 @@ final class ComicStatusTest extends TestCase
         self::assertSame('buying', ComicStatus::BUYING->value);
     }
 
+    public function testDownloadingValue(): void
+    {
+        self::assertSame('downloading', ComicStatus::DOWNLOADING->value);
+    }
+
     public function testFinishedValue(): void
     {
         self::assertSame('finished', ComicStatus::FINISHED->value);
@@ -45,6 +50,11 @@ final class ComicStatusTest extends TestCase
         self::assertSame("En cours d'achat", ComicStatus::BUYING->getLabel());
     }
 
+    public function testDownloadingLabel(): void
+    {
+        self::assertSame('En cours de téléchargement', ComicStatus::DOWNLOADING->getLabel());
+    }
+
     public function testFinishedLabel(): void
     {
         self::assertSame('Terminée', ComicStatus::FINISHED->getLabel());
@@ -66,7 +76,7 @@ final class ComicStatusTest extends TestCase
 
     public function testCaseCount(): void
     {
-        self::assertCount(4, ComicStatus::cases());
+        self::assertCount(5, ComicStatus::cases());
     }
 
     // ---------------------------------------------------------------
@@ -76,6 +86,7 @@ final class ComicStatusTest extends TestCase
     public function testFromValue(): void
     {
         self::assertSame(ComicStatus::BUYING, ComicStatus::from('buying'));
+        self::assertSame(ComicStatus::DOWNLOADING, ComicStatus::from('downloading'));
         self::assertSame(ComicStatus::FINISHED, ComicStatus::from('finished'));
         self::assertSame(ComicStatus::STOPPED, ComicStatus::from('stopped'));
         self::assertSame(ComicStatus::WISHLIST, ComicStatus::from('wishlist'));

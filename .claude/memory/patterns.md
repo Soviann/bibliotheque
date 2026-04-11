@@ -64,7 +64,7 @@ src/
 
 ## Enums
 
-ApiLookupStatus, BatchLookupStatus, ComicStatus (collection status), ComicType (BD/comic/manga), EnrichableField, EnrichmentConfidence (high/medium/low), LookupMode (isbn/title), NotificationChannel (web/push), NotificationEntityType, NotificationType, ProposalStatus (pending/pre_accepted/accepted/rejected/skipped), SuggestionStatus.
+ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/stopped/wishlist), ComicType (BD/comic/manga), EnrichableField, EnrichmentConfidence (high/medium/low), LookupMode (isbn/title), NotificationChannel (web/push), NotificationEntityType, NotificationType, ProposalStatus (pending/pre_accepted/accepted/rejected/skipped), SuggestionStatus.
 
 ## Services (`src/Service/`)
 

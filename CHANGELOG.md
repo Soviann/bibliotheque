@@ -9,6 +9,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ### Added
 
+- **Statut « En cours de téléchargement »** : nouveau statut `DOWNLOADING` pour les séries à récupérer sur le NAS. Déclenche les mêmes automatismes que `BUYING` (vérification des nouvelles parutions, détection des tomes manquants, étagère « en cours »). Nouvelle page « À télécharger » accessible en parallèle de « À acheter » via un onglet commun
 - **Détail série** : bouton "Compléter" dans la bannière des tomes manquants, qui crée en un clic les tomes parus non ajoutés (depuis le dernier tome non hors-série jusqu'au dernier tome paru), en appliquant les états par défaut de la série
 
 ### Fixed

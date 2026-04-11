@@ -40,7 +40,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
 
     public function testRunWithNoSeries(): void
     {
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([]);
 
         $results = \iterator_to_array($this->service->run(dryRun: false, limit: null));
 
@@ -56,7 +56,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
             $series->addTome(EntityFactory::createTome($i));
         }
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $result = new LookupResult(latestPublishedIssue: 73);
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
@@ -95,7 +95,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series = EntityFactory::createComicSeries('One Piece');
         $series->setLatestPublishedIssue(105);
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $result = new LookupResult(latestPublishedIssue: 105);
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
@@ -114,7 +114,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series = EntityFactory::createComicSeries('Unknown');
         $series->setLatestPublishedIssue(5);
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn(null);
         $this->lookupOrchestrator->method('getLastApiMessages')->willReturn([]);
@@ -130,7 +130,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series = EntityFactory::createComicSeries('Series');
         $series->setLatestPublishedIssue(10);
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $result = new LookupResult(latestPublishedIssue: 8);
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
@@ -148,7 +148,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series1 = EntityFactory::createComicSeries('Alpha');
         $series2 = EntityFactory::createComicSeries('Bravo');
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series1, $series2]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series1, $series2]);
 
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn(null);
         $this->lookupOrchestrator->method('hasRateLimitError')->willReturn(true);
@@ -166,7 +166,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series = EntityFactory::createComicSeries('Naruto');
         $series->setLatestPublishedIssue(70);
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $result = new LookupResult(latestPublishedIssue: 73);
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
@@ -186,7 +186,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
     public function testRunWithLimitPassesLimitToRepository(): void
     {
         $this->repository->expects(self::once())
-            ->method('findBuyingForReleaseCheck')
+            ->method('findActiveForReleaseCheck')
             ->with(5)
             ->willReturn([]);
 
@@ -203,7 +203,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series->addTome(EntityFactory::createTome(1, bought: true));
         $series->addTome(EntityFactory::createTome(2, bought: true));
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $result = new LookupResult(latestPublishedIssue: 4);
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
@@ -227,7 +227,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series = EntityFactory::createComicSeries('Series');
         $series->setLatestPublishedIssue(10);
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $result = new LookupResult(latestPublishedIssue: null);
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
@@ -243,7 +243,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
         $series = EntityFactory::createComicSeries('New Series');
         // latestPublishedIssue is null
 
-        $this->repository->method('findBuyingForReleaseCheck')->willReturn([$series]);
+        $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
         $result = new LookupResult(latestPublishedIssue: 5);
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
