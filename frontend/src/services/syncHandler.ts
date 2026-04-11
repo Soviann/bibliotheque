@@ -1,15 +1,29 @@
-import { addSyncFailure, getAll, removeById, updatePayload, updateStatus } from "./offlineQueue";
+import {
+  addSyncFailure,
+  getAll,
+  removeById,
+  updatePayload,
+  updateStatus,
+} from "./offlineQueue";
 import type { QueueItem } from "./offlineQueue";
 
 type PostMessageFn = (message: Record<string, unknown>) => void;
 
 function buildUrl(item: QueueItem, tempIdMap: Map<string, string>): string {
-  const { operation, parentResourceId, parentResourceType, resourceId, resourceType } = item;
+  const {
+    operation,
+    parentResourceId,
+    parentResourceType,
+    resourceId,
+    resourceType,
+  } = item;
 
   // Sous-ressource : POST /api/comic_series/{parentId}/tomes
   if (operation === "create" && parentResourceType && parentResourceId) {
-    const resolvedParentId = tempIdMap.get(parentResourceId) ?? parentResourceId;
-    const parentBase = parentResourceType === "comic_series" ? "comic_series" : "tomes";
+    const resolvedParentId =
+      tempIdMap.get(parentResourceId) ?? parentResourceId;
+    const parentBase =
+      parentResourceType === "comic_series" ? "comic_series" : "tomes";
     const childBase = resourceType === "tome" ? "tomes" : "comic_series";
     return `/api/${parentBase}/${resolvedParentId}/${childBase}`;
   }
@@ -18,7 +32,9 @@ function buildUrl(item: QueueItem, tempIdMap: Map<string, string>): string {
 
   if (operation === "create") return base;
 
-  const resolvedId = resourceId ? (tempIdMap.get(resourceId) ?? resourceId) : undefined;
+  const resolvedId = resourceId
+    ? (tempIdMap.get(resourceId) ?? resourceId)
+    : undefined;
   if (!resolvedId) throw new Error(`resourceId required for ${operation}`);
   return `${base}/${resolvedId}`;
 }
@@ -26,15 +42,20 @@ function buildUrl(item: QueueItem, tempIdMap: Map<string, string>): string {
 function buildMethod(item: QueueItem): string {
   if (item.httpMethod) return item.httpMethod;
   switch (item.operation) {
-    case "create": return "POST";
-    case "delete": return "DELETE";
-    case "update": return "PATCH";
+    case "create":
+      return "POST";
+    case "delete":
+      return "DELETE";
+    case "update":
+      return "PATCH";
   }
 }
 
 function buildContentType(item: QueueItem): string {
   if (item.contentType) return item.contentType;
-  return item.operation === "update" ? "application/merge-patch+json" : "application/ld+json";
+  return item.operation === "update"
+    ? "application/merge-patch+json"
+    : "application/ld+json";
 }
 
 export async function processSyncQueue(
@@ -106,7 +127,9 @@ export async function processSyncQueue(
       // Stocker le mapping temp ID → real ID pour les créations
       if (item.operation === "create" && item.resourceId) {
         try {
-          const responseData = (await response.clone().json()) as { id?: number };
+          const responseData = (await response.clone().json()) as {
+            id?: number;
+          };
           if (responseData.id) {
             tempIdMap.set(item.resourceId, String(responseData.id));
           }
@@ -119,7 +142,9 @@ export async function processSyncQueue(
       syncedCount++;
     } else if (response.status >= 400 && response.status < 500) {
       const errorBody = await response.json().catch(() => ({}));
-      const detail = (errorBody as { detail?: string }).detail ?? `Erreur ${response.status}`;
+      const detail =
+        (errorBody as { detail?: string }).detail ??
+        `Erreur ${response.status}`;
       await removeById(item.id);
 
       const failure = await addSyncFailure({
@@ -133,7 +158,13 @@ export async function processSyncQueue(
       });
 
       postMessage({
-        failure: { error: detail, httpStatus: response.status, id: failure, operation: item.operation, resourceType: item.resourceType },
+        failure: {
+          error: detail,
+          httpStatus: response.status,
+          id: failure,
+          operation: item.operation,
+          resourceType: item.resourceType,
+        },
         type: "sync-failure",
       });
     } else {

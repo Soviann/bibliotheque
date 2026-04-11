@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import ProgressLog from "../../../components/ProgressLog";
 import type { BatchLookupProgress } from "../../../types/api";
 
-function createProgress(overrides: Partial<BatchLookupProgress> = {}): BatchLookupProgress {
+function createProgress(
+  overrides: Partial<BatchLookupProgress> = {},
+): BatchLookupProgress {
   return {
     current: 1,
     seriesTitle: "Test Series",
@@ -24,7 +26,11 @@ describe("ProgressLog", () => {
   it("displays progress entries with series titles", () => {
     const progress = [
       createProgress({ current: 1, seriesTitle: "Naruto", status: "updated" }),
-      createProgress({ current: 2, seriesTitle: "One Piece", status: "skipped" }),
+      createProgress({
+        current: 2,
+        seriesTitle: "One Piece",
+        status: "skipped",
+      }),
     ];
 
     render(<ProgressLog progress={progress} total={5} />);

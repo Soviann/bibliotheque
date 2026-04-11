@@ -16,13 +16,26 @@ export interface TomeManager {
   setBatchFrom: (v: number) => void;
   setBatchTo: (v: number) => void;
   tomeLookupLoading: number | null;
-  updateTome: <K extends keyof TomeFormData>(index: number, key: K, value: TomeFormData[K]) => void;
+  updateTome: <K extends keyof TomeFormData>(
+    index: number,
+    key: K,
+    value: TomeFormData[K],
+  ) => void;
 }
 
 const maxBatchSize = 100;
 
 function emptyTome(number: number, isHorsSerie = false): TomeFormData {
-  return { bought: false, isHorsSerie, isbn: "", number, onNas: false, read: false, title: "", tomeEnd: "" };
+  return {
+    bought: false,
+    isHorsSerie,
+    isbn: "",
+    number,
+    onNas: false,
+    read: false,
+    title: "",
+    tomeEnd: "",
+  };
 }
 
 export function useTomeManagement(
@@ -31,18 +44,24 @@ export function useTomeManagement(
 ): TomeManager {
   const [batchFrom, setBatchFrom] = useState(1);
   const [batchTo, setBatchTo] = useState(1);
-  const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(null);
+  const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(
+    null,
+  );
 
   const batchSize = batchTo - batchFrom + 1;
 
   const addTome = () => {
     const regularTomes = form.tomes.filter((t) => !t.isHorsSerie);
-    const nextNum = regularTomes.length > 0 ? Math.max(...regularTomes.map((t) => t.number)) + 1 : 1;
+    const nextNum =
+      regularTomes.length > 0
+        ? Math.max(...regularTomes.map((t) => t.number)) + 1
+        : 1;
     update("tomes", [...form.tomes, emptyTome(nextNum)]);
   };
 
   const addBatchTomes = () => {
-    if (batchFrom < 1 || batchFrom > batchTo || batchSize > maxBatchSize) return;
+    if (batchFrom < 1 || batchFrom > batchTo || batchSize > maxBatchSize)
+      return;
     const existingNumbers = new Set(form.tomes.map((t) => t.number));
     const newTomes: TomeFormData[] = [];
     for (let n = batchFrom; n <= batchTo; n++) {
@@ -62,7 +81,11 @@ export function useTomeManagement(
     );
   };
 
-  const updateTome = <K extends keyof TomeFormData>(index: number, key: K, value: TomeFormData[K]) => {
+  const updateTome = <K extends keyof TomeFormData>(
+    index: number,
+    key: K,
+    value: TomeFormData[K],
+  ) => {
     update(
       "tomes",
       form.tomes.map((t, i) => (i === index ? { ...t, [key]: value } : t)),
@@ -80,11 +103,18 @@ export function useTomeManagement(
         "tomes",
         form.tomes.map((t, i) =>
           i === index
-            ? { ...t, isbn: result.isbn ?? t.isbn, title: result.title ?? t.title, tomeEnd: result.tomeEnd?.toString() ?? t.tomeEnd }
+            ? {
+                ...t,
+                isbn: result.isbn ?? t.isbn,
+                title: result.title ?? t.title,
+                tomeEnd: result.tomeEnd?.toString() ?? t.tomeEnd,
+              }
             : t,
         ),
       );
-      toast.success(`Tome ${form.tomes[index].number} : informations récupérées`);
+      toast.success(
+        `Tome ${form.tomes[index].number} : informations récupérées`,
+      );
     } catch {
       toast.error("Échec de la recherche ISBN");
     } finally {

@@ -16,7 +16,9 @@ export default memo(function MergeGroupCard({
   return (
     <div className="rounded-lg border border-surface-border bg-surface-primary p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="font-semibold text-text-primary">{group.suggestedTitle}</h3>
+        <h3 className="font-semibold text-text-primary">
+          {group.suggestedTitle}
+        </h3>
         <span className="shrink-0 rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
           {group.entries.length} séries
         </span>

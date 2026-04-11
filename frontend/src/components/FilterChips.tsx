@@ -1,5 +1,10 @@
 import { memo } from "react";
-import { ComicStatus, ComicStatusShortLabel, ComicType, ComicTypeLabel } from "../types/enums";
+import {
+  ComicStatus,
+  ComicStatusShortLabel,
+  ComicType,
+  ComicTypeLabel,
+} from "../types/enums";
 
 interface FilterChipsProps {
   onStatusChange: (status: string) => void;
@@ -23,7 +28,15 @@ const statusChips: ChipDef[] = Object.values(ComicStatus).map((value) => ({
   value,
 }));
 
-const Chip = memo(function Chip({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+const Chip = memo(function Chip({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <button
       aria-pressed={active}
@@ -40,7 +53,12 @@ const Chip = memo(function Chip({ active, label, onClick }: { active: boolean; l
   );
 });
 
-export default function FilterChips({ onStatusChange, onTypeChange, status, type }: FilterChipsProps) {
+export default function FilterChips({
+  onStatusChange,
+  onTypeChange,
+  status,
+  type,
+}: FilterChipsProps) {
   return (
     <div
       aria-label="Filtres rapides"
@@ -56,13 +74,18 @@ export default function FilterChips({ onStatusChange, onTypeChange, status, type
           onClick={() => onTypeChange(type === chip.value ? "" : chip.value)}
         />
       ))}
-      <span className="mx-0.5 shrink-0 self-stretch border-l border-surface-border dark:border-white/10" aria-hidden="true" />
+      <span
+        className="mx-0.5 shrink-0 self-stretch border-l border-surface-border dark:border-white/10"
+        aria-hidden="true"
+      />
       {statusChips.map((chip) => (
         <Chip
           active={status === chip.value}
           key={chip.value}
           label={chip.label}
-          onClick={() => onStatusChange(status === chip.value ? "" : chip.value)}
+          onClick={() =>
+            onStatusChange(status === chip.value ? "" : chip.value)
+          }
         />
       ))}
     </div>

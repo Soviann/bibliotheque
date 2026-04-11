@@ -15,7 +15,9 @@ describe("LookupTool", () => {
 
     renderWithProviders(<LookupTool />);
 
-    expect(screen.getByRole("heading", { name: "Lookup métadonnées" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Lookup métadonnées" }),
+    ).toBeInTheDocument();
   });
 
   it("displays the preview count", async () => {

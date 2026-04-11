@@ -15,7 +15,9 @@ import { server } from "../../helpers/server";
 
 describe("getErrorMessage", () => {
   it("extracts message from Error instance", () => {
-    expect(getErrorMessage(new Error("Something failed"))).toBe("Something failed");
+    expect(getErrorMessage(new Error("Something failed"))).toBe(
+      "Something failed",
+    );
   });
 
   it("converts string to message", () => {
@@ -42,7 +44,11 @@ describe("getErrorMessage", () => {
 describe("handleUnauthorized", () => {
   beforeEach(() => {
     localStorage.clear();
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: true,
+      writable: true,
+    });
   });
 
   afterEach(() => {
@@ -72,7 +78,11 @@ describe("handleUnauthorized", () => {
 
   it("does NOT remove token when offline", () => {
     setToken("my-token");
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
 
     handleUnauthorized();
 
@@ -110,7 +120,11 @@ describe("apiFetch", () => {
   beforeEach(() => {
     localStorage.clear();
     // Ensure navigator.onLine is true by default
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: true,
+      writable: true,
+    });
   });
 
   afterEach(() => {
@@ -197,7 +211,9 @@ describe("apiFetch", () => {
       method: "PATCH",
     });
 
-    expect(capturedHeaders?.get("Content-Type")).toBe("application/merge-patch+json");
+    expect(capturedHeaders?.get("Content-Type")).toBe(
+      "application/merge-patch+json",
+    );
   });
 
   it("sends JSON body correctly for POST", async () => {
@@ -248,9 +264,7 @@ describe("apiFetch", () => {
 
   it("throws generic error message when response has no detail", async () => {
     server.use(
-      http.get("/api/test", () =>
-        HttpResponse.json({}, { status: 500 }),
-      ),
+      http.get("/api/test", () => HttpResponse.json({}, { status: 500 })),
     );
 
     await expect(apiFetch("/test")).rejects.toThrow("Erreur 500");
@@ -260,7 +274,10 @@ describe("apiFetch", () => {
     server.use(
       http.get("/api/test", () =>
         HttpResponse.json(
-          { detail: "An exception occurred in the driver: SQLSTATE[42S02]: Base table or view not found" },
+          {
+            detail:
+              "An exception occurred in the driver: SQLSTATE[42S02]: Base table or view not found",
+          },
           { status: 500 },
         ),
       ),
@@ -272,10 +289,7 @@ describe("apiFetch", () => {
   it("passes through safe user-facing error messages", async () => {
     server.use(
       http.get("/api/test", () =>
-        HttpResponse.json(
-          { detail: "Série introuvable" },
-          { status: 404 },
-        ),
+        HttpResponse.json({ detail: "Série introuvable" }, { status: 404 }),
       ),
     );
 
@@ -294,9 +308,7 @@ describe("apiFetch", () => {
     });
 
     server.use(
-      http.get("/api/test", () =>
-        new HttpResponse(null, { status: 401 }),
-      ),
+      http.get("/api/test", () => new HttpResponse(null, { status: 401 })),
     );
 
     await expect(apiFetch("/test")).rejects.toThrow("Non authentifié");
@@ -313,9 +325,7 @@ describe("apiFetch", () => {
 
   it("returns undefined for 204 No Content", async () => {
     server.use(
-      http.delete("/api/test/1", () =>
-        new HttpResponse(null, { status: 204 }),
-      ),
+      http.delete("/api/test/1", () => new HttpResponse(null, { status: 204 })),
     );
 
     const result = await apiFetch("/test/1", { method: "DELETE" });
@@ -343,11 +353,13 @@ describe("apiFetch", () => {
 
   it("falls back to generic error when non-OK response has non-JSON body", async () => {
     server.use(
-      http.get("/api/test", () =>
-        new HttpResponse("not json", {
-          headers: { "Content-Type": "text/plain" },
-          status: 500,
-        }),
+      http.get(
+        "/api/test",
+        () =>
+          new HttpResponse("not json", {
+            headers: { "Content-Type": "text/plain" },
+            status: 500,
+          }),
       ),
     );
 
@@ -399,17 +411,23 @@ describe("apiFetch — offline scenarios", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: true,
+      writable: true,
+    });
   });
 
   it("does NOT remove token and does NOT redirect on 401 while offline", async () => {
     setToken("my-token");
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
 
     server.use(
-      http.get("/api/test", () =>
-        new HttpResponse(null, { status: 401 }),
-      ),
+      http.get("/api/test", () => new HttpResponse(null, { status: 401 })),
     );
 
     await expect(apiFetch("/test")).rejects.toThrow("Non authentifié");
@@ -418,7 +436,11 @@ describe("apiFetch — offline scenarios", () => {
   });
 
   it("throws 'Vous êtes hors ligne' on network error while offline", async () => {
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: false, writable: true });
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+      writable: true,
+    });
 
     server.use(
       http.get("/api/test", () => {
@@ -430,7 +452,11 @@ describe("apiFetch — offline scenarios", () => {
   });
 
   it("re-throws the original error on network error while online", async () => {
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: true, writable: true });
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: true,
+      writable: true,
+    });
 
     server.use(
       http.get("/api/test", () => {
@@ -487,8 +513,13 @@ describe("loginWithGoogle", () => {
 
   it("falls back to empty object when error response body is not valid JSON", async () => {
     server.use(
-      http.post("/api/login/google", () =>
-        new HttpResponse("not json", { headers: { "Content-Type": "text/plain" }, status: 500 }),
+      http.post(
+        "/api/login/google",
+        () =>
+          new HttpResponse("not json", {
+            headers: { "Content-Type": "text/plain" },
+            status: 500,
+          }),
       ),
     );
 

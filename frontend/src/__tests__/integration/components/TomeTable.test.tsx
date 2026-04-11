@@ -5,7 +5,9 @@ import type { FormData } from "../../../hooks/useComicForm";
 import type { TomeManager } from "../../../hooks/useTomeManagement";
 import { renderWithProviders } from "../../helpers/test-utils";
 
-function createMockTomeManager(overrides: Partial<TomeManager> = {}): TomeManager {
+function createMockTomeManager(
+  overrides: Partial<TomeManager> = {},
+): TomeManager {
   return {
     addBatchTomes: vi.fn(),
     addTome: vi.fn(),
@@ -58,7 +60,10 @@ describe("TomeTable", () => {
 
     const generateButton = screen.getByRole("button", { name: /Générer/ });
     expect(generateButton).toBeDisabled();
-    expect(generateButton).toHaveAttribute("title", "Maximum 100 tomes à la fois");
+    expect(generateButton).toHaveAttribute(
+      "title",
+      "Maximum 100 tomes à la fois",
+    );
   });
 
   it("adds aria-labels on mobile card inputs when expanded", async () => {
@@ -68,7 +73,6 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: false,
-
 
           id: 1,
           isbn: "",
@@ -90,7 +94,9 @@ describe("TomeTable", () => {
     const header = cards.querySelector("[data-testid='tome-header-0']")!;
     await user.click(header);
 
-    const numberInput = cards.querySelector("input[type='number'][aria-label='Numéro']");
+    const numberInput = cards.querySelector(
+      "input[type='number'][aria-label='Numéro']",
+    );
     expect(numberInput).toBeInTheDocument();
 
     const tomeEndInput = cards.querySelector("input[aria-label='Fin']");
@@ -110,7 +116,6 @@ describe("TomeTable", () => {
         {
           bought: false,
 
-
           id: 1,
           isbn: "",
           isHorsSerie: false,
@@ -126,7 +131,9 @@ describe("TomeTable", () => {
     renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
 
     const table = screen.getByTestId("tomes-table");
-    const numberInput = table.querySelector("input[type='number'][aria-label='Numéro']");
+    const numberInput = table.querySelector(
+      "input[type='number'][aria-label='Numéro']",
+    );
     expect(numberInput).toBeInTheDocument();
 
     const tomeEndInput = table.querySelector("input[aria-label='Fin']");
@@ -150,7 +157,6 @@ describe("TomeTable", () => {
         {
           bought: true,
 
-
           id: 1,
           isbn: "978-2-1234-5678-0",
           isHorsSerie: false,
@@ -162,7 +168,6 @@ describe("TomeTable", () => {
         },
         {
           bought: false,
-
 
           id: 2,
           isbn: "",
@@ -201,7 +206,6 @@ describe("TomeTable", () => {
         {
           bought: true,
 
-
           id: 1,
           isbn: "978-2-1234-5678-0",
           isHorsSerie: false,
@@ -239,7 +243,6 @@ describe("TomeTable", () => {
         {
           bought: false,
 
-
           id: 1,
           isbn: "",
           isHorsSerie: false,
@@ -263,7 +266,9 @@ describe("TomeTable", () => {
 
     // Collapse
     await user.click(header);
-    expect(cards.querySelector("input[aria-label='ISBN']")).not.toBeInTheDocument();
+    expect(
+      cards.querySelector("input[aria-label='ISBN']"),
+    ).not.toBeInTheDocument();
   });
 
   it("auto-expands new (unsaved) tome cards on mobile", () => {
@@ -272,7 +277,6 @@ describe("TomeTable", () => {
       tomes: [
         {
           bought: false,
-
 
           id: undefined,
           isbn: "",

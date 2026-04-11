@@ -34,8 +34,12 @@ describe("CardActionBar", () => {
   it("renders edit and delete buttons", () => {
     renderWithProviders(<CardActionBar {...defaultProps} />);
 
-    expect(screen.getByRole("button", { name: /modifier/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /supprimer/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /modifier/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /supprimer/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls onEdit with comic when edit button is clicked", async () => {

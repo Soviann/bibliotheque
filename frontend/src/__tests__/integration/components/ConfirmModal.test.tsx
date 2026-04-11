@@ -21,7 +21,9 @@ describe("ConfirmModal", () => {
     renderWithProviders(<ConfirmModal {...defaultProps} />);
 
     expect(screen.getByText("Confirmer la suppression")).toBeInTheDocument();
-    expect(screen.getByText("Cette action est irréversible.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Cette action est irréversible."),
+    ).toBeInTheDocument();
   });
 
   it("calls onConfirm and onClose when confirm button clicked", async () => {
@@ -46,7 +48,10 @@ describe("ConfirmModal", () => {
 
   it("uses custom confirmLabel when provided", () => {
     renderWithProviders(
-      <ConfirmModal {...defaultProps} confirmLabel="Supprimer définitivement" />,
+      <ConfirmModal
+        {...defaultProps}
+        confirmLabel="Supprimer définitivement"
+      />,
     );
 
     expect(screen.getByText("Supprimer définitivement")).toBeInTheDocument();
@@ -55,7 +60,9 @@ describe("ConfirmModal", () => {
   it("is not visible when open is false", () => {
     renderWithProviders(<ConfirmModal {...defaultProps} open={false} />);
 
-    expect(screen.queryByText("Confirmer la suppression")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Confirmer la suppression"),
+    ).not.toBeInTheDocument();
   });
 
   it("closes modal when Escape key is pressed", async () => {

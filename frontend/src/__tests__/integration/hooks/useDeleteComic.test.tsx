@@ -37,8 +37,9 @@ describe("useDeleteComic", () => {
 
   it("deletes comic series via API", async () => {
     server.use(
-      http.delete("/api/comic_series/5", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/comic_series/5",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -56,15 +57,19 @@ describe("useDeleteComic", () => {
   it("invalidates comics and trash queries on success", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
+    queryClient.setQueryData(
+      queryKeys.comics.all,
+      createMockHydraCollection([]),
+    );
     queryClient.setQueryData(
       queryKeys.trash.all,
       createMockHydraCollection([], "/api/trash"),
     );
 
     server.use(
-      http.delete("/api/comic_series/5", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/comic_series/5",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -78,8 +83,12 @@ describe("useDeleteComic", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(
+      true,
+    );
+    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(
+      true,
+    );
   });
 
   it("handles API error", async () => {

@@ -1,5 +1,26 @@
-import { AlertTriangle, ArrowLeft, ArrowDown, ArrowUp, ArrowUpDown, Bell, BellOff, BookOpen, Edit, ExternalLink, LayoutGrid, Table2, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Bell,
+  BellOff,
+  BookOpen,
+  Edit,
+  ExternalLink,
+  LayoutGrid,
+  Table2,
+  Trash2,
+} from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGoBack } from "../hooks/useGoBack";
 import { toast } from "sonner";
@@ -19,11 +40,21 @@ import { useDominantColor } from "../hooks/useDominantColor";
 import { useRestoreComic } from "../hooks/useTrash";
 import { useToggleAuthorFollow } from "../hooks/useFollowedAuthors";
 import { useUpdateTome } from "../hooks/useUpdateTome";
-import { ComicStatus, ComicStatusColor, ComicStatusLabel, ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
+import {
+  ComicStatus,
+  ComicStatusColor,
+  ComicStatusLabel,
+  ComicTypeLabel,
+  ComicTypePlaceholder,
+} from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
 import { countCoveredTomes } from "../utils/tomeUtils";
 
-function AuthorWithFollow({ author }: { author: { followedForNewSeries: boolean; id: number; name: string } }) {
+function AuthorWithFollow({
+  author,
+}: {
+  author: { followedForNewSeries: boolean; id: number; name: string };
+}) {
   const toggleFollow = useToggleAuthorFollow();
   const followed = author.followedForNewSeries;
   const Icon = followed ? Bell : BellOff;
@@ -32,9 +63,13 @@ function AuthorWithFollow({ author }: { author: { followedForNewSeries: boolean;
     <span className="inline-flex items-center gap-1">
       {author.name}
       <button
-        aria-label={followed ? `Ne plus suivre ${author.name}` : `Suivre ${author.name}`}
+        aria-label={
+          followed ? `Ne plus suivre ${author.name}` : `Suivre ${author.name}`
+        }
         className={`rounded p-0.5 ${followed ? "text-primary-600" : "text-text-muted hover:text-text-secondary"}`}
-        onClick={() => toggleFollow.mutate({ follow: !followed, id: author.id })}
+        onClick={() =>
+          toggleFollow.mutate({ follow: !followed, id: author.id })
+        }
         title={followed ? "Ne plus suivre" : "Suivre cet auteur"}
         type="button"
       >
@@ -54,7 +89,15 @@ const FIELD_LABELS: Record<BooleanField, string> = {
   read: "lu",
 };
 
-function HeaderCheckbox({ field, onChange, tomes }: { field: BooleanField; onChange: () => void; tomes: Tome[] }) {
+function HeaderCheckbox({
+  field,
+  onChange,
+  tomes,
+}: {
+  field: BooleanField;
+  onChange: () => void;
+  tomes: Tome[];
+}) {
   const ref = useRef<HTMLInputElement>(null);
   const checkedCount = tomes.filter((t) => t[field]).length;
   const allChecked = checkedCount === tomes.length;
@@ -78,14 +121,27 @@ function HeaderCheckbox({ field, onChange, tomes }: { field: BooleanField; onCha
   );
 }
 
-function SortIcon({ active, direction }: { active: boolean; direction: SortDirection }) {
+function SortIcon({
+  active,
+  direction,
+}: {
+  active: boolean;
+  direction: SortDirection;
+}) {
   if (!active) return <ArrowUpDown className="h-3.5 w-3.5 text-text-muted" />;
-  return direction === "asc"
-    ? <ArrowUp className="h-3.5 w-3.5" />
-    : <ArrowDown className="h-3.5 w-3.5" />;
+  return direction === "asc" ? (
+    <ArrowUp className="h-3.5 w-3.5" />
+  ) : (
+    <ArrowDown className="h-3.5 w-3.5" />
+  );
 }
 
-function compareTomes(a: Tome, b: Tome, key: SortKey, direction: SortDirection): number {
+function compareTomes(
+  a: Tome,
+  b: Tome,
+  key: SortKey,
+  direction: SortDirection,
+): number {
   let result: number;
 
   if (key === "number") {
@@ -131,9 +187,16 @@ export default function ComicDetail() {
     () => (localStorage.getItem("tome-view-mode") as "map" | "table") ?? "map",
   );
   const [sort, dispatchSort] = useReducer(
-    (state: { direction: SortDirection; key: SortKey }, key: SortKey): { direction: SortDirection; key: SortKey } =>
+    (
+      state: { direction: SortDirection; key: SortKey },
+      key: SortKey,
+    ): { direction: SortDirection; key: SortKey } =>
       state.key === key
-        ? { ...state, direction: state.direction === "asc" ? "desc" as const : "asc" as const }
+        ? {
+            ...state,
+            direction:
+              state.direction === "asc" ? ("desc" as const) : ("asc" as const),
+          }
         : { direction: "asc" as const, key },
     { direction: "asc" as const, key: "number" as SortKey },
   );
@@ -141,11 +204,20 @@ export default function ComicDetail() {
   const toggleTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const sortedTomes = useMemo(
-    () => [...optimisticTomes].sort((a, b) => compareTomes(a, b, sort.key, sort.direction)),
+    () =>
+      [...optimisticTomes].sort((a, b) =>
+        compareTomes(a, b, sort.key, sort.direction),
+      ),
     [optimisticTomes, sort.key, sort.direction],
   );
 
-  const { boughtCount, onNasCount, missingTomesCount, progressTotal, readCount } = useMemo(() => {
+  const {
+    boughtCount,
+    onNasCount,
+    missingTomesCount,
+    progressTotal,
+    readCount,
+  } = useMemo(() => {
     const covered = countCoveredTomes(optimisticTomes);
     const published = comic?.latestPublishedIssue ?? 0;
     return {
@@ -187,7 +259,9 @@ export default function ComicDetail() {
           onError: () => {
             // Revert optimistic update
             setOptimisticTomes((prev) =>
-              prev.map((t) => (t.id === tome.id ? { ...t, [field]: tome[field] } : t)),
+              prev.map((t) =>
+                t.id === tome.id ? { ...t, [field]: tome[field] } : t,
+              ),
             );
             toast.error("Erreur lors de la mise à jour du tome");
           },
@@ -199,7 +273,9 @@ export default function ComicDetail() {
                 const count = toggleCountRef.current;
                 toggleCountRef.current = 0;
                 toast.success(
-                  count === 1 ? "1 tome mis à jour" : `${count} tomes mis à jour`,
+                  count === 1
+                    ? "1 tome mis à jour"
+                    : `${count} tomes mis à jour`,
                   { duration: 1500 },
                 );
               }, 1000);
@@ -216,7 +292,9 @@ export default function ComicDetail() {
       const allChecked = optimisticTomes.every((t) => t[field]);
       const targetValue = !allChecked;
 
-      const tomesToUpdate = optimisticTomes.filter((t) => t[field] !== targetValue);
+      const tomesToUpdate = optimisticTomes.filter(
+        (t) => t[field] !== targetValue,
+      );
       if (tomesToUpdate.length === 0) return;
 
       // Optimistic update: batch all tomes at once
@@ -225,7 +303,9 @@ export default function ComicDetail() {
       );
 
       if (navigator.onLine) {
-        toast.success(`${tomesToUpdate.length} tomes mis à jour`, { duration: 1500 });
+        toast.success(`${tomesToUpdate.length} tomes mis à jour`, {
+          duration: 1500,
+        });
       }
 
       // Fire individual PATCH mutations for tomes that need changing
@@ -235,7 +315,9 @@ export default function ComicDetail() {
           {
             onError: () => {
               setOptimisticTomes((prev) =>
-                prev.map((t) => (t.id === tome.id ? { ...t, [field]: tome[field] } : t)),
+                prev.map((t) =>
+                  t.id === tome.id ? { ...t, [field]: tome[field] } : t,
+                ),
               );
               toast.error("Erreur lors de la mise à jour du tome");
             },
@@ -248,7 +330,10 @@ export default function ComicDetail() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl space-y-6" data-testid="comic-detail-skeleton">
+      <div
+        className="mx-auto max-w-4xl space-y-6"
+        data-testid="comic-detail-skeleton"
+      >
         {/* Header */}
         <div className="flex items-center gap-3">
           <SkeletonBox className="h-5 w-5" />
@@ -295,19 +380,22 @@ export default function ComicDetail() {
 
   const handleDelete = () => {
     const seriesId = comic.id;
-    deleteComic.mutate({ id: seriesId }, {
-      onError: () => toast.error("Erreur lors de la suppression"),
-      onSuccess: () => {
-        toast.success("Série supprimée", {
-          action: {
-            label: "Annuler",
-            onClick: () => restoreComic.mutate({ id: seriesId }),
-          },
-          duration: 5000,
-        });
-        navigate("/", { viewTransition: true });
+    deleteComic.mutate(
+      { id: seriesId },
+      {
+        onError: () => toast.error("Erreur lors de la suppression"),
+        onSuccess: () => {
+          toast.success("Série supprimée", {
+            action: {
+              label: "Annuler",
+              onClick: () => restoreComic.mutate({ id: seriesId }),
+            },
+            duration: 5000,
+          });
+          navigate("/", { viewTransition: true });
+        },
       },
-    });
+    );
   };
 
   const actionButtons = (
@@ -343,10 +431,18 @@ export default function ComicDetail() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6" style={{ ["--series-color" as string]: dominantColor }}>
+    <div
+      className="mx-auto max-w-4xl space-y-6"
+      style={{ ["--series-color" as string]: dominantColor }}
+    >
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3">
-        <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary" onClick={goBack} type="button">
+        <button
+          aria-label="Retour"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary"
+          onClick={goBack}
+          type="button"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="flex-1 font-display text-2xl font-bold text-text-primary">
@@ -382,7 +478,10 @@ export default function ComicDetail() {
         )}
 
         {/* Cover */}
-        <div className="relative z-10 w-full md:w-48" style={{ ["--glow-rgb" as string]: dominantColor }}>
+        <div
+          className="relative z-10 w-full md:w-48"
+          style={{ ["--glow-rgb" as string]: dominantColor }}
+        >
           <CoverImage
             alt={comic.title}
             className={`card-glow w-full max-h-64 md:max-h-none rounded-xl shadow-lg${coverSrc ? " cursor-pointer" : ""}`}
@@ -392,7 +491,6 @@ export default function ComicDetail() {
             onClick={coverSrc ? () => setLightboxOpen(true) : undefined}
             onImageLoad={extractColor}
             src={coverSrc ?? ComicTypePlaceholder[comic.type]}
-
           />
         </div>
 
@@ -402,7 +500,9 @@ export default function ComicDetail() {
             <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
               {ComicTypeLabel[comic.type]}
             </span>
-            <span className={`rounded-full px-3 py-1 text-sm font-medium ${ComicStatusColor[comic.status]}`}>
+            <span
+              className={`rounded-full px-3 py-1 text-sm font-medium ${ComicStatusColor[comic.status]}`}
+            >
               {ComicStatusLabel[comic.status]}
             </span>
             {comic.isOneShot && (
@@ -438,7 +538,11 @@ export default function ComicDetail() {
               <>
                 <dt className="font-medium text-text-secondary">Parution</dt>
                 <dd className="text-text-secondary">
-                  {new Date(comic.publishedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                  {new Date(comic.publishedDate).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </dd>
               </>
             )}
@@ -450,29 +554,40 @@ export default function ComicDetail() {
                   {comic.latestPublishedIssueComplete && " (terminée)"}
                   {comic.latestPublishedIssueUpdatedAt && (
                     <span className="ml-2 text-text-muted">
-                      (mis à jour {formatRelativeDate(comic.latestPublishedIssueUpdatedAt)})
+                      (mis à jour{" "}
+                      {formatRelativeDate(comic.latestPublishedIssueUpdatedAt)})
                     </span>
                   )}
                 </dd>
               </>
             )}
-            {(comic.defaultTomeBought || comic.defaultTomeOnNas || comic.defaultTomeRead) && (
+            {(comic.defaultTomeBought ||
+              comic.defaultTomeOnNas ||
+              comic.defaultTomeRead) && (
               <>
-                <dt className="font-medium text-text-secondary">Nouveaux tomes</dt>
+                <dt className="font-medium text-text-secondary">
+                  Nouveaux tomes
+                </dt>
                 <dd className="text-text-secondary">
                   {[
                     comic.defaultTomeBought && "achetés",
                     comic.defaultTomeOnNas && "sur NAS",
                     comic.defaultTomeRead && "lus",
-                  ].filter(Boolean).join(", ")}
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
                 </dd>
               </>
             )}
           </dl>
           {comic.description && (
             <div>
-              <h3 className="text-sm font-medium text-text-secondary">Description</h3>
-              <p className="mt-1 text-sm leading-relaxed text-text-secondary">{comic.description}</p>
+              <h3 className="text-sm font-medium text-text-secondary">
+                Description
+              </h3>
+              <p className="mt-1 text-sm leading-relaxed text-text-secondary">
+                {comic.description}
+              </p>
             </div>
           )}
         </div>
@@ -481,9 +596,24 @@ export default function ComicDetail() {
       {/* Progression */}
       {showProgress && (
         <div className="grid gap-3 sm:grid-cols-3">
-          <ProgressBar color="bg-[rgb(var(--series-color))]" current={boughtCount} label="Achetés" total={progressTotal} />
-          <ProgressBar color="bg-[rgb(var(--series-color))]" current={readCount} label="Lus" total={progressTotal} />
-          <ProgressBar color="bg-[rgb(var(--series-color))]" current={onNasCount} label="Sur NAS" total={progressTotal} />
+          <ProgressBar
+            color="bg-[rgb(var(--series-color))]"
+            current={boughtCount}
+            label="Achetés"
+            total={progressTotal}
+          />
+          <ProgressBar
+            color="bg-[rgb(var(--series-color))]"
+            current={readCount}
+            label="Lus"
+            total={progressTotal}
+          />
+          <ProgressBar
+            color="bg-[rgb(var(--series-color))]"
+            current={onNasCount}
+            label="Sur NAS"
+            total={progressTotal}
+          />
         </div>
       )}
 
@@ -534,63 +664,110 @@ export default function ComicDetail() {
               </div>
             </div>
             {tomeView === "map" && (
-              <CollectionMap latestPublishedIssue={comic.latestPublishedIssue} tomes={optimisticTomes} />
+              <CollectionMap
+                latestPublishedIssue={comic.latestPublishedIssue}
+                tomes={optimisticTomes}
+              />
             )}
             {tomeView === "table" && (
               <div className="overflow-x-auto rounded-xl border border-surface-border dark:border-white/10">
-              <table className="w-full text-sm">
-                <thead className="bg-surface-elevated dark:bg-surface-elevated/50">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium text-text-secondary">
-                      <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("number")} type="button">
-                        #
-                        <SortIcon active={sort.key === "number"} direction={sort.direction} />
-                      </button>
-                    </th>
-                    <th className="px-4 py-2 text-left font-medium text-text-secondary">
-                      <button className="inline-flex items-center gap-1" onClick={() => dispatchSort("title")} type="button">
-                        Titre
-                        <SortIcon active={sort.key === "title"} direction={sort.direction} />
-                      </button>
-                    </th>
-                    {(["bought", "read", "onNas"] as const).map((field) => (
-                      <th className="px-4 py-2 text-center font-medium text-text-secondary" key={field}>
-                        <div className="flex flex-col items-center gap-1">
-                          <button className="inline-flex items-center gap-1" onClick={() => dispatchSort(field)} type="button">
-                            <span>{field === "bought" ? "Acheté" : field === "read" ? "Lu" : "NAS"}</span>
-                            <SortIcon active={sort.key === field} direction={sort.direction} />
-                          </button>
-                          <HeaderCheckbox field={field} onChange={() => handleToggleAllTomes(field)} tomes={optimisticTomes} />
-                        </div>
+                <table className="w-full text-sm">
+                  <thead className="bg-surface-elevated dark:bg-surface-elevated/50">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium text-text-secondary">
+                        <button
+                          className="inline-flex items-center gap-1"
+                          onClick={() => dispatchSort("number")}
+                          type="button"
+                        >
+                          #
+                          <SortIcon
+                            active={sort.key === "number"}
+                            direction={sort.direction}
+                          />
+                        </button>
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-surface-border dark:divide-white/5">
-                  {sortedTomes.map((tome, index) => (
-                    <tr className={`transition-colors hover:bg-surface-tertiary/50 dark:hover:bg-primary-950/20 ${index % 2 === 1 ? "bg-surface-secondary/50 dark:bg-surface-elevated/30" : ""}`} key={tome.id}>
-                      <td className="px-4 py-2 font-medium text-text-primary">
-                        {tome._syncPending && <SyncPendingIndicator className="mr-1" />}
-                        {tome.isHorsSerie ? "HS" : ""}{tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number}
-                      </td>
-                      <td className="px-4 py-2 text-text-secondary">{tome.title ?? "\u2014"}</td>
+                      <th className="px-4 py-2 text-left font-medium text-text-secondary">
+                        <button
+                          className="inline-flex items-center gap-1"
+                          onClick={() => dispatchSort("title")}
+                          type="button"
+                        >
+                          Titre
+                          <SortIcon
+                            active={sort.key === "title"}
+                            direction={sort.direction}
+                          />
+                        </button>
+                      </th>
                       {(["bought", "read", "onNas"] as const).map((field) => (
-                        <td className="px-4 py-2 text-center" key={field}>
-                          <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
-                            <input
-                              aria-label={`Tome ${tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number} ${field === "bought" ? "acheté" : field === "read" ? "lu" : "NAS"}`}
-                              checked={tome[field]}
-                              className="h-5 w-5 cursor-pointer accent-primary-600"
-                              onChange={() => handleToggleTome(tome, field)}
-                              type="checkbox"
+                        <th
+                          className="px-4 py-2 text-center font-medium text-text-secondary"
+                          key={field}
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            <button
+                              className="inline-flex items-center gap-1"
+                              onClick={() => dispatchSort(field)}
+                              type="button"
+                            >
+                              <span>
+                                {field === "bought"
+                                  ? "Acheté"
+                                  : field === "read"
+                                    ? "Lu"
+                                    : "NAS"}
+                              </span>
+                              <SortIcon
+                                active={sort.key === field}
+                                direction={sort.direction}
+                              />
+                            </button>
+                            <HeaderCheckbox
+                              field={field}
+                              onChange={() => handleToggleAllTomes(field)}
+                              tomes={optimisticTomes}
                             />
-                          </label>
-                        </td>
+                          </div>
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-surface-border dark:divide-white/5">
+                    {sortedTomes.map((tome, index) => (
+                      <tr
+                        className={`transition-colors hover:bg-surface-tertiary/50 dark:hover:bg-primary-950/20 ${index % 2 === 1 ? "bg-surface-secondary/50 dark:bg-surface-elevated/30" : ""}`}
+                        key={tome.id}
+                      >
+                        <td className="px-4 py-2 font-medium text-text-primary">
+                          {tome._syncPending && (
+                            <SyncPendingIndicator className="mr-1" />
+                          )}
+                          {tome.isHorsSerie ? "HS" : ""}
+                          {tome.tomeEnd
+                            ? `${tome.number}-${tome.tomeEnd}`
+                            : tome.number}
+                        </td>
+                        <td className="px-4 py-2 text-text-secondary">
+                          {tome.title ?? "\u2014"}
+                        </td>
+                        {(["bought", "read", "onNas"] as const).map((field) => (
+                          <td className="px-4 py-2 text-center" key={field}>
+                            <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
+                              <input
+                                aria-label={`Tome ${tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number} ${field === "bought" ? "acheté" : field === "read" ? "lu" : "NAS"}`}
+                                checked={tome[field]}
+                                className="h-5 w-5 cursor-pointer accent-primary-600"
+                                onChange={() => handleToggleTome(tome, field)}
+                                type="checkbox"
+                              />
+                            </label>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

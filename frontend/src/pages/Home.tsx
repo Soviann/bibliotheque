@@ -1,5 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Filter, Heart, LayoutGrid, Loader2, RefreshCw, Rows3, Search } from "lucide-react";
+import {
+  BookOpen,
+  Filter,
+  Heart,
+  LayoutGrid,
+  Loader2,
+  RefreshCw,
+  Rows3,
+  Search,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -40,7 +49,9 @@ export default function Home() {
   const status = searchParams.get("status") ?? "";
   const type = searchParams.get("type") ?? "";
   const sortParam = searchParams.get("sort") ?? "";
-  const sort: SortOption = VALID_SORTS.has(sortParam) ? (sortParam as SortOption) : "title-asc";
+  const sort: SortOption = VALID_SORTS.has(sortParam)
+    ? (sortParam as SortOption)
+    : "title-asc";
   const searchParam = searchParams.get("search") ?? "";
 
   const navigate = useNavigate();
@@ -48,7 +59,9 @@ export default function Home() {
   const debouncedSearch = useDebounce(search, 300);
   const [menuComic, setMenuComic] = useState<ComicSeries | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "shelves">(() => {
-    return (localStorage.getItem("home-view-mode") as "grid" | "shelves") ?? "grid";
+    return (
+      (localStorage.getItem("home-view-mode") as "grid" | "shelves") ?? "grid"
+    );
   });
 
   useEffect(() => {
@@ -78,23 +91,35 @@ export default function Home() {
     localStorage.setItem("home-view-mode", mode);
   }, []);
 
-  const handleStatusChange = useCallback((v: string) => updateParam("status", v), [updateParam]);
-  const handleTypeChange = useCallback((v: string) => updateParam("type", v), [updateParam]);
+  const handleStatusChange = useCallback(
+    (v: string) => updateParam("status", v),
+    [updateParam],
+  );
+  const handleTypeChange = useCallback(
+    (v: string) => updateParam("type", v),
+    [updateParam],
+  );
 
-  const handleShelfSeeAll = useCallback((shelfStatus: string) => {
-    handleViewModeChange("grid");
-    handleStatusChange(shelfStatus);
-  }, [handleViewModeChange, handleStatusChange]);
+  const handleShelfSeeAll = useCallback(
+    (shelfStatus: string) => {
+      handleViewModeChange("grid");
+      handleStatusChange(shelfStatus);
+    },
+    [handleViewModeChange, handleStatusChange],
+  );
   const handleSortChange = useCallback(
     (v: SortOption) => updateParam("sort", v === "title-asc" ? "" : v),
     [updateParam],
   );
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
   const handleMenuClose = useCallback(() => setMenuComic(null), []);
-  const handleMenuEdit = useCallback((c: ComicSeries) => {
-    setMenuComic(null);
-    navigate(`/comic/${c.id}/edit`, { viewTransition: true });
-  }, [navigate]);
+  const handleMenuEdit = useCallback(
+    (c: ComicSeries) => {
+      setMenuComic(null);
+      navigate(`/comic/${c.id}/edit`, { viewTransition: true });
+    },
+    [navigate],
+  );
 
   useEffect(() => {
     updateParam("search", debouncedSearch.trim());
@@ -109,32 +134,46 @@ export default function Home() {
     () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.comics.all }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.comics.detailPrefix,
+        }),
       ]).then(() => undefined),
     [queryClient],
   );
-  const { isRefreshing, pullDistance } = usePullToRefresh({ onRefresh: handleRefresh });
+  const { isRefreshing, pullDistance } = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
   const allComics = data?.member ?? [];
 
-  const handleDelete = useCallback((c: ComicSeries) => {
-    deleteComic.mutate({ id: c.id }, {
-      onError: () => toast.error(`Erreur lors de la suppression de ${c.title}`),
-      onSuccess: () => {
-        toast.success(`${c.title} supprimée`, {
-          action: {
-            label: "Annuler",
-            onClick: () => restoreComic.mutate({ id: c.id }),
+  const handleDelete = useCallback(
+    (c: ComicSeries) => {
+      deleteComic.mutate(
+        { id: c.id },
+        {
+          onError: () =>
+            toast.error(`Erreur lors de la suppression de ${c.title}`),
+          onSuccess: () => {
+            toast.success(`${c.title} supprimée`, {
+              action: {
+                label: "Annuler",
+                onClick: () => restoreComic.mutate({ id: c.id }),
+              },
+              duration: 5000,
+            });
           },
-          duration: 5000,
-        });
-      },
-    });
-  }, [deleteComic, restoreComic]);
+        },
+      );
+    },
+    [deleteComic, restoreComic],
+  );
 
-  const handleMenuDelete = useCallback((c: ComicSeries) => {
-    setMenuComic(null);
-    handleDelete(c);
-  }, [handleDelete]);
+  const handleMenuDelete = useCallback(
+    (c: ComicSeries) => {
+      setMenuComic(null);
+      handleDelete(c);
+    },
+    [handleDelete],
+  );
 
   const filtered = useMemo(() => {
     const preFiltered = allComics.filter((c) => {
@@ -162,20 +201,28 @@ export default function Home() {
   const pullProgress = Math.min(pullDistance / 80, 1);
 
   // N'afficher la section « Continuer la lecture » que sur la vue par défaut (pas de filtre/recherche)
-  const showContinueReading = !isLoading && !debouncedSearch && !type && !status;
+  const showContinueReading =
+    !isLoading && !debouncedSearch && !type && !status;
 
   return (
-    <div className={`space-y-4 transition-[filter] duration-300 ${isRefreshing ? "blur-[1px]" : ""}`}>
+    <div
+      className={`space-y-4 transition-[filter] duration-300 ${isRefreshing ? "blur-[1px]" : ""}`}
+    >
       {(pullDistance > 0 || isRefreshing) && (
         <div
-          aria-label={isRefreshing ? "Actualisation en cours" : "Tirer pour actualiser"}
+          aria-label={
+            isRefreshing ? "Actualisation en cours" : "Tirer pour actualiser"
+          }
           className="flex items-center justify-center overflow-hidden transition-[height] duration-200"
           data-testid="pull-to-refresh-indicator"
           style={{ height: pullIndicatorHeight }}
         >
           <RefreshCw
             className={`h-5 w-5 text-primary-500 ${isRefreshing ? "animate-spin" : ""}`}
-            style={{ opacity: pullProgress, transform: `rotate(${pullProgress * 360}deg)` }}
+            style={{
+              opacity: pullProgress,
+              transform: `rotate(${pullProgress * 360}deg)`,
+            }}
           />
         </div>
       )}
@@ -227,7 +274,10 @@ export default function Home() {
         )}
         <span className="flex shrink-0 items-center gap-1.5 font-mono-stats text-sm text-text-muted">
           {isFetching && !isLoading && (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" data-testid="search-loading" />
+            <Loader2
+              className="h-3.5 w-3.5 animate-spin"
+              data-testid="search-loading"
+            />
           )}
           {filtered.length}/{allComics.length}
         </span>
@@ -298,7 +348,11 @@ export default function Home() {
           <VirtualGrid
             items={filtered}
             renderItem={(comic) => (
-              <ComicCard comic={comic} onDelete={handleDelete} onMenuOpen={setMenuComic} />
+              <ComicCard
+                comic={comic}
+                onDelete={handleDelete}
+                onMenuOpen={setMenuComic}
+              />
             )}
             testId="comics-grid"
           />
@@ -311,7 +365,6 @@ export default function Home() {
         onDelete={handleMenuDelete}
         onEdit={handleMenuEdit}
       />
-
     </div>
   );
 }

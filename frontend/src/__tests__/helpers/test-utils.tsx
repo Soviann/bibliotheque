@@ -18,7 +18,10 @@ interface ProvidersOptions {
   queryClient?: QueryClient;
 }
 
-function createProviders({ initialEntries = ["/"], queryClient }: ProvidersOptions = {}) {
+function createProviders({
+  initialEntries = ["/"],
+  queryClient,
+}: ProvidersOptions = {}) {
   const client = queryClient ?? createTestQueryClient();
 
   return function AllProviders({ children }: { children: ReactNode }) {

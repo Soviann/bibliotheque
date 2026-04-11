@@ -31,14 +31,26 @@ export function useSyncStatus() {
         setState({ error: null, status: "syncing", syncedCount: 0 });
         break;
       case "sync-complete":
-        setState({ error: null, status: "success", syncedCount: data.count ?? 0 });
+        setState({
+          error: null,
+          status: "success",
+          syncedCount: data.count ?? 0,
+        });
         if ((data.count ?? 0) > 0) {
-          void queryClientRef.current.invalidateQueries({ queryKey: queryKeys.comics.all });
-          void queryClientRef.current.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix });
+          void queryClientRef.current.invalidateQueries({
+            queryKey: queryKeys.comics.all,
+          });
+          void queryClientRef.current.invalidateQueries({
+            queryKey: queryKeys.comics.detailPrefix,
+          });
         }
         break;
       case "sync-error":
-        setState((prev) => ({ ...prev, error: data.error ?? "Erreur inconnue", status: "error" }));
+        setState((prev) => ({
+          ...prev,
+          error: data.error ?? "Erreur inconnue",
+          status: "error",
+        }));
         break;
     }
   }, []);

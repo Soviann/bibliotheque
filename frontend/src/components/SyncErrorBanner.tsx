@@ -3,7 +3,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSyncFailures } from "../hooks/useSyncFailures";
 import type { SyncFailure } from "../services/offlineQueue";
-import { fieldLabels, formatSyncValue, operationLabels, resourceLabels } from "../utils/syncLabels";
+import {
+  fieldLabels,
+  formatSyncValue,
+  operationLabels,
+  resourceLabels,
+} from "../utils/syncLabels";
 
 function getEditLink(failure: SyncFailure): string | null {
   if (failure.operation === "delete") return null;
@@ -57,19 +62,25 @@ export default function SyncErrorBanner() {
           const isExpanded = expandedId === failure.id;
 
           return (
-            <li className="text-sm text-red-600 dark:text-red-400" key={failure.id}>
+            <li
+              className="text-sm text-red-600 dark:text-red-400"
+              key={failure.id}
+            >
               <div className="flex items-center gap-2">
                 <button
                   className="flex flex-1 items-center gap-1 text-left"
                   onClick={() => setExpandedId(isExpanded ? null : failure.id!)}
                   type="button"
                 >
-                  {isExpanded
-                    ? <ChevronUp className="h-3.5 w-3.5 shrink-0" />
-                    : <ChevronDown className="h-3.5 w-3.5 shrink-0" />}
+                  {isExpanded ? (
+                    <ChevronUp className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                  )}
                   <span className="truncate">
                     {operationLabels[failure.operation] ?? failure.operation}{" "}
-                    {resourceLabels[failure.resourceType] ?? failure.resourceType}
+                    {resourceLabels[failure.resourceType] ??
+                      failure.resourceType}
                     {" — "}
                     {failure.error}
                   </span>

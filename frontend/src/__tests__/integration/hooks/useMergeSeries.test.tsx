@@ -90,7 +90,6 @@ describe("useMergeSeries", () => {
               {
                 bought: true,
 
-
                 isbn: "978-2-01-210-1",
                 number: 1,
                 onNas: false,
@@ -100,7 +99,6 @@ describe("useMergeSeries", () => {
               },
               {
                 bought: true,
-
 
                 isbn: null,
                 number: 2,
@@ -171,7 +169,10 @@ describe("useMergeSeries", () => {
       );
 
       const queryClient = createTestQueryClient();
-      queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
+      queryClient.setQueryData(
+        queryKeys.comics.all,
+        createMockHydraCollection([]),
+      );
 
       const preview: MergePreview = {
         amazonUrl: null,
@@ -210,7 +211,9 @@ describe("useMergeSeries", () => {
         title: "Astérix",
         type: "BD",
       });
-      expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(true);
+      expect(
+        queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated,
+      ).toBe(true);
     });
   });
 });

@@ -1,4 +1,7 @@
-import { createMockAuthor, createMockComicSeries } from "../../helpers/factories";
+import {
+  createMockAuthor,
+  createMockComicSeries,
+} from "../../helpers/factories";
 import { searchComics } from "../../../utils/searchComics";
 
 describe("searchComics", () => {

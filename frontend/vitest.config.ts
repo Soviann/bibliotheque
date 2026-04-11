@@ -5,7 +5,10 @@ export default defineConfig({
   plugins: [react()],
   test: {
     alias: {
-      "virtual:pwa-register": new URL("./src/__mocks__/virtual-pwa-register.ts", import.meta.url).pathname,
+      "virtual:pwa-register": new URL(
+        "./src/__mocks__/virtual-pwa-register.ts",
+        import.meta.url,
+      ).pathname,
     },
     environment: "jsdom",
     globals: true,

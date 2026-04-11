@@ -29,8 +29,13 @@ export default function MergePreviewModal({
   preview,
   suggestion,
 }: MergePreviewModalProps) {
-  const { buildConfirmPayload, dispatch, duplicateNumbers, hasDuplicates, state } =
-    useMergePreviewForm(preview, suggestion);
+  const {
+    buildConfirmPayload,
+    dispatch,
+    duplicateNumbers,
+    hasDuplicates,
+    state,
+  } = useMergePreviewForm(preview, suggestion);
 
   if (!preview) return null;
 

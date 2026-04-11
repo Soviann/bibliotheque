@@ -3,9 +3,13 @@ import type { PersistedClient } from "@tanstack/react-query-persist-client";
 
 let storedValue: PersistedClient | undefined;
 vi.mock("idb-keyval", () => ({
-  del: vi.fn(async () => { storedValue = undefined; }),
+  del: vi.fn(async () => {
+    storedValue = undefined;
+  }),
   get: vi.fn(async () => storedValue),
-  set: vi.fn(async (_key: unknown, value: PersistedClient) => { storedValue = value; }),
+  set: vi.fn(async (_key: unknown, value: PersistedClient) => {
+    storedValue = value;
+  }),
 }));
 
 // Import after mock
@@ -62,11 +66,13 @@ describe("persister", () => {
       buster: "",
       clientState: {
         mutations: [],
-        queries: [{
-          queryHash: "[\"test\"]",
-          queryKey: ["test"],
-          state: { data: "hello" } as never,
-        }],
+        queries: [
+          {
+            queryHash: '["test"]',
+            queryKey: ["test"],
+            state: { data: "hello" } as never,
+          },
+        ],
       },
       timestamp: Date.now(),
     };

@@ -10,7 +10,8 @@ export function useCoverSearch(query: string, type?: string) {
 
   return useQuery({
     enabled: query.length >= 2,
-    queryFn: () => apiFetch<CoverSearchResult[]>(`${endpoints.lookup.covers}?${params}`),
+    queryFn: () =>
+      apiFetch<CoverSearchResult[]>(`${endpoints.lookup.covers}?${params}`),
     queryKey: queryKeys.lookup.covers(query, type),
     staleTime: 5 * 60 * 1000,
   });

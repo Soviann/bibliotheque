@@ -43,8 +43,12 @@ describe("formStyles", () => {
   });
 
   it("exports secondary listbox button className", () => {
-    expect(formListboxButtonSecondaryClassName).toContain("bg-surface-secondary");
-    expect(formListboxButtonSecondaryClassName).not.toContain("bg-surface-elevated");
+    expect(formListboxButtonSecondaryClassName).toContain(
+      "bg-surface-secondary",
+    );
+    expect(formListboxButtonSecondaryClassName).not.toContain(
+      "bg-surface-elevated",
+    );
   });
 
   it("exports select className with larger padding", () => {

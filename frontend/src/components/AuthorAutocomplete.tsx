@@ -70,20 +70,29 @@ export default function AuthorAutocomplete({
                 {author.name}
               </ComboboxOption>
             ))}
-            {authorSearch.length >= 2 && !authorOptions.some((a) => a.name.toLowerCase() === authorSearch.toLowerCase()) && (
-              <>
-                {authorOptions.length > 0 && (
-                  <div className="mx-3 border-t border-surface-border" />
-                )}
-                <ComboboxOption
-                  className="cursor-pointer px-3 py-2 text-sm font-medium text-primary-700 dark:text-primary-400 data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
-                  value={{ "@id": "", id: -Date.now(), name: authorSearch } as Author}
-                >
-                  <Plus className="mr-1 inline h-3 w-3" />
-                  Créer « {authorSearch} »
-                </ComboboxOption>
-              </>
-            )}
+            {authorSearch.length >= 2 &&
+              !authorOptions.some(
+                (a) => a.name.toLowerCase() === authorSearch.toLowerCase(),
+              ) && (
+                <>
+                  {authorOptions.length > 0 && (
+                    <div className="mx-3 border-t border-surface-border" />
+                  )}
+                  <ComboboxOption
+                    className="cursor-pointer px-3 py-2 text-sm font-medium text-primary-700 dark:text-primary-400 data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
+                    value={
+                      {
+                        "@id": "",
+                        id: -Date.now(),
+                        name: authorSearch,
+                      } as Author
+                    }
+                  >
+                    <Plus className="mr-1 inline h-3 w-3" />
+                    Créer « {authorSearch} »
+                  </ComboboxOption>
+                </>
+              )}
           </ComboboxOptions>
         </div>
       </Combobox>

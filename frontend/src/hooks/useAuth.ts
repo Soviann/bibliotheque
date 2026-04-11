@@ -21,8 +21,13 @@ export function useAuth() {
   });
 
   const devLoginMutation = useMutation({
-    mutationFn: ({ username, password }: { username: string; password: string }) =>
-      apiLoginWithDev(username, password),
+    mutationFn: ({
+      username,
+      password,
+    }: {
+      username: string;
+      password: string;
+    }) => apiLoginWithDev(username, password),
     onSuccess: () => {
       navigate("/", { viewTransition: true });
     },

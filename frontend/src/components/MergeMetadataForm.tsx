@@ -1,5 +1,8 @@
 import { Sparkles } from "lucide-react";
-import type { MergeFormAction, MergeFormState } from "../hooks/useMergePreviewForm";
+import type {
+  MergeFormAction,
+  MergeFormState,
+} from "../hooks/useMergePreviewForm";
 import {
   formCheckboxClassName,
   formInputSecondaryFocusClassName,
@@ -15,8 +18,15 @@ interface MergeMetadataFormProps {
   state: MergeFormState;
 }
 
-export default function MergeMetadataForm({ dispatch, isSuggesting, state }: MergeMetadataFormProps) {
-  const setField = (field: keyof MergeFormState, value: MergeFormState[keyof MergeFormState]) => {
+export default function MergeMetadataForm({
+  dispatch,
+  isSuggesting,
+  state,
+}: MergeMetadataFormProps) {
+  const setField = (
+    field: keyof MergeFormState,
+    value: MergeFormState[keyof MergeFormState],
+  ) => {
     dispatch({ type: "SET_FIELD", field, value });
   };
 
@@ -24,7 +34,10 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
     <>
       {/* Titre */}
       <div className="mt-4">
-        <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-title">
+        <label
+          className="block text-sm font-medium text-text-secondary"
+          htmlFor="merge-title"
+        >
           Titre
         </label>
         <input
@@ -69,12 +82,17 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           onChange={(e) => setField("isOneShot", e.target.checked)}
           type="checkbox"
         />
-        <span className="text-sm font-medium text-text-secondary">One-shot</span>
+        <span className="text-sm font-medium text-text-secondary">
+          One-shot
+        </span>
       </label>
 
       {/* Publisher */}
       <div className="mt-3">
-        <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-publisher">
+        <label
+          className="block text-sm font-medium text-text-secondary"
+          htmlFor="merge-publisher"
+        >
           Éditeur
         </label>
         <input
@@ -97,7 +115,10 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
 
       {/* Cover URL */}
       <div className="mt-3">
-        <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-coverUrl">
+        <label
+          className="block text-sm font-medium text-text-secondary"
+          htmlFor="merge-coverUrl"
+        >
           URL de couverture
         </label>
         <input
@@ -109,13 +130,20 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           value={state.coverUrl}
         />
         {state.coverUrl && (
-          <img alt="Aperçu" className="mt-2 h-24 rounded-lg shadow" src={state.coverUrl} />
+          <img
+            alt="Aperçu"
+            className="mt-2 h-24 rounded-lg shadow"
+            src={state.coverUrl}
+          />
         )}
       </div>
 
       {/* Authors */}
       <div className="mt-3">
-        <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-authors">
+        <label
+          className="block text-sm font-medium text-text-secondary"
+          htmlFor="merge-authors"
+        >
           Auteurs (séparés par des virgules)
         </label>
         <input
@@ -129,7 +157,10 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
 
       {/* Description */}
       <div className="mt-3">
-        <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-description">
+        <label
+          className="block text-sm font-medium text-text-secondary"
+          htmlFor="merge-description"
+        >
           Description
         </label>
         <textarea
@@ -144,7 +175,10 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
       {/* Latest published issue + flags */}
       <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
         <div>
-          <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-latestIssue">
+          <label
+            className="block text-sm font-medium text-text-secondary"
+            htmlFor="merge-latestIssue"
+          >
             Dernier tome paru
           </label>
           <input
@@ -160,7 +194,9 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
           <input
             checked={state.latestPublishedIssueComplete}
             className={formCheckboxClassName}
-            onChange={(e) => setField("latestPublishedIssueComplete", e.target.checked)}
+            onChange={(e) =>
+              setField("latestPublishedIssueComplete", e.target.checked)
+            }
             type="checkbox"
           />
           <span className="text-sm text-text-secondary">Parution terminée</span>
@@ -169,7 +205,9 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
 
       {/* Default tome flags */}
       <div className="mt-3 flex items-center gap-4">
-        <span className="text-sm font-medium text-text-secondary">Flags par défaut :</span>
+        <span className="text-sm font-medium text-text-secondary">
+          Flags par défaut :
+        </span>
         <label className="flex items-center gap-1.5">
           <input
             checked={state.defaultTomeBought}
@@ -201,7 +239,10 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
 
       {/* Amazon URL */}
       <div className="mt-3">
-        <label className="block text-sm font-medium text-text-secondary" htmlFor="merge-amazonUrl">
+        <label
+          className="block text-sm font-medium text-text-secondary"
+          htmlFor="merge-amazonUrl"
+        >
           URL Amazon
         </label>
         <input
@@ -216,7 +257,9 @@ export default function MergeMetadataForm({ dispatch, isSuggesting, state }: Mer
 
       {/* Not interested flags */}
       <div className="mt-3 flex items-center gap-4">
-        <span className="text-sm font-medium text-text-secondary">Pas intéressé :</span>
+        <span className="text-sm font-medium text-text-secondary">
+          Pas intéressé :
+        </span>
         <label className="flex items-center gap-1.5">
           <input
             checked={state.notInterestedBuy}

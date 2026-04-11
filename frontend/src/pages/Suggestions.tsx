@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import Breadcrumb from "../components/Breadcrumb";
 import EmptyState from "../components/EmptyState";
-import { useAddSuggestion, useDismissSuggestion, useSuggestions } from "../hooks/useSuggestions";
+import {
+  useAddSuggestion,
+  useDismissSuggestion,
+  useSuggestions,
+} from "../hooks/useSuggestions";
 import { ComicTypeLabel, type ComicType } from "../types/enums";
 
 export default function Suggestions() {
@@ -26,8 +30,12 @@ export default function Suggestions() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Suggestions" }]} />
-      <h1 className="font-display text-xl font-bold text-text-primary">Suggestions de séries</h1>
+      <Breadcrumb
+        items={[{ href: "/tools", label: "Outils" }, { label: "Suggestions" }]}
+      />
+      <h1 className="font-display text-xl font-bold text-text-primary">
+        Suggestions de séries
+      </h1>
       <p className="mt-1 text-sm text-text-secondary">
         Séries similaires à votre collection, suggérées par IA.
       </p>
@@ -55,7 +63,9 @@ export default function Suggestions() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="font-semibold text-text-primary">{suggestion.title}</h3>
+                  <h3 className="font-semibold text-text-primary">
+                    {suggestion.title}
+                  </h3>
                   <span className="mt-1 inline-block rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-950/30 dark:text-primary-400">
                     {ComicTypeLabel[suggestion.type as ComicType]}
                   </span>
@@ -66,11 +76,16 @@ export default function Suggestions() {
                   {suggestion.authors.join(", ")}
                 </p>
               )}
-              <p className="mt-2 text-sm text-text-tertiary">{suggestion.reason}</p>
+              <p className="mt-2 text-sm text-text-tertiary">
+                {suggestion.reason}
+              </p>
               {suggestion.sourceSeries && (
                 <p className="mt-1 text-xs text-text-muted">
                   Basé sur{" "}
-                  <Link className="text-primary-600 hover:underline" to={`/comic/${suggestion.sourceSeries.id}`}>
+                  <Link
+                    className="text-primary-600 hover:underline"
+                    to={`/comic/${suggestion.sourceSeries.id}`}
+                  >
                     {suggestion.sourceSeries.title}
                   </Link>
                 </p>

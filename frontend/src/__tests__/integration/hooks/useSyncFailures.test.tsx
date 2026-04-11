@@ -4,10 +4,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { useSyncFailures } from "../../../hooks/useSyncFailures";
-import {
-  _resetDb,
-  addSyncFailure,
-} from "../../../services/offlineQueue";
+import { _resetDb, addSyncFailure } from "../../../services/offlineQueue";
 import { createTestQueryClient } from "../../helpers/test-utils";
 
 function createWrapper(queryClient = createTestQueryClient()) {
@@ -72,11 +69,15 @@ describe("useSyncFailures", () => {
 
     // Wait for the query to have fetched at least once
     await waitFor(() => {
-      const queries = queryClient.getQueryCache().findAll({ queryKey: ["syncFailures"] });
+      const queries = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ["syncFailures"] });
       expect(queries[0]?.state.dataUpdateCount).toBeGreaterThanOrEqual(1);
     });
 
-    const query = queryClient.getQueryCache().findAll({ queryKey: ["syncFailures"] })[0];
+    const query = queryClient
+      .getQueryCache()
+      .findAll({ queryKey: ["syncFailures"] })[0];
     const fetchCount = query.state.dataUpdateCount;
 
     // Wait longer than the 3s polling interval — no additional fetches should happen

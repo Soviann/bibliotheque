@@ -12,7 +12,11 @@ import { ComicTypeLabel, ComicTypePlaceholder } from "../types/enums";
 import type { ComicType } from "../types/enums";
 import { getCoverSrc, getCoverThumbnailSrc } from "../utils/coverUtils";
 import { searchComics } from "../utils/searchComics";
-import { filterSeriesToBuy, formatTomeRanges, getNextTomesToBuy } from "../utils/toBuyUtils";
+import {
+  filterSeriesToBuy,
+  formatTomeRanges,
+  getNextTomesToBuy,
+} from "../utils/toBuyUtils";
 
 const HERO_COUNT = 10;
 
@@ -54,17 +58,17 @@ export default function ToBuy() {
   const recentlyAdded = useMemo(() => {
     if (toBuyComics.length === 0) return [];
     return [...toBuyComics]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
       .slice(0, HERO_COUNT);
   }, [toBuyComics]);
 
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
-  const handleBuyTome = useCallback(
-    (seriesId: number, tomeId: number) => {
-      buyTomeRef.current.mutate({ seriesId, tomeId });
-    },
-    [],
-  );
+  const handleBuyTome = useCallback((seriesId: number, tomeId: number) => {
+    buyTomeRef.current.mutate({ seriesId, tomeId });
+  }, []);
 
   const showHero = !isLoading && !debouncedSearch && recentlyAdded.length > 0;
 
@@ -80,7 +84,9 @@ export default function ToBuy() {
             {recentlyAdded.map((comic) => {
               const src = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
               const tomes = getNextTomesToBuy(comic);
-              const regularNumbers = tomes.filter((t) => !t.isHorsSerie).map((t) => t.number);
+              const regularNumbers = tomes
+                .filter((t) => !t.isHorsSerie)
+                .map((t) => t.number);
               return (
                 <Link
                   className="group flex w-[140px] shrink-0 snap-center flex-col gap-1.5 sm:w-[160px]"
@@ -192,7 +198,10 @@ interface SeriesRowProps {
   onBuyTome: (seriesId: number, tomeId: number) => void;
 }
 
-const SeriesRow = memo(function SeriesRow({ comic, onBuyTome }: SeriesRowProps) {
+const SeriesRow = memo(function SeriesRow({
+  comic,
+  onBuyTome,
+}: SeriesRowProps) {
   const src = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
   const tomes = getNextTomesToBuy(comic);
 
@@ -266,7 +275,11 @@ interface TomeBadgeProps {
   onBuy: () => void;
 }
 
-const TomeBadge = memo(function TomeBadge({ isHorsSerie, number, onBuy }: TomeBadgeProps) {
+const TomeBadge = memo(function TomeBadge({
+  isHorsSerie,
+  number,
+  onBuy,
+}: TomeBadgeProps) {
   const label = isHorsSerie ? `HS ${number}` : `${number}`;
   return (
     <button

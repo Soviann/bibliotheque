@@ -16,7 +16,12 @@ function renderComponent(comics: ComicSeries[]) {
 describe("ContinueReading", () => {
   it("renders section heading", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "One Piece", readCount: 2, boughtCount: 5 }),
+      createMockComicSeries({
+        id: 1,
+        title: "One Piece",
+        readCount: 2,
+        boughtCount: 5,
+      }),
     ];
     renderComponent(comics);
     expect(screen.getByText("Continuer la lecture")).toBeInTheDocument();
@@ -24,7 +29,13 @@ describe("ContinueReading", () => {
 
   it("shows series where readCount < boughtCount", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "One Piece", readCount: 2, boughtCount: 5, onNasCount: 0 }),
+      createMockComicSeries({
+        id: 1,
+        title: "One Piece",
+        readCount: 2,
+        boughtCount: 5,
+        onNasCount: 0,
+      }),
     ];
     renderComponent(comics);
     expect(screen.getByText("One Piece")).toBeInTheDocument();
@@ -32,7 +43,13 @@ describe("ContinueReading", () => {
 
   it("shows series where readCount < onNasCount", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "Naruto", readCount: 3, boughtCount: 0, onNasCount: 10 }),
+      createMockComicSeries({
+        id: 1,
+        title: "Naruto",
+        readCount: 3,
+        boughtCount: 0,
+        onNasCount: 10,
+      }),
     ];
     renderComponent(comics);
     expect(screen.getByText("Naruto")).toBeInTheDocument();
@@ -40,8 +57,20 @@ describe("ContinueReading", () => {
 
   it("filters out series where readCount >= max(boughtCount, onNasCount)", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "All Read", readCount: 5, boughtCount: 5, onNasCount: 3 }),
-      createMockComicSeries({ id: 2, title: "Unread", readCount: 2, boughtCount: 5, onNasCount: 0 }),
+      createMockComicSeries({
+        id: 1,
+        title: "All Read",
+        readCount: 5,
+        boughtCount: 5,
+        onNasCount: 3,
+      }),
+      createMockComicSeries({
+        id: 2,
+        title: "Unread",
+        readCount: 2,
+        boughtCount: 5,
+        onNasCount: 0,
+      }),
     ];
     renderComponent(comics);
     expect(screen.queryByText("All Read")).not.toBeInTheDocument();
@@ -50,7 +79,13 @@ describe("ContinueReading", () => {
 
   it("displays next tome number to read", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "One Piece", readCount: 7, boughtCount: 10, onNasCount: 0 }),
+      createMockComicSeries({
+        id: 1,
+        title: "One Piece",
+        readCount: 7,
+        boughtCount: 10,
+        onNasCount: 0,
+      }),
     ];
     renderComponent(comics);
     expect(screen.getByText("Tome 8")).toBeInTheDocument();
@@ -58,7 +93,13 @@ describe("ContinueReading", () => {
 
   it("renders nothing when no series match", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "Done", readCount: 5, boughtCount: 5, onNasCount: 5 }),
+      createMockComicSeries({
+        id: 1,
+        title: "Done",
+        readCount: 5,
+        boughtCount: 5,
+        onNasCount: 5,
+      }),
     ];
     const { container } = renderComponent(comics);
     expect(container.firstChild).toBeNull();
@@ -71,7 +112,13 @@ describe("ContinueReading", () => {
 
   it("links to comic detail page", () => {
     const comics = [
-      createMockComicSeries({ id: 42, title: "Bleach", readCount: 1, boughtCount: 5, onNasCount: 0 }),
+      createMockComicSeries({
+        id: 42,
+        title: "Bleach",
+        readCount: 1,
+        boughtCount: 5,
+        onNasCount: 0,
+      }),
     ];
     renderComponent(comics);
     const link = screen.getByRole("link", { name: /Bleach/i });
@@ -80,8 +127,21 @@ describe("ContinueReading", () => {
 
   it("filters out one-shots", () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "One Shot", readCount: 0, boughtCount: 1, onNasCount: 0, isOneShot: true }),
-      createMockComicSeries({ id: 2, title: "Series", readCount: 0, boughtCount: 3, onNasCount: 0 }),
+      createMockComicSeries({
+        id: 1,
+        title: "One Shot",
+        readCount: 0,
+        boughtCount: 1,
+        onNasCount: 0,
+        isOneShot: true,
+      }),
+      createMockComicSeries({
+        id: 2,
+        title: "Series",
+        readCount: 0,
+        boughtCount: 3,
+        onNasCount: 0,
+      }),
     ];
     renderComponent(comics);
     expect(screen.queryByText("One Shot")).not.toBeInTheDocument();

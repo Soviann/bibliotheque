@@ -50,7 +50,9 @@ describe("usePendingQueueCount", () => {
   });
 
   it("returns 0 when getPendingCount rejects (IndexedDB failure)", async () => {
-    vi.mocked(getPendingCount).mockRejectedValue(new Error("IndexedDB unavailable"));
+    vi.mocked(getPendingCount).mockRejectedValue(
+      new Error("IndexedDB unavailable"),
+    );
 
     const { result } = renderHook(() => usePendingQueueCount(), {
       wrapper: createWrapper(),

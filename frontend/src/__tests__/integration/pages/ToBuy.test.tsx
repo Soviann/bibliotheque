@@ -5,8 +5,14 @@ import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import ToBuy from "../../../pages/ToBuy";
 import { queryKeys } from "../../../queryKeys";
-import { createMockComicSeries, createMockHydraCollection } from "../../helpers/factories";
-import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
+import {
+  createMockComicSeries,
+  createMockHydraCollection,
+} from "../../helpers/factories";
+import {
+  createTestQueryClient,
+  renderWithProviders,
+} from "../../helpers/test-utils";
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
@@ -15,8 +21,14 @@ afterAll(() => server.close());
 
 function renderWithComics(comics: ComicSeries[]) {
   const queryClient = createTestQueryClient();
-  queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection(comics));
-  return renderWithProviders(<ToBuy />, { initialEntries: ["/to-buy"], queryClient });
+  queryClient.setQueryData(
+    queryKeys.comics.all,
+    createMockHydraCollection(comics),
+  );
+  return renderWithProviders(<ToBuy />, {
+    initialEntries: ["/to-buy"],
+    queryClient,
+  });
 }
 
 describe("ToBuy", () => {
@@ -56,8 +68,12 @@ describe("ToBuy", () => {
     });
     renderWithComics([series]);
 
-    expect(screen.getByRole("button", { name: "Marquer le tome 3 comme acheté" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Marquer le tome 5 comme acheté" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Marquer le tome 3 comme acheté" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Marquer le tome 5 comme acheté" }),
+    ).toBeInTheDocument();
   });
 
   it("displays hors-série badges with HS prefix", () => {
@@ -65,13 +81,13 @@ describe("ToBuy", () => {
       id: 1,
       title: "Dragon Ball",
       type: "manga",
-      unboughtTomes: [
-        { id: 10, isHorsSerie: true, number: 1 },
-      ],
+      unboughtTomes: [{ id: 10, isHorsSerie: true, number: 1 }],
     });
     renderWithComics([series]);
 
-    expect(screen.getByRole("button", { name: "Marquer le tome HS 1 comme acheté" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Marquer le tome HS 1 comme acheté" }),
+    ).toBeInTheDocument();
   });
 
   it("sorts series alphabetically within each group", () => {
@@ -134,7 +150,9 @@ describe("ToBuy", () => {
     });
     renderWithComics([series]);
 
-    expect(screen.queryByRole("link", { name: /amazon/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /amazon/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("calls PATCH endpoint on badge click", async () => {
@@ -156,15 +174,22 @@ describe("ToBuy", () => {
         return HttpResponse.json({ id: 10, bought: true });
       }),
       http.get("*/api/comic_series", () =>
-        HttpResponse.json(createMockHydraCollection([{
-          ...series,
-          unboughtTomes: [{ id: 20, isHorsSerie: false, number: 3 }],
-        }]))),
+        HttpResponse.json(
+          createMockHydraCollection([
+            {
+              ...series,
+              unboughtTomes: [{ id: 20, isHorsSerie: false, number: 3 }],
+            },
+          ]),
+        ),
+      ),
     );
 
     renderWithComics([series]);
 
-    const badge = screen.getByRole("button", { name: "Marquer le tome 2 comme acheté" });
+    const badge = screen.getByRole("button", {
+      name: "Marquer le tome 2 comme acheté",
+    });
     await user.click(badge);
 
     await waitFor(() => {

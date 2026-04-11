@@ -58,14 +58,16 @@ describe("useCreateComic", () => {
     const queryClient = createTestQueryClient();
 
     // Pre-populate cache
-    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
+    queryClient.setQueryData(
+      queryKeys.comics.all,
+      createMockHydraCollection([]),
+    );
 
     server.use(
       http.post("/api/comic_series", () =>
-        HttpResponse.json(
-          createMockComicSeries({ title: "New" }),
-          { status: 201 },
-        ),
+        HttpResponse.json(createMockComicSeries({ title: "New" }), {
+          status: 201,
+        }),
       ),
     );
 
@@ -87,10 +89,7 @@ describe("useCreateComic", () => {
   it("handles API error", async () => {
     server.use(
       http.post("/api/comic_series", () =>
-        HttpResponse.json(
-          { detail: "Validation Failed" },
-          { status: 422 },
-        ),
+        HttpResponse.json({ detail: "Validation Failed" }, { status: 422 }),
       ),
     );
 

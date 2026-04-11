@@ -66,15 +66,25 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("Votre bibliothèque est vide")).toBeInTheDocument();
+      expect(
+        screen.getByText("Votre bibliothèque est vide"),
+      ).toBeInTheDocument();
     });
-    expect(screen.getByText("Commencez par ajouter votre première série")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ajouter une série" })).toHaveAttribute("href", "/comic/new");
+    expect(
+      screen.getByText("Commencez par ajouter votre première série"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Ajouter une série" }),
+    ).toHaveAttribute("href", "/comic/new");
   });
 
   it("shows empty wishlist state when status=wishlist and no results", async () => {
     const comics = [
-      createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic" }),
+      createMockComicSeries({
+        id: 1,
+        status: ComicStatus.BUYING,
+        title: "Buying Comic",
+      }),
     ];
 
     server.use(
@@ -86,17 +96,23 @@ describe("Home", () => {
     renderWithProviders(<Home />, { initialEntries: ["/?status=wishlist"] });
 
     await waitFor(() => {
-      expect(screen.getByText("Votre liste de souhaits est vide")).toBeInTheDocument();
+      expect(
+        screen.getByText("Votre liste de souhaits est vide"),
+      ).toBeInTheDocument();
     });
-    expect(screen.getByText("Les séries que vous souhaitez acheter apparaîtront ici")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ajouter une série" })).toHaveAttribute("href", "/comic/new");
+    expect(
+      screen.getByText(
+        "Les séries que vous souhaitez acheter apparaîtront ici",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Ajouter une série" }),
+    ).toHaveAttribute("href", "/comic/new");
   });
 
   it("shows empty search results state when search yields nothing", async () => {
     const user = userEvent.setup();
-    const comics = [
-      createMockComicSeries({ id: 1, title: "Naruto" }),
-    ];
+    const comics = [createMockComicSeries({ id: 1, title: "Naruto" })];
 
     server.use(
       http.get("/api/comic_series", () =>
@@ -110,7 +126,10 @@ describe("Home", () => {
       expect(screen.getAllByText("Naruto").length).toBeGreaterThan(0);
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "XYZNOTFOUND");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+      "XYZNOTFOUND",
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Aucun résultat pour/)).toBeInTheDocument();
@@ -120,7 +139,12 @@ describe("Home", () => {
 
   it("shows empty filter results state when filters yield nothing", async () => {
     const comics = [
-      createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic", type: ComicType.MANGA }),
+      createMockComicSeries({
+        id: 1,
+        status: ComicStatus.BUYING,
+        title: "Buying Comic",
+        type: ComicType.MANGA,
+      }),
     ];
 
     server.use(
@@ -132,14 +156,21 @@ describe("Home", () => {
     renderWithProviders(<Home />, { initialEntries: ["/?type=bd"] });
 
     await waitFor(() => {
-      expect(screen.getByText("Aucune série avec ces filtres")).toBeInTheDocument();
+      expect(
+        screen.getByText("Aucune série avec ces filtres"),
+      ).toBeInTheDocument();
     });
   });
 
   it("resets filters when clicking 'Réinitialiser les filtres'", async () => {
     const user = userEvent.setup();
     const comics = [
-      createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic", type: ComicType.MANGA }),
+      createMockComicSeries({
+        id: 1,
+        status: ComicStatus.BUYING,
+        title: "Buying Comic",
+        type: ComicType.MANGA,
+      }),
     ];
 
     server.use(
@@ -148,13 +179,19 @@ describe("Home", () => {
       ),
     );
 
-    renderWithProviders(<Home />, { initialEntries: ["/?type=bd&status=finished&sort=title-desc"] });
-
-    await waitFor(() => {
-      expect(screen.getByText("Aucune série avec ces filtres")).toBeInTheDocument();
+    renderWithProviders(<Home />, {
+      initialEntries: ["/?type=bd&status=finished&sort=title-desc"],
     });
 
-    await user.click(screen.getByRole("button", { name: "Réinitialiser les filtres" }));
+    await waitFor(() => {
+      expect(
+        screen.getByText("Aucune série avec ces filtres"),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: "Réinitialiser les filtres" }),
+    );
 
     await waitFor(() => {
       expect(screen.getAllByText("Buying Comic")[0]).toBeInTheDocument();
@@ -164,7 +201,9 @@ describe("Home", () => {
   it("renders search input", async () => {
     renderWithProviders(<Home />);
 
-    expect(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+    ).toBeInTheDocument();
   });
 
   it("filters comics by search text", async () => {
@@ -186,7 +225,10 @@ describe("Home", () => {
       expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Naruto");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+      "Naruto",
+    );
 
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
@@ -252,9 +294,7 @@ describe("Home", () => {
     const user = userEvent.setup();
     let deleteCalled = false;
 
-    const comics = [
-      createMockComicSeries({ id: 1, title: "Delete Me" }),
-    ];
+    const comics = [createMockComicSeries({ id: 1, title: "Delete Me" })];
 
     server.use(
       http.get("/api/comic_series", () =>
@@ -287,8 +327,16 @@ describe("Home", () => {
   it("filters comics by status selection", async () => {
     const user = userEvent.setup();
     const comics = [
-      createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Buying Comic" }),
-      createMockComicSeries({ id: 2, status: ComicStatus.FINISHED, title: "Finished Comic" }),
+      createMockComicSeries({
+        id: 1,
+        status: ComicStatus.BUYING,
+        title: "Buying Comic",
+      }),
+      createMockComicSeries({
+        id: 2,
+        status: ComicStatus.FINISHED,
+        title: "Finished Comic",
+      }),
     ];
 
     server.use(
@@ -313,16 +361,15 @@ describe("Home", () => {
   it("shows undo toast after delete from menu", async () => {
     const user = userEvent.setup();
 
-    const comics = [
-      createMockComicSeries({ id: 1, title: "Toast Delete" }),
-    ];
+    const comics = [createMockComicSeries({ id: 1, title: "Toast Delete" })];
 
     server.use(
       http.get("/api/comic_series", () =>
         HttpResponse.json(createMockHydraCollection(comics)),
       ),
-      http.delete("/api/comic_series/1", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/comic_series/1",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -342,7 +389,9 @@ describe("Home", () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
         "Toast Delete supprimée",
-        expect.objectContaining({ action: expect.objectContaining({ label: "Annuler" }) }),
+        expect.objectContaining({
+          action: expect.objectContaining({ label: "Annuler" }),
+        }),
       );
     });
   });
@@ -416,9 +465,21 @@ describe("Home", () => {
   it("sorts comics by most recent first", async () => {
     const user = userEvent.setup();
     const comics = [
-      createMockComicSeries({ id: 1, title: "Old", createdAt: "2024-01-01T00:00:00+00:00" }),
-      createMockComicSeries({ id: 2, title: "New", createdAt: "2025-06-01T00:00:00+00:00" }),
-      createMockComicSeries({ id: 3, title: "Mid", createdAt: "2025-03-01T00:00:00+00:00" }),
+      createMockComicSeries({
+        id: 1,
+        title: "Old",
+        createdAt: "2024-01-01T00:00:00+00:00",
+      }),
+      createMockComicSeries({
+        id: 2,
+        title: "New",
+        createdAt: "2025-06-01T00:00:00+00:00",
+      }),
+      createMockComicSeries({
+        id: 3,
+        title: "Mid",
+        createdAt: "2025-03-01T00:00:00+00:00",
+      }),
     ];
 
     server.use(
@@ -500,7 +561,10 @@ describe("Home", () => {
       expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Urasawa");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+      "Urasawa",
+    );
 
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
@@ -527,7 +591,10 @@ describe("Home", () => {
       expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Kana");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+      "Kana",
+    );
 
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
@@ -558,7 +625,10 @@ describe("Home", () => {
       expect(screen.getAllByText("Monster")[0]).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "Uraswa");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+      "Uraswa",
+    );
 
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
@@ -585,7 +655,10 @@ describe("Home", () => {
       expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "  naruto  ");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+      "  naruto  ",
+    );
 
     await waitFor(() => {
       expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
@@ -595,8 +668,16 @@ describe("Home", () => {
 
   it("pre-filters by status URL param", async () => {
     const comics = [
-      createMockComicSeries({ id: 1, status: ComicStatus.WISHLIST, title: "Wanted Comic" }),
-      createMockComicSeries({ id: 2, status: ComicStatus.BUYING, title: "Buying Comic" }),
+      createMockComicSeries({
+        id: 1,
+        status: ComicStatus.WISHLIST,
+        title: "Wanted Comic",
+      }),
+      createMockComicSeries({
+        id: 2,
+        status: ComicStatus.BUYING,
+        title: "Buying Comic",
+      }),
     ];
 
     server.use(
@@ -635,8 +716,16 @@ describe("Home", () => {
 
   it("pre-selects sort from URL param", async () => {
     const comics = [
-      createMockComicSeries({ id: 1, title: "Astérix", createdAt: "2024-01-01T00:00:00+00:00" }),
-      createMockComicSeries({ id: 2, title: "Zelda", createdAt: "2025-06-01T00:00:00+00:00" }),
+      createMockComicSeries({
+        id: 1,
+        title: "Astérix",
+        createdAt: "2024-01-01T00:00:00+00:00",
+      }),
+      createMockComicSeries({
+        id: 2,
+        title: "Zelda",
+        createdAt: "2025-06-01T00:00:00+00:00",
+      }),
     ];
 
     server.use(
@@ -645,7 +734,9 @@ describe("Home", () => {
       ),
     );
 
-    renderWithProviders(<Home />, { initialEntries: ["/?sort=createdAt-desc"] });
+    renderWithProviders(<Home />, {
+      initialEntries: ["/?sort=createdAt-desc"],
+    });
 
     await waitFor(() => {
       expect(screen.getAllByText("Astérix")[0]).toBeInTheDocument();
@@ -676,7 +767,9 @@ describe("Home", () => {
       expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
+    const searchInput = screen.getByPlaceholderText(
+      "Rechercher par titre, auteur, éditeur…",
+    );
 
     // Type — local input updates immediately
     await user.type(searchInput, "Nar");
@@ -712,7 +805,9 @@ describe("Home", () => {
       expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
+    const searchInput = screen.getByPlaceholderText(
+      "Rechercher par titre, auteur, éditeur…",
+    );
 
     // Type to filter
     await user.type(searchInput, "Naruto");
@@ -747,15 +842,15 @@ describe("Home", () => {
 
     // After load, skeletons disappear
     await waitFor(() => {
-      expect(screen.queryByTestId("comic-card-skeleton")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("comic-card-skeleton"),
+      ).not.toBeInTheDocument();
     });
   });
 
   it("shows search loading indicator during refetch", async () => {
     let requestCount = 0;
-    const comics = [
-      createMockComicSeries({ id: 1, title: "Naruto" }),
-    ];
+    const comics = [createMockComicSeries({ id: 1, title: "Naruto" })];
 
     server.use(
       http.get("/api/comic_series", async () => {
@@ -780,9 +875,7 @@ describe("Home", () => {
   });
 
   it("renders virtualized results grid", async () => {
-    const comics = [
-      createMockComicSeries({ id: 1, title: "Naruto" }),
-    ];
+    const comics = [createMockComicSeries({ id: 1, title: "Naruto" })];
 
     server.use(
       http.get("/api/comic_series", () =>
@@ -819,7 +912,9 @@ describe("Home", () => {
     });
     expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
 
-    const searchInput = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
+    const searchInput = screen.getByPlaceholderText(
+      "Rechercher par titre, auteur, éditeur…",
+    );
     expect(searchInput).toHaveValue("Naruto");
   });
 });

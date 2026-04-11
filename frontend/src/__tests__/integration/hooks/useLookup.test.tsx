@@ -95,9 +95,12 @@ describe("useLookupIsbn", () => {
       }),
     );
 
-    const { result } = renderHook(() => useLookupIsbn("9781234567890", "manga"), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useLookupIsbn("9781234567890", "manga"),
+      {
+        wrapper: createWrapper(),
+      },
+    );
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -232,8 +235,32 @@ describe("useLookupTitleCandidates", () => {
     const candidatesResponse = {
       apiMessages: {},
       results: [
-        { authors: "Oda", description: null, isbn: null, isOneShot: false, latestPublishedIssue: null, publishedDate: null, publisher: "Glenat", thumbnail: null, title: "One Piece", tomeEnd: null, tomeNumber: null },
-        { authors: "Oda", description: null, isbn: null, isOneShot: null, latestPublishedIssue: null, publishedDate: null, publisher: null, thumbnail: null, title: "One Piece Party", tomeEnd: null, tomeNumber: null },
+        {
+          authors: "Oda",
+          description: null,
+          isbn: null,
+          isOneShot: false,
+          latestPublishedIssue: null,
+          publishedDate: null,
+          publisher: "Glenat",
+          thumbnail: null,
+          title: "One Piece",
+          tomeEnd: null,
+          tomeNumber: null,
+        },
+        {
+          authors: "Oda",
+          description: null,
+          isbn: null,
+          isOneShot: null,
+          latestPublishedIssue: null,
+          publishedDate: null,
+          publisher: null,
+          thumbnail: null,
+          title: "One Piece Party",
+          tomeEnd: null,
+          tomeNumber: null,
+        },
       ],
       sources: ["google_books"],
     };
@@ -244,7 +271,9 @@ describe("useLookupTitleCandidates", () => {
         if (url.searchParams.get("limit")) {
           return HttpResponse.json(candidatesResponse);
         }
-        return HttpResponse.json(createMockLookupResult({ title: "One Piece" }));
+        return HttpResponse.json(
+          createMockLookupResult({ title: "One Piece" }),
+        );
       }),
     );
 
@@ -269,9 +298,12 @@ describe("useLookupTitleCandidates", () => {
       }),
     );
 
-    const { result } = renderHook(() => useLookupTitleCandidates("Test", "manga", 3), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useLookupTitleCandidates("Test", "manga", 3),
+      {
+        wrapper: createWrapper(),
+      },
+    );
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 

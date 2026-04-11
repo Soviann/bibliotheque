@@ -19,7 +19,9 @@ describe("AddedStack", () => {
   });
 
   it("renders singular for one item", () => {
-    const items: QuickAddItem[] = [{ coverUrl: "/c.jpg", title: "Bleach", tomeNumber: 1 }];
+    const items: QuickAddItem[] = [
+      { coverUrl: "/c.jpg", title: "Bleach", tomeNumber: 1 },
+    ];
     render(<AddedStack items={items} />);
     expect(screen.getByText("1 tome ajouté")).toBeInTheDocument();
   });

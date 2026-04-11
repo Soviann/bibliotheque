@@ -32,7 +32,9 @@ describe("ComicCard", () => {
     renderWithProviders(<ComicCard comic={comic} />);
 
     const img = screen.getByAltText("Naruto");
-    expect(img.getAttribute("src")).toContain("/media/cache/cover_thumbnail/uploads/covers/naruto.webp");
+    expect(img.getAttribute("src")).toContain(
+      "/media/cache/cover_thumbnail/uploads/covers/naruto.webp",
+    );
   });
 
   it("falls back to coverUrl when coverImage is null", () => {
@@ -275,7 +277,9 @@ describe("ComicCard", () => {
 
     renderWithProviders(<ComicCard comic={comic} />);
 
-    expect(screen.getByText("En attente de synchronisation")).toBeInTheDocument();
+    expect(
+      screen.getByText("En attente de synchronisation"),
+    ).toBeInTheDocument();
   });
 
   it("does not show new release badge for finished series", () => {

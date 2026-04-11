@@ -8,7 +8,9 @@ describe("NotFound", () => {
 
     expect(screen.getByText("404")).toBeInTheDocument();
     expect(screen.getByText("Page introuvable")).toBeInTheDocument();
-    expect(screen.getByText(/Cette page semble avoir disparu/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Cette page semble avoir disparu/),
+    ).toBeInTheDocument();
   });
 
   it("has a link back to home", () => {

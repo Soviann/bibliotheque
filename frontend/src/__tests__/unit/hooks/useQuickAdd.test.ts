@@ -19,14 +19,22 @@ describe("useQuickAdd", () => {
 
   it("adds an item to the stack", () => {
     const { result } = renderHook(() => useQuickAdd());
-    act(() => result.current.addItem({ coverUrl: "/cover.jpg", title: "One Piece", tomeNumber: 5 }));
+    act(() =>
+      result.current.addItem({
+        coverUrl: "/cover.jpg",
+        title: "One Piece",
+        tomeNumber: 5,
+      }),
+    );
     expect(result.current.addedItems).toHaveLength(1);
     expect(result.current.addedItems[0].title).toBe("One Piece");
   });
 
   it("clears items", () => {
     const { result } = renderHook(() => useQuickAdd());
-    act(() => result.current.addItem({ coverUrl: null, title: "Test", tomeNumber: 1 }));
+    act(() =>
+      result.current.addItem({ coverUrl: null, title: "Test", tomeNumber: 1 }),
+    );
     act(() => result.current.clearItems());
     expect(result.current.addedItems).toEqual([]);
   });

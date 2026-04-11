@@ -8,7 +8,11 @@ import CoverImage from "./CoverImage";
 
 interface QuickAddScanProps {
   batchMode: boolean;
-  onAdd: (result: { coverUrl: string | null; title: string; tomeNumber: number }) => void;
+  onAdd: (result: {
+    coverUrl: string | null;
+    title: string;
+    tomeNumber: number;
+  }) => void;
 }
 
 export default function QuickAddScan({ batchMode, onAdd }: QuickAddScanProps) {
@@ -110,7 +114,9 @@ export default function QuickAddScan({ batchMode, onAdd }: QuickAddScanProps) {
           />
         )}
         <div className="text-center">
-          <h3 className="font-display text-lg font-semibold text-text-primary">{preview.title}</h3>
+          <h3 className="font-display text-lg font-semibold text-text-primary">
+            {preview.title}
+          </h3>
           {preview.tomeNumber && (
             <p className="text-sm text-text-muted">Tome {preview.tomeNumber}</p>
           )}
@@ -147,10 +153,15 @@ export default function QuickAddScan({ batchMode, onAdd }: QuickAddScanProps) {
           type="button"
         >
           <Camera className="h-12 w-12 text-primary-500" />
-          <span className="text-sm font-medium text-text-secondary">Appuyer pour scanner</span>
+          <span className="text-sm font-medium text-text-secondary">
+            Appuyer pour scanner
+          </span>
         </button>
       ) : (
-        <div className="w-full max-w-sm overflow-hidden rounded-2xl" id="quick-add-scanner" />
+        <div
+          className="w-full max-w-sm overflow-hidden rounded-2xl"
+          id="quick-add-scanner"
+        />
       )}
     </div>
   );

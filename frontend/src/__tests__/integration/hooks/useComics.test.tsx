@@ -121,7 +121,9 @@ describe("useComics", () => {
 
     server.use(
       http.get("/api/comic_series", () =>
-        HttpResponse.json(createMockHydraCollection([series1, series2, series3])),
+        HttpResponse.json(
+          createMockHydraCollection([series1, series2, series3]),
+        ),
       ),
     );
 
@@ -138,8 +140,14 @@ describe("useComics", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // All 3 series should be seeded in detail cache
-    expect(queryClient.getQueryData(queryKeys.comics.detail(1))).toEqual(series1);
-    expect(queryClient.getQueryData(queryKeys.comics.detail(2))).toEqual(series2);
-    expect(queryClient.getQueryData(queryKeys.comics.detail(3))).toEqual(series3);
+    expect(queryClient.getQueryData(queryKeys.comics.detail(1))).toEqual(
+      series1,
+    );
+    expect(queryClient.getQueryData(queryKeys.comics.detail(2))).toEqual(
+      series2,
+    );
+    expect(queryClient.getQueryData(queryKeys.comics.detail(3))).toEqual(
+      series3,
+    );
   });
 });

@@ -1,4 +1,7 @@
-import { formInputCompactClassName, formLabelClassName } from "../styles/formStyles";
+import {
+  formInputCompactClassName,
+  formLabelClassName,
+} from "../styles/formStyles";
 
 interface DatePartialSelectProps {
   label?: string;
@@ -7,21 +10,33 @@ interface DatePartialSelectProps {
 }
 
 const currentYear = new Date().getFullYear();
-const years = Array.from({ length: currentYear - 1900 + 2 }, (_, i) => currentYear + 1 - i);
-const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
+const years = Array.from(
+  { length: currentYear - 1900 + 2 },
+  (_, i) => currentYear + 1 - i,
+);
+const months = Array.from({ length: 12 }, (_, i) =>
+  String(i + 1).padStart(2, "0"),
+);
 
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
-export default function DatePartialSelect({ label, onChange, value }: DatePartialSelectProps) {
+export default function DatePartialSelect({
+  label,
+  onChange,
+  value,
+}: DatePartialSelectProps) {
   const parts = value.split("-");
   const year = parts[0] || "";
   const month = parts[1] || "";
   const day = parts[2] || "";
 
-  const dayCount = year && month ? daysInMonth(Number(year), Number(month)) : 31;
-  const days = Array.from({ length: dayCount }, (_, i) => String(i + 1).padStart(2, "0"));
+  const dayCount =
+    year && month ? daysInMonth(Number(year), Number(month)) : 31;
+  const days = Array.from({ length: dayCount }, (_, i) =>
+    String(i + 1).padStart(2, "0"),
+  );
 
   const buildValue = (y: string, m: string, d: string): string => {
     if (!y) return "";
@@ -32,9 +47,7 @@ export default function DatePartialSelect({ label, onChange, value }: DatePartia
 
   return (
     <div>
-      {label && (
-        <span className={formLabelClassName}>{label}</span>
-      )}
+      {label && <span className={formLabelClassName}>{label}</span>}
       <div className="flex gap-2">
         <select
           aria-label="Année"

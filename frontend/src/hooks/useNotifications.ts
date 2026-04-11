@@ -7,7 +7,8 @@ import type { AppNotification } from "../types/notifications";
 
 export function useUnreadCount() {
   return useQuery({
-    queryFn: () => apiFetch<{ count: number }>(endpoints.notifications.unreadCount),
+    queryFn: () =>
+      apiFetch<{ count: number }>(endpoints.notifications.unreadCount),
     queryKey: queryKeys.notifications.unreadCount,
     refetchInterval: 60_000,
     refetchIntervalInBackground: false,
@@ -17,7 +18,9 @@ export function useUnreadCount() {
 export function useNotifications() {
   return useQuery({
     queryFn: async () => {
-      const data = await apiFetch<HydraCollection<AppNotification>>(endpoints.notifications.collection);
+      const data = await apiFetch<HydraCollection<AppNotification>>(
+        endpoints.notifications.collection,
+      );
       return data.member;
     },
     queryKey: queryKeys.notifications.all,
@@ -36,7 +39,9 @@ export function useMarkAsRead() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount,
+      });
     },
   });
 }
@@ -51,7 +56,9 @@ export function useMarkAllRead() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount,
+      });
     },
   });
 }
@@ -64,7 +71,9 @@ export function useDeleteNotification() {
       apiFetch(endpoints.notifications.detail(id), { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount,
+      });
     },
   });
 }

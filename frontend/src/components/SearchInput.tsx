@@ -17,7 +17,10 @@ export default function SearchInput({
 }: SearchInputProps) {
   return (
     <div className="relative min-w-0 flex-1">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" strokeWidth={1.5} />
+      <Search
+        className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+        strokeWidth={1.5}
+      />
       <input
         aria-label={ariaLabel}
         autoFocus={autoFocus}

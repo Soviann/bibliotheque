@@ -11,7 +11,13 @@ import { useTomeManagement } from "./useTomeManagement";
 import { useUpdateComic } from "./useUpdateComic";
 import { endpoints } from "../endpoints";
 import { apiFetch, getErrorMessage } from "../services/api";
-import type { Author, ComicSeries, CreateComicPayload, TomePayload, UpdateComicPayload } from "../types/api";
+import type {
+  Author,
+  ComicSeries,
+  CreateComicPayload,
+  TomePayload,
+  UpdateComicPayload,
+} from "../types/api";
 import { ComicStatus, ComicType } from "../types/enums";
 
 export interface TomeFormData {
@@ -99,7 +105,18 @@ function buildInitialForm(comic?: ComicSeries): FormData {
     publisher: "",
     status: ComicStatus.BUYING,
     title: "",
-    tomes: [{ bought: false, isHorsSerie: false, isbn: "", number: 1, onNas: false, read: false, title: "", tomeEnd: "" }],
+    tomes: [
+      {
+        bought: false,
+        isHorsSerie: false,
+        isbn: "",
+        number: 1,
+        onNas: false,
+        read: false,
+        title: "",
+        tomeEnd: "",
+      },
+    ],
     type: ComicType.BD,
   };
 }
@@ -115,7 +132,9 @@ export function useComicForm() {
   const createComic = useCreateComic();
   const updateComic = useUpdateComic();
   const { failures, resolveSyncFailure } = useSyncFailures();
-  const syncFailure = syncFailureId ? failures.find((f) => f.id === Number(syncFailureId)) : undefined;
+  const syncFailure = syncFailureId
+    ? failures.find((f) => f.id === Number(syncFailureId))
+    : undefined;
 
   const [form, setForm] = useState<FormData>(() => {
     const initial = buildInitialForm();
@@ -206,9 +225,13 @@ export function useComicForm() {
       defaultTomeRead: form.defaultTomeRead,
       description: form.description || null,
       isOneShot: form.isOneShot,
-      latestPublishedIssue: form.latestPublishedIssue ? Number(form.latestPublishedIssue) : null,
+      latestPublishedIssue: form.latestPublishedIssue
+        ? Number(form.latestPublishedIssue)
+        : null,
       latestPublishedIssueComplete: form.latestPublishedIssueComplete,
-      ...(form.lookupCompletedAt ? { lookupCompletedAt: form.lookupCompletedAt } : {}),
+      ...(form.lookupCompletedAt
+        ? { lookupCompletedAt: form.lookupCompletedAt }
+        : {}),
       publishedDate: form.publishedDate || null,
       publisher: form.publisher || null,
       status: form.status as ComicStatus,
@@ -218,7 +241,10 @@ export function useComicForm() {
     };
 
     if (isEdit && id) {
-      const updatePayload: UpdateComicPayload = { id: Number(id), ...basePayload };
+      const updatePayload: UpdateComicPayload = {
+        id: Number(id),
+        ...basePayload,
+      };
       updateComic.mutate(updatePayload, {
         onSuccess: (data) => {
           if (!data) return;
@@ -234,7 +260,10 @@ export function useComicForm() {
           if (!created) return;
           if (syncFailure?.id) void resolveSyncFailure(syncFailure.id);
           toast.success("Série créée");
-          navigate(`/comic/${created.id}`, { replace: true, viewTransition: true });
+          navigate(`/comic/${created.id}`, {
+            replace: true,
+            viewTransition: true,
+          });
         },
         onError: (err) => toast.error(getErrorMessage(err)),
       });

@@ -24,7 +24,9 @@ export function useSyncFailures() {
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === "sync-failure") {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.offline.syncFailures });
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.offline.syncFailures,
+        });
       }
     };
 
@@ -36,12 +38,16 @@ export function useSyncFailures() {
 
   const resolveSyncFailure = async (id: number) => {
     await resolveFailure(id);
-    void queryClient.invalidateQueries({ queryKey: queryKeys.offline.syncFailures });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.offline.syncFailures,
+    });
   };
 
   const removeSyncFailure = async (id: number) => {
     await removeFailure(id);
-    void queryClient.invalidateQueries({ queryKey: queryKeys.offline.syncFailures });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.offline.syncFailures,
+    });
   };
 
   return { failures, removeSyncFailure, resolveSyncFailure };

@@ -175,7 +175,10 @@ describe("sw-custom", () => {
     await waitUntilPromise;
 
     expect(localMockGet).toHaveBeenCalledWith("jwt_token_sw");
-    expect(localMockSync).toHaveBeenCalledWith("test-jwt-token", expect.any(Function));
+    expect(localMockSync).toHaveBeenCalledWith(
+      "test-jwt-token",
+      expect.any(Function),
+    );
   });
 
   it("sync handler does nothing without token", async () => {

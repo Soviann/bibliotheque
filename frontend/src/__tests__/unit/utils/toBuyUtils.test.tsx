@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createMockComicSeries } from "../../helpers/factories";
-import { filterSeriesToBuy, formatTomeRanges, getNextTomesToBuy } from "../../../utils/toBuyUtils";
+import {
+  filterSeriesToBuy,
+  formatTomeRanges,
+  getNextTomesToBuy,
+} from "../../../utils/toBuyUtils";
 
 describe("getNextTomesToBuy", () => {
   it("returns empty array when no unbought tomes", () => {

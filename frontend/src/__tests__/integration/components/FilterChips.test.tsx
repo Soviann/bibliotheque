@@ -28,10 +28,14 @@ describe("FilterChips", () => {
   it("renders all status chips", () => {
     renderWithProviders(<FilterChips {...defaultProps} />);
 
-    expect(screen.getByRole("button", { name: "En cours" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "En cours" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Terminé" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Arrêté" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Souhaits" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Souhaits" }),
+    ).toBeInTheDocument();
   });
 
   it("calls onTypeChange with type value when clicking an inactive type chip", async () => {
@@ -73,15 +77,27 @@ describe("FilterChips", () => {
   it("marks the active type chip with aria-pressed=true", () => {
     renderWithProviders(<FilterChips {...defaultProps} type="bd" />);
 
-    expect(screen.getByRole("button", { name: "BD" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Manga" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "BD" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Manga" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
   });
 
   it("marks the active status chip with aria-pressed=true", () => {
     renderWithProviders(<FilterChips {...defaultProps} status="buying" />);
 
-    expect(screen.getByRole("button", { name: "En cours" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Terminé" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "En cours" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Terminé" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
   });
 
   it("has a scrollable container", () => {
@@ -101,9 +117,17 @@ describe("FilterChips", () => {
   });
 
   it("allows type and status to be active simultaneously", () => {
-    renderWithProviders(<FilterChips {...defaultProps} status="buying" type="manga" />);
+    renderWithProviders(
+      <FilterChips {...defaultProps} status="buying" type="manga" />,
+    );
 
-    expect(screen.getByRole("button", { name: "Manga" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "En cours" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Manga" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "En cours" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });

@@ -2,7 +2,8 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import type { ReactNode } from "react";
 import { useColumnCount } from "../hooks/useColumnCount";
 
-const GRID_CLASSES = "grid grid-cols-2 gap-x-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+const GRID_CLASSES =
+  "grid grid-cols-2 gap-x-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
 const ROW_GAP = 20; // Tailwind gap-5 = 1.25rem = 20px
 
 interface VirtualGridProps<T> {

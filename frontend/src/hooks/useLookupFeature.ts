@@ -1,7 +1,12 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { fetchLookupTitle, useLookupIsbn, useLookupTitle, useLookupTitleCandidates } from "./useLookup";
+import {
+  fetchLookupTitle,
+  useLookupIsbn,
+  useLookupTitle,
+  useLookupTitleCandidates,
+} from "./useLookup";
 import type { FormData } from "./useComicForm";
 import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 
@@ -31,28 +36,50 @@ export function useLookupFeature(
   const [lookupTitle, setLookupTitle] = useState("");
   const [submittedTitle, setSubmittedTitle] = useState("");
   const [lookupMode, setLookupMode] = useState<"isbn" | "title">("title");
-  const [selectedCandidateTitle, setSelectedCandidateTitle] = useState<string | null>(null);
+  const [selectedCandidateTitle, setSelectedCandidateTitle] = useState<
+    string | null
+  >(null);
 
-  const isbnLookup = useLookupIsbn(lookupMode === "isbn" ? lookupIsbn : "", form.type);
-  const titleCandidates = useLookupTitleCandidates(lookupMode === "title" ? submittedTitle : "", form.type);
-  const targetedLookup = useLookupTitle(selectedCandidateTitle ?? "", form.type);
+  const isbnLookup = useLookupIsbn(
+    lookupMode === "isbn" ? lookupIsbn : "",
+    form.type,
+  );
+  const titleCandidates = useLookupTitleCandidates(
+    lookupMode === "title" ? submittedTitle : "",
+    form.type,
+  );
+  const targetedLookup = useLookupTitle(
+    selectedCandidateTitle ?? "",
+    form.type,
+  );
   const lookupResult = lookupMode === "isbn" ? isbnLookup : targetedLookup;
 
   const applySeriesFields = (result: LookupResult) => {
     update("coverUrl", result.thumbnail ?? form.coverUrl);
     update("description", result.description ?? form.description);
     update("isOneShot", result.isOneShot || form.isOneShot);
-    update("latestPublishedIssue", result.latestPublishedIssue?.toString() ?? form.latestPublishedIssue);
+    update(
+      "latestPublishedIssue",
+      result.latestPublishedIssue?.toString() ?? form.latestPublishedIssue,
+    );
     update("publishedDate", result.publishedDate ?? form.publishedDate);
     update("lookupCompletedAt", new Date().toISOString());
     update("publisher", result.publisher ?? form.publisher);
     update("title", result.title || form.title);
 
     if (result.authors) {
-      const authorNames = result.authors.split(",").map((n) => n.trim()).filter(Boolean);
+      const authorNames = result.authors
+        .split(",")
+        .map((n) => n.trim())
+        .filter(Boolean);
       update(
         "authors",
-        authorNames.map((name, i) => ({ "@id": "", followedForNewSeries: false, id: -(i + 1), name })),
+        authorNames.map((name, i) => ({
+          "@id": "",
+          followedForNewSeries: false,
+          id: -(i + 1),
+          name,
+        })),
       );
     }
   };

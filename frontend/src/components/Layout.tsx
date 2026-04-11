@@ -29,7 +29,9 @@ export default function Layout() {
     prevStatus.current = status;
 
     if (status === "success" && syncedCount > 0) {
-      toast.success(`${syncedCount} opération${syncedCount > 1 ? "s" : ""} synchronisée${syncedCount > 1 ? "s" : ""}`);
+      toast.success(
+        `${syncedCount} opération${syncedCount > 1 ? "s" : ""} synchronisée${syncedCount > 1 ? "s" : ""}`,
+      );
     } else if (status === "error" && error) {
       toast.error(`Erreur de synchronisation : ${error}`);
     }
@@ -44,7 +46,9 @@ export default function Layout() {
       <header className="grain sticky top-0 z-40 overflow-hidden border-b border-surface-border bg-surface-primary/90 px-4 py-2.5 backdrop-blur-md dark:border-transparent dark:bg-surface-primary/70">
         <div className="relative flex items-center justify-between">
           {/* Contenu normal (logo + actions) */}
-          <div className={`flex min-w-0 flex-1 items-center justify-between transition-all duration-300 ${searchOpen ? "pointer-events-none -translate-x-4 opacity-0" : "translate-x-0 opacity-100"}`}>
+          <div
+            className={`flex min-w-0 flex-1 items-center justify-between transition-all duration-300 ${searchOpen ? "pointer-events-none -translate-x-4 opacity-0" : "translate-x-0 opacity-100"}`}
+          >
             <Link className="flex items-center gap-2.5" to="/" viewTransition>
               <img alt="" className="h-8 w-8 rounded-lg" src="/app-icon.png" />
               <span className="font-display text-lg font-bold tracking-tight text-text-primary">
@@ -78,7 +82,11 @@ export default function Layout() {
                 title={isDark ? "Mode clair" : "Mode sombre"}
                 type="button"
               >
-                {isDark ? <Sun className="h-5 w-5" strokeWidth={1.5} /> : <Moon className="h-5 w-5" strokeWidth={1.5} />}
+                {isDark ? (
+                  <Sun className="h-5 w-5" strokeWidth={1.5} />
+                ) : (
+                  <Moon className="h-5 w-5" strokeWidth={1.5} />
+                )}
               </button>
               <div className="mx-1 h-5 w-px bg-surface-border" />
               <button
@@ -100,13 +108,18 @@ export default function Layout() {
               e.preventDefault();
               const q = searchValue.trim();
               if (q) {
-                navigate(`/?search=${encodeURIComponent(q)}`, { viewTransition: true });
+                navigate(`/?search=${encodeURIComponent(q)}`, {
+                  viewTransition: true,
+                });
               }
               setSearchOpen(false);
               setSearchValue("");
             }}
           >
-            <Search className="h-5 w-5 shrink-0 text-text-muted" strokeWidth={1.5} />
+            <Search
+              className="h-5 w-5 shrink-0 text-text-muted"
+              strokeWidth={1.5}
+            />
             <input
               autoFocus={searchOpen}
               className="min-w-0 flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
@@ -125,7 +138,10 @@ export default function Layout() {
             <button
               aria-label="Fermer la recherche"
               className="shrink-0 rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
-              onClick={() => { setSearchOpen(false); setSearchValue(""); }}
+              onClick={() => {
+                setSearchOpen(false);
+                setSearchValue("");
+              }}
               type="button"
             >
               <X className="h-5 w-5" strokeWidth={1.5} />

@@ -8,7 +8,10 @@ import type { ComicSeries, HydraCollection } from "../types/api";
  * Seed le cache détail de chaque série sans déclencher N notifications individuelles.
  * Écrit directement dans le QueryCache pour éviter les cascades de persist.
  */
-function seedDetailCache(queryClient: ReturnType<typeof useQueryClient>, members: ComicSeries[]): void {
+function seedDetailCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  members: ComicSeries[],
+): void {
   const cache = queryClient.getQueryCache();
   for (const series of members) {
     const query = cache.build(queryClient, {
@@ -23,8 +26,9 @@ export function useComics() {
 
   return useQuery({
     queryFn: async () => {
-      const data =
-        await apiFetch<HydraCollection<ComicSeries>>(endpoints.comicSeries.collection);
+      const data = await apiFetch<HydraCollection<ComicSeries>>(
+        endpoints.comicSeries.collection,
+      );
       seedDetailCache(queryClient, data.member);
       return data;
     },

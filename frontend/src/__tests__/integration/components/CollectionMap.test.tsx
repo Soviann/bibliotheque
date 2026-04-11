@@ -33,7 +33,9 @@ describe("CollectionMap", () => {
   });
 
   it("shows checkmark icon for read tome", () => {
-    const tomes = [createMockTome({ id: 1, number: 1, bought: true, read: true })];
+    const tomes = [
+      createMockTome({ id: 1, number: 1, bought: true, read: true }),
+    ];
     render(<CollectionMap latestPublishedIssue={1} tomes={tomes} />);
     const cell = screen.getByTitle(/Tome 1/);
     const svg = cell.querySelector("svg");

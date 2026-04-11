@@ -18,7 +18,11 @@ export default function AddedStack({ items }: AddedStackProps) {
             key={`${item.title}-${item.tomeNumber}-${i}`}
           >
             {item.coverUrl ? (
-              <img alt="" className="h-full w-full object-cover" src={item.coverUrl} />
+              <img
+                alt=""
+                className="h-full w-full object-cover"
+                src={item.coverUrl}
+              />
             ) : (
               <div className="flex h-full items-center justify-center text-[8px] text-text-muted">
                 {item.tomeNumber}
@@ -30,7 +34,8 @@ export default function AddedStack({ items }: AddedStackProps) {
       {/* Count */}
       <div className="flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400">
         <Check className="h-4 w-4" />
-        {items.length} tome{items.length > 1 ? "s" : ""} ajouté{items.length > 1 ? "s" : ""}
+        {items.length} tome{items.length > 1 ? "s" : ""} ajouté
+        {items.length > 1 ? "s" : ""}
       </div>
     </div>
   );

@@ -190,7 +190,9 @@ describe("ComicForm", () => {
       renderEditForm();
 
       expect(screen.getByTestId("comic-form-skeleton")).toBeInTheDocument();
-      expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(5);
+      expect(
+        screen.getAllByTestId("skeleton-box").length,
+      ).toBeGreaterThanOrEqual(5);
     });
 
     it("renders page title for edit", async () => {
@@ -229,14 +231,20 @@ describe("ComicForm", () => {
         expect(screen.getByLabelText("Titre *")).toHaveValue("Existing Comic");
       });
       expect(screen.getByLabelText("Éditeur")).toHaveValue("Glénat");
-      expect(screen.getByLabelText("Description")).toHaveValue("A great series");
+      expect(screen.getByLabelText("Description")).toHaveValue(
+        "A great series",
+      );
     });
 
     it("shows empty string in latestPublishedIssue field when comic has null value", async () => {
       server.use(
         http.get("/api/comic_series/1", () =>
           HttpResponse.json(
-            createMockComicSeries({ id: 1, latestPublishedIssue: null, title: "No Issue" }),
+            createMockComicSeries({
+              id: 1,
+              latestPublishedIssue: null,
+              title: "No Issue",
+            }),
           ),
         ),
       );
@@ -247,7 +255,9 @@ describe("ComicForm", () => {
         expect(screen.getByLabelText("Titre *")).toHaveValue("No Issue");
       });
 
-      const field = screen.getByLabelText("Dernier tome paru") as HTMLInputElement;
+      const field = screen.getByLabelText(
+        "Dernier tome paru",
+      ) as HTMLInputElement;
       expect(field).toHaveValue(null);
     });
 
@@ -327,7 +337,9 @@ describe("ComicForm", () => {
 
       renderCreateForm();
 
-      expect(screen.getByText("Recherche indisponible hors ligne")).toBeInTheDocument();
+      expect(
+        screen.getByText("Recherche indisponible hors ligne"),
+      ).toBeInTheDocument();
 
       Object.defineProperty(navigator, "onLine", {
         configurable: true,
@@ -375,8 +387,12 @@ describe("ComicForm", () => {
         expect(screen.getByLabelText("Titre *")).toHaveValue("Lookup Title");
       });
       expect(screen.getByLabelText("Éditeur")).toHaveValue("TestPub");
-      expect(screen.getByLabelText("Description")).toHaveValue("A great description");
-      expect(screen.getByLabelText("URL de couverture")).toHaveValue("https://example.com/cover.jpg");
+      expect(screen.getByLabelText("Description")).toHaveValue(
+        "A great description",
+      );
+      expect(screen.getByLabelText("URL de couverture")).toHaveValue(
+        "https://example.com/cover.jpg",
+      );
     });
 
     it("switches to ISBN mode when clicking ISBN toggle", async () => {
@@ -389,7 +405,9 @@ describe("ComicForm", () => {
       await user.click(isbnToggle);
 
       // ISBN input should appear
-      expect(screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)")).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"),
+      ).toBeInTheDocument();
     });
 
     it("chains ISBN lookup to title lookup when clicking Appliquer", async () => {
@@ -421,7 +439,10 @@ describe("ComicForm", () => {
       await user.click(isbnToggle);
 
       // Type ISBN (>= 10 chars to trigger query)
-      await user.type(screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"), "9781234567890");
+      await user.type(
+        screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"),
+        "9781234567890",
+      );
 
       // Wait for result to appear
       await waitFor(() => {
@@ -433,10 +454,14 @@ describe("ComicForm", () => {
 
       // Form should be filled from title lookup result (chained)
       await waitFor(() => {
-        expect(screen.getByLabelText("Titre *")).toHaveValue("ISBN Series Title");
+        expect(screen.getByLabelText("Titre *")).toHaveValue(
+          "ISBN Series Title",
+        );
       });
       expect(screen.getByLabelText("Éditeur")).toHaveValue("ChainedPub");
-      expect(screen.getByLabelText("Description")).toHaveValue("Chained description");
+      expect(screen.getByLabelText("Description")).toHaveValue(
+        "Chained description",
+      );
     });
 
     it("ISBN lookup with empty title applies result directly without title lookup", async () => {
@@ -450,7 +475,9 @@ describe("ComicForm", () => {
       });
 
       let titleLookupCalled = false;
-      const mockResult = createMockLookupResult({ title: "Should Not Be Called" });
+      const mockResult = createMockLookupResult({
+        title: "Should Not Be Called",
+      });
       server.use(
         http.get("/api/lookup/isbn", () => HttpResponse.json(isbnResult)),
         http.get("/api/lookup/title", ({ request }) => {
@@ -472,7 +499,10 @@ describe("ComicForm", () => {
       const isbnToggle = isbnButtons.find((el) => el.tagName === "BUTTON")!;
       await user.click(isbnToggle);
 
-      await user.type(screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"), "9781234567890");
+      await user.type(
+        screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"),
+        "9781234567890",
+      );
 
       await waitFor(() => {
         expect(screen.getByText("Appliquer")).toBeInTheDocument();
@@ -506,7 +536,11 @@ describe("ComicForm", () => {
         http.get("/api/lookup/title", ({ request }) => {
           const url = new URL(request.url);
           if (url.searchParams.get("limit")) {
-            return HttpResponse.json({ apiMessages: {}, results: [], sources: [] });
+            return HttpResponse.json({
+              apiMessages: {},
+              results: [],
+              sources: [],
+            });
           }
           return HttpResponse.json({ error: "Not found" }, { status: 404 });
         }),
@@ -519,7 +553,10 @@ describe("ComicForm", () => {
       const isbnToggle = isbnButtons.find((el) => el.tagName === "BUTTON")!;
       await user.click(isbnToggle);
 
-      await user.type(screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"), "9781234567890");
+      await user.type(
+        screen.getByPlaceholderText("ISBN (10 ou 13 chiffres)"),
+        "9781234567890",
+      );
 
       await waitFor(() => {
         expect(screen.getByText("Appliquer")).toBeInTheDocument();
@@ -561,7 +598,9 @@ describe("ComicForm", () => {
       });
 
       // Oneshot checkbox should be unchecked before applying
-      const oneshotCheckbox = screen.getByRole("checkbox", { name: /One-shot/ }) as HTMLInputElement;
+      const oneshotCheckbox = screen.getByRole("checkbox", {
+        name: /One-shot/,
+      }) as HTMLInputElement;
       expect(oneshotCheckbox).not.toBeChecked();
 
       await user.click(screen.getByText("Appliquer"));
@@ -610,7 +649,10 @@ describe("ComicForm", () => {
 
       renderCreateForm();
 
-      await user.type(screen.getByPlaceholderText("Titre de la série"), "Result Title");
+      await user.type(
+        screen.getByPlaceholderText("Titre de la série"),
+        "Result Title",
+      );
       await user.click(screen.getByTitle("Rechercher"));
 
       // Candidates are shown first
@@ -628,7 +670,10 @@ describe("ComicForm", () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      await user.type(screen.getByLabelText("URL de couverture"), "https://example.com/cover.jpg");
+      await user.type(
+        screen.getByLabelText("URL de couverture"),
+        "https://example.com/cover.jpg",
+      );
 
       const preview = screen.getByAltText("Aperçu");
       expect(preview).toHaveAttribute("src", "https://example.com/cover.jpg");
@@ -638,7 +683,10 @@ describe("ComicForm", () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      await user.type(screen.getByLabelText("URL de couverture"), "https://example.com/cover.jpg");
+      await user.type(
+        screen.getByLabelText("URL de couverture"),
+        "https://example.com/cover.jpg",
+      );
 
       const preview = screen.getByAltText("Aperçu");
       expect(preview).toHaveClass("cursor-pointer");
@@ -694,14 +742,19 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       await user.type(screen.getByLabelText("Titre *"), "Amazon Test");
-      await user.type(screen.getByLabelText("URL Amazon"), "https://www.amazon.fr/dp/B08N5WRWNW");
+      await user.type(
+        screen.getByLabelText("URL Amazon"),
+        "https://www.amazon.fr/dp/B08N5WRWNW",
+      );
       await user.click(screen.getByText("Créer"));
 
       await waitFor(() => {
         expect(capturedPayload).not.toBeNull();
       });
 
-      expect(capturedPayload!.amazonUrl).toBe("https://www.amazon.fr/dp/B08N5WRWNW");
+      expect(capturedPayload!.amazonUrl).toBe(
+        "https://www.amazon.fr/dp/B08N5WRWNW",
+      );
     });
 
     it("populates amazonUrl from existing comic in edit mode", async () => {
@@ -720,7 +773,9 @@ describe("ComicForm", () => {
       renderEditForm();
 
       await waitFor(() => {
-        expect(screen.getByLabelText("URL Amazon")).toHaveValue("https://www.amazon.fr/dp/EXISTING");
+        expect(screen.getByLabelText("URL Amazon")).toHaveValue(
+          "https://www.amazon.fr/dp/EXISTING",
+        );
       });
     });
   });
@@ -733,9 +788,7 @@ describe("ComicForm", () => {
 
       server.use(
         http.get("/api/authors", () =>
-          HttpResponse.json(
-            createMockHydraCollection([], "/api/authors"),
-          ),
+          HttpResponse.json(createMockHydraCollection([], "/api/authors")),
         ),
         http.post("/api/authors", async ({ request }) => {
           authorPostCalled = true;
@@ -760,7 +813,9 @@ describe("ComicForm", () => {
       await user.type(screen.getByLabelText("Titre *"), "With Author");
 
       // Search for a new author that doesn't exist
-      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      const authorInput = screen.getByPlaceholderText(
+        "Rechercher ou créer un auteur…",
+      );
       await user.type(authorInput, "NewAuthor");
 
       // Wait for "Créer" option to appear
@@ -791,7 +846,10 @@ describe("ComicForm", () => {
       let authorPostCalled = false;
       let capturedPayload: Record<string, unknown> | null = null;
 
-      const existingAuthor = createMockAuthor({ id: 7, name: "Existing Author" });
+      const existingAuthor = createMockAuthor({
+        id: 7,
+        name: "Existing Author",
+      });
 
       server.use(
         http.get("/api/authors", () =>
@@ -817,7 +875,9 @@ describe("ComicForm", () => {
       await user.type(screen.getByLabelText("Titre *"), "With Existing Author");
 
       // Search for the existing author
-      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      const authorInput = screen.getByPlaceholderText(
+        "Rechercher ou créer un auteur…",
+      );
       await user.type(authorInput, "Existing");
 
       await waitFor(() => {
@@ -847,19 +907,16 @@ describe("ComicForm", () => {
 
       server.use(
         http.get("/api/authors", () =>
-          HttpResponse.json(
-            createMockHydraCollection([], "/api/authors"),
-          ),
+          HttpResponse.json(createMockHydraCollection([], "/api/authors")),
         ),
         http.post("/api/authors", () =>
           HttpResponse.json({ detail: "Erreur serveur" }, { status: 500 }),
         ),
         http.post("/api/comic_series", () => {
           seriesPostCalled = true;
-          return HttpResponse.json(
-            createMockComicSeries({ id: 10 }),
-            { status: 201 },
-          );
+          return HttpResponse.json(createMockComicSeries({ id: 10 }), {
+            status: 201,
+          });
         }),
       );
 
@@ -867,7 +924,9 @@ describe("ComicForm", () => {
 
       await user.type(screen.getByLabelText("Titre *"), "Test");
 
-      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      const authorInput = screen.getByPlaceholderText(
+        "Rechercher ou créer un auteur…",
+      );
       await user.type(authorInput, "FailAuthor");
 
       await waitFor(() => {
@@ -879,7 +938,9 @@ describe("ComicForm", () => {
 
       // Error toast should appear
       await waitFor(() => {
-        expect(screen.getByText(/Erreur lors de la création de l'auteur/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Erreur lors de la création de l'auteur/),
+        ).toBeInTheDocument();
       });
 
       // Series POST should NOT have been called
@@ -891,16 +952,16 @@ describe("ComicForm", () => {
 
       server.use(
         http.get("/api/authors", () =>
-          HttpResponse.json(
-            createMockHydraCollection([], "/api/authors"),
-          ),
+          HttpResponse.json(createMockHydraCollection([], "/api/authors")),
         ),
       );
 
       renderCreateForm();
 
       // Add a new author
-      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      const authorInput = screen.getByPlaceholderText(
+        "Rechercher ou créer un auteur…",
+      );
       await user.type(authorInput, "ToRemove");
 
       await waitFor(() => {
@@ -936,7 +997,9 @@ describe("ComicForm", () => {
 
       renderCreateForm();
 
-      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      const authorInput = screen.getByPlaceholderText(
+        "Rechercher ou créer un auteur…",
+      );
 
       // Add the author
       await user.type(authorInput, "Unique");
@@ -949,7 +1012,9 @@ describe("ComicForm", () => {
       await user.click(options[0]);
 
       // Verify author tag exists
-      const authorTags = document.querySelectorAll("span.flex.items-center.gap-1");
+      const authorTags = document.querySelectorAll(
+        "span.flex.items-center.gap-1",
+      );
       expect(authorTags.length).toBe(1);
 
       // Try adding the same author again
@@ -962,7 +1027,9 @@ describe("ComicForm", () => {
       await user.click(optionsAgain[0]);
 
       // Should still only have 1 author tag
-      const authorTagsAfter = document.querySelectorAll("span.flex.items-center.gap-1");
+      const authorTagsAfter = document.querySelectorAll(
+        "span.flex.items-center.gap-1",
+      );
       expect(authorTagsAfter.length).toBe(1);
     });
 
@@ -971,15 +1038,15 @@ describe("ComicForm", () => {
 
       server.use(
         http.get("/api/authors", () =>
-          HttpResponse.json(
-            createMockHydraCollection([], "/api/authors"),
-          ),
+          HttpResponse.json(createMockHydraCollection([], "/api/authors")),
         ),
       );
 
       renderCreateForm();
 
-      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      const authorInput = screen.getByPlaceholderText(
+        "Rechercher ou créer un auteur…",
+      );
       await user.type(authorInput, "AB");
 
       await waitFor(() => {
@@ -1011,7 +1078,9 @@ describe("ComicForm", () => {
 
       // Each tome row has a red delete button as the last cell
       // Select only delete buttons in the tbody (not ISBN search buttons)
-      const deleteButtons = document.querySelectorAll("tbody tr td:last-child button");
+      const deleteButtons = document.querySelectorAll(
+        "tbody tr td:last-child button",
+      );
       expect(deleteButtons.length).toBe(2);
       await user.click(deleteButtons[0]);
 
@@ -1023,7 +1092,9 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const tableView = screen.getByTestId("tomes-table");
-      const titleInput = within(tableView).getByPlaceholderText("Titre") as HTMLInputElement;
+      const titleInput = within(tableView).getByPlaceholderText(
+        "Titre",
+      ) as HTMLInputElement;
       await user.type(titleInput, "Tome Title");
 
       expect(titleInput).toHaveValue("Tome Title");
@@ -1034,7 +1105,9 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const tableView = screen.getByTestId("tomes-table");
-      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
+      const isbnInput = within(tableView).getByPlaceholderText(
+        "ISBN",
+      ) as HTMLInputElement;
       await user.type(isbnInput, "1234567890");
 
       expect(isbnInput).toHaveValue("1234567890");
@@ -1045,7 +1118,9 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       // Get the tome number input (first column number input)
-      const tomeNumberInputs = document.querySelectorAll("tbody td:nth-child(2) input[type='number']");
+      const tomeNumberInputs = document.querySelectorAll(
+        "tbody td:nth-child(2) input[type='number']",
+      );
       const tomeNumberInput = tomeNumberInputs[0] as HTMLInputElement;
 
       await user.clear(tomeNumberInput);
@@ -1058,7 +1133,9 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       // ISBN search button is within the ISBN cell
-      const isbnSearchButtons = document.querySelectorAll("tbody td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = document.querySelectorAll(
+        "tbody td .flex.items-center button",
+      ) as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeDisabled();
     });
 
@@ -1079,17 +1156,23 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const tableView = screen.getByTestId("tomes-table");
-      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
+      const isbnInput = within(tableView).getByPlaceholderText(
+        "ISBN",
+      ) as HTMLInputElement;
       await user.type(isbnInput, "9781234567890");
 
       // ISBN search button should now be enabled
-      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = tableView.querySelectorAll(
+        "td .flex.items-center button",
+      ) as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeEnabled();
 
       await user.click(isbnSearchButtons[0]);
 
       // Wait for tome title to be updated
-      const tomeTitle = within(tableView).getByPlaceholderText("Titre") as HTMLInputElement;
+      const tomeTitle = within(tableView).getByPlaceholderText(
+        "Titre",
+      ) as HTMLInputElement;
       await waitFor(() => {
         expect(tomeTitle).toHaveValue("Looked Up Tome Title");
       });
@@ -1112,14 +1195,20 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const tableView = screen.getByTestId("tomes-table");
-      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
+      const isbnInput = within(tableView).getByPlaceholderText(
+        "ISBN",
+      ) as HTMLInputElement;
       await user.type(isbnInput, "9781234567890");
 
       // Set a title on the tome so we can verify it's preserved
-      const tomeTitleInput = within(tableView).getByPlaceholderText("Titre") as HTMLInputElement;
+      const tomeTitleInput = within(tableView).getByPlaceholderText(
+        "Titre",
+      ) as HTMLInputElement;
       await user.type(tomeTitleInput, "Original Tome Title");
 
-      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = tableView.querySelectorAll(
+        "td .flex.items-center button",
+      ) as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeEnabled();
       await user.click(isbnSearchButtons[0]);
 
@@ -1150,13 +1239,19 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const tableView = screen.getByTestId("tomes-table");
-      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
+      const isbnInput = within(tableView).getByPlaceholderText(
+        "ISBN",
+      ) as HTMLInputElement;
       await user.type(isbnInput, "9781234567890");
 
-      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = tableView.querySelectorAll(
+        "td .flex.items-center button",
+      ) as NodeListOf<HTMLButtonElement>;
       await user.click(isbnSearchButtons[0]);
 
-      const tomeEndInput = within(tableView).getByPlaceholderText("Fin") as HTMLInputElement;
+      const tomeEndInput = within(tableView).getByPlaceholderText(
+        "Fin",
+      ) as HTMLInputElement;
       await waitFor(() => {
         expect(tomeEndInput).toHaveValue(6);
       });
@@ -1174,14 +1269,20 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const tableView = screen.getByTestId("tomes-table");
-      const isbnInput = within(tableView).getByPlaceholderText("ISBN") as HTMLInputElement;
+      const isbnInput = within(tableView).getByPlaceholderText(
+        "ISBN",
+      ) as HTMLInputElement;
       await user.type(isbnInput, "9781234567890");
 
-      const isbnSearchButtons = tableView.querySelectorAll("td .flex.items-center button") as NodeListOf<HTMLButtonElement>;
+      const isbnSearchButtons = tableView.querySelectorAll(
+        "td .flex.items-center button",
+      ) as NodeListOf<HTMLButtonElement>;
       await user.click(isbnSearchButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByText("Échec de la recherche ISBN")).toBeInTheDocument();
+        expect(
+          screen.getByText("Échec de la recherche ISBN"),
+        ).toBeInTheDocument();
       });
     });
 
@@ -1190,7 +1291,9 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       // Remove the initial tome
-      const deleteButtons = document.querySelectorAll("tbody tr td:last-child button");
+      const deleteButtons = document.querySelectorAll(
+        "tbody tr td:last-child button",
+      );
       await user.click(deleteButtons[0]);
 
       expect(screen.getByText("Tomes (0)")).toBeInTheDocument();
@@ -1200,7 +1303,9 @@ describe("ComicForm", () => {
 
       expect(screen.getByText("Tomes (1)")).toBeInTheDocument();
       // The new tome number should be 1
-      const tomeNumberInputs = document.querySelectorAll("tbody td:nth-child(2) input[type='number']");
+      const tomeNumberInputs = document.querySelectorAll(
+        "tbody td:nth-child(2) input[type='number']",
+      );
       expect(tomeNumberInputs[0]).toHaveValue(1);
     });
 
@@ -1210,7 +1315,9 @@ describe("ComicForm", () => {
 
         expect(screen.getByLabelText("Du tome")).toBeInTheDocument();
         expect(screen.getByLabelText("au tome")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /Générer/ })).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: /Générer/ }),
+        ).toBeInTheDocument();
       });
 
       it("adds tomes from 1 to 5 in batch", async () => {
@@ -1218,7 +1325,9 @@ describe("ComicForm", () => {
         renderCreateForm();
 
         // Remove initial tome to start clean
-        const deleteButtons = document.querySelectorAll("tbody tr td:last-child button");
+        const deleteButtons = document.querySelectorAll(
+          "tbody tr td:last-child button",
+        );
         await user.click(deleteButtons[0]);
         expect(screen.getByText("Tomes (0)")).toBeInTheDocument();
 
@@ -1235,7 +1344,9 @@ describe("ComicForm", () => {
         expect(screen.getByText("Tomes (5)")).toBeInTheDocument();
 
         // Verify tome numbers are 1 through 5 (first number input per row = tome number)
-        const tomeNumberInputs = document.querySelectorAll("tbody td:nth-child(2) input[type='number']");
+        const tomeNumberInputs = document.querySelectorAll(
+          "tbody td:nth-child(2) input[type='number']",
+        );
         expect(tomeNumberInputs).toHaveLength(5);
         expect(tomeNumberInputs[0]).toHaveValue(1);
         expect(tomeNumberInputs[1]).toHaveValue(2);
@@ -1336,14 +1447,18 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const cardsView = screen.getByTestId("tomes-cards");
-      expect(within(cardsView).getByPlaceholderText("ISBN")).toBeInTheDocument();
+      expect(
+        within(cardsView).getByPlaceholderText("ISBN"),
+      ).toBeInTheDocument();
     });
 
     it("has delete button in card view", () => {
       renderCreateForm();
 
       const cardsView = screen.getByTestId("tomes-cards");
-      expect(within(cardsView).getByRole("button", { name: /Supprimer tome/ })).toBeInTheDocument();
+      expect(
+        within(cardsView).getByRole("button", { name: /Supprimer tome/ }),
+      ).toBeInTheDocument();
     });
 
     it("updates tome fields from card view", async () => {
@@ -1351,7 +1466,9 @@ describe("ComicForm", () => {
       renderCreateForm();
 
       const cardsView = screen.getByTestId("tomes-cards");
-      const titleInput = within(cardsView).getByPlaceholderText("Titre") as HTMLInputElement;
+      const titleInput = within(cardsView).getByPlaceholderText(
+        "Titre",
+      ) as HTMLInputElement;
       await user.type(titleInput, "Card Title");
 
       expect(titleInput).toHaveValue("Card Title");
@@ -1374,9 +1491,7 @@ describe("ComicForm", () => {
     });
 
     it("populates tomeEnd from existing comic data in edit mode", async () => {
-      const tomes = [
-        createMockTome({ id: 1, number: 4, tomeEnd: 6 }),
-      ];
+      const tomes = [createMockTome({ id: 1, number: 4, tomeEnd: 6 })];
 
       server.use(
         http.get("/api/comic_series/1", () =>
@@ -1393,7 +1508,9 @@ describe("ComicForm", () => {
       });
 
       const tableView = screen.getByTestId("tomes-table");
-      const tomeEndInput = within(tableView).getByPlaceholderText("Fin") as HTMLInputElement;
+      const tomeEndInput = within(tableView).getByPlaceholderText(
+        "Fin",
+      ) as HTMLInputElement;
       expect(tomeEndInput).toHaveValue(6);
     });
 
@@ -1416,7 +1533,9 @@ describe("ComicForm", () => {
       await user.type(screen.getByLabelText("Titre *"), "Intégrale Test");
 
       const tableView = screen.getByTestId("tomes-table");
-      const tomeEndInput = within(tableView).getByPlaceholderText("Fin") as HTMLInputElement;
+      const tomeEndInput = within(tableView).getByPlaceholderText(
+        "Fin",
+      ) as HTMLInputElement;
       await user.type(tomeEndInput, "3");
 
       await user.click(screen.getByText("Créer"));
@@ -1478,7 +1597,9 @@ describe("ComicForm", () => {
       await user.type(screen.getByLabelText("Titre *"), "OneShot Comic");
 
       // Check the oneshot checkbox
-      const oneshotCheckbox = screen.getByRole("checkbox", { name: /One-shot/ });
+      const oneshotCheckbox = screen.getByRole("checkbox", {
+        name: /One-shot/,
+      });
       await user.click(oneshotCheckbox);
 
       await user.click(screen.getByText("Créer"));
@@ -1625,7 +1746,10 @@ describe("ComicForm", () => {
           HttpResponse.json(createMockComicSeries({ id: 1, title: "Edit Me" })),
         ),
         http.patch("/api/comic_series/1", () =>
-          HttpResponse.json({ detail: "Erreur de mise à jour" }, { status: 500 }),
+          HttpResponse.json(
+            { detail: "Erreur de mise à jour" },
+            { status: 500 },
+          ),
         ),
       );
 
@@ -1665,7 +1789,9 @@ describe("ComicForm", () => {
 
       // Add a new author (no dropdown will show since offline, but we can
       // type in the input and select the create option)
-      const authorInput = screen.getByPlaceholderText("Rechercher ou créer un auteur…");
+      const authorInput = screen.getByPlaceholderText(
+        "Rechercher ou créer un auteur…",
+      );
       await user.type(authorInput, "OfflineAuthor");
 
       // The combobox still shows create option even offline (it's a UI component)
@@ -1703,7 +1829,9 @@ describe("ComicForm", () => {
 
       server.use(
         http.get("/api/comic_series/1", () =>
-          HttpResponse.json(createMockComicSeries({ id: 1, title: "Edit Offline" })),
+          HttpResponse.json(
+            createMockComicSeries({ id: 1, title: "Edit Offline" }),
+          ),
         ),
       );
 
@@ -1732,7 +1860,9 @@ describe("ComicForm", () => {
     it("renders flags with label 'État par défaut des nouveaux tomes'", () => {
       renderCreateForm();
 
-      expect(screen.getByText("État par défaut des nouveaux tomes")).toBeInTheDocument();
+      expect(
+        screen.getByText("État par défaut des nouveaux tomes"),
+      ).toBeInTheDocument();
       expect(screen.queryByText("Flags par défaut :")).not.toBeInTheDocument();
     });
 
@@ -1744,19 +1874,25 @@ describe("ComicForm", () => {
       await user.click(screen.getByRole("button", { name: /Publication/ }));
 
       // Flags should still be visible (they are outside Publication)
-      expect(screen.getByText("État par défaut des nouveaux tomes")).toBeVisible();
+      expect(
+        screen.getByText("État par défaut des nouveaux tomes"),
+      ).toBeVisible();
     });
 
     it("hides default flags when oneshot is checked", async () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      expect(screen.getByText("État par défaut des nouveaux tomes")).toBeInTheDocument();
+      expect(
+        screen.getByText("État par défaut des nouveaux tomes"),
+      ).toBeInTheDocument();
 
       const checkbox = screen.getByRole("checkbox", { name: /One-shot/ });
       await user.click(checkbox);
 
-      expect(screen.queryByText("État par défaut des nouveaux tomes")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("État par défaut des nouveaux tomes"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -1764,8 +1900,12 @@ describe("ComicForm", () => {
     it("renders section headers for all four groups", () => {
       renderCreateForm();
 
-      expect(screen.getByRole("button", { name: /Info générale/ })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Publication/ })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Info générale/ }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Publication/ }),
+      ).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /Média/ })).toBeInTheDocument();
     });
 
@@ -1782,7 +1922,9 @@ describe("ComicForm", () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      const publicationHeader = screen.getByRole("button", { name: /Publication/ });
+      const publicationHeader = screen.getByRole("button", {
+        name: /Publication/,
+      });
       await user.click(publicationHeader);
 
       // Publisher field should be hidden but still in DOM
@@ -1843,15 +1985,21 @@ describe("ComicForm", () => {
         expect(screen.getByLabelText("Titre *")).toHaveValue("Lookup Title");
       });
       expect(screen.getByLabelText("Éditeur")).toHaveValue("TestPub");
-      expect(screen.getByLabelText("Description")).toHaveValue("A great description");
-      expect(screen.getByLabelText("URL de couverture")).toHaveValue("https://example.com/cover.jpg");
+      expect(screen.getByLabelText("Description")).toHaveValue(
+        "A great description",
+      );
+      expect(screen.getByLabelText("URL de couverture")).toHaveValue(
+        "https://example.com/cover.jpg",
+      );
     });
 
     it("expands a collapsed section when clicking its header again", async () => {
       const user = userEvent.setup();
       renderCreateForm();
 
-      const publicationHeader = screen.getByRole("button", { name: /Publication/ });
+      const publicationHeader = screen.getByRole("button", {
+        name: /Publication/,
+      });
 
       // Collapse
       await user.click(publicationHeader);
@@ -1879,7 +2027,9 @@ describe("ComicForm", () => {
       );
 
       // The ArrowLeft button is the first button in the header
-      const headerButtons = document.querySelectorAll(".flex.items-center.gap-3 button");
+      const headerButtons = document.querySelectorAll(
+        ".flex.items-center.gap-3 button",
+      );
       expect(headerButtons.length).toBeGreaterThan(0);
       await user.click(headerButtons[0]);
 

@@ -8,20 +8,36 @@
     <meta name="description" content="Gestionnaire de bibliothèque BD/Manga" />
     <!-- Couleurs définies dans src/theme.ts (THEME_COLOR_LIGHT / THEME_COLOR_DARK) -->
     <meta name="theme-color" content="#B8860B" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0E17" />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#0A0E17"
+    />
     <!-- Preconnect Google Fonts (loaded via CSS @import in index.css) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <title>Bibliothèque</title>
   </head>
-  <body class="bg-surface-secondary text-text-primary antialiased" style="min-height:100vh">
+  <body
+    class="bg-surface-secondary text-text-primary antialiased"
+    style="min-height: 100vh"
+  >
     <noscript>
       <p>JavaScript est requis pour utiliser Bibliothèque.</p>
     </noscript>
     <div id="root">
       <!-- Contenu initial visible avant le chargement React (évite NO_FCP Lighthouse) -->
-      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh">
-        <p style="color:#6B5E54;font-family:'DM Sans',system-ui">Chargement…</p>
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+        "
+      >
+        <p style="color: #6b5e54; font-family: &quot;DM Sans&quot;, system-ui">
+          Chargement…
+        </p>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

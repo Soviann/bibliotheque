@@ -1,4 +1,10 @@
-import type { Author, ComicSeries, LookupCandidatesResponse, Tome, LookupResult } from "../../types/api";
+import type {
+  Author,
+  ComicSeries,
+  LookupCandidatesResponse,
+  Tome,
+  LookupResult,
+} from "../../types/api";
 import { ComicStatus, ComicType } from "../../types/enums";
 
 let nextId = 1;
@@ -93,7 +99,9 @@ export function createMockLookupResult(
   };
 }
 
-export function wrapAsCandidatesResponse(result: LookupResult): LookupCandidatesResponse {
+export function wrapAsCandidatesResponse(
+  result: LookupResult,
+): LookupCandidatesResponse {
   const { apiMessages, sources, ...candidate } = result;
   return {
     apiMessages,

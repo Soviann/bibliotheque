@@ -6,10 +6,7 @@ import { queryKeys } from "../queryKeys";
 import { apiFetch, fetchSSE, getErrorMessage } from "../services/api";
 import type { BatchLookupProgress, BatchLookupSummary } from "../types/api";
 
-export function useBatchLookupPreview(
-  type?: string,
-  force: boolean = false,
-) {
+export function useBatchLookupPreview(type?: string, force: boolean = false) {
   const params = new URLSearchParams();
   if (type) params.set("type", type);
   if (force) params.set("force", "true");

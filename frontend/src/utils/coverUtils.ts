@@ -7,7 +7,11 @@ function versionParam(updatedAt?: string): string {
   return `?v=${new Date(updatedAt).getTime()}`;
 }
 
-export function getCoverSrc(comic: { coverImage: string | null; coverUrl?: string | null; updatedAt?: string }): string | null {
+export function getCoverSrc(comic: {
+  coverImage: string | null;
+  coverUrl?: string | null;
+  updatedAt?: string;
+}): string | null {
   if (comic.coverImage) {
     return `/uploads/covers/${comic.coverImage}${versionParam(comic.updatedAt)}`;
   }
@@ -21,7 +25,11 @@ export function getCoverSrc(comic: { coverImage: string | null; coverUrl?: strin
  * Retourne l'URL de la miniature LiipImagine (300x450 WebP) pour les vues liste/grille.
  * Retourne null si pas de couverture locale (les URLs externes ne passent pas par LiipImagine).
  */
-export function getCoverThumbnailSrc(comic: { coverImage: string | null; coverUrl?: string | null; updatedAt?: string }): string | null {
+export function getCoverThumbnailSrc(comic: {
+  coverImage: string | null;
+  coverUrl?: string | null;
+  updatedAt?: string;
+}): string | null {
   if (comic.coverImage) {
     return `/media/cache/cover_thumbnail/uploads/covers/${comic.coverImage}${versionParam(comic.updatedAt)}`;
   }

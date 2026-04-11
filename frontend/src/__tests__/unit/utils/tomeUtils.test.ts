@@ -27,26 +27,24 @@ describe("countCoveredTomes", () => {
 
   it("handles mix of single tomes and ranges", () => {
     const tomes = [
-      createMockTome({ id: 1, number: 1 }),              // covers 1
-      createMockTome({ id: 2, number: 2, tomeEnd: 4 }),  // covers 3
-      createMockTome({ id: 3, number: 5 }),              // covers 1
+      createMockTome({ id: 1, number: 1 }), // covers 1
+      createMockTome({ id: 2, number: 2, tomeEnd: 4 }), // covers 3
+      createMockTome({ id: 3, number: 5 }), // covers 1
     ];
     expect(countCoveredTomes(tomes)).toBe(5);
   });
 
   it("filters by predicate when provided", () => {
     const tomes = [
-      createMockTome({ bought: true, id: 1, number: 1, tomeEnd: 3 }),  // covers 3
+      createMockTome({ bought: true, id: 1, number: 1, tomeEnd: 3 }), // covers 3
       createMockTome({ bought: false, id: 2, number: 4, tomeEnd: 6 }), // covers 3
-      createMockTome({ bought: true, id: 3, number: 7 }),              // covers 1
+      createMockTome({ bought: true, id: 3, number: 7 }), // covers 1
     ];
     expect(countCoveredTomes(tomes, (t) => t.bought)).toBe(4);
   });
 
   it("handles tomeEnd equal to number (single tome)", () => {
-    const tomes = [
-      createMockTome({ id: 1, number: 5, tomeEnd: 5 }),
-    ];
+    const tomes = [createMockTome({ id: 1, number: 5, tomeEnd: 5 })];
     expect(countCoveredTomes(tomes)).toBe(1);
   });
 });

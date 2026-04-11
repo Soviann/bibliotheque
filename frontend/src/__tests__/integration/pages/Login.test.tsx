@@ -10,7 +10,13 @@ let mockOnError: (() => void) | null = null;
 
 // Mock @react-oauth/google since it needs a provider and external scripts
 vi.mock("@react-oauth/google", () => ({
-  GoogleLogin: ({ onError, onSuccess }: { onError: () => void; onSuccess: (r: { credential: string }) => void }) => {
+  GoogleLogin: ({
+    onError,
+    onSuccess,
+  }: {
+    onError: () => void;
+    onSuccess: (r: { credential: string }) => void;
+  }) => {
     mockOnSuccess = onSuccess;
     mockOnError = onError;
     return (
@@ -19,7 +25,9 @@ vi.mock("@react-oauth/google", () => ({
       </button>
     );
   },
-  GoogleOAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  GoogleOAuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 describe("Login", () => {
@@ -55,7 +63,11 @@ describe("Login", () => {
 
     await user.click(screen.getByText("Se connecter avec Google"));
 
-    expect(screen.getByText("Erreur lors de la connexion Google. Veuillez réessayer.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Erreur lors de la connexion Google. Veuillez réessayer.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("shows API error when Google credential is valid but API rejects", async () => {
@@ -95,7 +107,9 @@ describe("Login", () => {
     const { act } = await import("@testing-library/react");
     await act(async () => {
       // Trigger onSuccess with undefined credential
-      mockOnSuccess?.({ credential: undefined } as unknown as { credential: string });
+      mockOnSuccess?.({ credential: undefined } as unknown as {
+        credential: string;
+      });
     });
 
     // Give a tick for any potential async call

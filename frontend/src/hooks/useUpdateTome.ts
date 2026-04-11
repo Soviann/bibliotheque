@@ -26,7 +26,9 @@ export function useUpdateTome(seriesId?: number) {
         return {
           ...old,
           tomes: (old.tomes ?? []).map((t) =>
-            t.id === variables.id ? { ...t, ...variables, _syncPending: true } : t,
+            t.id === variables.id
+              ? { ...t, ...variables, _syncPending: true }
+              : t,
           ),
         };
       });

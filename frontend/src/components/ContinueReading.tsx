@@ -10,11 +10,14 @@ interface ContinueReadingProps {
 }
 
 export default function ContinueReading({ comics }: ContinueReadingProps) {
-  const toRead = useMemo(() =>
-    comics.filter((c) =>
-      !c.isOneShot && c.readCount < Math.max(c.boughtCount, c.onNasCount),
-    ),
-  [comics]);
+  const toRead = useMemo(
+    () =>
+      comics.filter(
+        (c) =>
+          !c.isOneShot && c.readCount < Math.max(c.boughtCount, c.onNasCount),
+      ),
+    [comics],
+  );
 
   if (toRead.length === 0) return null;
 
@@ -34,7 +37,8 @@ export default function ContinueReading({ comics }: ContinueReadingProps) {
               to={`/comic/${comic.id}`}
               viewTransition
             >
-              <div className="card-glow overflow-hidden rounded-xl"
+              <div
+                className="card-glow overflow-hidden rounded-xl"
                 style={{ ["--glow-rgb" as string]: "99, 102, 241" }}
               >
                 <CoverImage
@@ -43,7 +47,6 @@ export default function ContinueReading({ comics }: ContinueReadingProps) {
                   fallbackSrc={ComicTypePlaceholder[comic.type]}
                   height={240}
                   src={src ?? ComicTypePlaceholder[comic.type]}
-
                   width={180}
                 />
               </div>

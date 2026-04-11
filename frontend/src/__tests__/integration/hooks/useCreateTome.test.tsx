@@ -93,7 +93,9 @@ describe("useCreateTome", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const cached = queryClient.getQueryData<typeof series>(queryKeys.comics.detail(5));
+    const cached = queryClient.getQueryData<typeof series>(
+      queryKeys.comics.detail(5),
+    );
     expect(cached?.tomes).toHaveLength(1);
     expect(cached?.tomes[0].number).toBe(3);
     expect(cached?.tomes[0]._syncPending).toBe(true);

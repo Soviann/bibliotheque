@@ -3,12 +3,14 @@ export const queryKeys = {
     search: (search: string) => ["authors", search] as const,
   },
   batchLookup: {
-    preview: (type: string, force: boolean) => ["batch-lookup-preview", type, force] as const,
+    preview: (type: string, force: boolean) =>
+      ["batch-lookup-preview", type, force] as const,
     previewPrefix: ["batch-lookup-preview"] as const,
   },
   enrichment: {
     proposals: (status?: string) => ["enrichment-proposals", status] as const,
-    proposalsBySeries: (seriesId: number) => ["enrichment-proposals", "series", seriesId] as const,
+    proposalsBySeries: (seriesId: number) =>
+      ["enrichment-proposals", "series", seriesId] as const,
     proposalsPrefix: ["enrichment-proposals"] as const,
   },
   comics: {
@@ -17,9 +19,12 @@ export const queryKeys = {
     detailPrefix: ["comic"] as const,
   },
   lookup: {
-    covers: (query: string, type?: string) => ["lookup", "covers", query, type] as const,
-    isbn: (isbn: string, type?: string) => ["lookup", "isbn", isbn, type] as const,
-    title: (title: string, type?: string) => ["lookup", "title", title, type] as const,
+    covers: (query: string, type?: string) =>
+      ["lookup", "covers", query, type] as const,
+    isbn: (isbn: string, type?: string) =>
+      ["lookup", "isbn", isbn, type] as const,
+    title: (title: string, type?: string) =>
+      ["lookup", "title", title, type] as const,
     titleCandidates: (title: string, type?: string, limit?: number) =>
       ["lookup", "title-candidates", title, type, limit] as const,
   },

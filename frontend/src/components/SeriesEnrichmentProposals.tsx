@@ -1,13 +1,24 @@
 import { ChevronDown, ChevronRight, History, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useAcceptProposal, useEnrichmentProposalsBySeries, useRejectProposal } from "../hooks/useEnrichment";
+import {
+  useAcceptProposal,
+  useEnrichmentProposalsBySeries,
+  useRejectProposal,
+} from "../hooks/useEnrichment";
 import { ProposalStatus } from "../types/enums";
 import ProposalCard from "./ProposalCard";
 
-const ACTIONABLE_STATUSES: string[] = [ProposalStatus.PENDING, ProposalStatus.PRE_ACCEPTED];
+const ACTIONABLE_STATUSES: string[] = [
+  ProposalStatus.PENDING,
+  ProposalStatus.PRE_ACCEPTED,
+];
 
-export default function SeriesEnrichmentProposals({ seriesId }: { seriesId: number }) {
+export default function SeriesEnrichmentProposals({
+  seriesId,
+}: {
+  seriesId: number;
+}) {
   const { data: proposals } = useEnrichmentProposalsBySeries(seriesId);
   const acceptMutation = useAcceptProposal();
   const rejectMutation = useRejectProposal();
@@ -16,8 +27,12 @@ export default function SeriesEnrichmentProposals({ seriesId }: { seriesId: numb
   const { actionable, resolved } = useMemo(() => {
     if (!proposals) return { actionable: [], resolved: [] };
     return {
-      actionable: proposals.filter((p) => ACTIONABLE_STATUSES.includes(p.status)),
-      resolved: proposals.filter((p) => !ACTIONABLE_STATUSES.includes(p.status)),
+      actionable: proposals.filter((p) =>
+        ACTIONABLE_STATUSES.includes(p.status),
+      ),
+      resolved: proposals.filter(
+        (p) => !ACTIONABLE_STATUSES.includes(p.status),
+      ),
     };
   }, [proposals]);
 
@@ -65,7 +80,11 @@ export default function SeriesEnrichmentProposals({ seriesId }: { seriesId: numb
             onClick={() => setHistoryOpen((prev) => !prev)}
             type="button"
           >
-            {historyOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            {historyOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
             <History className="h-4 w-4" />
             Historique ({resolved.length})
           </button>
@@ -73,11 +92,7 @@ export default function SeriesEnrichmentProposals({ seriesId }: { seriesId: numb
           {historyOpen && (
             <div className="mt-2 space-y-2">
               {resolved.map((proposal) => (
-                <ProposalCard
-                  key={proposal.id}
-                  proposal={proposal}
-                  readonly
-                />
+                <ProposalCard key={proposal.id} proposal={proposal} readonly />
               ))}
             </div>
           )}

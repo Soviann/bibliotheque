@@ -1,7 +1,10 @@
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Breadcrumb from "../components/Breadcrumb";
-import { useNotificationPreferences, useUpdatePreference } from "../hooks/useNotificationPreferences";
+import {
+  useNotificationPreferences,
+  useUpdatePreference,
+} from "../hooks/useNotificationPreferences";
 import {
   NotificationChannel,
   NotificationChannelLabel,
@@ -33,7 +36,9 @@ export default function NotificationSettings() {
           { label: "Paramètres" },
         ]}
       />
-      <h1 className="font-display text-xl font-bold text-text-primary">Paramètres des notifications</h1>
+      <h1 className="font-display text-xl font-bold text-text-primary">
+        Paramètres des notifications
+      </h1>
       <p className="mt-1 text-sm text-text-secondary">
         Choisissez comment recevoir chaque type de notification.
       </p>

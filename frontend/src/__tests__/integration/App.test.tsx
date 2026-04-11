@@ -48,7 +48,10 @@ function OfflineFallback() {
 
 function Loading() {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center" role="status">
+    <div
+      className="flex min-h-[50vh] items-center justify-center"
+      role="status"
+    >
       <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
       <span className="sr-only">Chargement…</span>
     </div>
@@ -65,7 +68,9 @@ describe("OfflineFallback", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Page non disponible hors ligne")).toBeInTheDocument();
+    expect(
+      screen.getByText("Page non disponible hors ligne"),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
         "Cette page n'a pas été mise en cache. Reconnectez-vous à Internet pour y accéder.",
@@ -76,7 +81,9 @@ describe("OfflineFallback", () => {
 
   it("calls window.history.back() when Retour is clicked", async () => {
     const user = userEvent.setup();
-    const backSpy = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    const backSpy = vi
+      .spyOn(window.history, "back")
+      .mockImplementation(() => {});
 
     render(
       <MemoryRouter>
@@ -117,7 +124,9 @@ describe("lazyWithRetry", () => {
       writable: true,
     });
 
-    const FailingPage = lazyWithRetry(() => Promise.reject(new Error("chunk failed")));
+    const FailingPage = lazyWithRetry(() =>
+      Promise.reject(new Error("chunk failed")),
+    );
 
     render(
       <MemoryRouter>
@@ -128,7 +137,9 @@ describe("lazyWithRetry", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Page non disponible hors ligne")).toBeInTheDocument();
+      expect(
+        screen.getByText("Page non disponible hors ligne"),
+      ).toBeInTheDocument();
     });
 
     Object.defineProperty(navigator, "onLine", {
@@ -146,7 +157,9 @@ describe("lazyWithRetry", () => {
     type LazyModule = { default: ComponentType };
 
     // Replicate the inner Promise logic from lazyWithRetry (without lazy())
-    function retryLogic(importFn: () => Promise<LazyModule>): Promise<LazyModule> {
+    function retryLogic(
+      importFn: () => Promise<LazyModule>,
+    ): Promise<LazyModule> {
       return importFn().catch(() => {
         if (!navigator.onLine) {
           return { default: OfflineFallback };
@@ -242,7 +255,9 @@ describe("ScrollToTop", () => {
 
   it("calls window.scrollTo(0, 0) on route change", async () => {
     const user = userEvent.setup();
-    const scrollToSpy = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const scrollToSpy = vi
+      .spyOn(window, "scrollTo")
+      .mockImplementation(() => {});
 
     function PageA() {
       return (
@@ -332,10 +347,7 @@ describe("Route rendering", () => {
         <MemoryRouter initialEntries={[route]}>
           <Suspense fallback={<Loading />}>
             <Routes>
-              <Route
-                element={<LoginPage />}
-                path="/login"
-              />
+              <Route element={<LoginPage />} path="/login" />
               <Route element={<LayoutWrapper />}>
                 <Route element={<HomePage />} index />
                 <Route element={<TrashPage />} path="trash" />
@@ -442,7 +454,9 @@ describe("ErrorBoundary", () => {
 
     expect(screen.getByText("Une erreur est survenue")).toBeInTheDocument();
     expect(screen.getByText("Test error for boundary")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Réessayer" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Réessayer" }),
+    ).toBeInTheDocument();
 
     consoleSpy.mockRestore();
   });

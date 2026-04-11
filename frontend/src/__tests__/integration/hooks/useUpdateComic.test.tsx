@@ -63,7 +63,10 @@ describe("useUpdateComic", () => {
     const oldComic = createMockComicSeries({ id: 3, title: "Old" });
     const newComic = createMockComicSeries({ id: 3, title: "New" });
 
-    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([oldComic]));
+    queryClient.setQueryData(
+      queryKeys.comics.all,
+      createMockHydraCollection([oldComic]),
+    );
     queryClient.setQueryData(queryKeys.comics.detail(3), oldComic);
 
     server.use(
@@ -81,23 +84,38 @@ describe("useUpdateComic", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // Collection should NOT be invalidated (updated via setQueryData instead)
-    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(
+      false,
+    );
     // Collection should contain the server response
-    const collection = queryClient.getQueryData<{ member: { id: number; title: string }[] }>(queryKeys.comics.all);
+    const collection = queryClient.getQueryData<{
+      member: { id: number; title: string }[];
+    }>(queryKeys.comics.all);
     expect(collection?.member.find((c) => c.id === 3)?.title).toBe("New");
     // Detail should be invalidated for fresh refetch
-    expect(queryClient.getQueryState(queryKeys.comics.detail(3))?.isInvalidated).toBe(true);
+    expect(
+      queryClient.getQueryState(queryKeys.comics.detail(3))?.isInvalidated,
+    ).toBe(true);
   });
 
   it("does not invalidate unrelated comic detail queries", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([
+    queryClient.setQueryData(
+      queryKeys.comics.all,
+      createMockHydraCollection([
+        createMockComicSeries({ id: 3, title: "Target" }),
+        createMockComicSeries({ id: 5, title: "Other" }),
+      ]),
+    );
+    queryClient.setQueryData(
+      queryKeys.comics.detail(3),
       createMockComicSeries({ id: 3, title: "Target" }),
+    );
+    queryClient.setQueryData(
+      queryKeys.comics.detail(5),
       createMockComicSeries({ id: 5, title: "Other" }),
-    ]));
-    queryClient.setQueryData(queryKeys.comics.detail(3), createMockComicSeries({ id: 3, title: "Target" }));
-    queryClient.setQueryData(queryKeys.comics.detail(5), createMockComicSeries({ id: 5, title: "Other" }));
+    );
 
     server.use(
       http.patch("/api/comic_series/3", () =>
@@ -116,9 +134,13 @@ describe("useUpdateComic", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // comic 3 should be invalidated (targeted)
-    expect(queryClient.getQueryState(queryKeys.comics.detail(3))?.isInvalidated).toBe(true);
+    expect(
+      queryClient.getQueryState(queryKeys.comics.detail(3))?.isInvalidated,
+    ).toBe(true);
     // comic 5 should NOT be invalidated (not related)
-    expect(queryClient.getQueryState(queryKeys.comics.detail(5))?.isInvalidated).toBe(false);
+    expect(
+      queryClient.getQueryState(queryKeys.comics.detail(5))?.isInvalidated,
+    ).toBe(false);
   });
 
   it("handles API error", async () => {

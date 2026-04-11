@@ -2,14 +2,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { endpoints } from "../endpoints";
 import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
-import type { ComicSeries, HydraCollection, UpdateComicPayload } from "../types/api";
+import type {
+  ComicSeries,
+  HydraCollection,
+  UpdateComicPayload,
+} from "../types/api";
 import { useOfflineMutation } from "./useOfflineMutation";
 
 // Champs sûrs à mettre à jour de façon optimiste (mêmes types dans le payload et dans ComicSeries)
-function safeOptimisticFields(variables: UpdateComicPayload): Partial<ComicSeries> {
+function safeOptimisticFields(
+  variables: UpdateComicPayload,
+): Partial<ComicSeries> {
   const safe: Partial<ComicSeries> = {};
   if (variables.title !== undefined) safe.title = variables.title;
-  if (variables.description !== undefined) safe.description = variables.description;
+  if (variables.description !== undefined)
+    safe.description = variables.description;
   if (variables.publisher !== undefined) safe.publisher = variables.publisher;
   if (variables.coverUrl !== undefined) safe.coverUrl = variables.coverUrl;
   if (variables.status !== undefined) safe.status = variables.status;
@@ -33,34 +40,47 @@ export function useUpdateComic() {
     offlineResourceType: "comic_series",
     onSuccess: (data, variables) => {
       // Mettre à jour la collection avec la réponse serveur (pas de refetch)
-      qc.setQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all, (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          member: old.member.map((c) =>
-            c.id === variables.id ? { ...data, _syncPending: false } : c,
-          ),
-        };
-      });
+      qc.setQueryData<HydraCollection<ComicSeries>>(
+        queryKeys.comics.all,
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            member: old.member.map((c) =>
+              c.id === variables.id ? { ...data, _syncPending: false } : c,
+            ),
+          };
+        },
+      );
     },
     optimisticUpdate: (queryClient, variables) => {
       const safeFields = safeOptimisticFields(variables);
       // Mettre à jour dans la liste
-      queryClient.setQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all, (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          member: old.member.map((c) =>
-            c.id === variables.id ? { ...c, ...safeFields, _syncPending: true } : c,
-          ),
-        };
-      });
+      queryClient.setQueryData<HydraCollection<ComicSeries>>(
+        queryKeys.comics.all,
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            member: old.member.map((c) =>
+              c.id === variables.id
+                ? { ...c, ...safeFields, _syncPending: true }
+                : c,
+            ),
+          };
+        },
+      );
       // Mettre à jour dans le détail
-      queryClient.setQueryData<ComicSeries>(queryKeys.comics.detail(variables.id), (old) => {
-        if (!old) return old;
-        return { ...old, ...safeFields, _syncPending: true };
-      });
+      queryClient.setQueryData<ComicSeries>(
+        queryKeys.comics.detail(variables.id),
+        (old) => {
+          if (!old) return old;
+          return { ...old, ...safeFields, _syncPending: true };
+        },
+      );
     },
-    queryKeysToInvalidate: (variables) => [queryKeys.comics.detail(variables.id)],
+    queryKeysToInvalidate: (variables) => [
+      queryKeys.comics.detail(variables.id),
+    ],
   });
 }

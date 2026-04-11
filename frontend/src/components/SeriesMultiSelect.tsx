@@ -88,8 +88,10 @@ export default function SeriesMultiSelect({
 
       {/* Result count */}
       <p className="text-xs text-text-muted">
-        {filteredComics.length} série{filteredComics.length !== 1 ? "s" : ""} affichée{filteredComics.length !== 1 ? "s" : ""}
-        {selectedIds.length > 0 && ` · ${selectedIds.length} sélectionnée${selectedIds.length !== 1 ? "s" : ""}`}
+        {filteredComics.length} série{filteredComics.length !== 1 ? "s" : ""}{" "}
+        affichée{filteredComics.length !== 1 ? "s" : ""}
+        {selectedIds.length > 0 &&
+          ` · ${selectedIds.length} sélectionnée${selectedIds.length !== 1 ? "s" : ""}`}
       </p>
 
       {/* Scrollable list */}
@@ -156,15 +158,21 @@ export default function SeriesMultiSelect({
                 <dl className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-text-muted">Type</dt>
-                    <dd className="text-text-primary">{ComicTypeLabel[detailComic.type]}</dd>
+                    <dd className="text-text-primary">
+                      {ComicTypeLabel[detailComic.type]}
+                    </dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-text-muted">Statut</dt>
-                    <dd className="text-text-primary">{ComicStatusLabel[detailComic.status]}</dd>
+                    <dd className="text-text-primary">
+                      {ComicStatusLabel[detailComic.status]}
+                    </dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-text-muted">Tomes</dt>
-                    <dd className="text-text-primary">{detailComic.tomesCount}</dd>
+                    <dd className="text-text-primary">
+                      {detailComic.tomesCount}
+                    </dd>
                   </div>
                   {detailComic.authors.length > 0 && (
                     <div className="flex justify-between">
@@ -177,13 +185,17 @@ export default function SeriesMultiSelect({
                   {detailComic.publisher && (
                     <div className="flex justify-between">
                       <dt className="text-text-muted">Éditeur</dt>
-                      <dd className="text-text-primary">{detailComic.publisher}</dd>
+                      <dd className="text-text-primary">
+                        {detailComic.publisher}
+                      </dd>
                     </div>
                   )}
                   {detailComic.description && (
                     <div>
                       <dt className="text-text-muted">Description</dt>
-                      <dd className="mt-1 text-text-secondary">{detailComic.description}</dd>
+                      <dd className="mt-1 text-text-secondary">
+                        {detailComic.description}
+                      </dd>
                     </div>
                   )}
                 </dl>

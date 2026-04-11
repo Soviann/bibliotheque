@@ -1,4 +1,9 @@
-import { type QueryClient, type QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  type QueryKey,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   type OperationType,
@@ -18,7 +23,11 @@ interface UseOfflineMutationOptions<TData, TVariables> {
   offlineResourceType: ResourceType;
   onOfflineSuccess?: () => void;
   onSuccess?: (data: TData, variables: TVariables) => void;
-  optimisticUpdate?: (queryClient: QueryClient, variables: TVariables, tempId?: number) => void;
+  optimisticUpdate?: (
+    queryClient: QueryClient,
+    variables: TVariables,
+    tempId?: number,
+  ) => void;
   queryKeysToInvalidate: QueryKey[] | ((variables: TVariables) => QueryKey[]);
 }
 
@@ -73,7 +82,9 @@ export function useOfflineMutation<TData, TVariables extends object>({
         optimisticUpdate?.(queryClient, variables, tempId);
 
         await registerSync();
-        toast.info("Opération enregistrée, sera synchronisée au retour en ligne");
+        toast.info(
+          "Opération enregistrée, sera synchronisée au retour en ligne",
+        );
         onOfflineSuccess?.();
 
         // Offline path: mutation will be replayed later via Background Sync
@@ -84,9 +95,10 @@ export function useOfflineMutation<TData, TVariables extends object>({
     },
     onSuccess: (data, variables) => {
       if (navigator.onLine) {
-        const keys = typeof queryKeysToInvalidate === "function"
-          ? queryKeysToInvalidate(variables)
-          : queryKeysToInvalidate;
+        const keys =
+          typeof queryKeysToInvalidate === "function"
+            ? queryKeysToInvalidate(variables)
+            : queryKeysToInvalidate;
         for (const key of keys) {
           void queryClient.invalidateQueries({ queryKey: key });
         }

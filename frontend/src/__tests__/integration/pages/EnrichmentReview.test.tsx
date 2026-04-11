@@ -91,7 +91,10 @@ describe("EnrichmentReview", () => {
 
     await screen.findByText("One Piece");
 
-    await user.type(screen.getByPlaceholderText("Rechercher une série…"), "astérix");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher une série…"),
+      "astérix",
+    );
 
     expect(screen.getByText("Astérix")).toBeInTheDocument();
     expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
@@ -186,7 +189,9 @@ describe("EnrichmentReview", () => {
     await user.click(screen.getByRole("option", { name: "Description" }));
 
     // One Piece should show but only 1 proposal card
-    const seriesSection = screen.getByText("One Piece").closest("div[class*='rounded-xl']")!;
+    const seriesSection = screen
+      .getByText("One Piece")
+      .closest("div[class*='rounded-xl']")!;
     const proposals = within(seriesSection).getAllByTitle("Accepter");
     expect(proposals).toHaveLength(1);
   });
@@ -197,8 +202,13 @@ describe("EnrichmentReview", () => {
 
     await screen.findByText("One Piece");
 
-    await user.type(screen.getByPlaceholderText("Rechercher une série…"), "zzzznotfound");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher une série…"),
+      "zzzznotfound",
+    );
 
-    expect(screen.getByText("Aucune proposition en attente")).toBeInTheDocument();
+    expect(
+      screen.getByText("Aucune proposition en attente"),
+    ).toBeInTheDocument();
   });
 });

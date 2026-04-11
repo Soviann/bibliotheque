@@ -27,6 +27,7 @@ export function useServiceWorker() {
       }
     };
     navigator.serviceWorker?.addEventListener("message", handleMessage);
-    return () => navigator.serviceWorker?.removeEventListener("message", handleMessage);
+    return () =>
+      navigator.serviceWorker?.removeEventListener("message", handleMessage);
   }, []);
 }

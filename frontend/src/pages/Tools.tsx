@@ -1,6 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { del } from "idb-keyval";
-import { ArrowRight, DatabaseZap, HelpCircle, Lightbulb, LoaderCircle, Merge, Search, Sparkles, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  DatabaseZap,
+  HelpCircle,
+  Lightbulb,
+  LoaderCircle,
+  Merge,
+  Search,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { type ComponentType, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,37 +24,43 @@ interface ToolCard {
 
 const tools: ToolCard[] = [
   {
-    description: "Valider ou rejeter les propositions d'enrichissement automatique.",
+    description:
+      "Valider ou rejeter les propositions d'enrichissement automatique.",
     icon: Sparkles,
     title: "Revue d'enrichissement",
     to: "/tools/enrichment-review",
   },
   {
-    description: "Detecter et fusionner les series dupliquees (tomes d'une meme serie importes separement).",
+    description:
+      "Detecter et fusionner les series dupliquees (tomes d'une meme serie importes separement).",
     icon: Merge,
     title: "Fusion de series",
     to: "/tools/merge-series",
   },
   {
-    description: "Rechercher automatiquement les metadonnees manquantes pour les series.",
+    description:
+      "Rechercher automatiquement les metadonnees manquantes pour les series.",
     icon: Search,
     title: "Lookup metadonnees",
     to: "/tools/lookup",
   },
   {
-    description: "Supprimer definitivement les series dans la corbeille depuis plus de 30 jours.",
+    description:
+      "Supprimer definitivement les series dans la corbeille depuis plus de 30 jours.",
     icon: Trash2,
     title: "Purge corbeille",
     to: "/tools/purge",
   },
   {
-    description: "Découvrir des séries similaires à votre collection, suggérées par IA.",
+    description:
+      "Découvrir des séries similaires à votre collection, suggérées par IA.",
     icon: Lightbulb,
     title: "Suggestions",
     to: "/tools/suggestions",
   },
   {
-    description: "Comprendre les automatismes, les tâches planifiées et le fonctionnement de l'application.",
+    description:
+      "Comprendre les automatismes, les tâches planifiées et le fonctionnement de l'application.",
     icon: HelpCircle,
     title: "Aide",
     to: "/tools/help",
@@ -64,7 +80,9 @@ export default function Tools() {
       queryClient.clear();
       await del("bibliotheque-query-cache");
       await queryClient.refetchQueries();
-      toast.success("Cache vidé — les données ont été rechargées depuis le serveur.");
+      toast.success(
+        "Cache vidé — les données ont été rechargées depuis le serveur.",
+      );
     } finally {
       setClearing(false);
     }
@@ -85,12 +103,20 @@ export default function Tools() {
             viewTransition
           >
             <div className="rounded-xl bg-primary-50 p-2.5 dark:bg-primary-950/30">
-              <Icon className="h-5 w-5 text-primary-600 dark:text-primary-400" strokeWidth={1.5} />
+              <Icon
+                className="h-5 w-5 text-primary-600 dark:text-primary-400"
+                strokeWidth={1.5}
+              />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h2 className="font-display font-semibold text-text-primary">{title}</h2>
-                <ArrowRight className="h-4 w-4 text-text-muted opacity-0 transition group-hover:opacity-100" strokeWidth={1.5} />
+                <h2 className="font-display font-semibold text-text-primary">
+                  {title}
+                </h2>
+                <ArrowRight
+                  className="h-4 w-4 text-text-muted opacity-0 transition group-hover:opacity-100"
+                  strokeWidth={1.5}
+                />
               </div>
               <p className="mt-1 text-sm text-text-secondary">{description}</p>
             </div>
@@ -104,13 +130,23 @@ export default function Tools() {
           type="button"
         >
           <div className="rounded-xl bg-red-50 p-2.5 dark:bg-red-950/30">
-            {clearing
-              ? <LoaderCircle className="h-5 w-5 animate-spin text-accent-danger" />
-              : <DatabaseZap className="h-5 w-5 text-accent-danger" strokeWidth={1.5} />}
+            {clearing ? (
+              <LoaderCircle className="h-5 w-5 animate-spin text-accent-danger" />
+            ) : (
+              <DatabaseZap
+                className="h-5 w-5 text-accent-danger"
+                strokeWidth={1.5}
+              />
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display font-semibold text-text-primary">{clearing ? "Vidage en cours…" : "Vider le cache"}</h2>
-            <p className="mt-1 text-sm text-text-secondary">Supprimer le cache local et recharger les données depuis le serveur.</p>
+            <h2 className="font-display font-semibold text-text-primary">
+              {clearing ? "Vidage en cours…" : "Vider le cache"}
+            </h2>
+            <p className="mt-1 text-sm text-text-secondary">
+              Supprimer le cache local et recharger les données depuis le
+              serveur.
+            </p>
           </div>
         </button>
       </div>

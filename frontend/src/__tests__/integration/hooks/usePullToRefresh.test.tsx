@@ -16,7 +16,11 @@ describe("usePullToRefresh", () => {
   beforeEach(() => {
     onRefresh = vi.fn().mockResolvedValue(undefined);
     // Scroll at top by default
-    Object.defineProperty(window, "scrollY", { configurable: true, value: 0, writable: true });
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 0,
+      writable: true,
+    });
   });
 
   it("calls onRefresh after pull exceeding threshold", async () => {
@@ -54,7 +58,11 @@ describe("usePullToRefresh", () => {
   });
 
   it("does not trigger when not scrolled to top", () => {
-    Object.defineProperty(window, "scrollY", { configurable: true, value: 100, writable: true });
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 100,
+      writable: true,
+    });
 
     renderHook(() => usePullToRefresh({ onRefresh }));
 
@@ -119,9 +127,14 @@ describe("usePullToRefresh", () => {
   it("resets isRefreshing after onRefresh resolves", async () => {
     let resolve: () => void;
     const slowRefresh = vi.fn(
-      () => new Promise<void>((r) => { resolve = r; }),
+      () =>
+        new Promise<void>((r) => {
+          resolve = r;
+        }),
     );
-    const { result } = renderHook(() => usePullToRefresh({ onRefresh: slowRefresh }));
+    const { result } = renderHook(() =>
+      usePullToRefresh({ onRefresh: slowRefresh }),
+    );
 
     act(() => {
       window.dispatchEvent(createTouchEvent("touchstart", 100));

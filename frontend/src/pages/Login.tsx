@@ -6,8 +6,14 @@ const showDevLogin =
   import.meta.env.DEV && import.meta.env.VITE_DEBUG_LOGIN === "true";
 
 export default function Login() {
-  const { devLogin, devLoginError, devLoginPending, login, loginError, loginPending } =
-    useAuth();
+  const {
+    devLogin,
+    devLoginError,
+    devLoginPending,
+    login,
+    loginError,
+    loginPending,
+  } = useAuth();
   const [googleError, setGoogleError] = useState(false);
 
   const handleDevLogin = (e: React.FormEvent<HTMLFormElement>) => {
@@ -23,7 +29,11 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-surface-secondary px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <img alt="" className="mx-auto h-20 w-20 rounded-2xl shadow-lg" src="/app-icon.png" />
+          <img
+            alt=""
+            className="mx-auto h-20 w-20 rounded-2xl shadow-lg"
+            src="/app-icon.png"
+          />
           <h1 className="mt-4 font-display text-3xl font-bold text-text-primary">
             Bibliothèque
           </h1>

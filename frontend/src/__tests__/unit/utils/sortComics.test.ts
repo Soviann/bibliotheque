@@ -27,9 +27,21 @@ describe("sortComics", () => {
 
   it("sorts by createdAt descending (most recent first)", () => {
     const comics = [
-      createMockComicSeries({ id: 1, createdAt: "2024-01-01T00:00:00+00:00", title: "Old" }),
-      createMockComicSeries({ id: 2, createdAt: "2025-06-01T00:00:00+00:00", title: "New" }),
-      createMockComicSeries({ id: 3, createdAt: "2025-03-01T00:00:00+00:00", title: "Mid" }),
+      createMockComicSeries({
+        id: 1,
+        createdAt: "2024-01-01T00:00:00+00:00",
+        title: "Old",
+      }),
+      createMockComicSeries({
+        id: 2,
+        createdAt: "2025-06-01T00:00:00+00:00",
+        title: "New",
+      }),
+      createMockComicSeries({
+        id: 3,
+        createdAt: "2025-03-01T00:00:00+00:00",
+        title: "Mid",
+      }),
     ];
 
     const result = sortComics(comics, "createdAt-desc");
@@ -39,8 +51,16 @@ describe("sortComics", () => {
 
   it("sorts by createdAt ascending (oldest first)", () => {
     const comics = [
-      createMockComicSeries({ id: 1, createdAt: "2025-06-01T00:00:00+00:00", title: "New" }),
-      createMockComicSeries({ id: 2, createdAt: "2024-01-01T00:00:00+00:00", title: "Old" }),
+      createMockComicSeries({
+        id: 1,
+        createdAt: "2025-06-01T00:00:00+00:00",
+        title: "New",
+      }),
+      createMockComicSeries({
+        id: 2,
+        createdAt: "2024-01-01T00:00:00+00:00",
+        title: "Old",
+      }),
     ];
 
     const result = sortComics(comics, "createdAt-asc");

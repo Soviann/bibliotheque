@@ -71,7 +71,9 @@ export default function BarcodeScanner({ onScan }: BarcodeScannerProps) {
       ) : (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-text-secondary">Scanner actif</span>
+            <span className="text-sm font-medium text-text-secondary">
+              Scanner actif
+            </span>
             <button
               aria-label="Fermer le scanner"
               className="rounded p-1 text-text-muted hover:text-text-secondary"
@@ -81,10 +83,7 @@ export default function BarcodeScanner({ onScan }: BarcodeScannerProps) {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div
-            className="overflow-hidden rounded-lg"
-            id="barcode-scanner"
-          />
+          <div className="overflow-hidden rounded-lg" id="barcode-scanner" />
         </div>
       )}
     </div>

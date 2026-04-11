@@ -11,7 +11,9 @@ export function useComic(id: number | undefined) {
     enabled: id !== undefined,
     initialData: () => {
       // Extraire depuis la collection déjà chargée (navigation hors ligne)
-      const collection = queryClient.getQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all);
+      const collection = queryClient.getQueryData<HydraCollection<ComicSeries>>(
+        queryKeys.comics.all,
+      );
       return collection?.member.find((s) => s.id === id);
     },
     initialDataUpdatedAt: () =>

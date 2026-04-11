@@ -17,7 +17,8 @@ export default function ShelfRow({ comics, onSeeAll, title }: ShelfRowProps) {
     <section className="space-y-2">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-text-primary">
-          {title} <span className="font-normal text-text-muted">({comics.length})</span>
+          {title}{" "}
+          <span className="font-normal text-text-muted">({comics.length})</span>
         </h3>
         <button
           className="text-xs font-medium text-primary-600 dark:text-primary-400"
@@ -44,7 +45,6 @@ export default function ShelfRow({ comics, onSeeAll, title }: ShelfRowProps) {
                   fallbackSrc={ComicTypePlaceholder[comic.type]}
                   height={133}
                   src={src ?? ComicTypePlaceholder[comic.type]}
-
                   width={100}
                 />
               </div>

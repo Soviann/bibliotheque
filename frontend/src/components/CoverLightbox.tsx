@@ -7,7 +7,12 @@ interface CoverLightboxProps {
   title: string;
 }
 
-export default function CoverLightbox({ onClose, open, src, title }: CoverLightboxProps) {
+export default function CoverLightbox({
+  onClose,
+  open,
+  src,
+  title,
+}: CoverLightboxProps) {
   return (
     <Dialog className="relative z-50" onClose={onClose} open={open}>
       <DialogBackdrop className="fixed inset-0 bg-black/80 transition duration-200 ease-out data-closed:opacity-0" />

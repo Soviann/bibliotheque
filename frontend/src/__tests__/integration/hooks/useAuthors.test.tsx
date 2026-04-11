@@ -82,9 +82,7 @@ describe("useAuthors", () => {
   it("is enabled when search has at least 1 character", async () => {
     server.use(
       http.get("/api/authors", () =>
-        HttpResponse.json(
-          createMockHydraCollection([], "/api/authors"),
-        ),
+        HttpResponse.json(createMockHydraCollection([], "/api/authors")),
       ),
     );
 
@@ -103,9 +101,7 @@ describe("useAuthors", () => {
     server.use(
       http.get("/api/authors", ({ request }) => {
         capturedUrl = request.url;
-        return HttpResponse.json(
-          createMockHydraCollection([], "/api/authors"),
-        );
+        return HttpResponse.json(createMockHydraCollection([], "/api/authors"));
       }),
     );
 

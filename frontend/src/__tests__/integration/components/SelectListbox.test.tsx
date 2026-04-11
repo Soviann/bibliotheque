@@ -59,7 +59,10 @@ describe("SelectListbox", () => {
         value=""
       />,
     );
-    expect(screen.getByRole("button")).toHaveAttribute("aria-label", "Choisir un type");
+    expect(screen.getByRole("button")).toHaveAttribute(
+      "aria-label",
+      "Choisir un type",
+    );
   });
 
   it("does not add aria-label on button when label prop is provided", () => {

@@ -121,7 +121,10 @@ describe("useOfflineMutation", () => {
     });
 
     // Delete the serviceWorker property so "serviceWorker" in navigator is false
-    const originalSW = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
+    const originalSW = Object.getOwnPropertyDescriptor(
+      navigator,
+      "serviceWorker",
+    );
     // @ts-expect-error -- deliberate deletion for testing
     delete (navigator as Record<string, unknown>).serviceWorker;
 
@@ -239,7 +242,8 @@ describe("useOfflineMutation", () => {
     });
 
     // useUpdateComic doesn't pass onOfflineSuccess, so we test via useOfflineMutation directly
-    const { useOfflineMutation } = await import("../../../hooks/useOfflineMutation");
+    const { useOfflineMutation } =
+      await import("../../../hooks/useOfflineMutation");
     const onOfflineSuccess = vi.fn();
 
     const { result } = renderHook(
@@ -278,14 +282,14 @@ describe("useOfflineMutation", () => {
       ),
     );
 
-    const { useOfflineMutation } = await import("../../../hooks/useOfflineMutation");
+    const { useOfflineMutation } =
+      await import("../../../hooks/useOfflineMutation");
     const onSuccess = vi.fn();
 
     const { result } = renderHook(
       () =>
         useOfflineMutation({
-          mutationFn: (data: Record<string, unknown>) =>
-            Promise.resolve(data),
+          mutationFn: (data: Record<string, unknown>) => Promise.resolve(data),
           offlineOperation: "create" as const,
           offlineResourceType: "comic_series" as const,
           onSuccess,
@@ -352,7 +356,10 @@ describe("useOfflineMutation", () => {
     });
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(queryKeys.comics.all, { member: [], totalItems: 0 });
+    queryClient.setQueryData(queryKeys.comics.all, {
+      member: [],
+      totalItems: 0,
+    });
 
     const { result } = renderHook(() => useCreateComic(), {
       wrapper: createWrapper(queryClient),
@@ -365,6 +372,8 @@ describe("useOfflineMutation", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // Should NOT invalidate when offline
-    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(
+      false,
+    );
   });
 });

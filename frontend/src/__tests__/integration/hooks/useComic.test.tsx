@@ -38,9 +38,7 @@ describe("useComic", () => {
   it("returns single comic series by ID", async () => {
     const comic = createMockComicSeries({ id: 5, title: "Bleach" });
 
-    server.use(
-      http.get("/api/comic_series/5", () => HttpResponse.json(comic)),
-    );
+    server.use(http.get("/api/comic_series/5", () => HttpResponse.json(comic)));
 
     const { result } = renderHook(() => useComic(5), {
       wrapper: createWrapper(),

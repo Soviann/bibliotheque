@@ -132,7 +132,9 @@ describe("Filters", () => {
     });
 
     it("has dynamic aria-label reflecting active filter count", () => {
-      renderWithProviders(<Filters {...defaultProps} status="buying" type="manga" />);
+      renderWithProviders(
+        <Filters {...defaultProps} status="buying" type="manga" />,
+      );
 
       expect(screen.getByTestId("filters-button")).toHaveAttribute(
         "aria-label",
@@ -159,7 +161,9 @@ describe("Filters", () => {
     });
 
     it("shows indicator dot when filters are active", () => {
-      renderWithProviders(<Filters {...defaultProps} status="buying" type="manga" />);
+      renderWithProviders(
+        <Filters {...defaultProps} status="buying" type="manga" />,
+      );
 
       expect(screen.getByTestId("filters-indicator")).toBeInTheDocument();
     });

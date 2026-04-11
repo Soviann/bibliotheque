@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
-import type { MergePreview, MergePreviewTome, MergeSuggestion } from "../types/api";
+import type {
+  MergePreview,
+  MergePreviewTome,
+  MergeSuggestion,
+} from "../types/api";
 
 export interface MergeFormState {
   amazonUrl: string;
@@ -24,8 +28,16 @@ export interface MergeFormState {
 
 type MergeFormAction =
   | { type: "INIT"; preview: MergePreview }
-  | { type: "APPLY_SUGGESTION"; preview: MergePreview; suggestion: MergeSuggestion }
-  | { type: "SET_FIELD"; field: keyof MergeFormState; value: MergeFormState[keyof MergeFormState] }
+  | {
+      type: "APPLY_SUGGESTION";
+      preview: MergePreview;
+      suggestion: MergeSuggestion;
+    }
+  | {
+      type: "SET_FIELD";
+      field: keyof MergeFormState;
+      value: MergeFormState[keyof MergeFormState];
+    }
   | { type: "UPDATE_TOME"; index: number; patch: Partial<MergePreviewTome> }
   | { type: "REMOVE_TOME"; index: number }
   | { type: "ADD_TOME" };
@@ -55,7 +67,10 @@ function initState(preview: MergePreview): MergeFormState {
   };
 }
 
-function reducer(state: MergeFormState, action: MergeFormAction): MergeFormState {
+function reducer(
+  state: MergeFormState,
+  action: MergeFormAction,
+): MergeFormState {
   switch (action.type) {
     case "INIT":
       return initState(action.preview);
@@ -66,7 +81,8 @@ function reducer(state: MergeFormState, action: MergeFormAction): MergeFormState
       );
       const newTomes = action.preview.tomes.map((tome, index) => {
         const seriesId = action.preview.sourceSeriesIds[index];
-        const suggestedNumber = seriesId !== undefined ? tomeNumberMap.get(seriesId) : undefined;
+        const suggestedNumber =
+          seriesId !== undefined ? tomeNumberMap.get(seriesId) : undefined;
         return { ...tome, number: suggestedNumber ?? tome.number };
       });
       newTomes.sort((a, b) => a.number - b.number);
@@ -91,7 +107,10 @@ function reducer(state: MergeFormState, action: MergeFormAction): MergeFormState
       };
 
     case "ADD_TOME": {
-      const maxNumber = state.tomes.reduce((max, t) => Math.max(max, t.number, t.tomeEnd ?? 0), 0);
+      const maxNumber = state.tomes.reduce(
+        (max, t) => Math.max(max, t.number, t.tomeEnd ?? 0),
+        0,
+      );
       return {
         ...state,
         tomes: [
@@ -183,7 +202,9 @@ export function useMergePreviewForm(
       defaultTomeRead: state.defaultTomeRead,
       description: state.description || null,
       isOneShot: state.isOneShot,
-      latestPublishedIssue: state.latestPublishedIssue ? Number(state.latestPublishedIssue) : null,
+      latestPublishedIssue: state.latestPublishedIssue
+        ? Number(state.latestPublishedIssue)
+        : null,
       latestPublishedIssueComplete: state.latestPublishedIssueComplete,
       notInterestedBuy: state.notInterestedBuy,
       notInterestedNas: state.notInterestedNas,

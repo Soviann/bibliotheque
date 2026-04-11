@@ -24,33 +24,45 @@ export function useLookupTitle(title: string, type?: string) {
 
   return useQuery({
     enabled: title.length >= 2,
-    queryFn: () => apiFetch<LookupResult>(`${endpoints.lookup.title}?${params}`),
+    queryFn: () =>
+      apiFetch<LookupResult>(`${endpoints.lookup.title}?${params}`),
     queryKey: queryKeys.lookup.title(title, type),
     staleTime: STALE_TIME_24H,
   });
 }
 
-export function useLookupTitleCandidates(title: string, type?: string, limit = 5) {
+export function useLookupTitleCandidates(
+  title: string,
+  type?: string,
+  limit = 5,
+) {
   const params = new URLSearchParams({ limit: String(limit), title });
   if (type) params.set("type", type);
 
   return useQuery({
     enabled: title.length >= 2,
-    queryFn: () => apiFetch<LookupCandidatesResponse>(`${endpoints.lookup.title}?${params}`),
+    queryFn: () =>
+      apiFetch<LookupCandidatesResponse>(`${endpoints.lookup.title}?${params}`),
     queryKey: queryKeys.lookup.titleCandidates(title, type, limit),
     staleTime: STALE_TIME_24H,
   });
 }
 
 /** Appel impératif — lookup par ISBN */
-export async function fetchLookupIsbn(isbn: string, type?: string): Promise<LookupResult> {
+export async function fetchLookupIsbn(
+  isbn: string,
+  type?: string,
+): Promise<LookupResult> {
   const params = new URLSearchParams({ isbn });
   if (type) params.set("type", type);
   return apiFetch<LookupResult>(`${endpoints.lookup.isbn}?${params}`);
 }
 
 /** Appel impératif — lookup par titre */
-export async function fetchLookupTitle(title: string, type?: string): Promise<LookupResult> {
+export async function fetchLookupTitle(
+  title: string,
+  type?: string,
+): Promise<LookupResult> {
   const params = new URLSearchParams({ title });
   if (type) params.set("type", type);
   return apiFetch<LookupResult>(`${endpoints.lookup.title}?${params}`);

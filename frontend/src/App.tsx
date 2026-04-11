@@ -5,7 +5,14 @@ import { Loader2, WifiOff } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import type { ComponentType } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider, useLocation } from "react-router-dom";
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Outlet,
+  Route,
+  RouterProvider,
+  useLocation,
+} from "react-router-dom";
 import { Toaster } from "sonner";
 import AuthGuard from "./components/AuthGuard";
 import { queryKeys } from "./queryKeys";
@@ -22,7 +29,11 @@ function OfflineFallback() {
         Page non disponible hors ligne
       </h2>
       <p className="max-w-md text-text-secondary">
-        La page <code className="font-mono text-text-primary">{window.location.pathname}</code> n'a pas été mise en cache. Reconnectez-vous à Internet pour y accéder.
+        La page{" "}
+        <code className="font-mono text-text-primary">
+          {window.location.pathname}
+        </code>{" "}
+        n'a pas été mise en cache. Reconnectez-vous à Internet pour y accéder.
       </p>
       <button
         className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
@@ -52,14 +63,18 @@ function lazyWithRetry(importFn: () => Promise<LazyModule>) {
 }
 
 const ComicDetail = lazyWithRetry(() => import("./pages/ComicDetail"));
-const EnrichmentReview = lazyWithRetry(() => import("./pages/EnrichmentReview"));
+const EnrichmentReview = lazyWithRetry(
+  () => import("./pages/EnrichmentReview"),
+);
 const ComicForm = lazyWithRetry(() => import("./pages/ComicForm"));
 const Login = lazyWithRetry(() => import("./pages/Login"));
 const LookupTool = lazyWithRetry(() => import("./pages/LookupTool"));
 const MergeSeries = lazyWithRetry(() => import("./pages/MergeSeries"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const Notifications = lazyWithRetry(() => import("./pages/Notifications"));
-const NotificationSettings = lazyWithRetry(() => import("./pages/NotificationSettings"));
+const NotificationSettings = lazyWithRetry(
+  () => import("./pages/NotificationSettings"),
+);
 const ToBuy = lazyWithRetry(() => import("./pages/ToBuy"));
 const PurgeTool = lazyWithRetry(() => import("./pages/PurgeTool"));
 const Suggestions = lazyWithRetry(() => import("./pages/Suggestions"));
@@ -70,7 +85,10 @@ const QuickAdd = lazyWithRetry(() => import("./pages/QuickAdd"));
 
 function Loading() {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center" role="status">
+    <div
+      className="flex min-h-[50vh] items-center justify-center"
+      role="status"
+    >
       <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
       <span className="sr-only">Chargement…</span>
     </div>
@@ -79,7 +97,9 @@ function Loading() {
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
   return null;
 }
 
@@ -116,12 +136,15 @@ const router = createBrowserRouter(
         <Route element={<Suggestions />} path="tools/suggestions" />
         <Route element={<HelpPage />} path="tools/help" />
         <Route element={<Notifications />} path="notifications" />
-        <Route element={<NotificationSettings />} path="settings/notifications" />
+        <Route
+          element={<NotificationSettings />}
+          path="settings/notifications"
+        />
         <Route element={<ToBuy />} path="to-buy" />
         <Route element={<Trash />} path="trash" />
         <Route element={<NotFound />} path="*" />
       </Route>
-    </Route>
+    </Route>,
   ),
 );
 

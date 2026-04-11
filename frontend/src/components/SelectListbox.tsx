@@ -30,11 +30,7 @@ export default function SelectListbox({
 
   return (
     <div>
-      {label && (
-        <span className={formLabelClassName}>
-          {label}
-        </span>
-      )}
+      {label && <span className={formLabelClassName}>{label}</span>}
       <Listbox onChange={onChange} value={value}>
         <div className="relative">
           <ListboxButton

@@ -11,7 +11,9 @@ describe("PurgeTool", () => {
   it("renders the page title and days input", () => {
     renderWithProviders(<PurgeTool />);
 
-    expect(screen.getByRole("heading", { name: "Purge de la corbeille" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Purge de la corbeille" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("spinbutton")).toBeInTheDocument();
   });
 
@@ -36,9 +38,7 @@ describe("PurgeTool", () => {
 
   it("shows empty state when no series to purge", async () => {
     server.use(
-      http.get(`${API_BASE}/tools/purge/preview`, () =>
-        HttpResponse.json([]),
-      ),
+      http.get(`${API_BASE}/tools/purge/preview`, () => HttpResponse.json([])),
     );
 
     renderWithProviders(<PurgeTool />);

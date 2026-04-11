@@ -15,9 +15,14 @@ export function useDarkMode() {
     document.documentElement.classList.toggle("dark", isDark);
     localStorage.setItem("theme", isDark ? "dark" : "light");
 
-    const meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    const meta = document.querySelector(
+      'meta[name="theme-color"]:not([media])',
+    );
     if (meta) {
-      meta.setAttribute("content", isDark ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
+      meta.setAttribute(
+        "content",
+        isDark ? THEME_COLOR_DARK : THEME_COLOR_LIGHT,
+      );
     }
   }, [isDark]);
 

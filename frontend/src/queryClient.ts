@@ -1,5 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
-import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
+import type {
+  PersistedClient,
+  Persister,
+} from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
 
 // Safari < 16.4 fallback
@@ -23,7 +26,9 @@ export const queryClient = new QueryClient({
   },
 });
 
-function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery"): Persister {
+function createIDBPersister(
+  idbValidKey: IDBValidKey = "reactQuery",
+): Persister {
   return {
     persistClient: (client: PersistedClient) => {
       // Schedule off main thread to avoid blocking renders.

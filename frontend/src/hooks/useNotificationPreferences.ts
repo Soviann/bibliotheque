@@ -22,14 +22,25 @@ export function useUpdatePreference() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ channel, id }: { channel: NotificationChannel; id: number }) =>
-      apiFetch<NotificationPreference>(endpoints.notificationPreferences.detail(id), {
-        body: JSON.stringify({ channel }),
-        headers: { "Content-Type": "application/merge-patch+json" },
-        method: "PATCH",
-      }),
+    mutationFn: ({
+      channel,
+      id,
+    }: {
+      channel: NotificationChannel;
+      id: number;
+    }) =>
+      apiFetch<NotificationPreference>(
+        endpoints.notificationPreferences.detail(id),
+        {
+          body: JSON.stringify({ channel }),
+          headers: { "Content-Type": "application/merge-patch+json" },
+          method: "PATCH",
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.preferences });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.preferences,
+      });
     },
   });
 }

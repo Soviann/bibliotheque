@@ -10,9 +10,17 @@ interface ShelfViewProps {
 }
 
 /** Ordre d'affichage des étagères */
-const STATUS_ORDER: ComicStatus[] = ["buying", "finished", "wishlist", "stopped"];
+const STATUS_ORDER: ComicStatus[] = [
+  "buying",
+  "finished",
+  "wishlist",
+  "stopped",
+];
 
-export default function ShelfView({ comics, onFilterByStatus }: ShelfViewProps) {
+export default function ShelfView({
+  comics,
+  onFilterByStatus,
+}: ShelfViewProps) {
   const grouped = useMemo(() => {
     const groups = new Map<ComicStatus, ComicSeries[]>();
     for (const comic of comics) {

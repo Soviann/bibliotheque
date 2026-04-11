@@ -7,10 +7,7 @@ import { useUpdateTome } from "../../../hooks/useUpdateTome";
 import { queryKeys } from "../../../queryKeys";
 import { enqueue } from "../../../services/offlineQueue";
 import { createTestQueryClient } from "../../helpers/test-utils";
-import {
-  createMockComicSeries,
-  createMockTome,
-} from "../../helpers/factories";
+import { createMockComicSeries, createMockTome } from "../../helpers/factories";
 import { server } from "../../helpers/server";
 
 vi.mock("../../../services/offlineQueue", () => ({
@@ -87,7 +84,9 @@ describe("useUpdateTome", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(queryKeys.comics.detail(1))?.isInvalidated).toBe(true);
+    expect(
+      queryClient.getQueryState(queryKeys.comics.detail(1))?.isInvalidated,
+    ).toBe(true);
   });
 
   it("handles API error", async () => {

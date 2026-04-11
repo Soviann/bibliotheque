@@ -37,7 +37,9 @@ describe("ProgressBar", () => {
   });
 
   it("applies custom color class", () => {
-    render(<ProgressBar color="bg-green-500" current={5} label="Lus" total={10} />);
+    render(
+      <ProgressBar color="bg-green-500" current={5} label="Lus" total={10} />,
+    );
 
     const bar = screen.getByRole("progressbar");
     const fill = bar.firstChild as HTMLElement;
@@ -53,7 +55,14 @@ describe("ProgressBar", () => {
   });
 
   it("renders compact variant without label text", () => {
-    render(<ProgressBar compact current={3} label="Progression d'achat" total={10} />);
+    render(
+      <ProgressBar
+        compact
+        current={3}
+        label="Progression d'achat"
+        total={10}
+      />,
+    );
 
     expect(screen.getByText("3 / 10")).toBeInTheDocument();
     expect(screen.queryByText("Progression d'achat")).not.toBeInTheDocument();

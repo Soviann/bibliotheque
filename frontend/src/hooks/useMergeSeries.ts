@@ -2,11 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { endpoints } from "../endpoints";
 import { queryKeys } from "../queryKeys";
 import { apiFetch } from "../services/api";
-import type {
-  MergeGroup,
-  MergePreview,
-  MergeSuggestion,
-} from "../types/api";
+import type { MergeGroup, MergePreview, MergeSuggestion } from "../types/api";
 
 interface DetectParams {
   all?: boolean;

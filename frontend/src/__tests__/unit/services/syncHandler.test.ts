@@ -1,11 +1,7 @@
 import "fake-indexeddb/auto";
 import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  _resetDb,
-  enqueue,
-  getAll,
-} from "../../../services/offlineQueue";
+import { _resetDb, enqueue, getAll } from "../../../services/offlineQueue";
 import { processSyncQueue } from "../../../services/syncHandler";
 import { server } from "../../helpers/server";
 
@@ -139,10 +135,7 @@ describe("syncHandler — processSyncQueue", () => {
   it("removes item and stores failure on 4xx client error", async () => {
     server.use(
       http.post("/api/comic_series", () =>
-        HttpResponse.json(
-          { detail: "Validation failed" },
-          { status: 422 },
-        ),
+        HttpResponse.json({ detail: "Validation failed" }, { status: 422 }),
       ),
     );
 
@@ -173,8 +166,9 @@ describe("syncHandler — processSyncQueue", () => {
 
   it("keeps item in queue and throws on 5xx server error", async () => {
     server.use(
-      http.post("/api/comic_series", () =>
-        new HttpResponse(null, { status: 503 }),
+      http.post(
+        "/api/comic_series",
+        () => new HttpResponse(null, { status: 503 }),
       ),
     );
 
@@ -184,9 +178,9 @@ describe("syncHandler — processSyncQueue", () => {
       resourceType: "comic_series",
     });
 
-    await expect(
-      processSyncQueue(fakeToken, mockPostMessage),
-    ).rejects.toThrow("Server error 503");
+    await expect(processSyncQueue(fakeToken, mockPostMessage)).rejects.toThrow(
+      "Server error 503",
+    );
 
     // Item should still be in the queue (reverted to pending)
     const remaining = await getAll();
@@ -297,9 +291,9 @@ describe("syncHandler — processSyncQueue", () => {
       resourceType: "comic_series",
     });
 
-    await expect(
-      processSyncQueue(fakeToken, mockPostMessage),
-    ).rejects.toThrow("Server error 500");
+    await expect(processSyncQueue(fakeToken, mockPostMessage)).rejects.toThrow(
+      "Server error 500",
+    );
 
     // Item 1 was processed successfully and removed
     // Item 2 failed with 5xx and was reverted to pending
@@ -345,11 +339,14 @@ describe("syncHandler — processSyncQueue", () => {
       }),
       http.post("/api/comic_series", async ({ request }) => {
         const body = (await request.json()) as { authors: string[] };
-        return HttpResponse.json({
-          "@id": "/api/comic_series/1",
-          authors: body.authors,
-          id: 1,
-        }, { status: 201 });
+        return HttpResponse.json(
+          {
+            "@id": "/api/comic_series/1",
+            authors: body.authors,
+            id: 1,
+          },
+          { status: 201 },
+        );
       }),
     );
 
@@ -377,9 +374,9 @@ describe("syncHandler — processSyncQueue", () => {
       resourceType: "comic_series",
     });
 
-    await expect(
-      processSyncQueue(fakeToken, mockPostMessage),
-    ).rejects.toThrow("resourceId required for update");
+    await expect(processSyncQueue(fakeToken, mockPostMessage)).rejects.toThrow(
+      "resourceId required for update",
+    );
   });
 
   it("throws when buildUrl called for delete without resourceId", async () => {
@@ -389,9 +386,9 @@ describe("syncHandler — processSyncQueue", () => {
       resourceType: "comic_series",
     });
 
-    await expect(
-      processSyncQueue(fakeToken, mockPostMessage),
-    ).rejects.toThrow("resourceId required for delete");
+    await expect(processSyncQueue(fakeToken, mockPostMessage)).rejects.toThrow(
+      "resourceId required for delete",
+    );
   });
 
   it("silently skips items with undefined id", async () => {
@@ -461,11 +458,13 @@ describe("syncHandler — processSyncQueue", () => {
 
   it("falls back to generic error when 4xx response has non-JSON body", async () => {
     server.use(
-      http.post("/api/comic_series", () =>
-        new HttpResponse("plain text error", {
-          headers: { "Content-Type": "text/plain" },
-          status: 422,
-        }),
+      http.post(
+        "/api/comic_series",
+        () =>
+          new HttpResponse("plain text error", {
+            headers: { "Content-Type": "text/plain" },
+            status: 422,
+          }),
       ),
     );
 
@@ -581,10 +580,7 @@ describe("syncHandler — processSyncQueue", () => {
 
     server.use(
       http.post("/api/comic_series", () =>
-        HttpResponse.json(
-          { detail: "Titre requis" },
-          { status: 422 },
-        ),
+        HttpResponse.json({ detail: "Titre requis" }, { status: 422 }),
       ),
     );
 

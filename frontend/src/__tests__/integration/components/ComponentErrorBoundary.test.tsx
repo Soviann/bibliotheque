@@ -37,8 +37,12 @@ describe("ComponentErrorBoundary", () => {
       </ComponentErrorBoundary>,
     );
 
-    expect(screen.getByText("Impossible de charger les tomes")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Réessayer" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Impossible de charger les tomes"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Réessayer" }),
+    ).toBeInTheDocument();
   });
 
   it("renders error message in fallback", () => {
@@ -66,7 +70,9 @@ describe("ComponentErrorBoundary", () => {
       </ComponentErrorBoundary>,
     );
 
-    expect(screen.getByText("Impossible de charger la grille")).toBeInTheDocument();
+    expect(
+      screen.getByText("Impossible de charger la grille"),
+    ).toBeInTheDocument();
 
     shouldThrow = false;
     await user.click(screen.getByRole("button", { name: "Réessayer" }));
@@ -106,6 +112,8 @@ describe("ComponentErrorBoundary", () => {
     const container = screen.getByTestId("component-error-fallback");
     expect(container).toBeInTheDocument();
     // Should NOT contain the full-page "Une erreur est survenue" title
-    expect(screen.queryByText("Une erreur est survenue")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Une erreur est survenue"),
+    ).not.toBeInTheDocument();
   });
 });

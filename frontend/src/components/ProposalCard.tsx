@@ -48,15 +48,22 @@ export default function ProposalCard({
           <span
             className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${EnrichmentConfidenceColor[proposal.confidence as EnrichmentConfidence]}`}
           >
-            {EnrichmentConfidenceLabel[proposal.confidence as EnrichmentConfidence]}
+            {
+              EnrichmentConfidenceLabel[
+                proposal.confidence as EnrichmentConfidence
+              ]
+            }
           </span>
           <span className="text-xs text-text-tertiary">{proposal.source}</span>
           {proposal.triggeredBy && (
             <span className="text-xs text-text-tertiary">
-              via {TriggeredByLabel[proposal.triggeredBy] ?? proposal.triggeredBy}
+              via{" "}
+              {TriggeredByLabel[proposal.triggeredBy] ?? proposal.triggeredBy}
             </span>
           )}
-          <span className="text-xs text-text-tertiary">{formatDate(proposal.createdAt)}</span>
+          <span className="text-xs text-text-tertiary">
+            {formatDate(proposal.createdAt)}
+          </span>
           {readonly && (
             <>
               <span
@@ -65,18 +72,26 @@ export default function ProposalCard({
                 {ProposalStatusLabel[proposal.status as ProposalStatus]}
               </span>
               {proposal.reviewedAt && (
-                <span className="text-xs text-text-tertiary">{formatDate(proposal.reviewedAt)}</span>
+                <span className="text-xs text-text-tertiary">
+                  {formatDate(proposal.reviewedAt)}
+                </span>
               )}
             </>
           )}
         </div>
         <div className="mt-1 break-all text-sm text-text-secondary">
           <span className="text-text-tertiary">
-            {formatEnrichmentValue(proposal.currentValue, proposal.field === "cover" ? Infinity : undefined)}
+            {formatEnrichmentValue(
+              proposal.currentValue,
+              proposal.field === "cover" ? Infinity : undefined,
+            )}
           </span>
           {" → "}
           <span className="font-medium text-text-primary">
-            {formatEnrichmentValue(proposal.proposedValue, proposal.field === "cover" ? Infinity : undefined)}
+            {formatEnrichmentValue(
+              proposal.proposedValue,
+              proposal.field === "cover" ? Infinity : undefined,
+            )}
           </span>
         </div>
       </div>

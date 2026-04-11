@@ -53,13 +53,17 @@ describe("ComicDetail", () => {
     renderComicDetail();
 
     expect(screen.getByTestId("comic-detail-skeleton")).toBeInTheDocument();
-    expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(5);
+    expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(
+      5,
+    );
   });
 
   it("renders comic title", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
-        HttpResponse.json(createMockComicSeries({ id: 1, title: "Dragon Ball" })),
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, title: "Dragon Ball" }),
+        ),
       ),
     );
 
@@ -96,7 +100,11 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: true, title: "My Oneshot Comic" }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: true,
+            title: "My Oneshot Comic",
+          }),
         ),
       ),
     );
@@ -180,7 +188,12 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Series", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Series",
+            tomes,
+          }),
         ),
       ),
     );
@@ -198,7 +211,12 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: true, title: "Single Volume", tomes: [] }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: true,
+            title: "Single Volume",
+            tomes: [],
+          }),
         ),
       ),
     );
@@ -266,7 +284,9 @@ describe("ComicDetail", () => {
     await user.click(screen.getByText("Supprimer"));
 
     // No confirmation modal — direct delete
-    expect(screen.queryByText("Supprimer cette série ?")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Supprimer cette série ?"),
+    ).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(deleteCalled).toBe(true);
@@ -301,8 +321,9 @@ describe("ComicDetail", () => {
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(createMockComicSeries({ id: 1, title: "To Delete" })),
       ),
-      http.delete("/api/comic_series/1", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/comic_series/1",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -326,7 +347,11 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, status: ComicStatus.BUYING, title: "Back Nav Comic" }),
+          createMockComicSeries({
+            id: 1,
+            status: ComicStatus.BUYING,
+            title: "Back Nav Comic",
+          }),
         ),
       ),
     );
@@ -368,19 +393,24 @@ describe("ComicDetail", () => {
 
     await waitFor(() => {
       const img = screen.getByAltText("Cover Test");
-      expect(img.getAttribute("src")).toContain("/uploads/covers/my-cover.webp");
+      expect(img.getAttribute("src")).toContain(
+        "/uploads/covers/my-cover.webp",
+      );
     });
   });
 
   it("shows dash placeholder for tomes with null title", async () => {
-    const tomes = [
-      createMockTome({ id: 1, number: 1, title: null }),
-    ];
+    const tomes = [createMockTome({ id: 1, number: 1, title: null })];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "No Title Tome", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "No Title Tome",
+            tomes,
+          }),
         ),
       ),
     );
@@ -399,8 +429,9 @@ describe("ComicDetail", () => {
 
   it("shows not found message when comic does not exist", async () => {
     server.use(
-      http.get("/api/comic_series/999", () =>
-        new HttpResponse(null, { status: 404 }),
+      http.get(
+        "/api/comic_series/999",
+        () => new HttpResponse(null, { status: 404 }),
       ),
     );
 
@@ -409,7 +440,9 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(screen.getByText("Série introuvable")).toBeInTheDocument();
     });
-    expect(screen.getByRole("link", { name: "Retour à la bibliothèque" })).toHaveAttribute("href", "/");
+    expect(
+      screen.getByRole("link", { name: "Retour à la bibliothèque" }),
+    ).toHaveAttribute("href", "/");
   });
 
   it("does not render authors section when no authors", async () => {
@@ -433,7 +466,11 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, publishedDate: "2020-03-15", title: "With Date" }),
+          createMockComicSeries({
+            id: 1,
+            publishedDate: "2020-03-15",
+            title: "With Date",
+          }),
         ),
       ),
     );
@@ -451,7 +488,11 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, publishedDate: null, title: "No Date" }),
+          createMockComicSeries({
+            id: 1,
+            publishedDate: null,
+            title: "No Date",
+          }),
         ),
       ),
     );
@@ -468,7 +509,11 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, publisher: null, title: "No Publisher" }),
+          createMockComicSeries({
+            id: 1,
+            publisher: null,
+            title: "No Publisher",
+          }),
         ),
       ),
     );
@@ -572,7 +617,12 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ coverImage: null, coverUrl: null, id: 1, title: "No Cover" }),
+          createMockComicSeries({
+            coverImage: null,
+            coverUrl: null,
+            id: 1,
+            title: "No Cover",
+          }),
         ),
       ),
     );
@@ -587,9 +637,27 @@ describe("ComicDetail", () => {
 
   it("shows progress bars for bought, read, and onNas", async () => {
     const tomes = [
-      createMockTome({ bought: true, id: 1, number: 1, onNas: true, read: true }),
-      createMockTome({ bought: true, id: 2, number: 2, onNas: false, read: false }),
-      createMockTome({ bought: false, id: 3, number: 3, onNas: false, read: false }),
+      createMockTome({
+        bought: true,
+        id: 1,
+        number: 1,
+        onNas: true,
+        read: true,
+      }),
+      createMockTome({
+        bought: true,
+        id: 2,
+        number: 2,
+        onNas: false,
+        read: false,
+      }),
+      createMockTome({
+        bought: false,
+        id: 3,
+        number: 3,
+        onNas: false,
+        read: false,
+      }),
     ];
 
     server.use(
@@ -656,8 +724,21 @@ describe("ComicDetail", () => {
 
   it("accounts for tome ranges in progress bars", async () => {
     const tomes = [
-      createMockTome({ bought: true, id: 1, number: 1, onNas: true, read: true, tomeEnd: 2 }), // covers 2
-      createMockTome({ bought: true, id: 2, number: 3, onNas: false, read: false }),            // covers 1
+      createMockTome({
+        bought: true,
+        id: 1,
+        number: 1,
+        onNas: true,
+        read: true,
+        tomeEnd: 2,
+      }), // covers 2
+      createMockTome({
+        bought: true,
+        id: 2,
+        number: 3,
+        onNas: false,
+        read: false,
+      }), // covers 1
     ];
 
     server.use(
@@ -690,7 +771,7 @@ describe("ComicDetail", () => {
   it("uses covered tome count as fallback total when latestPublishedIssue is null", async () => {
     const tomes = [
       createMockTome({ bought: true, id: 1, number: 1, tomeEnd: 3 }), // covers 3
-      createMockTome({ bought: false, id: 2, number: 4 }),            // covers 1
+      createMockTome({ bought: false, id: 2, number: 4 }), // covers 1
     ];
 
     server.use(
@@ -767,7 +848,12 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "No Volumes", tomes: [] }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "No Volumes",
+            tomes: [],
+          }),
         ),
       ),
     );
@@ -789,7 +875,12 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Intégrales", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Intégrales",
+            tomes,
+          }),
         ),
       ),
     );
@@ -814,7 +905,12 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Single Tome", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Single Tome",
+            tomes,
+          }),
         ),
       ),
     );
@@ -837,7 +933,12 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Tome Checks", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Tome Checks",
+            tomes,
+          }),
         ),
       ),
     );
@@ -848,16 +949,26 @@ describe("ComicDetail", () => {
       expect(screen.getByText("Full Tome")).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("checkbox", { name: /tome 1.*nas/i })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: /tome 1.*acheté/i })).not.toBeChecked();
-    expect(screen.getByRole("checkbox", { name: /tome 1.*lu/i })).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: /tome 1.*nas/i }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: /tome 1.*acheté/i }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: /tome 1.*lu/i }),
+    ).not.toBeChecked();
   });
 
   it("shows 'Parution terminée' badge when latestPublishedIssueComplete is true", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, latestPublishedIssueComplete: true, title: "Complete Series" }),
+          createMockComicSeries({
+            id: 1,
+            latestPublishedIssueComplete: true,
+            title: "Complete Series",
+          }),
         ),
       ),
     );
@@ -873,7 +984,11 @@ describe("ComicDetail", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, latestPublishedIssueComplete: false, title: "Ongoing Series" }),
+          createMockComicSeries({
+            id: 1,
+            latestPublishedIssueComplete: false,
+            title: "Ongoing Series",
+          }),
         ),
       ),
     );
@@ -956,7 +1071,10 @@ describe("ComicDetail", () => {
     });
 
     const amazonLink = screen.getByRole("link", { name: /amazon/i });
-    expect(amazonLink).toHaveAttribute("href", "https://www.amazon.fr/dp/B08N5WRWNW");
+    expect(amazonLink).toHaveAttribute(
+      "href",
+      "https://www.amazon.fr/dp/B08N5WRWNW",
+    );
     expect(amazonLink).toHaveAttribute("target", "_blank");
     expect(amazonLink).toHaveAttribute("rel", "noopener noreferrer");
   });
@@ -981,7 +1099,9 @@ describe("ComicDetail", () => {
       expect(screen.getByText("Not Buying")).toBeInTheDocument();
     });
 
-    expect(screen.queryByRole("link", { name: /amazon/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /amazon/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not show Amazon button when amazonUrl is null", async () => {
@@ -1004,7 +1124,9 @@ describe("ComicDetail", () => {
       expect(screen.getByText("No Amazon")).toBeInTheDocument();
     });
 
-    expect(screen.queryByRole("link", { name: /amazon/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /amazon/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders action buttons in correct order: Modifier, Amazon, Supprimer", async () => {
@@ -1115,7 +1237,9 @@ describe("ComicDetail", () => {
   it("renders delete button with outline/ghost red style instead of solid red", async () => {
     server.use(
       http.get("/api/comic_series/1", () =>
-        HttpResponse.json(createMockComicSeries({ id: 1, title: "Ghost Delete" })),
+        HttpResponse.json(
+          createMockComicSeries({ id: 1, title: "Ghost Delete" }),
+        ),
       ),
     );
 
@@ -1133,16 +1257,42 @@ describe("ComicDetail", () => {
 
   describe("tomes table sorting", () => {
     const sortableTomes = [
-      createMockTome({ bought: true, id: 1, number: 1, onNas: false, read: false, title: "Alpha" }),
-      createMockTome({ bought: false, id: 2, number: 3, onNas: true, read: true, title: "Gamma" }),
-      createMockTome({ bought: true, id: 3, number: 2, onNas: true, read: false, title: "Beta" }),
+      createMockTome({
+        bought: true,
+        id: 1,
+        number: 1,
+        onNas: false,
+        read: false,
+        title: "Alpha",
+      }),
+      createMockTome({
+        bought: false,
+        id: 2,
+        number: 3,
+        onNas: true,
+        read: true,
+        title: "Gamma",
+      }),
+      createMockTome({
+        bought: true,
+        id: 3,
+        number: 2,
+        onNas: true,
+        read: false,
+        title: "Beta",
+      }),
     ];
 
     function setupSortableTable() {
       server.use(
         http.get("/api/comic_series/1", () =>
           HttpResponse.json(
-            createMockComicSeries({ id: 1, isOneShot: false, title: "Sort Test", tomes: sortableTomes }),
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              title: "Sort Test",
+              tomes: sortableTomes,
+            }),
           ),
         ),
       );
@@ -1306,7 +1456,9 @@ describe("ComicDetail", () => {
       renderComicDetail();
 
       await waitFor(() => {
-        expect(screen.getByText(/3 tomes parus non ajoutés/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/3 tomes parus non ajoutés/),
+        ).toBeInTheDocument();
       });
     });
 
@@ -1337,13 +1489,13 @@ describe("ComicDetail", () => {
         expect(screen.getByText("All Covered")).toBeInTheDocument();
       });
 
-      expect(screen.queryByText(/tomes? parus? non ajoutés?/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/tomes? parus? non ajoutés?/),
+      ).not.toBeInTheDocument();
     });
 
     it("does not show banner when latestPublishedIssue is null", async () => {
-      const tomes = [
-        createMockTome({ id: 1, number: 1 }),
-      ];
+      const tomes = [createMockTome({ id: 1, number: 1 })];
 
       server.use(
         http.get("/api/comic_series/1", () =>
@@ -1365,7 +1517,9 @@ describe("ComicDetail", () => {
         expect(screen.getByText("No Published Info")).toBeInTheDocument();
       });
 
-      expect(screen.queryByText(/tomes? parus? non ajoutés?/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/tomes? parus? non ajoutés?/),
+      ).not.toBeInTheDocument();
     });
 
     it("does not show banner for oneshot series", async () => {
@@ -1389,13 +1543,15 @@ describe("ComicDetail", () => {
         expect(screen.getByText("Oneshot Banner")).toBeInTheDocument();
       });
 
-      expect(screen.queryByText(/tomes? parus? non ajoutés?/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/tomes? parus? non ajoutés?/),
+      ).not.toBeInTheDocument();
     });
 
     it("accounts for tome ranges in missing count", async () => {
       const tomes = [
         createMockTome({ id: 1, number: 1, tomeEnd: 3 }), // covers 3
-        createMockTome({ id: 2, number: 4 }),               // covers 1
+        createMockTome({ id: 2, number: 4 }), // covers 1
       ];
 
       server.use(
@@ -1416,7 +1572,9 @@ describe("ComicDetail", () => {
 
       // 10 published - 4 covered = 6 missing
       await waitFor(() => {
-        expect(screen.getByText(/6 tomes parus non ajoutés/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/6 tomes parus non ajoutés/),
+        ).toBeInTheDocument();
       });
     });
 
@@ -1448,9 +1606,7 @@ describe("ComicDetail", () => {
     });
 
     it("links to the edit form", async () => {
-      const tomes = [
-        createMockTome({ id: 1, number: 1 }),
-      ];
+      const tomes = [createMockTome({ id: 1, number: 1 })];
 
       server.use(
         http.get("/api/comic_series/1", () =>
@@ -1484,8 +1640,9 @@ describe("ComicDetail", () => {
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(createMockComicSeries({ id: 1, title: "To Toast" })),
       ),
-      http.delete("/api/comic_series/1", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/comic_series/1",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -1500,7 +1657,9 @@ describe("ComicDetail", () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
         "Série supprimée",
-        expect.objectContaining({ action: expect.objectContaining({ label: "Annuler" }) }),
+        expect.objectContaining({
+          action: expect.objectContaining({ label: "Annuler" }),
+        }),
       );
     });
   });
@@ -1588,7 +1747,9 @@ describe("ComicDetail", () => {
 
       // Table should be gone, collection map grid should appear
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
-      expect(screen.getByRole("img", { name: /carte de collection/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("img", { name: /carte de collection/i }),
+      ).toBeInTheDocument();
 
       // localStorage should be updated
       expect(localStorage.getItem("tome-view-mode")).toBe("map");
@@ -1609,7 +1770,9 @@ describe("ComicDetail", () => {
 
       // Map should be visible, not table
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
-      expect(screen.getByRole("img", { name: /carte de collection/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("img", { name: /carte de collection/i }),
+      ).toBeInTheDocument();
     });
   });
 });

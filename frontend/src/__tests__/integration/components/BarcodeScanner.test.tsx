@@ -28,7 +28,9 @@ beforeEach(() => {
   mockStart = vi.fn().mockResolvedValue(undefined);
 
   vi.mocked(Html5Qrcode).mockImplementation(function () {
-    return { start: mockStart, stop: mockStop } as unknown as InstanceType<typeof Html5Qrcode>;
+    return { start: mockStart, stop: mockStop } as unknown as InstanceType<
+      typeof Html5Qrcode
+    >;
   });
 });
 
@@ -87,10 +89,16 @@ describe("BarcodeScanner", () => {
     const onScan = vi.fn();
     let decodedTextCallback: ((text: string) => void) | null = null;
 
-    mockStart.mockImplementation((_camera: unknown, _config: unknown, onSuccess: (text: string) => void) => {
-      decodedTextCallback = onSuccess;
-      return Promise.resolve();
-    });
+    mockStart.mockImplementation(
+      (
+        _camera: unknown,
+        _config: unknown,
+        onSuccess: (text: string) => void,
+      ) => {
+        decodedTextCallback = onSuccess;
+        return Promise.resolve();
+      },
+    );
 
     renderWithProviders(<BarcodeScanner onScan={onScan} />);
 
@@ -111,10 +119,16 @@ describe("BarcodeScanner", () => {
     const onScan = vi.fn();
     let decodedTextCallback: ((text: string) => void) | null = null;
 
-    mockStart.mockImplementation((_camera: unknown, _config: unknown, onSuccess: (text: string) => void) => {
-      decodedTextCallback = onSuccess;
-      return Promise.resolve();
-    });
+    mockStart.mockImplementation(
+      (
+        _camera: unknown,
+        _config: unknown,
+        onSuccess: (text: string) => void,
+      ) => {
+        decodedTextCallback = onSuccess;
+        return Promise.resolve();
+      },
+    );
 
     renderWithProviders(<BarcodeScanner onScan={onScan} />);
 
@@ -134,10 +148,16 @@ describe("BarcodeScanner", () => {
     const onScan = vi.fn();
     let decodedTextCallback: ((text: string) => void) | null = null;
 
-    mockStart.mockImplementation((_camera: unknown, _config: unknown, onSuccess: (text: string) => void) => {
-      decodedTextCallback = onSuccess;
-      return Promise.resolve();
-    });
+    mockStart.mockImplementation(
+      (
+        _camera: unknown,
+        _config: unknown,
+        onSuccess: (text: string) => void,
+      ) => {
+        decodedTextCallback = onSuccess;
+        return Promise.resolve();
+      },
+    );
 
     renderWithProviders(<BarcodeScanner onScan={onScan} />);
 
@@ -162,7 +182,9 @@ describe("BarcodeScanner", () => {
     await user.click(screen.getByText("Scanner"));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Impossible d'accéder à la caméra");
+      expect(toast.error).toHaveBeenCalledWith(
+        "Impossible d'accéder à la caméra",
+      );
     });
 
     expect(screen.getByText("Scanner")).toBeInTheDocument();
@@ -171,7 +193,9 @@ describe("BarcodeScanner", () => {
   it("stops scanner on unmount", async () => {
     const user = userEvent.setup();
 
-    const { unmount } = renderWithProviders(<BarcodeScanner onScan={vi.fn()} />);
+    const { unmount } = renderWithProviders(
+      <BarcodeScanner onScan={vi.fn()} />,
+    );
 
     await user.click(screen.getByText("Scanner"));
 

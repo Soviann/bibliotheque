@@ -16,7 +16,9 @@ import EmptyState from "../components/EmptyState";
 import SelectListbox from "../components/SelectListbox";
 import MergeGroupCard from "../components/MergeGroupCard";
 import MergePreviewModal from "../components/MergePreviewModal";
-import MergeSeriesConfirmModal, { type MergeSeriesEntry } from "../components/MergeSeriesConfirmModal";
+import MergeSeriesConfirmModal, {
+  type MergeSeriesEntry,
+} from "../components/MergeSeriesConfirmModal";
 import SeriesMultiSelect from "../components/SeriesMultiSelect";
 import {
   useDetectMergeGroups,
@@ -25,7 +27,13 @@ import {
   useMergeSuggest,
 } from "../hooks/useMergeSeries";
 import { getErrorMessage } from "../services/api";
-import type { ComicSeries, HydraCollection, MergeGroup, MergePreview, MergeSuggestion } from "../types/api";
+import type {
+  ComicSeries,
+  HydraCollection,
+  MergeGroup,
+  MergePreview,
+  MergeSuggestion,
+} from "../types/api";
 import { type SelectOption, typeOptions } from "../types/enums";
 
 const letterOptions: SelectOption[] = [
@@ -95,7 +103,9 @@ export default function MergeSeries() {
   };
 
   const handleManualPreview = () => {
-    const comicsData = queryClient.getQueryData<HydraCollection<ComicSeries>>(queryKeys.comics.all);
+    const comicsData = queryClient.getQueryData<HydraCollection<ComicSeries>>(
+      queryKeys.comics.all,
+    );
     const comics = comicsData?.member ?? [];
     const entries = selectedIds
       .map((id) => {
@@ -113,7 +123,9 @@ export default function MergeSeries() {
 
     previewMutation.mutate(confirmedIds, {
       onError: (error) => {
-        toast.error(getErrorMessage(error, "Erreur lors de la génération de l'aperçu"));
+        toast.error(
+          getErrorMessage(error, "Erreur lors de la génération de l'aperçu"),
+        );
       },
       onSuccess: (data) => {
         setPreviewData(data);
@@ -154,12 +166,21 @@ export default function MergeSeries() {
   return (
     <>
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Fusion de séries" }]} />
+        <Breadcrumb
+          items={[
+            { href: "/tools", label: "Outils" },
+            { label: "Fusion de séries" },
+          ]}
+        />
         <h1 className="font-display text-xl font-bold text-text-primary">
           Fusion de séries
         </h1>
 
-        <TabGroup className="mt-4" onChange={setSelectedTab} selectedIndex={selectedTab}>
+        <TabGroup
+          className="mt-4"
+          onChange={setSelectedTab}
+          selectedIndex={selectedTab}
+        >
           <TabList className="flex gap-1 rounded-lg bg-surface-secondary p-1">
             <Tab className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-text-secondary transition data-[selected]:bg-surface-primary data-[selected]:text-text-primary data-[selected]:shadow-sm">
               Détection automatique
@@ -261,7 +282,9 @@ export default function MergeSeries() {
           {selectedTab === 0 ? (
             <button
               className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
-              disabled={detectMutation.isPending || !selectedType || !selectedLetter}
+              disabled={
+                detectMutation.isPending || !selectedType || !selectedLetter
+              }
               onClick={handleDetect}
               type="button"
             >

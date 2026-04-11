@@ -9,7 +9,11 @@ const group: MergeGroup = {
   entries: [
     { originalTitle: "Naruto - T1", seriesId: 1, suggestedTomeNumber: 1 },
     { originalTitle: "Naruto - T2", seriesId: 2, suggestedTomeNumber: 2 },
-    { originalTitle: "Naruto Intégrale", seriesId: 3, suggestedTomeNumber: null },
+    {
+      originalTitle: "Naruto Intégrale",
+      seriesId: 3,
+      suggestedTomeNumber: null,
+    },
   ],
   suggestedTitle: "Naruto",
 };

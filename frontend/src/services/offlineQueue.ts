@@ -76,8 +76,16 @@ function getDb(): Promise<IDBPDatabase<OfflineDB>> {
 }
 
 export async function enqueue(
-  item: Pick<QueueItem, "operation" | "payload" | "resourceId" | "resourceType"> &
-    Partial<Pick<QueueItem, "contentType" | "httpMethod" | "parentResourceId" | "parentResourceType">>,
+  item: Pick<
+    QueueItem,
+    "operation" | "payload" | "resourceId" | "resourceType"
+  > &
+    Partial<
+      Pick<
+        QueueItem,
+        "contentType" | "httpMethod" | "parentResourceId" | "parentResourceType"
+      >
+    >,
 ): Promise<number> {
   const db = await getDb();
   return db.add("offlineQueue", {
@@ -110,7 +118,10 @@ export async function dequeue(): Promise<QueueItem | undefined> {
   return item;
 }
 
-export async function updatePayload(id: number, payload: Record<string, unknown>): Promise<void> {
+export async function updatePayload(
+  id: number,
+  payload: Record<string, unknown>,
+): Promise<void> {
   const db = await getDb();
   const item = await db.get("offlineQueue", id);
   if (!item) return;
@@ -119,7 +130,10 @@ export async function updatePayload(id: number, payload: Record<string, unknown>
   await db.put("offlineQueue", item);
 }
 
-export async function updateStatus(id: number, status: QueueItemStatus): Promise<void> {
+export async function updateStatus(
+  id: number,
+  status: QueueItemStatus,
+): Promise<void> {
   const db = await getDb();
   const item = await db.get("offlineQueue", id);
   if (!item) return;
@@ -143,7 +157,11 @@ export async function clearQueue(): Promise<void> {
 
 export async function getPendingCount(): Promise<number> {
   const db = await getDb();
-  const pending = await db.countFromIndex("offlineQueue", "by-status", "pending");
+  const pending = await db.countFromIndex(
+    "offlineQueue",
+    "by-status",
+    "pending",
+  );
   const failed = await db.countFromIndex("offlineQueue", "by-status", "failed");
   return pending + failed;
 }

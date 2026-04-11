@@ -1,5 +1,13 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { Bell, Edit, EllipsisVertical, Euro, Eye, HardDrive, Trash2 } from "lucide-react";
+import {
+  Bell,
+  Edit,
+  EllipsisVertical,
+  Euro,
+  Eye,
+  HardDrive,
+  Trash2,
+} from "lucide-react";
 import { memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDominantColor } from "../hooks/useDominantColor";
@@ -16,7 +24,11 @@ interface ComicCardProps {
   onMenuOpen?: (comic: ComicSeries) => void;
 }
 
-export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCardProps) {
+export default memo(function ComicCard({
+  comic,
+  onDelete,
+  onMenuOpen,
+}: ComicCardProps) {
   const navigate = useNavigate();
   const coverSrc = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
   const total = Math.max(comic.latestPublishedIssue ?? 0, comic.coveredCount);
@@ -69,7 +81,6 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
           height={200}
           onImageLoad={extractColor}
           src={coverSrc ?? ComicTypePlaceholder[comic.type]}
-
           width={150}
         />
 
@@ -152,14 +163,19 @@ export default memo(function ComicCard({ comic, onDelete, onMenuOpen }: ComicCar
               >
                 <EllipsisVertical className="h-4 w-4" strokeWidth={1.5} />
               </MenuButton>
-              <MenuItems anchor="bottom end" className="z-50 w-36 rounded-xl border border-surface-border bg-surface-primary py-1 shadow-layered-lg dark:border-white/10 dark:bg-surface-elevated">
+              <MenuItems
+                anchor="bottom end"
+                className="z-50 w-36 rounded-xl border border-surface-border bg-surface-primary py-1 shadow-layered-lg dark:border-white/10 dark:bg-surface-elevated"
+              >
                 <MenuItem>
                   <button
                     className="flex w-full items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-surface-tertiary"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      navigate(`/comic/${comic.id}/edit`, { viewTransition: true });
+                      navigate(`/comic/${comic.id}/edit`, {
+                        viewTransition: true,
+                      });
                     }}
                     type="button"
                   >

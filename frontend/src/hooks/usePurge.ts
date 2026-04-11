@@ -23,7 +23,9 @@ export function useExecutePurge() {
         method: "POST",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.purge.previewPrefix });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.purge.previewPrefix,
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.comics.all });
     },
   });

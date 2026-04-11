@@ -267,4 +267,3 @@ export interface SeriesSuggestion {
   title: string;
   type: ComicType;
 }
-

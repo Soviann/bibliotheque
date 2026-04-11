@@ -63,7 +63,9 @@ describe("useAuth", () => {
 
     server.use(
       http.post("/api/login/google", async () => {
-        await new Promise<void>((resolve) => { resolveLogin = resolve; });
+        await new Promise<void>((resolve) => {
+          resolveLogin = resolve;
+        });
         return HttpResponse.json({ token: "jwt" });
       }),
     );
@@ -132,10 +134,7 @@ describe("useAuth", () => {
   it("login sets error on failure", async () => {
     server.use(
       http.post("/api/login/google", () =>
-        HttpResponse.json(
-          { error: "Invalid token" },
-          { status: 401 },
-        ),
+        HttpResponse.json({ error: "Invalid token" }, { status: 401 }),
       ),
     );
 
@@ -164,7 +163,9 @@ describe("useAuth", () => {
     });
 
     expect(localStorage.getItem("jwt_token")).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith("/login", { viewTransition: true });
+    expect(mockNavigate).toHaveBeenCalledWith("/login", {
+      viewTransition: true,
+    });
   });
 
   it("logout clears SW api-cache after navigation", async () => {

@@ -4,10 +4,7 @@ import { http, HttpResponse } from "msw";
 import { Route, Routes } from "react-router-dom";
 import { toast } from "sonner";
 import ComicDetail from "../../../pages/ComicDetail";
-import {
-  createMockComicSeries,
-  createMockTome,
-} from "../../helpers/factories";
+import { createMockComicSeries, createMockTome } from "../../helpers/factories";
 import { server } from "../../helpers/server";
 import { renderWithProviders } from "../../helpers/test-utils";
 
@@ -45,13 +42,24 @@ describe("ComicDetail — inline tome toggle", () => {
 
   it("renders checkboxes for tome boolean fields", async () => {
     const tomes = [
-      createMockTome({ bought: true, id: 10, number: 1, onNas: false, read: false }),
+      createMockTome({
+        bought: true,
+        id: 10,
+        number: 1,
+        onNas: false,
+        read: false,
+      }),
     ];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
     );
@@ -67,28 +75,33 @@ describe("ComicDetail — inline tome toggle", () => {
     expect(checkboxes).toHaveLength(3); // bought, read, onNas
 
     // bought is checked, others are not
-    expect(checkboxes[0]).toBeChecked();      // bought
-    expect(checkboxes[1]).not.toBeChecked();   // read
-    expect(checkboxes[2]).not.toBeChecked();   // onNas
+    expect(checkboxes[0]).toBeChecked(); // bought
+    expect(checkboxes[1]).not.toBeChecked(); // read
+    expect(checkboxes[2]).not.toBeChecked(); // onNas
   });
 
   it("sends PATCH request when toggling a tome checkbox", async () => {
     const user = userEvent.setup();
     let putBody: Record<string, unknown> | null = null;
 
-    const tomes = [
-      createMockTome({ bought: false, id: 10, number: 1 }),
-    ];
+    const tomes = [createMockTome({ bought: false, id: 10, number: 1 })];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/10", async ({ request }) => {
         putBody = (await request.json()) as Record<string, unknown>;
-        return HttpResponse.json(createMockTome({ bought: true, id: 10, number: 1 }));
+        return HttpResponse.json(
+          createMockTome({ bought: true, id: 10, number: 1 }),
+        );
       }),
     );
 
@@ -112,20 +125,25 @@ describe("ComicDetail — inline tome toggle", () => {
   it("optimistically updates checkbox state before API response", async () => {
     const user = userEvent.setup();
 
-    const tomes = [
-      createMockTome({ id: 10, number: 1, read: false }),
-    ];
+    const tomes = [createMockTome({ id: 10, number: 1, read: false })];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/10", async () => {
         // Delay the response to verify optimistic update
         await new Promise((resolve) => setTimeout(resolve, 200));
-        return HttpResponse.json(createMockTome({ id: 10, number: 1, read: true }));
+        return HttpResponse.json(
+          createMockTome({ id: 10, number: 1, read: true }),
+        );
       }),
     );
 
@@ -150,14 +168,17 @@ describe("ComicDetail — inline tome toggle", () => {
   it("reverts optimistic update and shows error toast on API failure", async () => {
     const user = userEvent.setup();
 
-    const tomes = [
-      createMockTome({ bought: false, id: 10, number: 1 }),
-    ];
+    const tomes = [createMockTome({ bought: false, id: 10, number: 1 })];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/10", () =>
@@ -189,14 +210,17 @@ describe("ComicDetail — inline tome toggle", () => {
   it("shows grouped success toast after toggling a tome (debounced)", async () => {
     const user = userEvent.setup();
 
-    const tomes = [
-      createMockTome({ id: 10, number: 3, read: false }),
-    ];
+    const tomes = [createMockTome({ id: 10, number: 3, read: false })];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/10", () =>
@@ -216,12 +240,15 @@ describe("ComicDetail — inline tome toggle", () => {
     await user.click(readCheckbox);
 
     // Wait for debounced toast (1s after last toggle)
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith(
-        "1 tome mis à jour",
-        expect.objectContaining({ duration: 1500 }),
-      );
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(toast.success).toHaveBeenCalledWith(
+          "1 tome mis à jour",
+          expect.objectContaining({ duration: 1500 }),
+        );
+      },
+      { timeout: 2000 },
+    );
   });
 
   it("groups multiple rapid toggle toasts into one", async () => {
@@ -236,11 +263,18 @@ describe("ComicDetail — inline tome toggle", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/:id", ({ params }) =>
-        HttpResponse.json(createMockTome({ id: Number(params.id), read: true })),
+        HttpResponse.json(
+          createMockTome({ id: Number(params.id), read: true }),
+        ),
       ),
     );
 
@@ -258,24 +292,44 @@ describe("ComicDetail — inline tome toggle", () => {
     }
 
     // Wait for the debounced grouped toast (1s after last toggle)
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith(
-        "3 tomes mis à jour",
-        expect.objectContaining({ duration: 1500 }),
-      );
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(toast.success).toHaveBeenCalledWith(
+          "3 tomes mis à jour",
+          expect.objectContaining({ duration: 1500 }),
+        );
+      },
+      { timeout: 3000 },
+    );
   });
 
   it("renders header checkboxes for bulk toggle", async () => {
     const tomes = [
-      createMockTome({ bought: true, id: 10, number: 1, onNas: false, read: false }),
-      createMockTome({ bought: true, id: 11, number: 2, onNas: false, read: false }),
+      createMockTome({
+        bought: true,
+        id: 10,
+        number: 1,
+        onNas: false,
+        read: false,
+      }),
+      createMockTome({
+        bought: true,
+        id: 11,
+        number: 2,
+        onNas: false,
+        read: false,
+      }),
     ];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
     );
@@ -286,9 +340,15 @@ describe("ComicDetail — inline tome toggle", () => {
       expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("checkbox", { name: /tout cocher acheté/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /tout cocher lu/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /tout cocher nas/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /tout cocher acheté/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /tout cocher lu/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /tout cocher nas/i }),
+    ).toBeInTheDocument();
   });
 
   it("select all: when none checked, click checks all and sends PATCH for each", async () => {
@@ -304,12 +364,19 @@ describe("ComicDetail — inline tome toggle", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/:id", async ({ params }) => {
         patchedIds.push(Number(params.id));
-        return HttpResponse.json(createMockTome({ bought: true, id: Number(params.id) }));
+        return HttpResponse.json(
+          createMockTome({ bought: true, id: Number(params.id) }),
+        );
       }),
     );
 
@@ -319,7 +386,9 @@ describe("ComicDetail — inline tome toggle", () => {
       expect(screen.getByText("Tomes (3)")).toBeInTheDocument();
     });
 
-    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher acheté/i });
+    const headerCheckbox = screen.getByRole("checkbox", {
+      name: /tout cocher acheté/i,
+    });
     await user.click(headerCheckbox);
 
     // All row checkboxes should be checked optimistically
@@ -348,7 +417,12 @@ describe("ComicDetail — inline tome toggle", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/:id", async ({ request }) => {
@@ -363,7 +437,9 @@ describe("ComicDetail — inline tome toggle", () => {
       expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
     });
 
-    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher acheté/i });
+    const headerCheckbox = screen.getByRole("checkbox", {
+      name: /tout cocher acheté/i,
+    });
     expect(headerCheckbox).toBeChecked();
 
     await user.click(headerCheckbox);
@@ -390,7 +466,12 @@ describe("ComicDetail — inline tome toggle", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
     );
@@ -401,7 +482,9 @@ describe("ComicDetail — inline tome toggle", () => {
       expect(screen.getByText("Tomes (2)")).toBeInTheDocument();
     });
 
-    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher acheté/i }) as HTMLInputElement;
+    const headerCheckbox = screen.getByRole("checkbox", {
+      name: /tout cocher acheté/i,
+    }) as HTMLInputElement;
     expect(headerCheckbox.indeterminate).toBe(true);
     expect(headerCheckbox.checked).toBe(false);
   });
@@ -419,12 +502,19 @@ describe("ComicDetail — inline tome toggle", () => {
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
       http.patch("/api/tomes/:id", async ({ params }) => {
         patchedIds.push(Number(params.id));
-        return HttpResponse.json(createMockTome({ onNas: true, id: Number(params.id) }));
+        return HttpResponse.json(
+          createMockTome({ onNas: true, id: Number(params.id) }),
+        );
       }),
     );
 
@@ -435,7 +525,9 @@ describe("ComicDetail — inline tome toggle", () => {
     });
 
     // Click "select all NAS" — only tome 11 needs changing
-    const headerCheckbox = screen.getByRole("checkbox", { name: /tout cocher nas/i });
+    const headerCheckbox = screen.getByRole("checkbox", {
+      name: /tout cocher nas/i,
+    });
     await user.click(headerCheckbox);
 
     await waitFor(() => {
@@ -445,14 +537,17 @@ describe("ComicDetail — inline tome toggle", () => {
   });
 
   it("checkboxes have accessible labels", async () => {
-    const tomes = [
-      createMockTome({ id: 10, number: 3 }),
-    ];
+    const tomes = [createMockTome({ id: 10, number: 3 })];
 
     server.use(
       http.get("/api/comic_series/1", () =>
         HttpResponse.json(
-          createMockComicSeries({ id: 1, isOneShot: false, title: "Test", tomes }),
+          createMockComicSeries({
+            id: 1,
+            isOneShot: false,
+            title: "Test",
+            tomes,
+          }),
         ),
       ),
     );
@@ -464,8 +559,14 @@ describe("ComicDetail — inline tome toggle", () => {
     });
 
     // Each checkbox should have an accessible label
-    expect(screen.getByRole("checkbox", { name: /tome 3.*acheté/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /tome 3.*lu/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /tome 3.*nas/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /tome 3.*acheté/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /tome 3.*lu/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /tome 3.*nas/i }),
+    ).toBeInTheDocument();
   });
 });

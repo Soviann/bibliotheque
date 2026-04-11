@@ -53,7 +53,11 @@ describe("ShelfRow", () => {
   it("renders see-all button", () => {
     render(
       <MemoryRouter>
-        <ShelfRow comics={[mockComic(1, "Test")]} onSeeAll={() => {}} title="Terminé" />
+        <ShelfRow
+          comics={[mockComic(1, "Test")]}
+          onSeeAll={() => {}}
+          title="Terminé"
+        />
       </MemoryRouter>,
     );
     expect(screen.getByText("Tout voir")).toBeInTheDocument();

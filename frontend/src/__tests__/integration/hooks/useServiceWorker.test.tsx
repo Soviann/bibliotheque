@@ -151,10 +151,12 @@ describe("useServiceWorker", () => {
   });
 
   it("calls toast when onNeedRefresh is triggered", async () => {
-    mockRegisterSW.mockImplementationOnce((options?: { onNeedRefresh?: () => void }) => {
-      options?.onNeedRefresh?.();
-      return () => {};
-    });
+    mockRegisterSW.mockImplementationOnce(
+      (options?: { onNeedRefresh?: () => void }) => {
+        options?.onNeedRefresh?.();
+        return () => {};
+      },
+    );
 
     renderHook(() => useServiceWorker(), {
       wrapper: createWrapper(),

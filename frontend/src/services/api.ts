@@ -23,7 +23,10 @@ export function isAuthenticated(): boolean {
   return getToken() !== null;
 }
 
-export function getErrorMessage(err: unknown, fallback = "Erreur inconnue"): string {
+export function getErrorMessage(
+  err: unknown,
+  fallback = "Erreur inconnue",
+): string {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;
   if (err !== null && err !== undefined) return String(err);
@@ -66,7 +69,11 @@ export async function apiFetch<T>(
   }
 
   // Only set Content-Type for requests with body (not FormData), unless already set
-  if (options.body && !(options.body instanceof FormData) && !headers["Content-Type"]) {
+  if (
+    options.body &&
+    !(options.body instanceof FormData) &&
+    !headers["Content-Type"]
+  ) {
     headers["Content-Type"] = "application/ld+json";
   }
 
@@ -147,9 +154,7 @@ export async function fetchSSE<TMessage, TComplete>(
       error?: string;
     };
     onError(
-      new Error(
-        errBody.detail ?? errBody.error ?? `Erreur ${response.status}`,
-      ),
+      new Error(errBody.detail ?? errBody.error ?? `Erreur ${response.status}`),
     );
     return;
   }

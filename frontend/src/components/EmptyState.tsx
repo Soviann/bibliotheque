@@ -18,7 +18,8 @@ export default function EmptyState({
   onAction,
   title,
 }: EmptyStateProps) {
-  const ctaClassName = "mt-4 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors";
+  const ctaClassName =
+    "mt-4 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors";
 
   return (
     <div className="flex animate-fade-in-up flex-col items-center justify-center py-16 text-center motion-reduce:animate-none">
@@ -32,9 +33,14 @@ export default function EmptyState({
           strokeWidth={1.5}
         />
       </div>
-      <h2 className="font-display text-lg font-semibold text-text-primary">{title}</h2>
+      <h2 className="font-display text-lg font-semibold text-text-primary">
+        {title}
+      </h2>
       {description && (
-        <p className="mt-1 text-sm text-text-muted" data-testid="empty-state-description">
+        <p
+          className="mt-1 text-sm text-text-muted"
+          data-testid="empty-state-description"
+        >
           {description}
         </p>
       )}

@@ -30,7 +30,11 @@ export default function ProgressLog({ progress, total }: ProgressLogProps) {
 
   return (
     <div className="space-y-3">
-      <ProgressBar current={current} label="Progression du lookup" total={total} />
+      <ProgressBar
+        current={current}
+        label="Progression du lookup"
+        total={total}
+      />
 
       <div
         className="max-h-80 space-y-1 overflow-y-auto rounded-lg border border-surface-border bg-surface-secondary p-3"

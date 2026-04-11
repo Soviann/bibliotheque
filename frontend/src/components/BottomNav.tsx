@@ -65,12 +65,12 @@ export default function BottomNav() {
               viewTransition
             >
               <Icon className="h-5 w-5" strokeWidth={1.5} />
-              <span>
-                {label}
-              </span>
+              <span>{label}</span>
               {/* Active dot indicator */}
               {active && (
-                <span className={`absolute -bottom-1 h-1 w-1 rounded-full ${dotColor} dark:shadow-[0_0_6px_currentColor]`} />
+                <span
+                  className={`absolute -bottom-1 h-1 w-1 rounded-full ${dotColor} dark:shadow-[0_0_6px_currentColor]`}
+                />
               )}
             </Link>
           );

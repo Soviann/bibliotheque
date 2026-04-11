@@ -141,7 +141,8 @@ body {
 }
 
 @keyframes glow-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -160,9 +161,15 @@ body {
 
 /* ── Micro-interactions ── */
 @keyframes checkbox-bounce {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.25); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Checkbox bounce on change */
@@ -183,16 +190,36 @@ input[type="checkbox"]:checked {
 }
 
 /* ── Staggered grid entrance ── */
-@utility animate-stagger-1 { animation-delay: 30ms; }
-@utility animate-stagger-2 { animation-delay: 60ms; }
-@utility animate-stagger-3 { animation-delay: 90ms; }
-@utility animate-stagger-4 { animation-delay: 120ms; }
-@utility animate-stagger-5 { animation-delay: 150ms; }
-@utility animate-stagger-6 { animation-delay: 180ms; }
-@utility animate-stagger-7 { animation-delay: 210ms; }
-@utility animate-stagger-8 { animation-delay: 240ms; }
-@utility animate-stagger-9 { animation-delay: 270ms; }
-@utility animate-stagger-10 { animation-delay: 300ms; }
+@utility animate-stagger-1 {
+  animation-delay: 30ms;
+}
+@utility animate-stagger-2 {
+  animation-delay: 60ms;
+}
+@utility animate-stagger-3 {
+  animation-delay: 90ms;
+}
+@utility animate-stagger-4 {
+  animation-delay: 120ms;
+}
+@utility animate-stagger-5 {
+  animation-delay: 150ms;
+}
+@utility animate-stagger-6 {
+  animation-delay: 180ms;
+}
+@utility animate-stagger-7 {
+  animation-delay: 210ms;
+}
+@utility animate-stagger-8 {
+  animation-delay: 240ms;
+}
+@utility animate-stagger-9 {
+  animation-delay: 270ms;
+}
+@utility animate-stagger-10 {
+  animation-delay: 300ms;
+}
 
 /* ── Glassmorphism utility ── */
 @utility glass {

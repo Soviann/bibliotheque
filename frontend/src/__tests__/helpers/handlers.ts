@@ -39,8 +39,9 @@ export const handlers = [
   ),
 
   // Delete comic (soft)
-  http.delete(`${API_BASE}/comic_series/:id`, () =>
-    new HttpResponse(null, { status: 204 }),
+  http.delete(
+    `${API_BASE}/comic_series/:id`,
+    () => new HttpResponse(null, { status: 204 }),
   ),
 
   // Trash collection
@@ -54,8 +55,9 @@ export const handlers = [
   ),
 
   // Permanent delete
-  http.delete(`${API_BASE}/trash/:id/permanent`, () =>
-    new HttpResponse(null, { status: 204 }),
+  http.delete(
+    `${API_BASE}/trash/:id/permanent`,
+    () => new HttpResponse(null, { status: 204 }),
   ),
 
   // Tomes sub-resource
@@ -65,9 +67,7 @@ export const handlers = [
 
   // Update tome (partial)
   http.patch(`${API_BASE}/tomes/:id`, ({ params }) =>
-    HttpResponse.json(
-      createMockTome({ id: Number(params.id) }),
-    ),
+    HttpResponse.json(createMockTome({ id: Number(params.id) })),
   ),
 
   // Authors

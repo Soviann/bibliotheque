@@ -24,10 +24,7 @@ describe("Breadcrumb", () => {
     render(
       <MemoryRouter>
         <Breadcrumb
-          items={[
-            { href: "/tools", label: "Outils" },
-            { label: "Purge" },
-          ]}
+          items={[{ href: "/tools", label: "Outils" }, { label: "Purge" }]}
         />
       </MemoryRouter>,
     );
@@ -39,25 +36,21 @@ describe("Breadcrumb", () => {
     render(
       <MemoryRouter>
         <Breadcrumb
-          items={[
-            { href: "/tools", label: "Outils" },
-            { label: "Lookup" },
-          ]}
+          items={[{ href: "/tools", label: "Outils" }, { label: "Lookup" }]}
         />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("navigation", { name: "Fil d'Ariane" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Fil d'Ariane" }),
+    ).toBeInTheDocument();
   });
 
   it("renders last item as aria-current=page", () => {
     render(
       <MemoryRouter>
         <Breadcrumb
-          items={[
-            { href: "/tools", label: "Outils" },
-            { label: "Fusion" },
-          ]}
+          items={[{ href: "/tools", label: "Outils" }, { label: "Fusion" }]}
         />
       </MemoryRouter>,
     );

@@ -47,7 +47,9 @@ describe("CoverSearchModal", () => {
   it("is not visible when open is false", () => {
     renderWithProviders(<CoverSearchModal {...defaultProps} open={false} />);
 
-    expect(screen.queryByText("Rechercher une couverture")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Rechercher une couverture"),
+    ).not.toBeInTheDocument();
   });
 
   it("displays results as images", async () => {
@@ -77,13 +79,13 @@ describe("CoverSearchModal", () => {
 
     await user.click(screen.getByAltText("Naruto Vol. 1"));
 
-    expect(defaultProps.onSelect).toHaveBeenCalledWith("https://example.com/cover1.jpg");
+    expect(defaultProps.onSelect).toHaveBeenCalledWith(
+      "https://example.com/cover1.jpg",
+    );
   });
 
   it("displays empty state when no results", async () => {
-    server.use(
-      http.get("/api/lookup/covers", () => HttpResponse.json([])),
-    );
+    server.use(http.get("/api/lookup/covers", () => HttpResponse.json([])));
 
     renderWithProviders(<CoverSearchModal {...defaultProps} />);
 
@@ -93,11 +95,7 @@ describe("CoverSearchModal", () => {
   });
 
   it("shows skeleton loading state", () => {
-    server.use(
-      http.get("/api/lookup/covers", () =>
-        new Promise(() => {}),
-      ),
-    );
+    server.use(http.get("/api/lookup/covers", () => new Promise(() => {})));
 
     renderWithProviders(<CoverSearchModal {...defaultProps} />);
 
@@ -111,14 +109,18 @@ describe("CoverSearchModal", () => {
     await user.type(screen.getByPlaceholderText("Rechercher..."), "N");
 
     await waitFor(() => {
-      expect(screen.getByText("Saisissez au moins 2 caractères")).toBeInTheDocument();
+      expect(
+        screen.getByText("Saisissez au moins 2 caractères"),
+      ).toBeInTheDocument();
     });
   });
 
   it("does not show minimum characters message when query is empty", () => {
     renderWithProviders(<CoverSearchModal {...defaultProps} defaultQuery="" />);
 
-    expect(screen.queryByText("Saisissez au moins 2 caractères")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Saisissez au moins 2 caractères"),
+    ).not.toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", async () => {
@@ -143,10 +145,21 @@ describe("CoverSearchModal", () => {
     });
 
     // Simulate overflow: scrollHeight > clientHeight
-    const scrollContainer = screen.getByAltText("Naruto Vol. 1").closest(".overflow-y-auto")!;
-    Object.defineProperty(scrollContainer, "scrollHeight", { value: 800, configurable: true });
-    Object.defineProperty(scrollContainer, "clientHeight", { value: 400, configurable: true });
-    Object.defineProperty(scrollContainer, "scrollTop", { value: 0, configurable: true });
+    const scrollContainer = screen
+      .getByAltText("Naruto Vol. 1")
+      .closest(".overflow-y-auto")!;
+    Object.defineProperty(scrollContainer, "scrollHeight", {
+      value: 800,
+      configurable: true,
+    });
+    Object.defineProperty(scrollContainer, "clientHeight", {
+      value: 400,
+      configurable: true,
+    });
+    Object.defineProperty(scrollContainer, "scrollTop", {
+      value: 0,
+      configurable: true,
+    });
 
     // Trigger scroll event to update state
     act(() => {

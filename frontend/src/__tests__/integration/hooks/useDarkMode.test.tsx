@@ -100,7 +100,9 @@ describe("useDarkMode", () => {
       result.current.toggle();
     });
 
-    const meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    const meta = document.querySelector(
+      'meta[name="theme-color"]:not([media])',
+    );
     expect(meta).toHaveAttribute("content", THEME_COLOR_DARK);
   });
 
@@ -113,7 +115,9 @@ describe("useDarkMode", () => {
       result.current.toggle();
     });
 
-    const meta = document.querySelector('meta[name="theme-color"]:not([media])');
+    const meta = document.querySelector(
+      'meta[name="theme-color"]:not([media])',
+    );
     expect(meta).toHaveAttribute("content", THEME_COLOR_LIGHT);
   });
 

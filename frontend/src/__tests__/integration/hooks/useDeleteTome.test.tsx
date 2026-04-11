@@ -48,8 +48,9 @@ describe("useDeleteTome", () => {
 
   it("deletes a tome via API", async () => {
     server.use(
-      http.delete("/api/tomes/10", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/tomes/10",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -92,7 +93,9 @@ describe("useDeleteTome", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const cached = queryClient.getQueryData<typeof series>(queryKeys.comics.detail(5));
+    const cached = queryClient.getQueryData<typeof series>(
+      queryKeys.comics.detail(5),
+    );
     expect(cached?.tomes).toHaveLength(0);
   });
 });

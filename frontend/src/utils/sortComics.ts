@@ -1,8 +1,17 @@
 import type { ComicSeries } from "../types/api";
 
-export type SortOption = "createdAt-asc" | "createdAt-desc" | "title-asc" | "title-desc" | "tomes-asc" | "tomes-desc";
+export type SortOption =
+  | "createdAt-asc"
+  | "createdAt-desc"
+  | "title-asc"
+  | "title-desc"
+  | "tomes-asc"
+  | "tomes-desc";
 
-export function sortComics(comics: ComicSeries[], sort: SortOption): ComicSeries[] {
+export function sortComics(
+  comics: ComicSeries[],
+  sort: SortOption,
+): ComicSeries[] {
   const sorted = [...comics];
   switch (sort) {
     case "title-desc":

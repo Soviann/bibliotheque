@@ -20,7 +20,12 @@ registerRoute(
   new NetworkFirst({
     cacheName: "api-cache",
     networkTimeoutSeconds: 3,
-    plugins: [new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 60 * 60, maxEntries: 200 })],
+    plugins: [
+      new ExpirationPlugin({
+        maxAgeSeconds: 7 * 24 * 60 * 60,
+        maxEntries: 200,
+      }),
+    ],
   }),
 );
 
@@ -29,7 +34,12 @@ registerRoute(
   /\/uploads\/covers\//,
   new CacheFirst({
     cacheName: "cover-cache",
-    plugins: [new ExpirationPlugin({ maxAgeSeconds: 30 * 24 * 60 * 60, maxEntries: 500 })],
+    plugins: [
+      new ExpirationPlugin({
+        maxAgeSeconds: 30 * 24 * 60 * 60,
+        maxEntries: 500,
+      }),
+    ],
   }),
 );
 
@@ -38,7 +48,12 @@ registerRoute(
   /^https:\/\/books\.google\.com\//,
   new CacheFirst({
     cacheName: "external-cover-cache",
-    plugins: [new ExpirationPlugin({ maxAgeSeconds: 30 * 24 * 60 * 60, maxEntries: 500 })],
+    plugins: [
+      new ExpirationPlugin({
+        maxAgeSeconds: 30 * 24 * 60 * 60,
+        maxEntries: 500,
+      }),
+    ],
   }),
 );
 
@@ -61,7 +76,10 @@ async function handleOfflineSync(): Promise<void> {
     }
 
     // Notification pour les erreurs de sync (utile quand l'app est fermée)
-    if (message.type === "sync-failure" && Notification.permission === "granted") {
+    if (
+      message.type === "sync-failure" &&
+      Notification.permission === "granted"
+    ) {
       const failure = message.failure as { error?: string } | undefined;
       void self.registration.showNotification("Erreur de synchronisation", {
         body: failure?.error ?? "Une opération hors ligne a échoué",
@@ -86,12 +104,14 @@ async function getToken(): Promise<string | null> {
 // ── Push notifications ──
 
 self.addEventListener("push", (event: PushEvent) => {
-  const data = event.data?.json() as {
-    body?: string;
-    icon?: string;
-    title?: string;
-    url?: string;
-  } | undefined;
+  const data = event.data?.json() as
+    | {
+        body?: string;
+        icon?: string;
+        title?: string;
+        url?: string;
+      }
+    | undefined;
 
   if (!data?.title) return;
 

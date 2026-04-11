@@ -4,7 +4,9 @@ import SyncPendingIndicator from "../../../components/SyncPendingIndicator";
 describe("SyncPendingIndicator", () => {
   it("renders with tooltip", () => {
     render(<SyncPendingIndicator />);
-    expect(screen.getByTitle("En attente de synchronisation")).toBeInTheDocument();
+    expect(
+      screen.getByTitle("En attente de synchronisation"),
+    ).toBeInTheDocument();
   });
 
   it("applies custom className", () => {

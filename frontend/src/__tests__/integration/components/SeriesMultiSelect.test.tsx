@@ -12,9 +12,24 @@ import { renderWithProviders } from "../../helpers/test-utils";
 import { ComicType } from "../../../types/enums";
 
 const comics = [
-  createMockComicSeries({ id: 1, title: "Naruto", tomes: [], type: ComicType.MANGA }),
-  createMockComicSeries({ id: 2, title: "One Piece", tomes: [], type: ComicType.MANGA }),
-  createMockComicSeries({ id: 3, title: "Bleach", tomes: [], type: ComicType.BD }),
+  createMockComicSeries({
+    id: 1,
+    title: "Naruto",
+    tomes: [],
+    type: ComicType.MANGA,
+  }),
+  createMockComicSeries({
+    id: 2,
+    title: "One Piece",
+    tomes: [],
+    type: ComicType.MANGA,
+  }),
+  createMockComicSeries({
+    id: 3,
+    title: "Bleach",
+    tomes: [],
+    type: ComicType.BD,
+  }),
 ];
 
 function setupHandler() {
@@ -53,7 +68,10 @@ describe("SeriesMultiSelect", () => {
       expect(screen.getByText("Naruto")).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Rechercher une série..."), "one");
+    await user.type(
+      screen.getByPlaceholderText("Rechercher une série..."),
+      "one",
+    );
 
     await waitFor(() => {
       expect(screen.getByText("One Piece")).toBeInTheDocument();
@@ -68,7 +86,10 @@ describe("SeriesMultiSelect", () => {
     const onSelectionChange = vi.fn();
 
     renderWithProviders(
-      <SeriesMultiSelect onSelectionChange={onSelectionChange} selectedIds={[]} />,
+      <SeriesMultiSelect
+        onSelectionChange={onSelectionChange}
+        selectedIds={[]}
+      />,
     );
 
     await waitFor(() => {
@@ -106,7 +127,10 @@ describe("SeriesMultiSelect", () => {
     const onSelectionChange = vi.fn();
 
     renderWithProviders(
-      <SeriesMultiSelect onSelectionChange={onSelectionChange} selectedIds={[1, 2]} />,
+      <SeriesMultiSelect
+        onSelectionChange={onSelectionChange}
+        selectedIds={[1, 2]}
+      />,
     );
 
     await waitFor(() => {
@@ -142,7 +166,10 @@ describe("SeriesMultiSelect", () => {
     const onSelectionChange = vi.fn();
 
     renderWithProviders(
-      <SeriesMultiSelect onSelectionChange={onSelectionChange} selectedIds={[]} />,
+      <SeriesMultiSelect
+        onSelectionChange={onSelectionChange}
+        selectedIds={[]}
+      />,
     );
 
     await waitFor(() => {
@@ -184,7 +211,9 @@ describe("SeriesMultiSelect", () => {
     });
 
     // Close the modal
-    const closeButton = within(screen.getByRole("dialog")).getByRole("button", { name: /fermer/i });
+    const closeButton = within(screen.getByRole("dialog")).getByRole("button", {
+      name: /fermer/i,
+    });
     await user.click(closeButton);
 
     await waitFor(() => {

@@ -6,7 +6,9 @@ import SearchInput from "../../../components/SearchInput";
 describe("SearchInput", () => {
   it("does not show clear button when value is empty", () => {
     render(<SearchInput onChange={vi.fn()} value="" />);
-    expect(screen.queryByLabelText("Vider la recherche")).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Vider la recherche"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows clear button when value is non-empty", () => {

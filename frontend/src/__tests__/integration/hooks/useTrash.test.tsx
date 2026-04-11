@@ -47,9 +47,7 @@ describe("useTrash", () => {
 
     server.use(
       http.get("/api/trash", () =>
-        HttpResponse.json(
-          createMockHydraCollection([deleted], "/api/trash"),
-        ),
+        HttpResponse.json(createMockHydraCollection([deleted], "/api/trash")),
       ),
     );
 
@@ -147,8 +145,14 @@ describe("useRestoreComic", () => {
   it("invalidates trash and comics queries on success", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(queryKeys.trash.all, createMockHydraCollection([], "/api/trash"));
-    queryClient.setQueryData(queryKeys.comics.all, createMockHydraCollection([]));
+    queryClient.setQueryData(
+      queryKeys.trash.all,
+      createMockHydraCollection([], "/api/trash"),
+    );
+    queryClient.setQueryData(
+      queryKeys.comics.all,
+      createMockHydraCollection([]),
+    );
 
     server.use(
       http.put("/api/comic_series/7/restore", () =>
@@ -166,8 +170,12 @@ describe("useRestoreComic", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(
+      true,
+    );
+    expect(queryClient.getQueryState(queryKeys.comics.all)?.isInvalidated).toBe(
+      true,
+    );
   });
 });
 
@@ -183,8 +191,9 @@ describe("usePermanentDelete", () => {
 
   it("permanently deletes a comic via API", async () => {
     server.use(
-      http.delete("/api/trash/9/permanent", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/trash/9/permanent",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -202,11 +211,15 @@ describe("usePermanentDelete", () => {
   it("invalidates trash queries on success", async () => {
     const queryClient = createTestQueryClient();
 
-    queryClient.setQueryData(queryKeys.trash.all, createMockHydraCollection([], "/api/trash"));
+    queryClient.setQueryData(
+      queryKeys.trash.all,
+      createMockHydraCollection([], "/api/trash"),
+    );
 
     server.use(
-      http.delete("/api/trash/9/permanent", () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        "/api/trash/9/permanent",
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
 
@@ -220,7 +233,9 @@ describe("usePermanentDelete", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queryKeys.trash.all)?.isInvalidated).toBe(
+      true,
+    );
   });
 
   it("returns error on failed DELETE", async () => {

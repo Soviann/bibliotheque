@@ -28,12 +28,17 @@ beforeEach(() => {
 
 describe("VirtualGrid", () => {
   it("renders virtual rows with items", () => {
-    const items = Array.from({ length: 9 }, (_, i) => ({ id: i, name: `Item ${i}` }));
+    const items = Array.from({ length: 9 }, (_, i) => ({
+      id: i,
+      name: `Item ${i}`,
+    }));
 
     render(
       <VirtualGrid
         items={items}
-        renderItem={(item) => <div data-testid={`item-${item.id}`}>{item.name}</div>}
+        renderItem={(item) => (
+          <div data-testid={`item-${item.id}`}>{item.name}</div>
+        )}
       />,
     );
 
@@ -62,7 +67,9 @@ describe("VirtualGrid", () => {
       />,
     );
 
-    expect(emptyContainer.querySelector("[data-testid='virtual-grid']")).toBeInTheDocument();
+    expect(
+      emptyContainer.querySelector("[data-testid='virtual-grid']"),
+    ).toBeInTheDocument();
   });
 
   it("applies custom testId", () => {
@@ -81,10 +88,7 @@ describe("VirtualGrid", () => {
     const items = Array.from({ length: 6 }, (_, i) => ({ id: i }));
 
     const { container } = render(
-      <VirtualGrid
-        items={items}
-        renderItem={(item) => <div>{item.id}</div>}
-      />,
+      <VirtualGrid items={items} renderItem={(item) => <div>{item.id}</div>} />,
     );
 
     // Virtual rows should have grid classes

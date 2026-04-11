@@ -18,7 +18,11 @@ export default function QuickAdd() {
   const [searchType, setSearchType] = useState("bd");
 
   const handleAdd = useCallback(
-    (result: { coverUrl: string | null; title: string; tomeNumber: number }) => {
+    (result: {
+      coverUrl: string | null;
+      title: string;
+      tomeNumber: number;
+    }) => {
       addItem(result);
       toast.success(`${result.title} T${result.tomeNumber} ajouté`);
     },
@@ -30,7 +34,9 @@ export default function QuickAdd() {
       {/* Conteneur principal — remplit l'espace entre le header Layout et la tab bar fixée */}
       <div
         className="-mx-4 -my-4 flex flex-col overflow-hidden"
-        style={{ height: `calc(100dvh - var(--bottom-nav-h) - ${TAB_BAR_HEIGHT} - 53px)` }}
+        style={{
+          height: `calc(100dvh - var(--bottom-nav-h) - ${TAB_BAR_HEIGHT} - 53px)`,
+        }}
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-surface-border px-4 py-3 dark:border-white/10">
@@ -43,7 +49,9 @@ export default function QuickAdd() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex flex-col items-center">
-            <h1 className="font-display text-base font-semibold text-text-primary">Ajout rapide</h1>
+            <h1 className="font-display text-base font-semibold text-text-primary">
+              Ajout rapide
+            </h1>
             <Link
               className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400"
               to={`/comic/new${searchQuery || searchType !== "bd" ? `?${new URLSearchParams({ ...(searchQuery ? { title: searchQuery } : {}), ...(searchType !== "bd" ? { type: searchType } : {}) })}` : ""}`}
@@ -70,7 +78,11 @@ export default function QuickAdd() {
           {tab === "scan" ? (
             <QuickAddScan batchMode={batchMode} onAdd={handleAdd} />
           ) : (
-            <QuickAddSearch onAdd={handleAdd} onQueryChange={setSearchQuery} onTypeChange={setSearchType} />
+            <QuickAddSearch
+              onAdd={handleAdd}
+              onQueryChange={setSearchQuery}
+              onTypeChange={setSearchType}
+            />
           )}
         </div>
       </div>

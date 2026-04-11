@@ -5,7 +5,12 @@ import CoverLightbox from "../../../components/CoverLightbox";
 describe("CoverLightbox", () => {
   it("renders nothing when not open", () => {
     render(
-      <CoverLightbox onClose={vi.fn()} open={false} src="/cover.jpg" title="Test" />,
+      <CoverLightbox
+        onClose={vi.fn()}
+        open={false}
+        src="/cover.jpg"
+        title="Test"
+      />,
     );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -13,7 +18,12 @@ describe("CoverLightbox", () => {
 
   it("renders image in dialog when open", () => {
     render(
-      <CoverLightbox onClose={vi.fn()} open={true} src="/cover.jpg" title="Test" />,
+      <CoverLightbox
+        onClose={vi.fn()}
+        open={true}
+        src="/cover.jpg"
+        title="Test"
+      />,
     );
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -26,7 +36,12 @@ describe("CoverLightbox", () => {
     const onClose = vi.fn();
 
     render(
-      <CoverLightbox onClose={onClose} open={true} src="/cover.jpg" title="Test" />,
+      <CoverLightbox
+        onClose={onClose}
+        open={true}
+        src="/cover.jpg"
+        title="Test"
+      />,
     );
 
     // Click outside the image (on the backdrop)
@@ -40,7 +55,12 @@ describe("CoverLightbox", () => {
     const onClose = vi.fn();
 
     render(
-      <CoverLightbox onClose={onClose} open={true} src="/cover.jpg" title="Test" />,
+      <CoverLightbox
+        onClose={onClose}
+        open={true}
+        src="/cover.jpg"
+        title="Test"
+      />,
     );
 
     await user.keyboard("{Escape}");

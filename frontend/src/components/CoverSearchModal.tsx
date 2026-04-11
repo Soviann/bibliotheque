@@ -103,56 +103,63 @@ export default function CoverSearchModal({
           </div>
 
           <div className="relative">
-          <div className="overflow-y-auto p-4" onScroll={handleScroll} ref={scrollRef}>
-            {isLoading && debouncedQuery.length >= 2 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <SkeletonBox className="aspect-[2/3]" key={i} />
-                ))}
-              </div>
-            )}
-
-            {!isLoading && results && results.length === 0 && debouncedQuery.length >= 2 && (
-              <p className="py-8 text-center text-sm text-text-secondary">
-                Aucune image trouvée
-              </p>
-            )}
-
-            {!isLoading && results && results.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {results.map((result) => (
-                  <button
-                    className="group relative overflow-hidden rounded-lg border border-surface-border transition hover:ring-2 hover:ring-accent-primary"
-                    key={result.url}
-                    onClick={() => onSelect(result.url)}
-                    type="button"
-                  >
-                    <img
-                      alt={result.title}
-                      className="aspect-[2/3] w-full object-cover"
-                      loading="lazy"
-                      src={result.thumbnail}
-                    />
-                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100">
-                      {result.width}×{result.height}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {searchQuery.length > 0 && debouncedQuery.length < 2 && (
-              <p className="py-8 text-center text-sm text-text-secondary">
-                Saisissez au moins 2 caractères
-              </p>
-            )}
-          </div>
-          {showScrollIndicator && (
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-surface-primary to-transparent"
-              data-testid="scroll-indicator"
-            />
-          )}
+              className="overflow-y-auto p-4"
+              onScroll={handleScroll}
+              ref={scrollRef}
+            >
+              {isLoading && debouncedQuery.length >= 2 && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <SkeletonBox className="aspect-[2/3]" key={i} />
+                  ))}
+                </div>
+              )}
+
+              {!isLoading &&
+                results &&
+                results.length === 0 &&
+                debouncedQuery.length >= 2 && (
+                  <p className="py-8 text-center text-sm text-text-secondary">
+                    Aucune image trouvée
+                  </p>
+                )}
+
+              {!isLoading && results && results.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                  {results.map((result) => (
+                    <button
+                      className="group relative overflow-hidden rounded-lg border border-surface-border transition hover:ring-2 hover:ring-accent-primary"
+                      key={result.url}
+                      onClick={() => onSelect(result.url)}
+                      type="button"
+                    >
+                      <img
+                        alt={result.title}
+                        className="aspect-[2/3] w-full object-cover"
+                        loading="lazy"
+                        src={result.thumbnail}
+                      />
+                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100">
+                        {result.width}×{result.height}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {searchQuery.length > 0 && debouncedQuery.length < 2 && (
+                <p className="py-8 text-center text-sm text-text-secondary">
+                  Saisissez au moins 2 caractères
+                </p>
+              )}
+            </div>
+            {showScrollIndicator && (
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-surface-primary to-transparent"
+                data-testid="scroll-indicator"
+              />
+            )}
           </div>
         </DialogPanel>
       </div>

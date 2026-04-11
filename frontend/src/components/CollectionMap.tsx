@@ -22,7 +22,8 @@ function buildTomeMap(tomes: Tome[]): Map<number, Tome> {
 }
 
 function cellClasses(tome: Tome | undefined): string {
-  const base = "flex aspect-square items-center justify-center rounded text-xs font-medium";
+  const base =
+    "flex aspect-square items-center justify-center rounded text-xs font-medium";
 
   if (!tome) {
     return `${base} border border-dashed border-text-muted/30 text-text-muted/50`;
@@ -53,7 +54,10 @@ function cellTitle(number: number, tome: Tome | undefined, hs = false): string {
   return `${prefix} — ${states.join(", ")}`;
 }
 
-export default function CollectionMap({ latestPublishedIssue, tomes }: CollectionMapProps) {
+export default function CollectionMap({
+  latestPublishedIssue,
+  tomes,
+}: CollectionMapProps) {
   const tomeMap = useMemo(() => buildTomeMap(tomes), [tomes]);
   const hsTomes = useMemo(() => tomes.filter((t) => t.isHorsSerie), [tomes]);
 
@@ -76,7 +80,11 @@ export default function CollectionMap({ latestPublishedIssue, tomes }: Collectio
         {cells.map((n) => {
           const tome = tomeMap.get(n);
           return (
-            <div className={cellClasses(tome)} key={n} title={cellTitle(n, tome)}>
+            <div
+              className={cellClasses(tome)}
+              key={n}
+              title={cellTitle(n, tome)}
+            >
               {tome?.read ? (
                 <Check className="h-3.5 w-3.5" strokeWidth={3} />
               ) : (

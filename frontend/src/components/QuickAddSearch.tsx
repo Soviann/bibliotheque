@@ -7,12 +7,20 @@ import { typeOptions } from "../types/enums";
 import CoverImage from "./CoverImage";
 
 interface QuickAddSearchProps {
-  onAdd: (result: { coverUrl: string | null; title: string; tomeNumber: number }) => void;
+  onAdd: (result: {
+    coverUrl: string | null;
+    title: string;
+    tomeNumber: number;
+  }) => void;
   onQueryChange?: (query: string) => void;
   onTypeChange?: (type: ComicType) => void;
 }
 
-export default function QuickAddSearch({ onAdd, onQueryChange, onTypeChange }: QuickAddSearchProps) {
+export default function QuickAddSearch({
+  onAdd,
+  onQueryChange,
+  onTypeChange,
+}: QuickAddSearchProps) {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [type, setType] = useState<ComicType>("bd");
@@ -69,17 +77,25 @@ export default function QuickAddSearch({ onAdd, onQueryChange, onTypeChange }: Q
                   {candidate.title ?? "Sans titre"}
                 </h4>
                 {candidate.tomeNumber && (
-                  <p className="text-xs text-text-muted">Tome {candidate.tomeNumber}</p>
+                  <p className="text-xs text-text-muted">
+                    Tome {candidate.tomeNumber}
+                  </p>
                 )}
                 {candidate.publisher && (
-                  <p className="text-xs text-text-muted">{candidate.publisher}</p>
+                  <p className="text-xs text-text-muted">
+                    {candidate.publisher}
+                  </p>
                 )}
               </div>
             </button>
           ))}
-          {submittedQuery.length >= 2 && !isFetching && results.length === 0 && (
-            <p className="py-8 text-center text-sm text-text-muted">Aucun résultat</p>
-          )}
+          {submittedQuery.length >= 2 &&
+            !isFetching &&
+            results.length === 0 && (
+              <p className="py-8 text-center text-sm text-text-muted">
+                Aucun résultat
+              </p>
+            )}
         </div>
       </div>
 
@@ -95,7 +111,10 @@ export default function QuickAddSearch({ onAdd, onQueryChange, onTypeChange }: Q
                   : "bg-surface-tertiary text-text-muted hover:text-text-secondary"
               }`}
               key={opt.value}
-              onClick={() => { setType(opt.value as ComicType); onTypeChange?.(opt.value as ComicType); }}
+              onClick={() => {
+                setType(opt.value as ComicType);
+                onTypeChange?.(opt.value as ComicType);
+              }}
               type="button"
             >
               {opt.label}

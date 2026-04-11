@@ -73,7 +73,9 @@ function FilterDrawer({
       <DialogBackdrop className="fixed inset-0 z-40 bg-black/40 transition duration-300 ease-out data-closed:opacity-0" />
       <DialogPanel className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-surface-primary p-5 shadow-layered-xl transition duration-300 ease-out data-closed:translate-y-full">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-text-primary">Filtres</h2>
+          <h2 className="font-display text-lg font-semibold text-text-primary">
+            Filtres
+          </h2>
           <button
             aria-label="Fermer"
             className="rounded-lg p-1.5 text-text-muted hover:bg-surface-secondary"
@@ -160,13 +162,25 @@ export default function Filters({
   return (
     <div className="flex min-w-0 flex-1 items-center gap-3">
       <div className="min-w-0 flex-1">
-        <SelectListbox onChange={onTypeChange} options={typeOptionsAll} value={type} />
+        <SelectListbox
+          onChange={onTypeChange}
+          options={typeOptionsAll}
+          value={type}
+        />
       </div>
       <div className="min-w-0 flex-1">
-        <SelectListbox onChange={onStatusChange} options={statusOptionsAll} value={status} />
+        <SelectListbox
+          onChange={onStatusChange}
+          options={statusOptionsAll}
+          value={status}
+        />
       </div>
       <div className="min-w-0 flex-1">
-        <SelectListbox onChange={(v) => onSortChange(v as SortOption)} options={sortOptions} value={sort} />
+        <SelectListbox
+          onChange={(v) => onSortChange(v as SortOption)}
+          options={sortOptions}
+          value={sort}
+        />
       </div>
     </div>
   );

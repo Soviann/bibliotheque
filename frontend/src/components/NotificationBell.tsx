@@ -8,7 +8,9 @@ export default function NotificationBell() {
 
   return (
     <Link
-      aria-label={count > 0 ? `${count} notifications non lues` : "Notifications"}
+      aria-label={
+        count > 0 ? `${count} notifications non lues` : "Notifications"
+      }
       className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary"
       to="/notifications"
       viewTransition

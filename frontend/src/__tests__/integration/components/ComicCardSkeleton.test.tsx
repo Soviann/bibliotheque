@@ -7,7 +7,9 @@ describe("ComicCardSkeleton", () => {
 
     expect(screen.getByTestId("comic-card-skeleton")).toBeInTheDocument();
     // Contains skeleton boxes (cover + text lines)
-    expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByTestId("skeleton-box").length).toBeGreaterThanOrEqual(
+      3,
+    );
   });
 
   it("has the same border styling as ComicCard", () => {

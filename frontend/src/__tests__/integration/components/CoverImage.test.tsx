@@ -26,7 +26,11 @@ describe("CoverImage", () => {
 
   it("shows fallback image on error", () => {
     render(
-      <CoverImage alt="Test" fallbackSrc="/placeholder-bd.jpg" src="/uploads/covers/broken.webp" />,
+      <CoverImage
+        alt="Test"
+        fallbackSrc="/placeholder-bd.jpg"
+        src="/uploads/covers/broken.webp"
+      />,
     );
 
     const img = screen.getByAltText("Test");

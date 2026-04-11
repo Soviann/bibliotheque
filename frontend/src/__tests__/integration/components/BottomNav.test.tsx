@@ -15,10 +15,22 @@ describe("BottomNav", () => {
   it("renders correct link targets", () => {
     renderWithProviders(<BottomNav />);
 
-    expect(screen.getByText("Accueil").closest("a")).toHaveAttribute("href", "/");
-    expect(screen.getByText("À acheter").closest("a")).toHaveAttribute("href", "/to-buy");
-    expect(screen.getByText("Ajouter").closest("a")).toHaveAttribute("href", "/quick-add");
-    expect(screen.getByText("Corbeille").closest("a")).toHaveAttribute("href", "/trash");
+    expect(screen.getByText("Accueil").closest("a")).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(screen.getByText("À acheter").closest("a")).toHaveAttribute(
+      "href",
+      "/to-buy",
+    );
+    expect(screen.getByText("Ajouter").closest("a")).toHaveAttribute(
+      "href",
+      "/quick-add",
+    );
+    expect(screen.getByText("Corbeille").closest("a")).toHaveAttribute(
+      "href",
+      "/trash",
+    );
   });
 
   it("highlights À acheter tab on /to-buy", () => {

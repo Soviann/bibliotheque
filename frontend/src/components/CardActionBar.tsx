@@ -9,7 +9,12 @@ interface CardActionBarProps {
   onEdit: (comic: ComicSeries) => void;
 }
 
-export default memo(function CardActionBar({ comic, onClose, onDelete, onEdit }: CardActionBarProps) {
+export default memo(function CardActionBar({
+  comic,
+  onClose,
+  onDelete,
+  onEdit,
+}: CardActionBarProps) {
   const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,7 +48,9 @@ export default memo(function CardActionBar({ comic, onClose, onDelete, onEdit }:
         ref={barRef}
         role="dialog"
       >
-        <p className="mb-2 truncate text-sm font-semibold text-text-primary">{comic.title}</p>
+        <p className="mb-2 truncate text-sm font-semibold text-text-primary">
+          {comic.title}
+        </p>
         <div className="flex gap-2">
           <button
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary-50 py-3 text-sm font-medium text-primary-600 dark:bg-primary-950/30"

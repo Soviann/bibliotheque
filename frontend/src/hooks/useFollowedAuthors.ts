@@ -15,7 +15,9 @@ export function useToggleAuthorFollow() {
         method: "PATCH",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.comics.detailPrefix });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.comics.detailPrefix,
+      });
     },
   });
 }

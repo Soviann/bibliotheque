@@ -3,7 +3,9 @@ import userEvent from "@testing-library/user-event";
 import MergePreviewModal from "../../../components/MergePreviewModal";
 import type { MergePreview, MergePreviewTome } from "../../../types/api";
 
-function createMockTome(overrides: Partial<MergePreviewTome> = {}): MergePreviewTome {
+function createMockTome(
+  overrides: Partial<MergePreviewTome> = {},
+): MergePreviewTome {
   return {
     bought: false,
     isbn: null,
@@ -16,7 +18,9 @@ function createMockTome(overrides: Partial<MergePreviewTome> = {}): MergePreview
   };
 }
 
-function createMockPreview(overrides: Partial<MergePreview> = {}): MergePreview {
+function createMockPreview(
+  overrides: Partial<MergePreview> = {},
+): MergePreview {
   return {
     amazonUrl: null,
     authors: [],
@@ -129,7 +133,9 @@ describe("MergePreviewModal — add tome", () => {
     );
 
     await user.click(screen.getByRole("button", { name: /ajouter un tome/i }));
-    await user.click(screen.getByRole("button", { name: /confirmer la fusion/i }));
+    await user.click(
+      screen.getByRole("button", { name: /confirmer la fusion/i }),
+    );
 
     expect(onConfirm).toHaveBeenCalledWith(
       expect.objectContaining({

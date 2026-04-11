@@ -6,7 +6,11 @@ import Breadcrumb from "../components/Breadcrumb";
 import EmptyState from "../components/EmptyState";
 import ProposalCard from "../components/ProposalCard";
 import SelectListbox from "../components/SelectListbox";
-import { useAcceptProposal, useEnrichmentProposals, useRejectProposal } from "../hooks/useEnrichment";
+import {
+  useAcceptProposal,
+  useEnrichmentProposals,
+  useRejectProposal,
+} from "../hooks/useEnrichment";
 import type { EnrichmentProposal } from "../types/api";
 import {
   EnrichableFieldLabel,
@@ -15,7 +19,10 @@ import {
   type SelectOption,
 } from "../types/enums";
 
-const ACTIONABLE_STATUSES: string[] = [ProposalStatus.PENDING, ProposalStatus.PRE_ACCEPTED];
+const ACTIONABLE_STATUSES: string[] = [
+  ProposalStatus.PENDING,
+  ProposalStatus.PRE_ACCEPTED,
+];
 
 const confidenceOptions: SelectOption[] = [
   { label: "Toutes", value: "" },
@@ -44,7 +51,9 @@ export default function EnrichmentReview() {
     const fields = new Set(proposals?.map((p) => p.field) ?? []);
     return [
       { label: "Tous les champs", value: "" },
-      ...[...fields].sort().map((f) => ({ label: EnrichableFieldLabel[f] ?? f, value: f })),
+      ...[...fields]
+        .sort()
+        .map((f) => ({ label: EnrichableFieldLabel[f] ?? f, value: f })),
     ];
   }, [proposals]);
 
@@ -60,7 +69,11 @@ export default function EnrichmentReview() {
     if (!proposals) return [];
     const searchLower = search.toLowerCase();
     return proposals.filter((p) => {
-      if (searchLower && !p.comicSeries.title?.toLowerCase().includes(searchLower)) return false;
+      if (
+        searchLower &&
+        !p.comicSeries.title?.toLowerCase().includes(searchLower)
+      )
+        return false;
       if (fieldFilter && p.field !== fieldFilter) return false;
       if (confidenceFilter && p.confidence !== confidenceFilter) return false;
       if (sourceFilter && p.source !== sourceFilter) return false;
@@ -69,7 +82,10 @@ export default function EnrichmentReview() {
   }, [proposals, search, fieldFilter, confidenceFilter, sourceFilter]);
 
   const groupedBySeries = useMemo(() => {
-    const map = new Map<number, { proposals: EnrichmentProposal[]; title: string }>();
+    const map = new Map<
+      number,
+      { proposals: EnrichmentProposal[]; title: string }
+    >();
     for (const proposal of filteredProposals) {
       const seriesId = proposal.comicSeries.id;
       const existing = map.get(seriesId);
@@ -101,8 +117,15 @@ export default function EnrichmentReview() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Revue d'enrichissement" }]} />
-      <h1 className="font-display text-xl font-bold text-text-primary">Revue d&apos;enrichissement</h1>
+      <Breadcrumb
+        items={[
+          { href: "/tools", label: "Outils" },
+          { label: "Revue d'enrichissement" },
+        ]}
+      />
+      <h1 className="font-display text-xl font-bold text-text-primary">
+        Revue d&apos;enrichissement
+      </h1>
 
       {!isLoading && proposals && proposals.length > 0 && (
         <div className="mt-4 space-y-3">
@@ -143,7 +166,8 @@ export default function EnrichmentReview() {
             </div>
           </div>
           <p className="text-sm text-text-tertiary">
-            {filteredProposals.length} proposition{filteredProposals.length !== 1 ? "s" : ""}
+            {filteredProposals.length} proposition
+            {filteredProposals.length !== 1 ? "s" : ""}
           </p>
         </div>
       )}
@@ -164,29 +188,31 @@ export default function EnrichmentReview() {
 
       {!isLoading && groupedBySeries.size > 0 && (
         <div className="mt-4 space-y-6">
-          {[...groupedBySeries.entries()].map(([seriesId, { proposals: seriesProposals, title }]) => (
-            <div
-              className="rounded-xl border border-surface-border bg-surface-primary p-4"
-              key={seriesId}
-            >
-              <Link
-                className="text-base font-semibold text-primary-600 hover:underline"
-                to={`/comic/${seriesId}`}
+          {[...groupedBySeries.entries()].map(
+            ([seriesId, { proposals: seriesProposals, title }]) => (
+              <div
+                className="rounded-xl border border-surface-border bg-surface-primary p-4"
+                key={seriesId}
               >
-                {title}
-              </Link>
-              <div className="mt-3 space-y-2">
-                {seriesProposals.map((proposal) => (
-                  <ProposalCard
-                    key={proposal.id}
-                    onAccept={handleAccept}
-                    onReject={handleReject}
-                    proposal={proposal}
-                  />
-                ))}
+                <Link
+                  className="text-base font-semibold text-primary-600 hover:underline"
+                  to={`/comic/${seriesId}`}
+                >
+                  {title}
+                </Link>
+                <div className="mt-3 space-y-2">
+                  {seriesProposals.map((proposal) => (
+                    <ProposalCard
+                      key={proposal.id}
+                      onAccept={handleAccept}
+                      onReject={handleReject}
+                      proposal={proposal}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ),
+          )}
         </div>
       )}
     </div>

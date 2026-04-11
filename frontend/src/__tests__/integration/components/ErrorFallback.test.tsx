@@ -20,7 +20,10 @@ describe("ErrorFallback", () => {
     const resetErrorBoundary = vi.fn();
 
     renderWithProviders(
-      <ErrorFallback error={"string error"} resetErrorBoundary={resetErrorBoundary} />,
+      <ErrorFallback
+        error={"string error"}
+        resetErrorBoundary={resetErrorBoundary}
+      />,
     );
 
     expect(screen.getByText("string error")).toBeInTheDocument();

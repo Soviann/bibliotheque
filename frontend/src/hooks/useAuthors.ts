@@ -11,7 +11,8 @@ export function useAuthors(search: string = "") {
 
   return useQuery({
     enabled: search.length >= 1,
-    queryFn: () => apiFetch<HydraCollection<Author>>(`${endpoints.authors}${params}`),
+    queryFn: () =>
+      apiFetch<HydraCollection<Author>>(`${endpoints.authors}${params}`),
     queryKey: queryKeys.authors.search(search),
     staleTime: STALE_TIME_30MIN,
   });

@@ -3,10 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import Breadcrumb from "../components/Breadcrumb";
 import ProgressLog from "../components/ProgressLog";
-import {
-  useBatchLookup,
-  useBatchLookupPreview,
-} from "../hooks/useBatchLookup";
+import { useBatchLookup, useBatchLookupPreview } from "../hooks/useBatchLookup";
 import { typeOptionsAll } from "../types/enums";
 
 export default function LookupTool() {
@@ -15,8 +12,10 @@ export default function LookupTool() {
   const [limit, setLimit] = useState(0);
   const [delay, setDelay] = useState(2);
 
-  const { data: preview, isLoading: previewLoading } =
-    useBatchLookupPreview(type || undefined, force);
+  const { data: preview, isLoading: previewLoading } = useBatchLookupPreview(
+    type || undefined,
+    force,
+  );
   const { cancel, isRunning, progress, start, summary } = useBatchLookup();
 
   const handleStart = () => {
@@ -33,7 +32,12 @@ export default function LookupTool() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <Breadcrumb items={[{ href: "/tools", label: "Outils" }, { label: "Lookup métadonnées" }]} />
+      <Breadcrumb
+        items={[
+          { href: "/tools", label: "Outils" },
+          { label: "Lookup métadonnées" },
+        ]}
+      />
       <h1 className="font-display text-xl font-bold text-text-primary">
         Lookup métadonnées
       </h1>
@@ -84,7 +88,10 @@ export default function LookupTool() {
             Forcer le re-lookup
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-text-secondary" htmlFor="lookup-delay">
+          <label
+            className="flex items-center gap-2 text-sm text-text-secondary"
+            htmlFor="lookup-delay"
+          >
             Délai (s)
           </label>
           <input

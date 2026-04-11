@@ -4,7 +4,11 @@ import { toast } from "sonner";
 import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import SkeletonBox from "../components/SkeletonBox";
-import { usePermanentDelete, useRestoreComic, useTrash } from "../hooks/useTrash";
+import {
+  usePermanentDelete,
+  useRestoreComic,
+  useTrash,
+} from "../hooks/useTrash";
 import type { ComicSeries } from "../types/api";
 import { ComicTypePlaceholder } from "../types/enums";
 import { getCoverSrc, getCoverThumbnailSrc } from "../utils/coverUtils";
@@ -19,12 +23,17 @@ export default function Trash() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-2xl font-bold text-text-primary">Corbeille</h1>
+      <h1 className="font-display text-2xl font-bold text-text-primary">
+        Corbeille
+      </h1>
 
       {isLoading ? (
         <div className="space-y-2" data-testid="trash-skeleton">
           {Array.from({ length: 4 }, (_, i) => (
-            <div className="flex items-center gap-3 rounded-lg border border-surface-border bg-surface-primary p-3" key={i}>
+            <div
+              className="flex items-center gap-3 rounded-lg border border-surface-border bg-surface-primary p-3"
+              key={i}
+            >
               <SkeletonBox className="h-12 w-9 !rounded" />
               <SkeletonBox className="h-5 flex-1" />
               <SkeletonBox className="h-8 w-8" />
@@ -49,16 +58,29 @@ export default function Trash() {
                 alt={comic.title}
                 className="h-12 w-9 rounded object-cover"
                 loading="lazy"
-                src={getCoverThumbnailSrc(comic) ?? getCoverSrc(comic) ?? ComicTypePlaceholder[comic.type]}
+                src={
+                  getCoverThumbnailSrc(comic) ??
+                  getCoverSrc(comic) ??
+                  ComicTypePlaceholder[comic.type]
+                }
               />
-              <span className="flex-1 font-medium text-text-primary">{comic.title}</span>
+              <span className="flex-1 font-medium text-text-primary">
+                {comic.title}
+              </span>
               <button
                 className="rounded-lg bg-primary-100 p-2 text-primary-700 hover:bg-primary-200 dark:bg-primary-950/30 dark:text-primary-400 dark:hover:bg-primary-900/40"
                 onClick={() => {
-                  restoreComic.mutate({ id: comic.id }, {
-                    onError: () => toast.error(`Erreur lors de la restauration de ${comic.title}`),
-                    onSuccess: () => toast.success(`${comic.title} restaurée`),
-                  });
+                  restoreComic.mutate(
+                    { id: comic.id },
+                    {
+                      onError: () =>
+                        toast.error(
+                          `Erreur lors de la restauration de ${comic.title}`,
+                        ),
+                      onSuccess: () =>
+                        toast.success(`${comic.title} restaurée`),
+                    },
+                  );
                 }}
                 title="Restaurer"
                 type="button"
@@ -84,10 +106,19 @@ export default function Trash() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (deleteTarget) {
-            permanentDelete.mutate({ id: deleteTarget.id }, {
-              onError: () => toast.error(`Erreur lors de la suppression de ${deleteTarget.title}`),
-              onSuccess: () => toast.success(`${deleteTarget.title} supprimée définitivement`),
-            });
+            permanentDelete.mutate(
+              { id: deleteTarget.id },
+              {
+                onError: () =>
+                  toast.error(
+                    `Erreur lors de la suppression de ${deleteTarget.title}`,
+                  ),
+                onSuccess: () =>
+                  toast.success(
+                    `${deleteTarget.title} supprimée définitivement`,
+                  ),
+              },
+            );
           }
         }}
         open={deleteTarget !== null}

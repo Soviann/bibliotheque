@@ -3,9 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Breadcrumb from "../components/Breadcrumb";
 import EmptyState from "../components/EmptyState";
-import { useDeleteNotification, useMarkAllRead, useMarkAsRead, useNotifications } from "../hooks/useNotifications";
+import {
+  useDeleteNotification,
+  useMarkAllRead,
+  useMarkAsRead,
+  useNotifications,
+} from "../hooks/useNotifications";
 import type { AppNotification } from "../types/notifications";
-import { NotificationEntityType, NotificationTypeLabel, type NotificationType } from "../types/enums";
+import {
+  NotificationEntityType,
+  NotificationTypeLabel,
+  type NotificationType,
+} from "../types/enums";
 
 function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -19,10 +28,12 @@ function formatRelativeTime(iso: string): string {
 }
 
 function buildEntityUrl(notification: AppNotification): string | null {
-  if (!notification.relatedEntityType || !notification.relatedEntityId) return null;
+  if (!notification.relatedEntityType || !notification.relatedEntityId)
+    return null;
   return notification.relatedEntityType === NotificationEntityType.COMIC_SERIES
     ? `/comic/${notification.relatedEntityId}`
-    : notification.relatedEntityType === NotificationEntityType.ENRICHMENT_PROPOSAL
+    : notification.relatedEntityType ===
+        NotificationEntityType.ENRICHMENT_PROPOSAL
       ? "/tools/enrichment-review"
       : null;
 }
@@ -46,7 +57,10 @@ export default function Notifications() {
 
   const handleMarkAllRead = () => {
     markAllRead.mutate(undefined, {
-      onSuccess: (data) => toast.success(`${data.updated} notification(s) marquée(s) comme lue(s)`),
+      onSuccess: (data) =>
+        toast.success(
+          `${data.updated} notification(s) marquée(s) comme lue(s)`,
+        ),
     });
   };
 
@@ -54,7 +68,9 @@ export default function Notifications() {
     <div className="mx-auto max-w-2xl px-4 py-6">
       <Breadcrumb items={[{ label: "Notifications" }]} />
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-xl font-bold text-text-primary">Notifications</h1>
+        <h1 className="font-display text-xl font-bold text-text-primary">
+          Notifications
+        </h1>
         <div className="flex items-center gap-2">
           <button
             className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-text-secondary hover:bg-surface-tertiary disabled:opacity-50"
@@ -107,14 +123,24 @@ export default function Notifications() {
                 type="button"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-text-primary">{notification.title}</span>
+                  <span className="text-sm font-medium text-text-primary">
+                    {notification.title}
+                  </span>
                   {!notification.read && (
                     <span className="h-2 w-2 shrink-0 rounded-full bg-primary-500" />
                   )}
                 </div>
-                <p className="mt-0.5 text-sm text-text-secondary">{notification.message}</p>
+                <p className="mt-0.5 text-sm text-text-secondary">
+                  {notification.message}
+                </p>
                 <div className="mt-1 flex items-center gap-2 text-xs text-text-tertiary">
-                  <span>{NotificationTypeLabel[notification.type as NotificationType]}</span>
+                  <span>
+                    {
+                      NotificationTypeLabel[
+                        notification.type as NotificationType
+                      ]
+                    }
+                  </span>
                   <span>{formatRelativeTime(notification.createdAt)}</span>
                 </div>
               </button>

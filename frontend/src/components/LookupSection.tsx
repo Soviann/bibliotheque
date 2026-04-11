@@ -44,7 +44,9 @@ export default function LookupSection({
   if (!isOnline) {
     return (
       <div className="rounded-lg border border-surface-border bg-surface-tertiary p-4">
-        <p className="text-sm text-text-muted">Recherche indisponible hors ligne</p>
+        <p className="text-sm text-text-muted">
+          Recherche indisponible hors ligne
+        </p>
       </div>
     );
   }
@@ -52,12 +54,16 @@ export default function LookupSection({
   const isTitleMode = lookupMode === "title";
   const showCandidates = isTitleMode && !selectedCandidateTitle;
   const showTargeted = isTitleMode && selectedCandidateTitle !== null;
-  const isSearching = showCandidates ? titleCandidates.isFetching : lookupResult.isFetching;
+  const isSearching = showCandidates
+    ? titleCandidates.isFetching
+    : lookupResult.isFetching;
 
   return (
     <div className="rounded-lg border border-surface-border bg-surface-tertiary p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-text-secondary">Recherche automatique</h2>
+        <h2 className="text-sm font-semibold text-text-secondary">
+          Recherche automatique
+        </h2>
         <div className="flex rounded-lg bg-surface-primary p-0.5 border border-surface-border">
           <button
             className={`rounded-md px-3 py-1 text-sm font-medium transition ${lookupMode === "isbn" ? "bg-primary-600 text-white shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
@@ -87,7 +93,13 @@ export default function LookupSection({
           <BarcodeScanner onScan={setLookupIsbn} />
         </div>
       ) : (
-        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); submitTitleSearch(); }}>
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitTitleSearch();
+          }}
+        >
           <input
             className={`flex-1 ${formInputClassName}`}
             onChange={(e) => {
@@ -128,53 +140,60 @@ export default function LookupSection({
       )}
 
       {/* Candidates list (title mode, no selection yet) */}
-      {showCandidates && titleCandidates.data && !titleCandidates.isFetching && (
-        <div className="space-y-2">
-          {titleCandidates.data.results.length === 0 ? (
-            <p className="text-sm text-text-muted">Aucun résultat trouvé</p>
-          ) : (
-            <>
-              <p className="text-xs text-text-muted">
-                {titleCandidates.data.results.length} résultat(s) — sélectionnez une série :
-              </p>
-              <div className="space-y-1.5">
-                {titleCandidates.data.results.map((candidate, index) => (
-                  <button
-                    className="flex w-full items-center gap-3 rounded-lg bg-surface-primary p-2.5 border border-surface-border text-left hover:border-primary-400 transition"
-                    key={index}
-                    onClick={() => candidate.title && selectCandidate(candidate.title)}
-                    type="button"
-                  >
-                    {candidate.thumbnail ? (
-                      <img
-                        alt=""
-                        className="h-12 w-9 shrink-0 rounded object-cover"
-                        src={candidate.thumbnail}
-                      />
-                    ) : (
-                      <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded bg-surface-tertiary text-text-muted">
-                        <Layers className="h-4 w-4" />
+      {showCandidates &&
+        titleCandidates.data &&
+        !titleCandidates.isFetching && (
+          <div className="space-y-2">
+            {titleCandidates.data.results.length === 0 ? (
+              <p className="text-sm text-text-muted">Aucun résultat trouvé</p>
+            ) : (
+              <>
+                <p className="text-xs text-text-muted">
+                  {titleCandidates.data.results.length} résultat(s) —
+                  sélectionnez une série :
+                </p>
+                <div className="space-y-1.5">
+                  {titleCandidates.data.results.map((candidate, index) => (
+                    <button
+                      className="flex w-full items-center gap-3 rounded-lg bg-surface-primary p-2.5 border border-surface-border text-left hover:border-primary-400 transition"
+                      key={index}
+                      onClick={() =>
+                        candidate.title && selectCandidate(candidate.title)
+                      }
+                      type="button"
+                    >
+                      {candidate.thumbnail ? (
+                        <img
+                          alt=""
+                          className="h-12 w-9 shrink-0 rounded object-cover"
+                          src={candidate.thumbnail}
+                        />
+                      ) : (
+                        <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded bg-surface-tertiary text-text-muted">
+                          <Layers className="h-4 w-4" />
+                        </div>
+                      )}
+                      <div className="min-w-0 text-sm">
+                        <p className="truncate font-medium text-text-primary">
+                          {candidate.title}
+                        </p>
+                        <p className="truncate text-text-muted">
+                          {candidate.authors ?? ""}
+                          {candidate.publisher && ` — ${candidate.publisher}`}
+                        </p>
                       </div>
-                    )}
-                    <div className="min-w-0 text-sm">
-                      <p className="truncate font-medium text-text-primary">{candidate.title}</p>
-                      <p className="truncate text-text-muted">
-                        {candidate.authors ?? ""}
-                        {candidate.publisher && ` — ${candidate.publisher}`}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          {titleCandidates.data.sources.length > 0 && (
-            <p className="text-xs text-text-muted">
-              Sources : {titleCandidates.data.sources.join(", ")}
-            </p>
-          )}
-        </div>
-      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            {titleCandidates.data.sources.length > 0 && (
+              <p className="text-xs text-text-muted">
+                Sources : {titleCandidates.data.sources.join(", ")}
+              </p>
+            )}
+          </div>
+        )}
 
       {/* Targeted result (title mode, candidate selected) */}
       {showTargeted && (
@@ -189,7 +208,8 @@ export default function LookupSection({
           </button>
           {lookupResult.isFetching && (
             <div className="flex items-center gap-2 text-sm text-text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" /> Chargement des détails…
+              <Loader2 className="h-4 w-4 animate-spin" /> Chargement des
+              détails…
             </div>
           )}
           {lookupResult.data && !lookupResult.isFetching && (
@@ -203,13 +223,15 @@ export default function LookupSection({
       )}
 
       {/* ISBN result (isbn mode) */}
-      {lookupMode === "isbn" && lookupResult.data && !lookupResult.isFetching && (
-        <LookupResultCard
-          applyLookup={applyLookup}
-          isApplying={isApplying}
-          result={lookupResult.data}
-        />
-      )}
+      {lookupMode === "isbn" &&
+        lookupResult.data &&
+        !lookupResult.isFetching && (
+          <LookupResultCard
+            applyLookup={applyLookup}
+            isApplying={isApplying}
+            result={lookupResult.data}
+          />
+        )}
     </div>
   );
 }
@@ -227,7 +249,9 @@ function LookupResultCard({
     <div className="rounded-lg bg-surface-primary p-3 border border-surface-border space-y-2">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 text-sm">
-          <p className="truncate font-medium text-text-primary">{result.title}</p>
+          <p className="truncate font-medium text-text-primary">
+            {result.title}
+          </p>
           <p className="truncate text-text-muted">
             {result.authors ?? ""}
             {result.publisher && ` — ${result.publisher}`}
@@ -248,7 +272,9 @@ function LookupResultCard({
           Sources : {result.sources.join(", ")}
         </p>
       )}
-      {Object.entries(result.apiMessages).filter(([, m]) => m.status !== "success").length > 0 && (
+      {Object.entries(result.apiMessages).filter(
+        ([, m]) => m.status !== "success",
+      ).length > 0 && (
         <p className="text-xs text-text-muted">
           {Object.entries(result.apiMessages)
             .filter(([, m]) => m.status !== "success")

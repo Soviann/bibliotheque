@@ -6,7 +6,10 @@ import { toast } from "sonner";
 import Layout from "../../../components/Layout";
 import { useSyncStatus } from "../../../hooks/useSyncStatus";
 import type { SyncStatus } from "../../../hooks/useSyncStatus";
-import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
+import {
+  createTestQueryClient,
+  renderWithProviders,
+} from "../../helpers/test-utils";
 
 vi.mock("sonner", async () => {
   const actual = await vi.importActual("sonner");
@@ -40,7 +43,11 @@ describe("Layout", () => {
     localStorage.clear();
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
-    mockUseSyncStatus.mockReturnValue({ error: null, status: "idle", syncedCount: 0 });
+    mockUseSyncStatus.mockReturnValue({
+      error: null,
+      status: "idle",
+      syncedCount: 0,
+    });
     vi.stubGlobal("caches", { delete: vi.fn().mockResolvedValue(true) });
   });
 
@@ -166,7 +173,9 @@ describe("Layout", () => {
 
     // OfflineBanner renders even when online (just hidden or empty),
     // but the component itself is in the DOM tree
-    expect(document.querySelector(".flex.min-h-screen.flex-col")).toBeInTheDocument();
+    expect(
+      document.querySelector(".flex.min-h-screen.flex-col"),
+    ).toBeInTheDocument();
   });
 
   it("header link navigates to home", () => {
@@ -188,7 +197,9 @@ describe("Layout", () => {
 
       await user.click(screen.getByLabelText("Rechercher"));
 
-      const input = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…");
+      const input = screen.getByPlaceholderText(
+        "Rechercher par titre, auteur, éditeur…",
+      );
       expect(input).toBeInTheDocument();
       // Le formulaire slide en opacity-100 quand ouvert
       expect(input.closest("form")).toHaveClass("opacity-100");
@@ -210,7 +221,10 @@ describe("Layout", () => {
       );
 
       await user.click(screen.getByLabelText("Rechercher"));
-      await user.type(screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"), "naruto{Enter}");
+      await user.type(
+        screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…"),
+        "naruto{Enter}",
+      );
 
       await waitFor(() => {
         expect(screen.getByText("Home Content")).toBeInTheDocument();
@@ -222,7 +236,9 @@ describe("Layout", () => {
       renderLayout();
 
       await user.click(screen.getByLabelText("Rechercher"));
-      const input = screen.getByPlaceholderText("Rechercher par titre, auteur, éditeur…") as HTMLInputElement;
+      const input = screen.getByPlaceholderText(
+        "Rechercher par titre, auteur, éditeur…",
+      ) as HTMLInputElement;
       await user.type(input, "test");
       expect(input.value).toBe("test");
 
@@ -241,7 +257,11 @@ describe("Layout", () => {
     it("shows plural success toast when syncedCount > 1", () => {
       const { rerender } = renderLayout();
 
-      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 3 });
+      mockUseSyncStatus.mockReturnValue({
+        error: null,
+        status: "success",
+        syncedCount: 3,
+      });
       rerender(
         <Routes>
           <Route element={<Layout />} path="/">
@@ -256,7 +276,11 @@ describe("Layout", () => {
     it("shows singular success toast when syncedCount === 1", () => {
       const { rerender } = renderLayout();
 
-      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 1 });
+      mockUseSyncStatus.mockReturnValue({
+        error: null,
+        status: "success",
+        syncedCount: 1,
+      });
       rerender(
         <Routes>
           <Route element={<Layout />} path="/">
@@ -271,7 +295,11 @@ describe("Layout", () => {
     it("does not show success toast when syncedCount === 0", () => {
       const { rerender } = renderLayout();
 
-      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 0 });
+      mockUseSyncStatus.mockReturnValue({
+        error: null,
+        status: "success",
+        syncedCount: 0,
+      });
       rerender(
         <Routes>
           <Route element={<Layout />} path="/">
@@ -286,7 +314,11 @@ describe("Layout", () => {
     it("shows error toast when status is error with message", () => {
       const { rerender } = renderLayout();
 
-      mockUseSyncStatus.mockReturnValue({ error: "Network failed", status: "error", syncedCount: 0 });
+      mockUseSyncStatus.mockReturnValue({
+        error: "Network failed",
+        status: "error",
+        syncedCount: 0,
+      });
       rerender(
         <Routes>
           <Route element={<Layout />} path="/">
@@ -295,13 +327,19 @@ describe("Layout", () => {
         </Routes>,
       );
 
-      expect(toast.error).toHaveBeenCalledWith("Erreur de synchronisation : Network failed");
+      expect(toast.error).toHaveBeenCalledWith(
+        "Erreur de synchronisation : Network failed",
+      );
     });
 
     it("does not show error toast when error is null", () => {
       const { rerender } = renderLayout();
 
-      mockUseSyncStatus.mockReturnValue({ error: null, status: "error", syncedCount: 0 });
+      mockUseSyncStatus.mockReturnValue({
+        error: null,
+        status: "error",
+        syncedCount: 0,
+      });
       rerender(
         <Routes>
           <Route element={<Layout />} path="/">
@@ -326,7 +364,11 @@ describe("Layout", () => {
         { queryClient },
       );
 
-      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 2 });
+      mockUseSyncStatus.mockReturnValue({
+        error: null,
+        status: "success",
+        syncedCount: 2,
+      });
       rerender(
         <Routes>
           <Route element={<Layout />} path="/">
@@ -342,7 +384,11 @@ describe("Layout", () => {
       const { rerender } = renderLayout();
 
       // Transition from idle to success — should fire once
-      mockUseSyncStatus.mockReturnValue({ error: null, status: "success", syncedCount: 2 });
+      mockUseSyncStatus.mockReturnValue({
+        error: null,
+        status: "success",
+        syncedCount: 2,
+      });
       rerender(
         <Routes>
           <Route element={<Layout />} path="/">

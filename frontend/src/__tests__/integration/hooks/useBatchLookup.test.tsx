@@ -3,7 +3,10 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { useBatchLookupPreview } from "../../../hooks/useBatchLookup";
 import { server } from "../../helpers/server";
-import { createTestQueryClient, renderWithProviders } from "../../helpers/test-utils";
+import {
+  createTestQueryClient,
+  renderWithProviders,
+} from "../../helpers/test-utils";
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -43,10 +46,9 @@ describe("useBatchLookupPreview", () => {
     );
 
     const { wrapper } = createWrapper();
-    const { result } = renderHook(
-      () => useBatchLookupPreview("manga", true),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useBatchLookupPreview("manga", true), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(capturedUrl).toContain("type=manga");

@@ -1,13 +1,20 @@
 import { AlertTriangle, X } from "lucide-react";
 import type { SyncFailure } from "../services/offlineQueue";
-import { fieldLabels, formatSyncValue, operationLabels } from "../utils/syncLabels";
+import {
+  fieldLabels,
+  formatSyncValue,
+  operationLabels,
+} from "../utils/syncLabels";
 
 interface SyncFailureSectionProps {
   failure: SyncFailure;
   onDismiss: () => void;
 }
 
-export default function SyncFailureSection({ failure, onDismiss }: SyncFailureSectionProps) {
+export default function SyncFailureSection({
+  failure,
+  onDismiss,
+}: SyncFailureSectionProps) {
   const entries = Object.entries(failure.payload)
     .filter(([key]) => !key.startsWith("_") && key !== "id")
     .sort(([a], [b]) => a.localeCompare(b));
@@ -18,7 +25,8 @@ export default function SyncFailureSection({ failure, onDismiss }: SyncFailureSe
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-            {operationLabels[failure.operation] ?? failure.operation} échouée — {failure.error}
+            {operationLabels[failure.operation] ?? failure.operation} échouée —{" "}
+            {failure.error}
           </p>
           <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
             Modifications tentées hors ligne :
@@ -36,7 +44,8 @@ export default function SyncFailureSection({ failure, onDismiss }: SyncFailureSe
             ))}
           </dl>
           <p className="mt-2 text-xs text-amber-600 dark:text-amber-500">
-            Enregistrez le formulaire pour résoudre automatiquement cette erreur.
+            Enregistrez le formulaire pour résoudre automatiquement cette
+            erreur.
           </p>
         </div>
         <button

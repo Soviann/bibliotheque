@@ -48,8 +48,12 @@ describe("SyncErrorBanner", () => {
     renderBanner();
 
     await waitFor(() => {
-      expect(screen.getByText(/Erreurs de synchronisation/)).toBeInTheDocument();
-      expect(screen.getByText(/Création série — Titre requis/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Erreurs de synchronisation/),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Création série — Titre requis/),
+      ).toBeInTheDocument();
     });
   });
 });

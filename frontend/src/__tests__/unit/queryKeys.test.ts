@@ -4,20 +4,27 @@ import { queryKeys } from "../../queryKeys";
 describe("queryKeys", () => {
   describe("authors", () => {
     it("retourne la clé de recherche avec le terme", () => {
-      expect(queryKeys.authors.search("Urasawa")).toEqual(["authors", "Urasawa"]);
+      expect(queryKeys.authors.search("Urasawa")).toEqual([
+        "authors",
+        "Urasawa",
+      ]);
     });
   });
 
   describe("batchLookup", () => {
     it("retourne la clé de preview avec type et force", () => {
       expect(queryKeys.batchLookup.preview("manga", true)).toEqual([
-        "batch-lookup-preview", "manga", true,
+        "batch-lookup-preview",
+        "manga",
+        true,
       ]);
     });
 
     it("retourne la clé de preview avec valeurs par défaut", () => {
       expect(queryKeys.batchLookup.preview("", false)).toEqual([
-        "batch-lookup-preview", "", false,
+        "batch-lookup-preview",
+        "",
+        false,
       ]);
     });
   });
@@ -43,25 +50,38 @@ describe("queryKeys", () => {
   describe("lookup", () => {
     it("retourne la clé ISBN", () => {
       expect(queryKeys.lookup.isbn("978-2-1234", "bd")).toEqual([
-        "lookup", "isbn", "978-2-1234", "bd",
+        "lookup",
+        "isbn",
+        "978-2-1234",
+        "bd",
       ]);
     });
 
     it("retourne la clé titre", () => {
       expect(queryKeys.lookup.title("Naruto", "manga")).toEqual([
-        "lookup", "title", "Naruto", "manga",
+        "lookup",
+        "title",
+        "Naruto",
+        "manga",
       ]);
     });
 
     it("retourne la clé candidats titre", () => {
       expect(queryKeys.lookup.titleCandidates("Naruto", "manga", 5)).toEqual([
-        "lookup", "title-candidates", "Naruto", "manga", 5,
+        "lookup",
+        "title-candidates",
+        "Naruto",
+        "manga",
+        5,
       ]);
     });
 
     it("retourne la clé covers", () => {
       expect(queryKeys.lookup.covers("Naruto", "manga")).toEqual([
-        "lookup", "covers", "Naruto", "manga",
+        "lookup",
+        "covers",
+        "Naruto",
+        "manga",
       ]);
     });
   });
