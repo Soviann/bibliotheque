@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.28.0] — 2026-04-12
+
 ### Added
 
 - **Import via Share Target (PWA)** : partage d'un lien Amazon, Bedetheque ou Wikipedia depuis le navigateur ou une app mobile vers Bibliothèque. L'app extrait l'identifiant, lance les lookup providers et redirige vers la page détail (série existante) ou le formulaire de création pré-rempli (nouvelle série). Closes #441.
