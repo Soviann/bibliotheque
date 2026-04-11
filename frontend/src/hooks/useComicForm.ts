@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthorManagement } from "./useAuthorManagement";
@@ -132,19 +132,24 @@ export function useComicForm() {
     return initial;
   });
   const [initialized, setInitialized] = useState(!isEdit);
+  const dirtyRef = useRef(false);
 
   // Cover search state
   const [coverSearchOpen, setCoverSearchOpen] = useState(false);
 
-  // Initialize form with comic data on edit
+  // Hydrate le formulaire depuis le comic : à la 1ère charge, puis à chaque
+  // refetch tant que l'utilisateur n'a pas modifié le formulaire (évite de
+  // garder des données stale si une mutation invalide le cache pendant qu'on
+  // ouvre le formulaire).
   useEffect(() => {
-    if (isEdit && comic && !initialized) {
+    if (isEdit && comic && !dirtyRef.current) {
       setForm(buildInitialForm(comic));
       setInitialized(true);
     }
-  }, [comic, isEdit, initialized]);
+  }, [comic, isEdit]);
 
   const update = <K extends keyof FormData>(key: K, value: FormData[K]) => {
+    dirtyRef.current = true;
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 

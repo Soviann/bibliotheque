@@ -118,7 +118,7 @@ final class HttpCacheListenerTest extends TestCase
         self::assertNull($response->getEtag(), 'Ne doit pas ajouter d\'ETag aux réponses d\'erreur');
     }
 
-    public function testSetsMaxAgeOnSuccessfulGetResponse(): void
+    public function testSetsNoCacheOnSuccessfulGetResponse(): void
     {
         $request = Request::create('/api/comic_series', Request::METHOD_GET);
         $response = new Response('{"member":[]}', Response::HTTP_OK, ['Content-Type' => 'application/ld+json']);
@@ -126,10 +126,11 @@ final class HttpCacheListenerTest extends TestCase
 
         $this->listener->onKernelResponse($event);
 
-        self::assertSame('300', $response->headers->getCacheControlDirective('max-age'), 'Doit définir max-age à 300 secondes');
+        self::assertTrue($response->headers->hasCacheControlDirective('no-cache'), 'Doit forcer la revalidation à chaque requête');
+        self::assertNull($response->headers->getCacheControlDirective('max-age'), 'Ne doit pas définir max-age (qui ignorerait no-cache)');
     }
 
-    public function testDoesNotSetMaxAgeOnNonApiRoutes(): void
+    public function testDoesNotProcessNonApiRoutes(): void
     {
         $request = Request::create('/api/authors', Request::METHOD_GET);
         $response = new Response('[]', Response::HTTP_OK);
@@ -137,7 +138,7 @@ final class HttpCacheListenerTest extends TestCase
 
         $this->listener->onKernelResponse($event);
 
-        self::assertNull($response->headers->getCacheControlDirective('max-age'), 'Ne doit pas définir max-age sur les routes non ciblées');
+        self::assertNull($response->getEtag(), 'Ne doit pas ajouter d\'ETag sur les routes non ciblées');
     }
 
     public function testEtagChangesWithDifferentContent(): void

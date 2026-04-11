@@ -44,8 +44,11 @@ final class HttpCacheListener
         $etag = \md5((string) $response->getContent());
         $response->setEtag($etag);
         $response->setPrivate();
-        $response->setMaxAge(300);
-        $response->headers->addCacheControlDirective('must-revalidate');
+        // no-cache : la réponse peut être stockée mais doit être revalidée
+        // auprès du serveur à chaque usage (via If-None-Match / ETag).
+        // Évite qu'une mutation backend soit invisible côté client tant que
+        // max-age n'a pas expiré.
+        $response->headers->addCacheControlDirective('no-cache');
 
         $response->isNotModified($request);
     }
