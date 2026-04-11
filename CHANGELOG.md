@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Détail série** : bouton "Compléter" dans la bannière des tomes manquants, qui crée en un clic les tomes parus non ajoutés (depuis le dernier tome non hors-série jusqu'au dernier tome paru), en appliquant les états par défaut de la série
+
 ### Fixed
 
 - **Import** : crée les tomes manquants quand seule la colonne « Parution » est remplie — avant, `latestPublishedIssue` était persisté sans créer les `Tome` correspondants, ce qui déclenchait ensuite des notifications « tomes manquants » pour toute la plage (#463)

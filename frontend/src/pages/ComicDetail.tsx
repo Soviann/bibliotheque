@@ -35,6 +35,7 @@ import SeriesEnrichmentProposals from "../components/SeriesEnrichmentProposals";
 import SyncPendingIndicator from "../components/SyncPendingIndicator";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
+import { useCreateTome } from "../hooks/useCreateTome";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useDominantColor } from "../hooks/useDominantColor";
 import { useRestoreComic } from "../hooks/useTrash";
@@ -48,7 +49,10 @@ import {
   ComicTypePlaceholder,
 } from "../types/enums";
 import { getCoverSrc } from "../utils/coverUtils";
-import { countCoveredTomes } from "../utils/tomeUtils";
+import {
+  countCoveredTomes,
+  getTrailingMissingTomeNumbers,
+} from "../utils/tomeUtils";
 
 function AuthorWithFollow({
   author,
@@ -179,6 +183,8 @@ export default function ComicDetail() {
   const deleteComic = useDeleteComic();
   const restoreComic = useRestoreComic();
   const updateTome = useUpdateTome(id ? Number(id) : undefined);
+  const createTome = useCreateTome(id ? Number(id) : 0);
+  const [isCompleting, setIsCompleting] = useState(false);
   const coverSrc = comic ? getCoverSrc(comic) : null;
   const [dominantColor, extractColor] = useDominantColor(coverSrc);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -211,23 +217,21 @@ export default function ComicDetail() {
     [optimisticTomes, sort.key, sort.direction],
   );
 
-  const {
-    boughtCount,
-    onNasCount,
-    missingTomesCount,
-    progressTotal,
-    readCount,
-  } = useMemo(() => {
-    const covered = countCoveredTomes(optimisticTomes);
-    const published = comic?.latestPublishedIssue ?? 0;
-    return {
-      boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
-      missingTomesCount: published > covered ? published - covered : 0,
-      onNasCount: countCoveredTomes(optimisticTomes, (t) => t.onNas),
-      progressTotal: Math.max(published, covered),
-      readCount: countCoveredTomes(optimisticTomes, (t) => t.read),
-    };
-  }, [optimisticTomes, comic?.latestPublishedIssue]);
+  const { boughtCount, onNasCount, progressTotal, readCount, trailingMissing } =
+    useMemo(() => {
+      const covered = countCoveredTomes(optimisticTomes);
+      const published = comic?.latestPublishedIssue ?? 0;
+      return {
+        boughtCount: countCoveredTomes(optimisticTomes, (t) => t.bought),
+        onNasCount: countCoveredTomes(optimisticTomes, (t) => t.onNas),
+        progressTotal: Math.max(published, covered),
+        readCount: countCoveredTomes(optimisticTomes, (t) => t.read),
+        trailingMissing: getTrailingMissingTomeNumbers(
+          optimisticTomes,
+          comic?.latestPublishedIssue,
+        ),
+      };
+    }, [optimisticTomes, comic?.latestPublishedIssue]);
 
   useEffect(() => {
     if (comic?.tomes) {
@@ -286,6 +290,47 @@ export default function ComicDetail() {
     },
     [updateTome],
   );
+
+  const handleCompleteMissingTomes = useCallback(() => {
+    if (!comic || trailingMissing.length === 0 || isCompleting) return;
+    setIsCompleting(true);
+
+    const bought = comic.defaultTomeBought;
+    const onNas = comic.defaultTomeOnNas;
+    const read = comic.defaultTomeRead;
+    const count = trailingMissing.length;
+    let errorShown = false;
+
+    for (const number of trailingMissing) {
+      createTome.mutate(
+        {
+          bought,
+          isHorsSerie: false,
+          isbn: null,
+          number,
+          onNas,
+          read,
+          title: null,
+          tomeEnd: null,
+        },
+        {
+          onError: () => {
+            if (!errorShown) {
+              errorShown = true;
+              toast.error("Erreur lors de l'ajout des tomes");
+            }
+          },
+        },
+      );
+    }
+
+    setIsCompleting(false);
+    if (navigator.onLine) {
+      toast.success(count === 1 ? "1 tome ajouté" : `${count} tomes ajoutés`, {
+        duration: 1500,
+      });
+    }
+  }, [comic, createTome, isCompleting, trailingMissing]);
 
   const handleToggleAllTomes = useCallback(
     (field: "bought" | "onNas" | "read") => {
@@ -618,21 +663,22 @@ export default function ComicDetail() {
       )}
 
       {/* Bannière tomes manquants */}
-      {!comic.isOneShot && missingTomesCount > 0 && (
+      {!comic.isOneShot && trailingMissing.length > 0 && (
         <div className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
           <AlertTriangle className="h-5 w-5 shrink-0" />
           <span>
-            {missingTomesCount === 1
+            {trailingMissing.length === 1
               ? "1 tome paru non ajouté"
-              : `${missingTomesCount} tomes parus non ajoutés`}
+              : `${trailingMissing.length} tomes parus non ajoutés`}
           </span>
-          <Link
-            className="ml-auto shrink-0 font-medium text-amber-700 underline hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-200"
-            to={`/comic/${comic.id}/edit`}
-            viewTransition
+          <button
+            className="ml-auto shrink-0 font-medium text-amber-700 underline hover:text-amber-900 disabled:cursor-not-allowed disabled:opacity-60 dark:text-amber-400 dark:hover:text-amber-200"
+            disabled={isCompleting}
+            onClick={handleCompleteMissingTomes}
+            type="button"
           >
-            Ajouter
-          </Link>
+            Compléter
+          </button>
         </div>
       )}
 

@@ -1605,7 +1605,7 @@ describe("ComicDetail", () => {
       });
     });
 
-    it("links to the edit form", async () => {
+    it("shows a 'Compléter' button when tomes are missing", async () => {
       const tomes = [createMockTome({ id: 1, number: 1 })];
 
       server.use(
@@ -1628,8 +1628,105 @@ describe("ComicDetail", () => {
         expect(screen.getByText(/tomes parus non ajoutés/)).toBeInTheDocument();
       });
 
-      const link = screen.getByRole("link", { name: /ajouter/i });
-      expect(link).toHaveAttribute("href", "/comic/1/edit");
+      expect(
+        screen.getByRole("button", { name: /compléter/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("hides the banner when only internal gaps remain", async () => {
+      // Last owned tome (3) >= latestPublishedIssue (3), even though #2 is missing
+      const tomes = [
+        createMockTome({ id: 1, number: 1 }),
+        createMockTome({ id: 2, number: 3 }),
+      ];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: 3,
+              title: "Internal Gap",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Internal Gap")).toBeInTheDocument();
+      });
+
+      expect(
+        screen.queryByText(/tomes? parus? non ajoutés?/),
+      ).not.toBeInTheDocument();
+    });
+
+    it("clicking 'Compléter' creates missing tomes with default states", async () => {
+      const user = userEvent.setup();
+      const tomes = [
+        createMockTome({ id: 1, number: 1 }),
+        createMockTome({ id: 2, number: 2 }),
+      ];
+      const createdPayloads: Array<Record<string, unknown>> = [];
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              defaultTomeBought: true,
+              defaultTomeOnNas: false,
+              defaultTomeRead: true,
+              id: 1,
+              isOneShot: false,
+              latestPublishedIssue: 4,
+              title: "Catch Up",
+              tomes,
+            }),
+          ),
+        ),
+        http.post("/api/comic_series/1/tomes", async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          createdPayloads.push(body);
+          return HttpResponse.json(
+            {
+              "@id": `/api/tomes/${100 + createdPayloads.length}`,
+              bought: body.bought,
+              createdAt: "2025-01-01T00:00:00+00:00",
+              id: 100 + createdPayloads.length,
+              isHorsSerie: false,
+              isbn: null,
+              number: body.number,
+              onNas: body.onNas,
+              read: body.read,
+              title: null,
+              tomeEnd: null,
+              updatedAt: "2025-01-01T00:00:00+00:00",
+            },
+            { status: 201 },
+          );
+        }),
+      );
+
+      renderComicDetail();
+
+      const button = await screen.findByRole("button", { name: /compléter/i });
+      await user.click(button);
+
+      await waitFor(() => {
+        expect(createdPayloads).toHaveLength(2);
+      });
+
+      expect(createdPayloads.map((p) => p.number).sort()).toEqual([3, 4]);
+      for (const payload of createdPayloads) {
+        expect(payload.bought).toBe(true);
+        expect(payload.onNas).toBe(false);
+        expect(payload.read).toBe(true);
+        expect(payload.isHorsSerie).toBe(false);
+      }
     });
   });
 

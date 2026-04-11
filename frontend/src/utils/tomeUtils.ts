@@ -15,3 +15,25 @@ export function countCoveredTomes(
     0,
   );
 }
+
+/**
+ * Retourne la liste des numéros de tomes manquants après le dernier tome
+ * non hors-série présent et jusqu'à latestPublishedIssue inclus. Les trous
+ * internes ne sont pas couverts : ce helper sert à "rattraper" les parutions,
+ * pas à combler une collection incomplète.
+ */
+export function getTrailingMissingTomeNumbers(
+  tomes: Tome[],
+  latestPublishedIssue: null | number | undefined,
+): number[] {
+  if (!latestPublishedIssue || latestPublishedIssue <= 0) return [];
+  const lastOwned = tomes
+    .filter((t) => !t.isHorsSerie)
+    .reduce((max, t) => Math.max(max, t.tomeEnd ?? t.number), 0);
+  if (lastOwned >= latestPublishedIssue) return [];
+  const missing: number[] = [];
+  for (let n = lastOwned + 1; n <= latestPublishedIssue; n++) {
+    missing.push(n);
+  }
+  return missing;
+}
