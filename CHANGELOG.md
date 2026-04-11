@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.27.0] — 2026-04-11
+
 ### Added
 
 - **Statut « En cours de téléchargement »** : nouveau statut `DOWNLOADING` pour les séries à récupérer sur le NAS. Déclenche les mêmes automatismes que `BUYING` (vérification des nouvelles parutions, détection des tomes manquants, étagère « en cours »). Nouvelle page « À télécharger » accessible en parallèle de « À acheter » via un onglet commun
