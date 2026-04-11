@@ -195,10 +195,19 @@ else
 endif
 	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php rm -f $(NAS_CONTAINER_FILE)'
 
-.PHONY: nas-db-reset
+.PHONY: nas-db-reset ssh-db-pull
 
 nas-db-reset: ## Reset la BDD du NAS : drop + create + migrate
 	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php sh -c "php bin/console doctrine:database:drop --force --env=prod && php bin/console doctrine:database:create --env=prod && php bin/console doctrine:migrations:migrate -n --env=prod"'
+
+ssh-db-pull: ## Pull la BDD prod depuis le NAS et l'importe dans DDEV
+	@echo "Dump de la BDD production depuis le NAS..."
+	@$(NAS_SSH) '$(NAS_COMPOSE) exec -T db sh -c '"'"'exec mysqldump -u biblio -p"$$MYSQL_PASSWORD" --single-transaction --skip-lock-tables --routines --triggers bibliotheque'"'"'' > /tmp/bibliotheque-prod.sql
+	@echo "Dump : $$(du -h /tmp/bibliotheque-prod.sql | cut -f1)"
+	@echo "Import dans DDEV..."
+	ddev import-db --file=/tmp/bibliotheque-prod.sql
+	@rm -f /tmp/bibliotheque-prod.sql
+	@echo "BDD prod importée dans DDEV"
 
 # ── Production ────────────────────────────────────
 
