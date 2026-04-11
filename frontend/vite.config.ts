@@ -65,6 +65,16 @@ export default defineConfig({
             label: "Bibliothèque — vue mobile",
           },
         ],
+        share_target: {
+          action: "/share",
+          method: "POST",
+          enctype: "multipart/form-data",
+          params: {
+            title: "title",
+            text: "text",
+            url: "url",
+          },
+        },
       },
       injectManifest: {
         globIgnores: ["**/app-icon.png"],

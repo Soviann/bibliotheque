@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthorManagement } from "./useAuthorManagement";
 import { useLookupFeature } from "./useLookupFeature";
@@ -15,6 +15,7 @@ import type {
   Author,
   ComicSeries,
   CreateComicPayload,
+  ShareLookupResult,
   TomePayload,
   UpdateComicPayload,
 } from "../types/api";
@@ -126,6 +127,7 @@ export function useComicForm() {
   const [searchParams] = useSearchParams();
   const syncFailureId = searchParams.get("syncFailureId");
   const isEdit = Boolean(id);
+  const location = useLocation();
   const navigate = useNavigate();
   const isOnline = useOnlineStatus();
   const { data: comic } = useComic(id ? Number(id) : undefined);
@@ -146,6 +148,36 @@ export function useComicForm() {
       }
       if (prefillType && Object.values(ComicType).includes(prefillType)) {
         initial.type = prefillType;
+      }
+      const locationState = location.state as { lookupResult?: ShareLookupResult } | null;
+      const shareLookup = locationState?.lookupResult;
+      if (shareLookup) {
+        if (shareLookup.title) initial.title = shareLookup.title;
+        if (shareLookup.description) initial.description = shareLookup.description;
+        if (shareLookup.publisher) initial.publisher = shareLookup.publisher;
+        if (shareLookup.thumbnail) initial.coverUrl = shareLookup.thumbnail;
+        if (shareLookup.amazonUrl) initial.amazonUrl = shareLookup.amazonUrl;
+        if (shareLookup.publishedDate) initial.publishedDate = shareLookup.publishedDate;
+        if (shareLookup.latestPublishedIssue !== null && shareLookup.latestPublishedIssue !== undefined) {
+          initial.latestPublishedIssue = shareLookup.latestPublishedIssue.toString();
+        }
+        if (shareLookup.isOneShot !== null && shareLookup.isOneShot !== undefined) {
+          initial.isOneShot = shareLookup.isOneShot;
+        }
+        if (shareLookup.isbn) {
+          initial.tomes = [
+            {
+              bought: false,
+              isHorsSerie: false,
+              isbn: shareLookup.isbn,
+              number: 1,
+              onNas: false,
+              read: false,
+              title: "",
+              tomeEnd: "",
+            },
+          ];
+        }
       }
     }
     return initial;

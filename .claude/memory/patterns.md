@@ -82,6 +82,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 | Lookup/ | BatchLookupService, LookupApplier, LookupOrchestrator |
 | Merge/ | MergePreviewBuilder, MergePreviewHydrator, SeriesGroupDetector, SeriesMerger |
 | Nas/ | NasDirectoryParser |
+| Share/ | ShareUrlParser (parse URL → ShareUrlInfo), ShareResolver (lookup + match + enrich dispatch → ShareResolution) |
 | Notification/ | NotificationService, NotifierInterface, WebPushService |
 | Recommendation/ | AuthorReleaseCheckerService, MissingTomeDetectorService, NewReleaseCheckerService, SimilarSeriesService |
 
@@ -91,7 +92,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 
 **State Providers**: SoftDeletedComicSeriesProvider, TrashCollectionProvider, NotificationPreferenceInitializer.
 
-**Controllers**: ApiController (lookup: title/ISBN/covers), BatchLookupController (SSE streaming), GoogleLoginController, ImportController (books/Excel), MergeSeriesController (detect/preview/execute/suggest), NotificationController (read-all/unread-count), PurgeController (preview/execute purge).
+**Controllers**: ApiController (lookup: title/ISBN/covers), BatchLookupController (SSE streaming), GoogleLoginController, ImportController (books/Excel), MergeSeriesController (detect/preview/execute/suggest), NotificationController (read-all/unread-count), PurgeController (preview/execute purge), ShareController (`POST /api/share` — Web Share Target : parsing URL + lookup + match/enrichissement).
 
 **Resources**: ComicSeries, Tome, Author, EnrichmentProposal, Notification, NotificationPreference, SeriesSuggestion. Format: JSON-LD.
 

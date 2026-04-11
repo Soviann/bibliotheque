@@ -48,6 +48,7 @@ export const endpoints = {
     execute: "/tools/purge/execute",
     preview: "/tools/purge/preview",
   },
+  share: "/share",
   tomes: {
     detail: (id: number) => `/tomes/${id}`,
   },

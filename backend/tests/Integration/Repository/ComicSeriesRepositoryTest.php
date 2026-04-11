@@ -1247,4 +1247,39 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         self::assertSame([], $titles);
     }
+
+    // ---------------------------------------------------------------
+    // findOneByTomeIsbn
+    // ---------------------------------------------------------------
+
+    public function testFindOneByTomeIsbnReturnsSeries(): void
+    {
+        $series = EntityFactory::createComicSeries('Astérix');
+        $tome = EntityFactory::createTome(1);
+        $tome->setIsbn('2723492532');
+        $series->addTome($tome);
+
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $result = $this->repository->findOneByTomeIsbn('2723492532');
+
+        self::assertNotNull($result);
+        self::assertSame('Astérix', $result->getTitle());
+    }
+
+    public function testFindOneByTomeIsbnReturnsNullWhenNoMatch(): void
+    {
+        $series = EntityFactory::createComicSeries('Astérix');
+        $tome = EntityFactory::createTome(1);
+        $tome->setIsbn('2723492532');
+        $series->addTome($tome);
+
+        $this->em->persist($series);
+        $this->em->flush();
+
+        $result = $this->repository->findOneByTomeIsbn('9999999999');
+
+        self::assertNull($result);
+    }
 }
