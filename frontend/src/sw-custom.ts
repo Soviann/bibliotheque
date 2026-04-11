@@ -57,6 +57,30 @@ registerRoute(
   }),
 );
 
+// Share Target handler
+self.addEventListener("fetch", (event: FetchEvent) => {
+  const url = new URL(event.request.url);
+  if (event.request.method === "POST" && url.pathname === "/share") {
+    event.respondWith(handleShareTarget(event.request));
+  }
+});
+
+async function handleShareTarget(request: Request): Promise<Response> {
+  try {
+    const formData = await request.formData();
+    const sharedUrl = (formData.get("url") as string | null) ?? "";
+    const sharedTitle = (formData.get("title") as string | null) ?? "";
+    const sharedText = (formData.get("text") as string | null) ?? "";
+    const params = new URLSearchParams();
+    if (sharedUrl) params.set("url", sharedUrl);
+    if (sharedTitle) params.set("title", sharedTitle);
+    if (sharedText) params.set("text", sharedText);
+    return Response.redirect(`/share?${params.toString()}`, 303);
+  } catch {
+    return Response.redirect("/", 303);
+  }
+}
+
 // Background Sync handler
 self.addEventListener("sync", (event: SyncEvent) => {
   if (event.tag === "offline-sync") {

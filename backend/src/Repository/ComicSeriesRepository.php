@@ -347,6 +347,23 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne la série dont l'un des tomes possède l'ISBN donné.
+     */
+    public function findOneByTomeIsbn(string $isbn): ?ComicSeries
+    {
+        /** @var ComicSeries|null $result */
+        $result = $this->createQueryBuilder('s')
+            ->innerJoin('s.tomes', 't')
+            ->andWhere('t.isbn = :isbn')
+            ->setParameter('isbn', $isbn)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $result;
+    }
+
+    /**
      * Retourne tous les titres en minuscules (via SQL), sans charger les entités.
      *
      * @return list<string>

@@ -221,6 +221,26 @@ export interface LookupResult {
   tomeNumber: number | null;
 }
 
+/** Résultat brut retourné par le backend `LookupResult::jsonSerialize()` (via `POST /api/share`). */
+export interface ShareLookupResult {
+  amazonUrl: string | null;
+  authors: string | null;
+  description: string | null;
+  isbn: string | null;
+  isOneShot: boolean | null;
+  latestPublishedIssue: number | null;
+  publishedDate: string | null;
+  publisher: string | null;
+  thumbnail: string | null;
+  title: string | null;
+  tomeEnd: number | null;
+  tomeNumber: number | null;
+}
+
+export type ShareResponse =
+  | { matched: true; seriesId: number }
+  | { matched: false; lookupResult: ShareLookupResult };
+
 export interface LookupCandidatesResponse {
   apiMessages: Record<string, { message: string; status: string }>;
   results: LookupCandidate[];
