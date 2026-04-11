@@ -1,54 +1,65 @@
 ---
 name: commit
-description: Create clean, well-scoped git commits with French conventional commit messages.
-user_invocable: true
+description: Create clean, well-scoped git commits with French conventional commit messages. Use this skill whenever the user asks to commit, says "/commit", or when you need to commit after completing work. Also use when you notice uncommitted changes that should be saved. This skill handles staging, commit splitting, message formatting, and safety checks.
 ---
 
 # Commit
 
 ## Steps
 
-1. **Gather context** (parallel): `git status`, `git branch --show-current`, `git log --oneline -5`. Skip `git diff HEAD` if you made the changes.
-2. **Clean staging**: `git reset HEAD -- . 2>/dev/null` then `git reset HEAD -- docs/plans/ 2>/dev/null` (never commit plans).
-3. **Secrets check**: scan for `.env`, credentials, API keys. Warn user if found.
-4. **Lint modified files** (before committing, not after each edit):
-   - PHP: `ddev exec vendor/bin/php-cs-fixer fix <files>` then `ddev exec vendor/bin/phpstan analyse <files>`
-   - TS/TSX: `ddev exec "cd frontend && npx tsc --noEmit"`
-5. **Evaluate scope** — split if unrelated changes. Propose plan:
-   > 1. **fix(scope): ...** — `file1.php`, `file2.php`
-   > 2. **feat(scope): ...** — `Component.tsx`
-   > Commit separately or all at once?
-6. **Stage and commit** via HEREDOC:
-   ```bash
-   git add file1.php file2.php && git commit -m "$(cat <<'EOF'
-   type(scope): titre
+**1. Gather context** — run in parallel:
+- `git status`
+- `git branch --show-current` (for scope)
+- `git log --oneline -5` (for style)
+- `git diff HEAD` only if you did NOT make the changes yourself
 
-   Détails techniques optionnels.
+**2. Clean staging area** — `git reset HEAD -- . 2>/dev/null` (unstages without losing work, prevents leftover staged files)
 
-   Refs #N
-   EOF
-   )"
-   ```
-7. **Repeat** for remaining groups.
+**3. Secrets check** — scan changed files for `.env`, credentials, API keys, tokens. If found: **warn the user**, let them decide. Don't silently skip or block.
 
-## Message format
+**4. Evaluate scope** — one commit or several?
 
-`type(scope): title` — French 3rd-person imperative (`ajoute`, `corrige`, `supprime`).
+Split signals: unrelated features, bug fix + new feature, config + business logic, CLAUDE.md + code.
 
-**Types:** `feat` · `fix` · `chore` · `refactor` · `docs`
+If multiple groups detected, **propose a split plan before staging**:
+> 1. **fix(SIQ-123): ...** — `file1.php`, `file2.php`
+> 2. **feat(SIQ-123): ...** — `file3.php`, `template.twig`
+> 3. **chore(claude): ...** — `CLAUDE.md`
+> Commit separately or all at once?
 
-**Scope:** domain/module (`enrichment`, `search`, `cron`, `claude`, `frontend`, `api`).
+Hunk-level staging (`git add -p`) is supported when a single file has changes for different commits — flag it to the user.
 
-**Title = visible impact**, not implementation detail.
+**5. Stage and commit** — only the files/hunks for this commit, always via HEREDOC:
+```bash
+git add file1.php file2.php && git commit -m "$(cat <<'EOF'
+type(scope): titre
+
+Détails techniques optionnels.
+EOF
+)"
+```
+
+**6. Repeat** for remaining groups if splitting.
+
+## Message format: `type(scope): title`
+
+**Types:** `feat` (new capability) · `fix` (bug) · `chore` (maintenance/config/deps) · `refactor` (structure, no behavior change) · `docs` (documentation)
+
+**Scope:** branch/ticket name for feature work (e.g. `SIQ-652`) · `claude` for CLAUDE.md · relevant module name otherwise. Never use ticket scope for non-ticket changes.
+
+**Title = visible impact**, not implementation detail. French 3rd-person imperative (`ajoute`, `corrige`, `supprime`).
 
 | BAD | GOOD |
 |-|-|
 | `fix: utilise PATCH au lieu de PUT` | `fix: corrige la perte des tomes` |
 | `feat: ajoute CoverSearchService` | `feat: ajoute la recherche de couvertures` |
+| `refactor: extrait getFieldPriority` | `refactor: simplifie la résolution de priorité` |
+
+**Body:** optional, for technical details/reasoning. On title rejection retry: fix only the title, always preserve and adapt the body.
 
 ## Rules
 
-- Always reference the issue: `#N` in body or `fixes #N` to auto-close.
-- Trailer: `Co-Built-By: Claude (<random funny quip>)` (Gemini: `Co-Built-By: Gemini (...)`).
-- Merges: `--no-ff`.
-- Never commit `docs/plans/`, `.env*`, `.claude/session-handoff.md`.
+- Never commit `docs/plans/` — run `git reset docs/plans/` if present
+- No `Co-Authored-By` trailer
+- `--no-ff` for merge commits
+- Include `reference.php` when changed after `composer require/update`
