@@ -12,9 +12,9 @@ use Doctrine\Migrations\AbstractMigration;
  * est connu mais dont la collection `tome` est incomplète.
  *
  * Contexte : avant le fix d'`ImportService::determineMaxTomeNumber`, un import où
- * seule la colonne « Parution » était remplie setttait `latest_published_issue` sans
- * créer les tomes correspondants, déclenchant ensuite des notifications « tomes
- * manquants » en boucle.
+ * seule la colonne « Parution » était remplie définissait `latest_published_issue`
+ * sans créer les tomes correspondants, déclenchant ensuite des notifications
+ * « tomes manquants » en boucle.
  */
 final class Version20260411143853 extends AbstractMigration
 {

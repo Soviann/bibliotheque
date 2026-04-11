@@ -112,6 +112,29 @@ final class ImportServiceTest extends TestCase
         self::assertSame([4, 5, 6, 7, 8, 9, 10], $notBought);
     }
 
+    public function testImportCreatesTomesUpToMaxWhenSeriesIsCompleteAndLastBoughtExceedsPublishedCount(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['BD', 'Série Terminée', '', 15, '', 10, '', '', 'oui'],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertSame(10, $series->getLatestPublishedIssue());
+        self::assertCount(15, $series->getTomes());
+
+        $numbers = \array_map(static fn (Tome $t): int => $t->getNumber(), $series->getTomes()->toArray());
+        \sort($numbers);
+        self::assertSame([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], $numbers);
+
+        foreach ($series->getTomes() as $tome) {
+            self::assertTrue($tome->isBought());
+        }
+    }
+
     /**
      * @param list<list<mixed>> $rows
      */
