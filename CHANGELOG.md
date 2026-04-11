@@ -17,6 +17,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 - **Import** : crée les tomes manquants quand seule la colonne « Parution » est remplie — avant, `latestPublishedIssue` était persisté sans créer les `Tome` correspondants, ce qui déclenchait ensuite des notifications « tomes manquants » pour toute la plage (#463)
 - **Migration** : rattrape automatiquement les tomes manquants sur les séries déjà importées (honore `defaultTomeBought` / `defaultTomeOnNas` / `defaultTomeRead`) (#463)
 - **Lookup** : corrige l'erreur HTTP 400 systématique sur MangaDex (mauvaise sérialisation du paramètre `includes[]` par Symfony HttpClient) — les couvertures et auteurs manga sont à nouveau récupérés
+- **Recherche de couverture** : corrige le débordement des images hors de la modal en contraignant correctement la hauteur de la zone défilable (#456)
 
 ### Removed
 
