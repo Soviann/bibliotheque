@@ -71,7 +71,7 @@ final class MangaDexLookupTest extends TestCase
                 'https://api.mangadex.org/manga',
                 self::callback(static fn (array $options): bool => 'One Piece' === $options['query']['title']
                     && 1 === $options['query']['limit']
-                    && ['cover_art', 'author', 'artist'] === $options['query']['includes[]']),
+                    && ['cover_art', 'author', 'artist'] === $options['query']['includes']),
             )
             ->willReturn($response);
 

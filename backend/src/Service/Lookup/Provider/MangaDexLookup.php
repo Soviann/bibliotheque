@@ -55,7 +55,7 @@ final class MangaDexLookup extends AbstractLookupProvider implements MultiResult
 
         return $this->httpClient->request('GET', self::API_URL, [
             'query' => [
-                'includes[]' => ['cover_art', 'author', 'artist'],
+                'includes' => ['cover_art', 'author', 'artist'],
                 'limit' => $limit,
                 'title' => LookupTitleCleaner::clean($query),
             ],
@@ -69,7 +69,7 @@ final class MangaDexLookup extends AbstractLookupProvider implements MultiResult
 
         return $this->httpClient->request('GET', self::API_URL, [
             'query' => [
-                'includes[]' => ['cover_art', 'author', 'artist'],
+                'includes' => ['cover_art', 'author', 'artist'],
                 'limit' => 1,
                 'title' => LookupTitleCleaner::clean($query),
             ],
