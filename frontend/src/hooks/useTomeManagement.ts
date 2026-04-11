@@ -25,19 +25,6 @@ export interface TomeManager {
 
 const maxBatchSize = 100;
 
-function emptyTome(number: number, isHorsSerie = false): TomeFormData {
-  return {
-    bought: false,
-    isHorsSerie,
-    isbn: "",
-    number,
-    onNas: false,
-    read: false,
-    title: "",
-    tomeEnd: "",
-  };
-}
-
 export function useTomeManagement(
   form: FormData,
   update: <K extends keyof FormData>(key: K, value: FormData[K]) => void,
@@ -49,6 +36,17 @@ export function useTomeManagement(
   );
 
   const batchSize = batchTo - batchFrom + 1;
+
+  const emptyTome = (number: number, isHorsSerie = false): TomeFormData => ({
+    bought: form.defaultTomeBought,
+    isHorsSerie,
+    isbn: "",
+    number,
+    onNas: form.defaultTomeOnNas,
+    read: form.defaultTomeRead,
+    title: "",
+    tomeEnd: "",
+  });
 
   const addTome = () => {
     const regularTomes = form.tomes.filter((t) => !t.isHorsSerie);
