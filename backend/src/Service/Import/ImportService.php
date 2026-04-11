@@ -381,6 +381,9 @@ final class ImportService
 
     /**
      * Détermine le nombre maximum de tomes à créer.
+     *
+     * Inclut toujours `latestPublishedIssue` comme candidat : un tome publié connu
+     * doit exister en base même si l'utilisateur n'en possède encore aucun.
      */
     private function determineMaxTomeNumber(
         ?int $currentIssueValue,
@@ -391,11 +394,7 @@ final class ImportService
     ): ?int {
         $candidates = [];
 
-        if ($currentIssueComplete) {
-            if (null !== $latestPublishedIssue) {
-                $candidates[] = $latestPublishedIssue;
-            }
-        } elseif (null !== $currentIssueValue) {
+        if (!$currentIssueComplete && null !== $currentIssueValue) {
             $candidates[] = $currentIssueValue;
         }
 
@@ -404,6 +403,9 @@ final class ImportService
         }
         if (null !== $lastOnNasValue) {
             $candidates[] = $lastOnNasValue;
+        }
+        if (null !== $latestPublishedIssue) {
+            $candidates[] = $latestPublishedIssue;
         }
 
         if ([] === $candidates) {

@@ -74,7 +74,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (collection status), ComicType (
 | Cover/ | CoverDownloader, CoverSearchService, ThumbnailGenerator, VichCoverRemover |
 | Cover/Upload/ | UploadHandlerInterface, VichUploadHandlerAdapter |
 | Enrichment/ | ConfidenceScorer, EnrichmentService |
-| Import/ | ImportBooksService, ImportExcelService |
+| Import/ | ImportService |
 | Lookup/Contract/ | ApiMessage, LookupProviderInterface, LookupResult… |
 | Lookup/Gemini/ | AbstractGeminiLookupProvider, GeminiClientPool, GeminiJsonParser, GeminiQueryService |
 | Lookup/Provider/ | 12 providers: AniList, Bedetheque, BNF, ComicVine, Gemini, GoogleBooks, Jikan, Kitsu, MangaDex, OpenLibrary, Wikipedia + AbstractLookupProvider |
@@ -108,7 +108,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (collection status), ComicType (
 - Monthly 1st 1h: `app:purge-deleted`
 - Monthly 1st 2h: `app:purge-notifications`
 
-**Other commands**: `app:import-books`, `app:import-excel`, `app:invalidate-tokens`, `app:scan-nas`, `app:warm-thumbnails`.
+**Other commands**: `app:import`, `app:invalidate-tokens`, `app:scan-nas`, `app:warm-thumbnails`.
 
 ## Events
 
