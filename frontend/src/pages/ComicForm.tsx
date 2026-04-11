@@ -60,7 +60,10 @@ export default function ComicForm() {
 
   if (isEdit && !initialized) {
     return (
-      <div className="mx-auto max-w-3xl space-y-6" data-testid="comic-form-skeleton">
+      <div
+        className="mx-auto max-w-3xl space-y-6"
+        data-testid="comic-form-skeleton"
+      >
         <div className="flex items-center gap-3">
           <SkeletonBox className="h-5 w-5" />
           <SkeletonBox className="h-6 w-40" />
@@ -105,7 +108,12 @@ export default function ComicForm() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button aria-label="Retour" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" onClick={() => goBack()} type="button">
+        <button
+          aria-label="Retour"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          onClick={() => goBack()}
+          type="button"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="font-display text-xl font-bold text-text-primary">
@@ -184,7 +192,9 @@ export default function ComicForm() {
               onChange={(e) => update("isOneShot", e.target.checked)}
               type="checkbox"
             />
-            <span className="text-sm font-medium text-text-secondary">One-shot (pas de tomes)</span>
+            <span className="text-sm font-medium text-text-secondary">
+              One-shot (pas de tomes)
+            </span>
           </label>
         </CollapsibleSection>
 
@@ -210,7 +220,10 @@ export default function ComicForm() {
 
           <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
             <div>
-              <label className={formLabelClassName} htmlFor="latestPublishedIssue">
+              <label
+                className={formLabelClassName}
+                htmlFor="latestPublishedIssue"
+              >
                 Dernier tome paru
               </label>
               <input
@@ -226,10 +239,14 @@ export default function ComicForm() {
               <input
                 checked={form.latestPublishedIssueComplete}
                 className={formCheckboxClassName}
-                onChange={(e) => update("latestPublishedIssueComplete", e.target.checked)}
+                onChange={(e) =>
+                  update("latestPublishedIssueComplete", e.target.checked)
+                }
                 type="checkbox"
               />
-              <span className="text-sm font-medium text-text-secondary">Parution terminée</span>
+              <span className="text-sm font-medium text-text-secondary">
+                Parution terminée
+              </span>
             </label>
           </div>
 
@@ -327,41 +344,48 @@ export default function ComicForm() {
         {/* Tomes */}
         {!form.isOneShot && (
           <>
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-sm font-medium text-text-secondary">État par défaut des nouveaux tomes</span>
-              <label className="flex items-center gap-1.5">
-                <input
-                  checked={form.defaultTomeBought}
-                  className={formCheckboxClassName}
-                  onChange={(e) => update("defaultTomeBought", e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-sm text-text-secondary">Achetés</span>
-              </label>
-              <label className="flex items-center gap-1.5">
-                <input
-                  checked={form.defaultTomeOnNas}
-                  className={formCheckboxClassName}
-                  onChange={(e) => update("defaultTomeOnNas", e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-sm text-text-secondary">Sur NAS</span>
-              </label>
-              <label className="flex items-center gap-1.5">
-                <input
-                  checked={form.defaultTomeRead}
-                  className={formCheckboxClassName}
-                  onChange={(e) => update("defaultTomeRead", e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-sm text-text-secondary">Lus</span>
-              </label>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-text-secondary">
+                État par défaut des nouveaux tomes
+              </span>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-1.5">
+                  <input
+                    checked={form.defaultTomeBought}
+                    className={formCheckboxClassName}
+                    onChange={(e) =>
+                      update("defaultTomeBought", e.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span className="text-sm text-text-secondary">Achetés</span>
+                </label>
+                <label className="flex items-center gap-1.5">
+                  <input
+                    checked={form.defaultTomeOnNas}
+                    className={formCheckboxClassName}
+                    onChange={(e) =>
+                      update("defaultTomeOnNas", e.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span className="text-sm text-text-secondary">Sur NAS</span>
+                </label>
+                <label className="flex items-center gap-1.5">
+                  <input
+                    checked={form.defaultTomeRead}
+                    className={formCheckboxClassName}
+                    onChange={(e) =>
+                      update("defaultTomeRead", e.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span className="text-sm text-text-secondary">Lus</span>
+                </label>
+              </div>
             </div>
             <ComponentErrorBoundary label="les tomes">
-              <TomeTable
-                form={form}
-                tomeManager={tomeManager}
-              />
+              <TomeTable form={form} tomeManager={tomeManager} />
             </ComponentErrorBoundary>
           </>
         )}
