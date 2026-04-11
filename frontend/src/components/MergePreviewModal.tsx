@@ -52,7 +52,7 @@ export default function MergePreviewModal({
           </div>
 
           {/* Scrollable content */}
-          <div className="min-h-0 flex-1 overflow-auto px-6 pb-2">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 pb-2">
             <MergeMetadataForm
               dispatch={dispatch}
               isSuggesting={isSuggesting}

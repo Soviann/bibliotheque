@@ -18,6 +18,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 - **Migration** : rattrape automatiquement les tomes manquants sur les séries déjà importées (honore `defaultTomeBought` / `defaultTomeOnNas` / `defaultTomeRead`) (#463)
 - **Lookup** : corrige l'erreur HTTP 400 systématique sur MangaDex (mauvaise sérialisation du paramètre `includes[]` par Symfony HttpClient) — les couvertures et auteurs manga sont à nouveau récupérés
 - **Recherche de couverture** : corrige le débordement des images hors de la modal en contraignant correctement la hauteur de la zone défilable (#456)
+- **Fusion** : corrige le scroll horizontal tronqué dans la modal de fusion de séries — le conteneur parent et le tableau des tomes se disputaient le scroll horizontal, ce qui empêchait d'atteindre les dernières colonnes (#457)
 
 ### Removed
 
