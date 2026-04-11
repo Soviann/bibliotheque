@@ -7,6 +7,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Import** : crée les tomes manquants quand seule la colonne « Parution » est remplie — avant, `latestPublishedIssue` était persisté sans créer les `Tome` correspondants, ce qui déclenchait ensuite des notifications « tomes manquants » pour toute la plage (#463)
+- **Migration** : rattrape automatiquement les tomes manquants sur les séries déjà importées (honore `defaultTomeBought` / `defaultTomeOnNas` / `defaultTomeRead`) (#463)
+
 ## [v2.26.8] - 2026-04-07
 
 ### Fixed
