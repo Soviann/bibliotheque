@@ -47,7 +47,10 @@ export default function SelectListbox({
             </span>
             <ChevronDown className="h-4 w-4 text-text-muted" />
           </ListboxButton>
-          <ListboxOptions className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-surface-border bg-surface-primary py-1 shadow-layered-lg transition focus:outline-none dark:border-white/10 dark:bg-surface-elevated">
+          <ListboxOptions
+            anchor="bottom start"
+            className="z-50 mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-xl border border-surface-border bg-surface-primary py-1 shadow-layered-lg transition focus:outline-none dark:border-white/10 dark:bg-surface-elevated"
+          >
             {options.map((option) => (
               <ListboxOption
                 className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-text-primary data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-950/30"
