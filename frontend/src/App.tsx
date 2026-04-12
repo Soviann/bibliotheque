@@ -2,7 +2,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Loader2, WifiOff } from "lucide-react";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import type { ComponentType } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import {
@@ -11,8 +11,8 @@ import {
   Outlet,
   Route,
   RouterProvider,
-  useLocation,
 } from "react-router-dom";
+import { useScrollRestoration } from "./hooks/useScrollRestoration";
 import { Toaster } from "sonner";
 import AuthGuard from "./components/AuthGuard";
 import { queryKeys } from "./queryKeys";
@@ -97,18 +97,15 @@ function Loading() {
   );
 }
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+function ScrollManager() {
+  useScrollRestoration();
   return null;
 }
 
 function RootLayout() {
   return (
     <Suspense fallback={<Loading />}>
-      <ScrollToTop />
+      <ScrollManager />
       <Outlet />
     </Suspense>
   );

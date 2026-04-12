@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import VirtualGrid from "../../../components/VirtualGrid";
 
 // Mock useColumnCount to return a fixed column count
@@ -7,24 +8,32 @@ vi.mock("../../../hooks/useColumnCount", () => ({
   useColumnCount: () => ({ columnCount: 3, containerRef: vi.fn() }),
 }));
 
-// Mock useWindowVirtualizer
-const mockGetVirtualItems = vi.fn();
-const mockGetTotalSize = vi.fn(() => 720);
-
-vi.mock("@tanstack/react-virtual", () => ({
-  useWindowVirtualizer: vi.fn(() => ({
-    getVirtualItems: mockGetVirtualItems,
-    getTotalSize: mockGetTotalSize,
-  })),
+// Mock useScrollRestoration exports
+vi.mock("../../../hooks/useScrollRestoration", () => ({
+  getSavedVirtuosoState: vi.fn(() => undefined),
+  saveVirtuosoState: vi.fn(),
 }));
 
-beforeEach(() => {
-  mockGetVirtualItems.mockReturnValue([
-    { index: 0, key: "0", size: 240, start: 0 },
-    { index: 1, key: "1", size: 240, start: 240 },
-    { index: 2, key: "2", size: 240, start: 480 },
-  ]);
-});
+// Mock react-virtuoso: render all rows via itemContent
+vi.mock("react-virtuoso", () => ({
+  Virtuoso: ({
+    itemContent,
+    totalCount,
+  }: {
+    itemContent: (index: number) => React.ReactNode;
+    totalCount: number;
+  }) => (
+    <div data-testid="mock-virtuoso">
+      {Array.from({ length: totalCount }, (_, i) => (
+        <div key={i}>{itemContent(i)}</div>
+      ))}
+    </div>
+  ),
+}));
+
+function renderWithRouter(ui: React.ReactNode) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+}
 
 describe("VirtualGrid", () => {
   it("renders virtual rows with items", () => {
@@ -33,7 +42,7 @@ describe("VirtualGrid", () => {
       name: `Item ${i}`,
     }));
 
-    render(
+    renderWithRouter(
       <VirtualGrid
         items={items}
         renderItem={(item) => (
@@ -42,38 +51,25 @@ describe("VirtualGrid", () => {
       />,
     );
 
-    // With 3 columns and 3 virtual rows, first row has items 0-2
+    // With 3 columns and 9 items → 3 rows, all items rendered
     expect(screen.getByTestId("item-0")).toBeInTheDocument();
-    expect(screen.getByTestId("item-1")).toBeInTheDocument();
-    expect(screen.getByTestId("item-2")).toBeInTheDocument();
+    expect(screen.getByTestId("item-4")).toBeInTheDocument();
+    expect(screen.getByTestId("item-8")).toBeInTheDocument();
   });
 
   it("renders nothing when items is empty", () => {
-    const { container } = render(
+    renderWithRouter(
       <VirtualGrid
         items={[]}
         renderItem={(item: { id: number }) => <div>{item.id}</div>}
       />,
     );
 
-    // Should render the container but with 0 height
-    mockGetVirtualItems.mockReturnValue([]);
-    mockGetTotalSize.mockReturnValue(0);
-
-    const { container: emptyContainer } = render(
-      <VirtualGrid
-        items={[]}
-        renderItem={(item: { id: number }) => <div>{item.id}</div>}
-      />,
-    );
-
-    expect(
-      emptyContainer.querySelector("[data-testid='virtual-grid']"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("virtual-grid")).toBeInTheDocument();
   });
 
   it("applies custom testId", () => {
-    render(
+    renderWithRouter(
       <VirtualGrid
         items={[{ id: 1 }]}
         renderItem={(item) => <div>{item.id}</div>}
@@ -87,7 +83,7 @@ describe("VirtualGrid", () => {
   it("uses grid layout classes on rows", () => {
     const items = Array.from({ length: 6 }, (_, i) => ({ id: i }));
 
-    const { container } = render(
+    const { container } = renderWithRouter(
       <VirtualGrid items={items} renderItem={(item) => <div>{item.id}</div>} />,
     );
 
