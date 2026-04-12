@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.29.0] — 2026-04-12
+
 ### Added
 
 - **Deploy tasks** : système de tâches de déploiement one-shot (`deploy-tasks/Task*.php`), trackées dans `var/deploy-tasks-executed.json`. La commande `app:deploy:run-tasks` est appelée automatiquement à chaque déploiement NAS.
