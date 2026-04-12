@@ -14,6 +14,25 @@
 - Act on user instructions directly — no exploratory glob/grep when user names the target.
 - Don't verify existence of items already known from plan or memory.
 
+## Plans
+
+### Format
+- **PO summary first**: 2-3 sentences max, non-technical, describing what changes for the user/product. Enables fast validation before reading technical detail.
+- **Then phases**: phase N depends on N-1 output. Within each phase, mark tasks `[parallel]` or `[seq]`.
+- No prose — actionable instructions only. Each task: target files, method signatures/behavior, test criteria.
+- All architectural decisions made in plan. No "decide how to…" — Sonnet executes, doesn't architect.
+
+### Sonnet-readiness (per task)
+- Target files listed with expected changes
+- Input/output or behavior defined
+- Test criteria explicit (what to assert)
+
+### Execution model
+- Phase with independent tasks → `subagent-driven-development` (parallel Sonnet sub-agents)
+- Phase with dependencies → single sequential agent
+- Mechanical same-change × N → parallel sub-agents
+- One session per phase. Plan encodes execution — no orchestrator needed.
+
 ## Quality
 - Linters/formatters: before committing only, ONLY on modified files.
 - DRY: extract at 3+ occurrences (or 2 if complex). Exception: abstraction obscures intent or coupling > duplication cost.
