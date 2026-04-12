@@ -10,6 +10,7 @@ use App\Enum\LookupMode;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Contract\MultiResultLookupProviderInterface;
 use App\Service\Lookup\Util\GoogleBooksUrlHelper;
+use App\Service\Lookup\Util\TitleMatcher;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -60,10 +61,13 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
             $queryParams['key'] = $this->apiKey;
         }
 
-        return $this->httpClient->request('GET', self::API_URL, [
-            'query' => $queryParams,
-            'timeout' => 10,
-        ]);
+        return [
+            'query' => $query,
+            'response' => $this->httpClient->request('GET', self::API_URL, [
+                'query' => $queryParams,
+                'timeout' => 10,
+            ]),
+        ];
     }
 
     public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
@@ -72,26 +76,33 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
 
         $q = LookupMode::ISBN === $mode ? 'isbn:'.$query : $query;
 
-        $query = [
-            'maxResults' => 10,
+        $queryParams = [
+            'maxResults' => 5,
             'q' => $q,
         ];
 
         if ('' !== $this->apiKey) {
-            $query['key'] = $this->apiKey;
+            $queryParams['key'] = $this->apiKey;
         }
 
-        return $this->httpClient->request('GET', self::API_URL, [
-            'query' => $query,
-            'timeout' => 10,
-        ]);
+        return [
+            'query' => LookupMode::ISBN === $mode ? null : $query,
+            'response' => $this->httpClient->request('GET', self::API_URL, [
+                'query' => $queryParams,
+                'timeout' => 10,
+            ]),
+        ];
     }
 
     public function resolveMultipleLookup(mixed $state): array
     {
-        \assert($state instanceof ResponseInterface);
+        \assert(\is_array($state));
+        /** @var array{query: string|null, response: ResponseInterface} $state */
+        $query = $state['query'];
+        $response = $state['response'];
+
         try {
-            $data = $state->toArray();
+            $data = $response->toArray();
 
             if (empty($data['items'])) {
                 $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
@@ -99,7 +110,8 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
                 return [];
             }
 
-            $results = $this->groupItemsByTitle($data['items']);
+            $items = $this->filterItemsByTitle($data['items'], $query);
+            $results = $this->groupItemsByTitle($items);
             $this->recordApiMessage(ApiLookupStatus::SUCCESS, \sprintf('%d résultat(s) trouvé(s)', \count($results)));
 
             return $results;
@@ -134,9 +146,13 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
 
     public function resolveLookup(mixed $state): ?LookupResult
     {
-        \assert($state instanceof ResponseInterface);
+        \assert(\is_array($state));
+        /** @var array{query: string|null, response: ResponseInterface} $state */
+        $query = $state['query'];
+        $response = $state['response'];
+
         try {
-            $data = $state->toArray();
+            $data = $response->toArray();
 
             if (empty($data['items'])) {
                 $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat');
@@ -144,7 +160,8 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
                 return null;
             }
 
-            $result = $this->mergeItems($data['items']);
+            $items = $this->filterItemsByTitle($data['items'], $query);
+            $result = $this->mergeItems($items);
             $this->recordApiMessage(ApiLookupStatus::SUCCESS, 'Données trouvées');
 
             return $result;
@@ -331,6 +348,33 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
             thumbnail: $thumbnail,
             title: $title,
         );
+    }
+
+    /**
+     * Filtre les items par similarité de titre avec la requête.
+     * Si la requête est null ou si tous les items sont filtrés, retourne la liste originale.
+     *
+     * @param array<int, array<string, mixed>> $items
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function filterItemsByTitle(array $items, ?string $query): array
+    {
+        if (null === $query) {
+            return $items;
+        }
+
+        $filtered = \array_filter(
+            $items,
+            static function (array $item) use ($query): bool {
+                $volumeInfo = $item['volumeInfo'] ?? null;
+                $title = \is_array($volumeInfo) ? ($volumeInfo['title'] ?? null) : null;
+
+                return \is_string($title) && TitleMatcher::matches($query, $title);
+            },
+        );
+
+        return \count($filtered) > 0 ? \array_values($filtered) : $items;
     }
 
     /**

@@ -79,7 +79,7 @@ final class GoogleBooksLookupTest extends TestCase
                 'GET',
                 'https://www.googleapis.com/books/v1/volumes',
                 self::callback(static fn (array $options): bool => 'isbn:9782723489' === $options['query']['q']
-                    && 10 === $options['query']['maxResults']
+                    && 5 === $options['query']['maxResults']
                     && 'test-api-key' === $options['query']['key']
                     && 10 === $options['timeout']),
             )
@@ -87,7 +87,9 @@ final class GoogleBooksLookupTest extends TestCase
 
         $result = $this->provider->prepareLookup('9782723489', null, LookupMode::ISBN);
 
-        self::assertSame($response, $result);
+        self::assertIsArray($result);
+        self::assertNull($result['query']);
+        self::assertSame($response, $result['response']);
     }
 
     /**
@@ -104,11 +106,15 @@ final class GoogleBooksLookupTest extends TestCase
                 'GET',
                 'https://www.googleapis.com/books/v1/volumes',
                 self::callback(static fn (array $options): bool => 'One Piece' === $options['query']['q']
-                    && 10 === $options['query']['maxResults']),
+                    && 5 === $options['query']['maxResults']),
             )
             ->willReturn($response);
 
-        $this->provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
+        $result = $this->provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
+
+        self::assertIsArray($result);
+        self::assertSame('One Piece', $result['query']);
+        self::assertSame($response, $result['response']);
     }
 
     /**
@@ -155,7 +161,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertSame('Eiichiro Oda', $result->authors);
@@ -185,7 +191,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertStringStartsWith('https://', $result->thumbnail);
@@ -202,7 +208,7 @@ final class GoogleBooksLookupTest extends TestCase
         $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['items' => []]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNull($result);
 
@@ -219,7 +225,7 @@ final class GoogleBooksLookupTest extends TestCase
         $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['totalItems' => 0]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNull($result);
 
@@ -238,7 +244,7 @@ final class GoogleBooksLookupTest extends TestCase
 
         $this->createLoggerMock()->expects(self::once())->method('error');
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNull($result);
 
@@ -272,7 +278,7 @@ final class GoogleBooksLookupTest extends TestCase
         $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNull($result);
 
@@ -305,7 +311,7 @@ final class GoogleBooksLookupTest extends TestCase
         $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willThrowException($exception);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNull($result);
 
@@ -326,7 +332,7 @@ final class GoogleBooksLookupTest extends TestCase
 
         $this->createLoggerMock()->expects(self::once())->method('error');
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNull($result);
 
@@ -359,7 +365,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertSame('Oda', $result->authors);
@@ -388,7 +394,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertSame('https://example.com/image.jpg?zoom=1&edge=curl', $result->thumbnail);
@@ -413,7 +419,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertNotNull($result->thumbnail);
@@ -439,7 +445,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertSame('2723489000', $result->isbn);
@@ -462,7 +468,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertFalse($result->isOneShot);
@@ -489,7 +495,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertNull($result->isbn);
@@ -515,7 +521,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertNull($result->isbn);
@@ -540,7 +546,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertSame('Valid Item', $result->title);
@@ -563,7 +569,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertNull($result->thumbnail);
@@ -595,7 +601,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertSame('Complete', $result->title);
@@ -625,7 +631,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $result = $this->provider->resolveLookup($response);
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
 
         self::assertNotNull($result);
         self::assertSame('9782723489003', $result->isbn);
@@ -651,7 +657,9 @@ final class GoogleBooksLookupTest extends TestCase
 
         $result = $this->provider->prepareMultipleLookup('Naruto', ComicType::MANGA, 5);
 
-        self::assertSame($response, $result);
+        self::assertIsArray($result);
+        self::assertSame('Naruto', $result['query']);
+        self::assertSame($response, $result['response']);
     }
 
     /**
@@ -686,7 +694,7 @@ final class GoogleBooksLookupTest extends TestCase
             ],
         ]);
 
-        $results = $this->provider->resolveMultipleLookup($response);
+        $results = $this->provider->resolveMultipleLookup(['query' => null, 'response' => $response]);
 
         self::assertCount(2, $results);
         self::assertSame('One Piece', $results[0]->title);
@@ -705,7 +713,7 @@ final class GoogleBooksLookupTest extends TestCase
         $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['items' => []]);
 
-        $results = $this->provider->resolveMultipleLookup($response);
+        $results = $this->provider->resolveMultipleLookup(['query' => null, 'response' => $response]);
 
         self::assertSame([], $results);
     }
@@ -721,12 +729,117 @@ final class GoogleBooksLookupTest extends TestCase
 
         $this->createLoggerMock();
 
-        $results = $this->provider->resolveMultipleLookup($response);
+        $results = $this->provider->resolveMultipleLookup(['query' => null, 'response' => $response]);
 
         self::assertSame([], $results);
 
         $apiMessage = $this->provider->getLastApiMessage();
         self::assertSame('error', $apiMessage->status);
+    }
+
+    /**
+     * Teste que resolveLookup filtre les items dont le titre ne correspond pas a la requete.
+     */
+    public function testResolveLookupFiltersIrrelevantItems(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => ['thumbnail' => 'https://example.com/wrong.jpg'],
+                        'title' => 'Cooking Made Easy',
+                    ],
+                ],
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => ['thumbnail' => 'https://example.com/correct.jpg'],
+                        'title' => 'Dragon Ball Vol. 1',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup(['query' => 'Dragon Ball', 'response' => $response]);
+
+        self::assertNotNull($result);
+        self::assertSame('Dragon Ball Vol. 1', $result->title);
+        self::assertSame('https://example.com/correct.jpg', $result->thumbnail);
+    }
+
+    /**
+     * Teste que resolveLookup utilise tous les items si aucun ne correspond au titre.
+     */
+    public function testResolveLookupFallsBackWhenAllFiltered(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'imageLinks' => ['thumbnail' => 'https://example.com/img.jpg'],
+                        'title' => 'Something Completely Different',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup(['query' => 'Dragon Ball', 'response' => $response]);
+
+        self::assertNotNull($result);
+        self::assertSame('Something Completely Different', $result->title);
+        self::assertSame('https://example.com/img.jpg', $result->thumbnail);
+    }
+
+    /**
+     * Teste que resolveLookup ne filtre pas en mode ISBN (query null).
+     */
+    public function testResolveLookupNoFilteringForIsbnMode(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'title' => 'Unrelated Book',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
+
+        self::assertNotNull($result);
+        self::assertSame('Unrelated Book', $result->title);
+    }
+
+    /**
+     * Teste que resolveMultipleLookup filtre les items hors-sujet.
+     */
+    public function testResolveMultipleLookupFiltersIrrelevantItems(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Toriyama'],
+                        'title' => 'Dragon Ball Vol. 1',
+                    ],
+                ],
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Random Author'],
+                        'title' => 'Cooking Made Easy',
+                    ],
+                ],
+            ],
+        ]);
+
+        $results = $this->provider->resolveMultipleLookup(['query' => 'Dragon Ball', 'response' => $response]);
+
+        self::assertCount(1, $results);
+        self::assertSame('Dragon Ball Vol. 1', $results[0]->title);
     }
 
     /**
