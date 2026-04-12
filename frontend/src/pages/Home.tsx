@@ -9,7 +9,7 @@ import {
   Rows3,
   Search,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CardActionBar from "../components/CardActionBar";
@@ -22,12 +22,14 @@ import FilterChips from "../components/FilterChips";
 import Filters from "../components/Filters";
 import SearchInput from "../components/SearchInput";
 import ShelfView from "../components/ShelfView";
+import StickySearchBar from "../components/StickySearchBar";
 import VirtualGrid from "../components/VirtualGrid";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import { useScrollReveal } from "../hooks/useScrollReveal";
 import { useRestoreComic } from "../hooks/useTrash";
 import { queryKeys } from "../queryKeys";
 import type { ComicSeries } from "../types/api";
@@ -125,6 +127,10 @@ export default function Home() {
     updateParam("search", debouncedSearch.trim());
   }, [debouncedSearch, updateParam]);
 
+  const searchSentinelRef = useRef<HTMLDivElement>(null);
+  const { showStickyBar } = useScrollReveal({
+    sentinelRef: searchSentinelRef,
+  });
   const isMobile = useMediaQuery("(max-width: 639px)");
   const { data, isFetching, isLoading } = useComics();
   const deleteComic = useDeleteComic();
@@ -229,6 +235,9 @@ export default function Home() {
 
       {/* Continuer la lecture */}
       {showContinueReading && <ContinueReading comics={allComics} />}
+
+      {/* Sentinel pour détecter quand la barre de recherche sort du viewport */}
+      <div ref={searchSentinelRef} aria-hidden="true" />
 
       {/* Search bar + filter button (mobile) + count */}
       <div className="flex items-center gap-2">
@@ -364,6 +373,22 @@ export default function Home() {
         onClose={handleMenuClose}
         onDelete={handleMenuDelete}
         onEdit={handleMenuEdit}
+      />
+
+      <StickySearchBar
+        filteredCount={filtered.length}
+        isFetching={isFetching}
+        isLoading={isLoading}
+        onSearchChange={handleSearchChange}
+        onSortChange={handleSortChange}
+        onStatusChange={handleStatusChange}
+        onTypeChange={handleTypeChange}
+        search={search}
+        sort={sort}
+        status={status}
+        totalCount={allComics.length}
+        type={type}
+        visible={showStickyBar}
       />
     </div>
   );

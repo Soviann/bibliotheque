@@ -21,6 +21,8 @@
 :root {
   /* Hauteur du BottomNav — utilisée pour le padding du main et les barres sticky */
   --bottom-nav-h: 3.5rem;
+  /* Hauteur du header — utilisée pour positionner la sticky search bar */
+  --header-h: 53px;
 }
 
 /* Empêcher le pull-to-refresh natif du navigateur (PWA) */
