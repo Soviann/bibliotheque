@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Deploy tasks** : système de tâches de déploiement one-shot (`deploy-tasks/Task*.php`), trackées dans `var/deploy-tasks-executed.json`. La commande `app:deploy:run-tasks` est appelée automatiquement à chaque déploiement NAS.
+
 ### Changed
 
 - **Home** : la section « Continuer la lecture » est désormais repliée par défaut. Les cartes et leurs couvertures ne sont plus chargées tant que l'utilisateur n'ouvre pas la section.
