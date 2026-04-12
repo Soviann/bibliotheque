@@ -7,6 +7,7 @@ src/
   Command/           Console commands (app:*)
   Controller/        Non-API Platform controllers
   DataFixtures/      UserFixtures
+  DeployTask/        DeployTaskInterface + AbstractDeployTask (one-shot deploy tasks)
   Doctrine/Filter/   SoftDeleteFilter
   DTO/               Value objects for services
   Entity/            Doctrine entities (10)
@@ -19,6 +20,7 @@ src/
   Schedule.php       Scheduler config
   Service/           Business logic (subdirectories below)
   State/             API Platform processors & providers
+deploy-tasks/        One-shot deploy task files (Task*.php, namespace DeployTask\, tracked in var/deploy-tasks-executed.json)
 tests/
   Factory/           EntityFactory
   Functional/        API, Auth, Controller, Security
@@ -109,7 +111,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 - Monthly 1st 1h: `app:purge-deleted`
 - Monthly 1st 2h: `app:purge-notifications`
 
-**Other commands**: `app:import`, `app:invalidate-tokens`, `app:scan-nas`, `app:warm-thumbnails`.
+**Other commands**: `app:deploy:run-tasks` (exécute les tasks `deploy-tasks/Task*.php` one-shot), `app:import`, `app:invalidate-tokens`, `app:scan-nas`, `app:warm-thumbnails`.
 
 ## Events
 

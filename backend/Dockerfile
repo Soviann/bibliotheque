@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libwebp-dev \
     libzip-dev \
+    make \
     supervisor \
     unzip \
     && docker-php-ext-configure gd --with-jpeg --with-webp \

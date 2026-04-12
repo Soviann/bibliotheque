@@ -107,6 +107,19 @@ if try_deploy; then
     docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
     log "Migrations exécutées."
 
+    # Copier le fichier d'import s'il existe
+    if [ -f "/volume1/downloads/import.xlsx" ]; then
+        docker compose --env-file "$ENV_FILE" cp /volume1/downloads/import.xlsx php:/var/www/html/var/import.xlsx 2>&1 | tee -a "$LOG_FILE"
+        log "Fichier d'import copié dans var/."
+    fi
+
+    # Tâches de déploiement one-shot
+    docker compose --env-file "$ENV_FILE" exec -T php php bin/console app:deploy:run-tasks -n --env=prod 2>&1 | tee -a "$LOG_FILE"
+    log "Tâches de déploiement exécutées."
+
+    # Nettoyage du fichier d'import
+    docker compose --env-file "$ENV_FILE" exec -T php rm -f var/import.xlsx 2>&1 | tee -a "$LOG_FILE"
+
     # Miniatures de couverture (LiipImagine)
     docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console app:warm-thumbnails --env=prod 2>&1 | tee -a "$LOG_FILE"
     log "Miniatures de couverture générées."
