@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import ContinueReading from "../../../components/ContinueReading";
@@ -11,6 +11,10 @@ function renderComponent(comics: ComicSeries[]) {
       <ContinueReading comics={comics} />
     </MemoryRouter>,
   );
+}
+
+function expandSection() {
+  fireEvent.click(screen.getByRole("button", { name: /Continuer la lecture/ }));
 }
 
 describe("ContinueReading", () => {
@@ -38,6 +42,7 @@ describe("ContinueReading", () => {
       }),
     ];
     renderComponent(comics);
+    expandSection();
     expect(screen.getByText("One Piece")).toBeInTheDocument();
   });
 
@@ -52,6 +57,7 @@ describe("ContinueReading", () => {
       }),
     ];
     renderComponent(comics);
+    expandSection();
     expect(screen.getByText("Naruto")).toBeInTheDocument();
   });
 
@@ -73,6 +79,7 @@ describe("ContinueReading", () => {
       }),
     ];
     renderComponent(comics);
+    expandSection();
     expect(screen.queryByText("All Read")).not.toBeInTheDocument();
     expect(screen.getByText("Unread")).toBeInTheDocument();
   });
@@ -88,6 +95,7 @@ describe("ContinueReading", () => {
       }),
     ];
     renderComponent(comics);
+    expandSection();
     expect(screen.getByText("Tome 8")).toBeInTheDocument();
   });
 
@@ -121,6 +129,7 @@ describe("ContinueReading", () => {
       }),
     ];
     renderComponent(comics);
+    expandSection();
     const link = screen.getByRole("link", { name: /Bleach/i });
     expect(link).toHaveAttribute("href", "/comic/42");
   });
@@ -144,6 +153,7 @@ describe("ContinueReading", () => {
       }),
     ];
     renderComponent(comics);
+    expandSection();
     expect(screen.queryByText("One Shot")).not.toBeInTheDocument();
     expect(screen.getByText("Series")).toBeInTheDocument();
   });
