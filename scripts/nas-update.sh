@@ -85,11 +85,11 @@ fi
 
 log "Mise à jour : ${CURRENT_TAG:-aucun tag} → ${TARGET_TAG}"
 
-# Nettoyer les fichiers non suivis qui bloqueraient le checkout
+# Nettoyer les fichiers non suivis (artefacts de builds précédents)
 git -C "$APP_DIR" clean -fd 2>&1 | tee -a "$LOG_FILE"
 
-# Checkout du tag cible
-if ! git checkout "$TARGET_TAG" 2>&1 | tee -a "$LOG_FILE"; then
+# Checkout du tag cible (force pour écraser les fichiers modifiés localement)
+if ! git -C "$APP_DIR" checkout -f "$TARGET_TAG" 2>&1 | tee -a "$LOG_FILE"; then
     log "ERREUR: git checkout ${TARGET_TAG} a échoué."
     exit 1
 fi
@@ -145,7 +145,7 @@ PREVIOUS_TAGS=$(git -C "$APP_DIR" tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-
 for tag in $PREVIOUS_TAGS; do
     log "Rollback vers ${tag}..."
     git -C "$APP_DIR" clean -fd 2>&1 | tee -a "$LOG_FILE"
-    git checkout "$tag" 2>&1 | tee -a "$LOG_FILE"
+    git -C "$APP_DIR" checkout -f "$tag" 2>&1 | tee -a "$LOG_FILE"
 
     if try_deploy; then
         sleep 15
