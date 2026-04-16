@@ -8,7 +8,12 @@ import { renderWithProviders } from "../../helpers/test-utils";
 const proposals = [
   {
     "@id": "/enrichment_proposals/1",
-    comicSeries: { "@id": "/comic_series/10", id: 10, title: "One Piece" },
+    comicSeries: {
+      "@id": "/comic_series/10",
+      id: 10,
+      title: "One Piece",
+      type: "manga",
+    },
     confidence: "high",
     createdAt: "2026-01-01T00:00:00+00:00",
     currentValue: null,
@@ -21,7 +26,12 @@ const proposals = [
   },
   {
     "@id": "/enrichment_proposals/2",
-    comicSeries: { "@id": "/comic_series/10", id: 10, title: "One Piece" },
+    comicSeries: {
+      "@id": "/comic_series/10",
+      id: 10,
+      title: "One Piece",
+      type: "manga",
+    },
     confidence: "medium",
     createdAt: "2026-01-01T00:00:00+00:00",
     currentValue: null,
@@ -34,7 +44,12 @@ const proposals = [
   },
   {
     "@id": "/enrichment_proposals/3",
-    comicSeries: { "@id": "/comic_series/20", id: 20, title: "Astérix" },
+    comicSeries: {
+      "@id": "/comic_series/20",
+      id: 20,
+      title: "Astérix",
+      type: "bd",
+    },
     confidence: "low",
     createdAt: "2026-01-01T00:00:00+00:00",
     currentValue: "Ancien éditeur",
@@ -47,7 +62,12 @@ const proposals = [
   },
   {
     "@id": "/enrichment_proposals/4",
-    comicSeries: { "@id": "/comic_series/30", id: 30, title: "Batman" },
+    comicSeries: {
+      "@id": "/comic_series/30",
+      id: 30,
+      title: "Batman",
+      type: "comics",
+    },
     confidence: "high",
     createdAt: "2026-01-01T00:00:00+00:00",
     currentValue: null,

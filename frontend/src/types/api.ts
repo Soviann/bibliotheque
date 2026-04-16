@@ -263,7 +263,7 @@ export interface LookupCandidate {
 
 export interface EnrichmentProposal {
   "@id": string;
-  comicSeries: { "@id": string; id: number; title: string };
+  comicSeries: { "@id": string; id: number; title: string; type: ComicType };
   confidence: EnrichmentConfidence;
   createdAt: string;
   currentValue: unknown;
