@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Revue d'enrichissement** : les propositions de couverture affichent une miniature (192 px) au lieu de l'URL brute, avec placeholder selon le type (BD/Manga/Comics/Livre). Les propositions de description tronquées se déploient au clic pour lire le texte complet (côté revue `/tools/enrichment-review` et section « Propositions à traiter » de la fiche série).
+
 ## [v2.29.0] — 2026-04-12
 
 ### Added

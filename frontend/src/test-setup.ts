@@ -18,6 +18,19 @@ globalThis.ResizeObserver = class {
   disconnect() {}
 };
 
+// jsdom does not implement IntersectionObserver — required by useScrollReveal
+globalThis.IntersectionObserver = class {
+  readonly root = null;
+  readonly rootMargin = "";
+  readonly thresholds: ReadonlyArray<number> = [];
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+} as unknown as typeof IntersectionObserver;
+
 // jsdom does not implement matchMedia — provide a minimal stub
 Object.defineProperty(window, "matchMedia", {
   value: (query: string) => ({

@@ -5,6 +5,10 @@ export default defineConfig({
   plugins: [react()],
   test: {
     alias: {
+      "react-virtuoso": new URL(
+        "./src/__mocks__/react-virtuoso.tsx",
+        import.meta.url,
+      ).pathname,
       "virtual:pwa-register": new URL(
         "./src/__mocks__/virtual-pwa-register.ts",
         import.meta.url,

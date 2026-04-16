@@ -100,7 +100,7 @@ class ComicSeries implements SoftDeletableInterface
     #[ORM\Column(type: Types::STRING, length: 20, enumType: ComicStatus::class)]
     private ComicStatus $status = ComicStatus::BUYING;
 
-    #[Groups(['comic:list', 'comic:read', 'comic:write'])]
+    #[Groups(['comic:list', 'comic:read', 'comic:write', 'enrichment:read'])]
     #[ORM\Column(type: Types::STRING, length: 20, enumType: ComicType::class)]
     private ComicType $type = ComicType::BD;
 
