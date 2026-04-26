@@ -3,8 +3,21 @@
     "commit": "",
     "pr": ""
   },
+  "extraKnownMarketplaces": {
+    "soviann-tools": {
+      "source": {
+        "source": "github",
+        "repo": "Soviann/claude-marketplace"
+      }
+    }
+  },
   "enabledPlugins": {
-    "commit-commands@claude-plugins-official": false
+    "commit-commands@claude-plugins-official": false,
+    "commit-conventions@soviann-tools": true,
+    "session-continuity@soviann-tools": true,
+    "phased-development@soviann-tools": true,
+    "parsing-decisions@soviann-tools": true,
+    "soviann-conventions@soviann-tools": true
   },
   "permissions": {
     "allow": [
