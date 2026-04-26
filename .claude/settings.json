@@ -103,16 +103,6 @@
           }
         ]
       }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f .claude/session-handoff.md ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"A session handoff file exists at .claude/session-handoff.md from a previous session. Invoke the session-resume skill to read it and present it to the user.\"}}'; fi"
-          }
-        ]
-      }
     ]
   }
 }
