@@ -12,30 +12,13 @@ use Symfony\Component\Process\Process;
  */
 abstract class AbstractDeployTask implements DeployTaskInterface
 {
-    private const array ALLOWED_MAKE_TARGETS = [
-        'cc', 'db-migrate', 'db-reset', 'db-seed',
-        'install-back', 'install-back-prod', 'install-front', 'install-front-prod',
-    ];
-
     private const array ALLOWED_CONSOLE_PREFIXES = [
         'app:', 'cache:', 'doctrine:', 'lexik:', 'messenger:',
     ];
 
-    private readonly string $rootDir;
-
     public function __construct(
         protected readonly string $projectDir,
     ) {
-        $this->rootDir = \dirname($projectDir);
-    }
-
-    protected function runMake(string $target, SymfonyStyle $io): void
-    {
-        if (!\in_array($target, self::ALLOWED_MAKE_TARGETS, true)) {
-            throw new \InvalidArgumentException(\sprintf('Make target non autorisé : %s', $target));
-        }
-
-        $this->doRun(['make', $target], $this->rootDir, $io);
     }
 
     /**
@@ -56,6 +39,19 @@ abstract class AbstractDeployTask implements DeployTaskInterface
         }
 
         $this->doRun(\array_merge(['php', 'bin/console', $command], $arguments), $this->projectDir, $io);
+    }
+
+    /**
+     * Exécute une commande système arbitraire dans le conteneur (cwd = projectDir).
+     *
+     * Réservé au code first-party des tâches de déploiement : la commande
+     * n'est pas filtrée, contrairement à runConsole().
+     *
+     * @param list<string> $command ex. ['tar', '-xzf', $archive, '-C', $dest]
+     */
+    protected function runProcess(array $command, SymfonyStyle $io): void
+    {
+        $this->doRun($command, $this->projectDir, $io);
     }
 
     /**

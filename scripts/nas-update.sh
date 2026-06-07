@@ -100,11 +100,17 @@ if try_deploy; then
     sleep 15
 
     # Vider le cache Symfony en tant que www-data (le volume app_var persiste entre les rebuilds)
-    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"
+    if ! docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"; then
+        log "ERREUR: le vidage du cache Symfony a échoué."
+        exit 1
+    fi
     log "Cache Symfony vidé."
 
     # Migrations
-    docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
+    if ! docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"; then
+        log "ERREUR: les migrations ont échoué."
+        exit 1
+    fi
     log "Migrations exécutées."
 
     # Copier le fichier d'import s'il existe
@@ -114,7 +120,10 @@ if try_deploy; then
     fi
 
     # Tâches de déploiement one-shot
-    docker compose --env-file "$ENV_FILE" exec -T php php bin/console app:deploy:run-tasks -n --env=prod 2>&1 | tee -a "$LOG_FILE"
+    if ! docker compose --env-file "$ENV_FILE" exec -T php php bin/console app:deploy:run-tasks -n --env=prod 2>&1 | tee -a "$LOG_FILE"; then
+        log "ERREUR: les tâches de déploiement ont échoué."
+        exit 1
+    fi
     log "Tâches de déploiement exécutées."
 
     # Nettoyage du fichier d'import
