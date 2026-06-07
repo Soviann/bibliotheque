@@ -10,17 +10,28 @@ use Gemini\Exceptions\ErrorException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Pool de clients Gemini avec rotation clés × modèles sur erreur 400/401/403/404/429.
+ * Pool de clients Gemini avec rotation clés × modèles sur erreur 400/401/403/404/429/500/503.
  *
  * Itère modèles (outer) × clés (inner) : épuise toutes les clés sur le meilleur modèle d'abord.
- * Le suivi d'épuisement est en mémoire (suffisant pour les batchs et réinitialisé par requête web).
+ * Les 500/503 (erreurs serveur Gemini transitoires, fréquentes avec le grounding Google Search)
+ * déclenchent aussi une rotation au lieu d'avorter immédiatement.
+ *
+ * Le suivi d'épuisement est en mémoire et borné dans le temps ({@see self::EXHAUSTION_COOLDOWN_SECONDS}) :
+ * une combinaison en échec est ignorée brièvement puis réessayée, ce qui évite qu'un worker
+ * longue durée reste dégradé indéfiniment après une rafale d'erreurs.
  */
 class GeminiClientPool
 {
+    /** Codes HTTP déclenchant une rotation clé/modèle (le reste est relancé immédiatement). */
+    private const array RETRYABLE_CODES = [400, 401, 403, 404, 429, 500, 503];
+
+    /** Durée pendant laquelle une combinaison en échec est ignorée (secondes). */
+    private const float EXHAUSTION_COOLDOWN_SECONDS = 90.0;
+
     /** @var list<string> */
     private readonly array $apiKeys;
 
-    /** @var array<string, true> */
+    /** @var array<string, array{at: float, rateLimited: bool}> */
     private array $exhausted = [];
 
     /** @var list<string> */
@@ -56,32 +67,42 @@ class GeminiClientPool
      *
      * @return T
      *
-     * @throws ErrorException si toutes les combinaisons sont épuisées (dernière erreur retryable)
+     * @throws ErrorException                  pour un code non retryable (relancé immédiatement)
+     * @throws GeminiAllKeysExhaustedException si toutes les combinaisons ont échoué
      */
     public function executeWithRetry(callable $callback): mixed
     {
         $lastException = null;
+        $sawRateLimit = false;
+        $now = \microtime(true);
 
         foreach ($this->models as $model) {
             foreach ($this->apiKeys as $keyIndex => $apiKey) {
                 $comboKey = $keyIndex.':'.$model;
 
-                if (isset($this->exhausted[$comboKey])) {
+                $failure = $this->exhausted[$comboKey] ?? null;
+                if (null !== $failure && ($now - $failure['at']) < self::EXHAUSTION_COOLDOWN_SECONDS) {
+                    $sawRateLimit = $sawRateLimit || $failure['rateLimited'];
+
                     continue;
                 }
 
                 try {
                     $client = \Gemini::client($apiKey);
+                    $result = $callback($client, $model);
+                    unset($this->exhausted[$comboKey]);
 
-                    return $callback($client, $model);
+                    return $result;
                 } catch (ErrorException $e) {
                     $code = $e->getErrorCode();
 
-                    if (!\in_array($code, [400, 401, 403, 404, 429], true)) {
+                    if (!\in_array($code, self::RETRYABLE_CODES, true)) {
                         throw $e;
                     }
 
-                    $this->exhausted[$comboKey] = true;
+                    $isRateLimit = 429 === $code;
+                    $sawRateLimit = $sawRateLimit || $isRateLimit;
+                    $this->exhausted[$comboKey] = ['at' => \microtime(true), 'rateLimited' => $isRateLimit];
                     $lastException = $e;
                     $this->logger->warning('Gemini {code} sur clé {keyIndex} / modèle {model}, rotation…', [
                         'code' => $code,
@@ -92,6 +113,6 @@ class GeminiClientPool
             }
         }
 
-        throw $lastException ?? new \RuntimeException('Aucune combinaison clé/modèle disponible.');
+        throw new GeminiAllKeysExhaustedException(rateLimited: $sawRateLimit, previous: $lastException);
     }
 }

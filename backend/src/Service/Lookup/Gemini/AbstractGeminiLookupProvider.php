@@ -195,6 +195,16 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
 
                 return $this->buildResult($data);
             });
+        } catch (GeminiAllKeysExhaustedException $e) {
+            $this->logger->error("Gemini ({$logName}) : toutes les clés épuisées", ['rateLimited' => $e->rateLimited]);
+
+            if ($e->rateLimited) {
+                $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Toutes les clés API épuisées (quota)');
+            } else {
+                $this->recordApiMessage(ApiLookupStatus::ERROR, 'Toutes les clés API indisponibles');
+            }
+
+            return null;
         } catch (ErrorException $e) {
             $this->logger->error("Erreur Gemini API ({$logName}) : {error}", ['code' => $e->getErrorCode(), 'error' => $e->getMessage()]);
 
