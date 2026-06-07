@@ -376,7 +376,7 @@ final class BedethequeLookupTest extends TestCase
             'status' => 'RESOURCE_EXHAUSTED',
         ]);
 
-        $pool = $this->createMock(GeminiClientPool::class);
+        $pool = $this->createStub(GeminiClientPool::class);
         $pool->method('executeWithRetry')->willThrowException($exception);
 
         $realCache = new ArrayAdapter();
@@ -406,7 +406,7 @@ final class BedethequeLookupTest extends TestCase
             'status' => 'INTERNAL',
         ]);
 
-        $pool = $this->createMock(GeminiClientPool::class);
+        $pool = $this->createStub(GeminiClientPool::class);
         $pool->method('executeWithRetry')->willThrowException($exception);
 
         $realCache = new ArrayAdapter();
@@ -430,7 +430,7 @@ final class BedethequeLookupTest extends TestCase
      */
     public function testResolveLookupGenericThrowable(): void
     {
-        $pool = $this->createMock(GeminiClientPool::class);
+        $pool = $this->createStub(GeminiClientPool::class);
         $pool->method('executeWithRetry')->willThrowException(new \RuntimeException('Connection lost'));
 
         $realCache = new ArrayAdapter();
@@ -564,11 +564,11 @@ final class BedethequeLookupTest extends TestCase
     }
 
     /**
-     * Crée un GeminiClientPool mock qui délègue au client fourni.
+     * Crée un GeminiClientPool stub qui délègue au client fourni.
      */
     private function createPoolFromClient(GeminiClient $client): GeminiClientPool
     {
-        $pool = $this->createMock(GeminiClientPool::class);
+        $pool = $this->createStub(GeminiClientPool::class);
         $pool->method('executeWithRetry')->willReturnCallback(
             static fn (callable $callback) => $callback($client, 'gemini-2.5-flash'),
         );

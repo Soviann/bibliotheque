@@ -32,7 +32,7 @@ final class EnrichOnCreateListenerTest extends TestCase
      */
     public function testDispatchesMessageForPersistedSeries(): void
     {
-        $series = $this->createMock(ComicSeries::class);
+        $series = $this->createStub(ComicSeries::class);
         $series->method('getId')->willReturn(42);
 
         $this->messageBus->expects(self::once())
@@ -48,7 +48,7 @@ final class EnrichOnCreateListenerTest extends TestCase
      */
     public function testDoesNotDispatchIfNoId(): void
     {
-        $series = $this->createMock(ComicSeries::class);
+        $series = $this->createStub(ComicSeries::class);
         $series->method('getId')->willReturn(null);
 
         $this->messageBus->expects(self::never())->method('dispatch');
@@ -64,7 +64,7 @@ final class EnrichOnCreateListenerTest extends TestCase
         EnrichOnCreateListener::disable();
 
         try {
-            $series = $this->createMock(ComicSeries::class);
+            $series = $this->createStub(ComicSeries::class);
             $series->method('getId')->willReturn(42);
 
             $this->messageBus->expects(self::never())->method('dispatch');

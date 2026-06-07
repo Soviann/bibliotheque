@@ -15,6 +15,7 @@ use Doctrine\ORM\Event\PostRemoveEventArgs;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\Cache\CacheInterface;
 
@@ -24,14 +25,14 @@ use Symfony\Contracts\Cache\CacheInterface;
 final class ComicSeriesCacheInvalidatorTest extends TestCase
 {
     private CacheInterface&MockObject $cache;
-    private EntityManagerInterface&MockObject $entityManager;
+    private EntityManagerInterface&Stub $entityManager;
     private UnitOfWork&MockObject $unitOfWork;
     private ComicSeriesCacheInvalidator $listener;
 
     protected function setUp(): void
     {
         $this->cache = $this->createMock(CacheInterface::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
         $this->unitOfWork = $this->createMock(UnitOfWork::class);
         $this->entityManager->method('getUnitOfWork')->willReturn($this->unitOfWork);
 

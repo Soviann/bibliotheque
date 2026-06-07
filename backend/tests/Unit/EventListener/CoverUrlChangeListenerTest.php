@@ -11,6 +11,7 @@ use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -20,13 +21,13 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 final class CoverUrlChangeListenerTest extends TestCase
 {
-    private EntityManagerInterface&MockObject $entityManager;
+    private EntityManagerInterface&Stub $entityManager;
     private CoverUrlChangeListener $listener;
     private MessageBusInterface&MockObject $messageBus;
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
         $this->messageBus = $this->createMock(MessageBusInterface::class);
         $this->listener = new CoverUrlChangeListener($this->messageBus);
     }
@@ -129,9 +130,9 @@ final class CoverUrlChangeListenerTest extends TestCase
         $this->listener->preUpdate($args);
     }
 
-    private function createSeriesWithId(int $id): ComicSeries&MockObject
+    private function createSeriesWithId(int $id): ComicSeries&Stub
     {
-        $series = $this->createMock(ComicSeries::class);
+        $series = $this->createStub(ComicSeries::class);
         $series->method('getId')->willReturn($id);
 
         return $series;

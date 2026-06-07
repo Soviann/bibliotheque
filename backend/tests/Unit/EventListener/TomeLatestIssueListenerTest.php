@@ -10,7 +10,7 @@ use App\EventListener\TomeLatestIssueListener;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,11 +19,11 @@ use PHPUnit\Framework\TestCase;
 final class TomeLatestIssueListenerTest extends TestCase
 {
     private TomeLatestIssueListener $listener;
-    private EntityManagerInterface&MockObject $entityManager;
+    private EntityManagerInterface&Stub $entityManager;
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
         $this->listener = new TomeLatestIssueListener();
     }
 

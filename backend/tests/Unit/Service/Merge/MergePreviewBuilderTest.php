@@ -285,7 +285,7 @@ class MergePreviewBuilderTest extends TestCase
 
     private function createPoolFromClient(GeminiClient $client): GeminiClientPool
     {
-        $pool = $this->createMock(GeminiClientPool::class);
+        $pool = $this->createStub(GeminiClientPool::class);
         $pool->method('executeWithRetry')->willReturnCallback(
             static fn (callable $callback) => $callback($client, 'gemini-2.5-flash'),
         );

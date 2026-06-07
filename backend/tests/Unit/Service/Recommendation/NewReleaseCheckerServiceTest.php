@@ -13,6 +13,7 @@ use App\Service\Recommendation\NewReleaseCheckerService;
 use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,14 +22,14 @@ use PHPUnit\Framework\TestCase;
 final class NewReleaseCheckerServiceTest extends TestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
-    private LookupOrchestrator&MockObject $lookupOrchestrator;
+    private LookupOrchestrator&Stub $lookupOrchestrator;
     private NewReleaseCheckerService $service;
     private ComicSeriesRepository&MockObject $repository;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->lookupOrchestrator = $this->createMock(LookupOrchestrator::class);
+        $this->lookupOrchestrator = $this->createStub(LookupOrchestrator::class);
         $this->repository = $this->createMock(ComicSeriesRepository::class);
 
         $this->service = new NewReleaseCheckerService(

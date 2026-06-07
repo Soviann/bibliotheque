@@ -727,7 +727,8 @@ final class GoogleBooksLookupTest extends TestCase
         $exception = new class('Timeout') extends \RuntimeException implements TransportExceptionInterface {};
         $response->method('toArray')->willThrowException($exception);
 
-        $this->createLoggerMock();
+        $this->logger = $this->createStub(LoggerInterface::class);
+        $this->provider = new GoogleBooksLookup('test-api-key', $this->httpClient, $this->logger);
 
         $results = $this->provider->resolveMultipleLookup(['query' => null, 'response' => $response]);
 

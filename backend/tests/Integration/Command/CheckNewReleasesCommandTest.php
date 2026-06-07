@@ -30,7 +30,7 @@ final class CheckNewReleasesCommandTest extends KernelTestCase
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
         // Mock le LookupOrchestrator pour éviter les vrais appels API
-        $orchestrator = $this->createMock(LookupOrchestrator::class);
+        $orchestrator = $this->createStub(LookupOrchestrator::class);
         $orchestrator->method('lookupByTitle')->willReturn(
             new LookupResult(latestPublishedIssue: 15),
         );

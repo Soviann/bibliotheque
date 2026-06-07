@@ -16,22 +16,23 @@ use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 final class BatchLookupServiceTest extends TestCase
 {
     private ComicSeriesRepository&MockObject $comicSeriesRepository;
     private EntityManagerInterface&MockObject $entityManager;
-    private LookupApplier&MockObject $lookupApplier;
-    private LookupOrchestrator&MockObject $lookupOrchestrator;
+    private LookupApplier&Stub $lookupApplier;
+    private LookupOrchestrator&Stub $lookupOrchestrator;
     private BatchLookupService $service;
 
     protected function setUp(): void
     {
         $this->comicSeriesRepository = $this->createMock(ComicSeriesRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->lookupApplier = $this->createMock(LookupApplier::class);
-        $this->lookupOrchestrator = $this->createMock(LookupOrchestrator::class);
+        $this->lookupApplier = $this->createStub(LookupApplier::class);
+        $this->lookupOrchestrator = $this->createStub(LookupOrchestrator::class);
 
         $this->service = new BatchLookupService(
             $this->comicSeriesRepository,

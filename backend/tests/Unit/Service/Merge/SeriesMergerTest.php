@@ -15,6 +15,7 @@ use App\Repository\ComicSeriesRepository;
 use App\Service\Merge\SeriesMerger;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -23,14 +24,14 @@ use PHPUnit\Framework\TestCase;
 final class SeriesMergerTest extends TestCase
 {
     private AuthorRepository&MockObject $authorRepository;
-    private ComicSeriesRepository&MockObject $comicSeriesRepository;
+    private ComicSeriesRepository&Stub $comicSeriesRepository;
     private EntityManagerInterface&MockObject $entityManager;
     private SeriesMerger $merger;
 
     protected function setUp(): void
     {
         $this->authorRepository = $this->createMock(AuthorRepository::class);
-        $this->comicSeriesRepository = $this->createMock(ComicSeriesRepository::class);
+        $this->comicSeriesRepository = $this->createStub(ComicSeriesRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
         $this->merger = new SeriesMerger(
