@@ -11,7 +11,7 @@
 - No issues/plans unless requested.
 - **Patterns file**: `.claude/memory/patterns.md` (NOT `docs/patterns.md`).
 - **Docs upkeep**: when adding entities, enums, services, routes, or commands, update CLAUDE.md + patterns.md in the same session.
-- **No codebase exploration.** CLAUDE.md + MEMORY.md + patterns.md is the full map. Read only files you'll edit.
+- **No codebase exploration.** CLAUDE.md + MEMORY.md + patterns.md is the full map.
 
 ## Translations (override)
 
@@ -24,7 +24,7 @@ React frontend → user-facing text in components, not Twig. Backend `Assert\*` 
 ## Workflow
 
 - **GitHub issue work → `/implement` skill.** No exceptions.
-- **Don't reinvent the wheel.** Search order: native (Symfony/Doctrine/React) → official bundle/npm → maintained 3rd-party (MIT/Apache/BSD) → custom. Search Packagist, symfony.com/bundles, npm.
+- **Search order before custom**: native (Symfony/Doctrine/React) → official bundle/npm → maintained 3rd-party (MIT/Apache/BSD) → custom. Search Packagist, symfony.com/bundles, npm.
 
 ## DDEV — Mandatory
 
@@ -92,20 +92,9 @@ Skip strict red-green-refactor when failure is obvious (class doesn't exist yet)
 **Test env**: `db_test`, `https://test.bibliotheque.ddev.site`, `.env.test`
 **No tests for**: YAML config, migrations, assets, CSS.
 
-## Frontend
+## Frontend & API
 
-**Stack**: React 19, TS, Vite, TanStack Query v5, React Router v7, Tailwind 4, Headless UI, Lucide, Sonner, `@react-oauth/google`. Tests: Vitest + jsdom + RTL.
-
-- `apiFetch<T>()` handles JWT, Content-Type, 401 redirects.
-- Mutations invalidate relevant query keys on success.
-- Pages lazy-loaded via `React.lazy()` in `App.tsx`.
-- JWT in `localStorage`, 365-day TTL, token versioning. `AuthGuard` → `/login`. Google OAuth.
-- Dark mode: `useDarkMode` (`.dark` on `<html>`, localStorage).
-- Offline: `useOnlineStatus` + `OfflineBanner`, SW updates via `useServiceWorker` + Sonner toast.
-
-## API (API Platform 4)
-
-JSON-LD (`application/ld+json`). Login: `POST /api/login/google` `{credential}` → `{token}`. Single email via `OAUTH_ALLOWED_EMAIL`. Resources/processors/providers/lookup endpoints → `.claude/memory/patterns.md`.
+Stack, conventions, API Platform 4 format/auth/endpoints → `.claude/memory/patterns.md`.
 
 ## Rector
 
@@ -118,7 +107,7 @@ Run CS-Fixer + tests after.
 ## Git (project)
 
 - Reference issue: `#N` in body, or `fixes #N` to auto-close.
-- **Branches (GitHub Flow)**: `main` = stable / deployable. Feature: `<type>/<N>-<short-description>` (e.g. `feat/23-api-cache`). Non-trivial → PR + squash merge. Trivial (typos, CLAUDE.md, minor config) → direct on `main`. Update CHANGELOG after each merged PR.
+- **Branches (GitHub Flow)**: `main` = stable / deployable. Feature: `<type>/<N>-<short-description>` (e.g. `feat/23-api-cache`). Non-trivial → PR + squash merge (overrides shared `--no-ff`). Trivial (typos, CLAUDE.md, minor config) → direct on `main`. Update CHANGELOG after each merged PR.
 - **Tags / Releases (SemVer)**: `vMAJOR.MINOR.PATCH` on `main` only. **Pushing a tag triggers prod deploy** (CI builds ghcr.io images → SSH to NAS via `nas-update.sh`). Use the `release` skill — handles CHANGELOG promotion + commit + tag + push.
 
 ## Issues & project board
@@ -149,37 +138,6 @@ gh issue create --repo Soviann/bibliotheque --title "..." --body "..." --label "
 
 Add to `## [Unreleased]` under `### Added|Changed|Fixed|Removed`. Format: `- **Name**: description`.
 
-## Structure
+## Structure & Deployment
 
-Full file map → `.claude/memory/patterns.md`.
-
-```
-backend/src/{Command,Controller,DataFixtures,Doctrine/Filter,DTO,Entity,Enum,Event,EventListener,Message,MessageHandler,Repository,State}/
-backend/src/Service/{ComicSeries,Cover/Upload,Enrichment,Import,Lookup/{Contract,Gemini,Provider,Util},Merge,Nas,Notification,Recommendation}/
-backend/tests/{Unit,Integration,Functional,Factory,Trait}/
-frontend/src/{components,hooks,pages,services,types,__tests__}/
-```
-
-## Deployment
-
-**Docker (Synology NAS)**: 3 containers — nginx (static + reverse proxy), php (php-fpm 8.3), db (MariaDB 10.11). Frontend built in nginx multi-stage Dockerfile. Images on `ghcr.io/soviann/bibliotheque-{php,nginx}` (CI). Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude/SSH).
-
-```bash
-cd backend && docker compose up --build -d                  # dev local (build)
-TAG=2.9.0 docker compose pull && docker compose up -d       # NAS prod (pull)
-```
-
-**Symfony Secrets (prod vault)**: `APP_SECRET`, `JWT_PASSPHRASE`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` in encrypted vault (`config/secrets/prod/`). Public key committed; decrypt key gitignored. `PlaceholderSecretChecker` blocks prod startup if placeholders remain. Deploy unlocks via `SYMFONY_DECRYPTION_SECRET` env or copying `prod.decrypt.private.php`.
-
-```bash
-ddev exec "cd backend && bin/console secrets:set NAME --env=prod"
-ddev exec "cd backend && bin/console secrets:list --env=prod"
-```
-
-**VAPID (Web Push)** — generate once:
-```bash
-ddev exec php -r "use Minishlink\WebPush\VAPID; \$k = VAPID::createVapidKeys(); echo 'Public: '.\$k['publicKey'].PHP_EOL.'Private: '.\$k['privateKey'].PHP_EOL;"
-```
-Set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT=mailto:…` in `backend/.env.local` (dev) or secrets vault (prod). Frontend needs `VITE_VAPID_PUBLIC_KEY` for subscription.
-
-**Symfony Messenger**: transport `doctrine://default` (table `messenger_messages`). Test: `in-memory://`. Config: `backend/config/packages/messenger.yaml`. `EnrichSeriesMessage` routed async.
+Full file map, services, Docker/NAS deploy, Symfony Secrets vault, VAPID, Messenger → `.claude/memory/patterns.md`.
