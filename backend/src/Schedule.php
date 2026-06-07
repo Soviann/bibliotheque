@@ -43,6 +43,12 @@ final class Schedule implements ScheduleProviderInterface
         $schedule->add(RecurringMessage::cron('0 1 1 * *', new RunCommandMessage('app:purge-deleted')));
         $schedule->add(RecurringMessage::cron('0 2 1 * *', new RunCommandMessage('app:purge-notifications --days=90')));
 
+        // Quotidien 9h (après le reset quotidien du quota Gemini) — rejoue les
+        // messages en file d'échec pour qu'ils se résorbent d'eux-mêmes. Les
+        // échecs transitoires (quota, réseau) repartent ; un échec définitif
+        // (bug) y reviendra et restera visible.
+        $schedule->add(RecurringMessage::cron('0 9 * * *', new RunCommandMessage('messenger:failed:retry --force')));
+
         return $schedule;
     }
 }
