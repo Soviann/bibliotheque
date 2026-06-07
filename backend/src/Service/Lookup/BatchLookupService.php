@@ -4,29 +4,25 @@ declare(strict_types=1);
 
 namespace App\Service\Lookup;
 
-use App\DTO\BatchLookupProgress;
-use App\Entity\ComicSeries;
-use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
+use App\Message\EnrichSeriesMessage;
 use App\Repository\ComicSeriesRepository;
-use App\Service\Lookup\Contract\LookupResult;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Service de lookup batch pour les séries avec métadonnées manquantes.
+ * Met en file l'enrichissement des séries avec métadonnées manquantes.
  *
- * Utilise un générateur pour permettre le streaming (SSE) ou l'affichage CLI.
+ * Le travail est délégué au worker Messenger (un message par série) :
+ * l'enrichissement, le scoring et le téléchargement des couvertures
+ * s'exécutent en arrière-plan via EnrichSeriesHandler.
  */
 final readonly class BatchLookupService
 {
-    private const int BATCH_SIZE = 10;
-    private const int MAX_DELAY = 60;
-
     public function __construct(
         private ComicSeriesRepository $comicSeriesRepository,
         private EntityManagerInterface $entityManager,
-        private LookupApplier $lookupApplier,
-        private LookupOrchestrator $lookupOrchestrator,
+        private MessageBusInterface $messageBus,
     ) {
     }
 
@@ -42,129 +38,40 @@ final readonly class BatchLookupService
     }
 
     /**
-     * Exécute le lookup batch et yield la progression après chaque série.
+     * Dispatche un message d'enrichissement par série à traiter.
      *
-     * @return \Generator<BatchLookupProgress>
+     * En mode force, `lookupCompletedAt` est réinitialisé avant le dispatch
+     * pour que le handler relance le lookup (le handler ignore les séries
+     * déjà complétées). On évite ainsi d'ajouter un champ au message, qui
+     * casserait la désérialisation entre versions du worker.
+     *
+     * @return int le nombre de séries mises en file
      */
-    public function run(
-        int $delay = 2,
-        bool $dryRun = false,
-        bool $force = false,
-        int $limit = 0,
-        ?ComicType $type = null,
-    ): \Generator {
+    public function queue(?ComicType $type = null, bool $force = false, int $limit = 0): int
+    {
         $seriesList = $this->comicSeriesRepository->findWithMissingLookupData(
             type: $type,
             limit: $limit > 0 ? $limit : null,
             force: $force,
         );
 
-        $currentDelay = $delay;
-        $total = \count($seriesList);
-
-        foreach ($seriesList as $index => $series) {
-            $progress = $this->processSeries($series, $currentDelay, $dryRun, $index, $total);
-            $currentDelay = $progress['delay'];
-
-            yield $progress['progress'];
-
-            // Flush par batch
-            if (!$dryRun && 0 === ($index + 1) % self::BATCH_SIZE) {
-                $this->entityManager->flush();
+        if ($force) {
+            foreach ($seriesList as $series) {
+                $series->setLookupCompletedAt(null);
             }
-
-            // Délai entre les lookups (sauf dernier)
-            if ($index < $total - 1 && $currentDelay > 0) {
-                \sleep($currentDelay);
-            }
-        }
-
-        // Flush final
-        if (!$dryRun) {
             $this->entityManager->flush();
         }
-    }
 
-    /**
-     * @return array{delay: int, progress: BatchLookupProgress}
-     */
-    private function processSeries(
-        ComicSeries $series,
-        int $currentDelay,
-        bool $dryRun,
-        int $index,
-        int $total,
-    ): array {
-        $title = $series->getTitle();
-        $type = $series->getType();
+        foreach ($seriesList as $series) {
+            $id = $series->getId();
 
-        $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
-
-        // Vérifier le rate limiting
-        if ($this->lookupOrchestrator->hasRateLimitError()) {
-            $currentDelay = \min($currentDelay * 2, self::MAX_DELAY);
-            \sleep($currentDelay);
-
-            // Retry
-            $result = $this->lookupOrchestrator->lookupByTitle($title, $type);
-
-            if ($this->lookupOrchestrator->hasRateLimitError()) { // @phpstan-ignore if.alwaysTrue (état dépend de l'appel API)
-                return [
-                    'delay' => $currentDelay,
-                    'progress' => new BatchLookupProgress(
-                        current: $index + 1,
-                        seriesTitle: $title,
-                        status: BatchLookupStatus::FAILED,
-                        total: $total,
-                    ),
-                ];
-            }
-        }
-
-        if (!$result instanceof LookupResult) {
-            if (!$dryRun) {
-                $series->setLookupCompletedAt(new \DateTimeImmutable());
+            if (null === $id) {
+                continue;
             }
 
-            return [
-                'delay' => $currentDelay,
-                'progress' => new BatchLookupProgress(
-                    current: $index + 1,
-                    seriesTitle: $title,
-                    status: BatchLookupStatus::SKIPPED,
-                    total: $total,
-                ),
-            ];
+            $this->messageBus->dispatch(new EnrichSeriesMessage($id, 'batch'));
         }
 
-        $updatedFields = $this->lookupApplier->apply($series, $result);
-
-        if (!$dryRun) {
-            $series->setLookupCompletedAt(new \DateTimeImmutable());
-        }
-
-        if ([] !== $updatedFields) {
-            // Reset delay après un succès
-            return [
-                'delay' => $currentDelay,
-                'progress' => new BatchLookupProgress(
-                    current: $index + 1,
-                    seriesTitle: $title,
-                    status: BatchLookupStatus::UPDATED,
-                    total: $total,
-                    updatedFields: $updatedFields,
-                ),
-            ];
-        }
-
-        return [
-            'delay' => $currentDelay,
-            'progress' => new BatchLookupProgress(
-                current: $index + 1,
-                seriesTitle: $title,
-                status: BatchLookupStatus::SKIPPED,
-                total: $total,
-            ),
-        ];
+        return \count($seriesList);
     }
 }

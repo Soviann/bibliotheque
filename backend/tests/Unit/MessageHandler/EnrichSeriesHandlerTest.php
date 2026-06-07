@@ -122,4 +122,25 @@ final class EnrichSeriesHandlerTest extends TestCase
 
         self::assertNotNull($series->getLookupCompletedAt());
     }
+
+    /**
+     * Teste qu'une série déjà enrichie est ignorée (sans force).
+     */
+    public function testHandlerSkipsAlreadyEnrichedSeries(): void
+    {
+        $series = new ComicSeries();
+        $series->setTitle('Déjà enrichie');
+        $series->setType(ComicType::MANGA);
+        $series->setLookupCompletedAt(new \DateTimeImmutable());
+
+        $this->comicSeriesRepository->expects(self::once())
+            ->method('find')
+            ->with(5)
+            ->willReturn($series);
+
+        $this->lookupOrchestrator->expects(self::never())->method('lookupByTitle');
+        $this->enrichmentService->expects(self::never())->method('enrich');
+
+        ($this->handler)(new EnrichSeriesMessage(5));
+    }
 }

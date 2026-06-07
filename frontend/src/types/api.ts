@@ -142,21 +142,6 @@ export interface CoverSearchResult {
   width: number;
 }
 
-export interface BatchLookupProgress {
-  current: number;
-  seriesTitle: string;
-  status: "failed" | "skipped" | "updated";
-  total: number;
-  updatedFields: string[];
-}
-
-export interface BatchLookupSummary {
-  failed: number;
-  processed: number;
-  skipped: number;
-  updated: number;
-}
-
 export interface CreateComicPayload {
   _pendingAuthors?: string[];
   amazonUrl: string | null;

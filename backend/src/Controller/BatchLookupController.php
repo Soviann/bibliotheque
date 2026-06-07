@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\DTO\BatchLookupSummary;
-use App\Enum\BatchLookupStatus;
 use App\Enum\ComicType;
 use App\Service\Lookup\BatchLookupService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -42,17 +39,14 @@ final readonly class BatchLookupController
     }
 
     /**
-     * Lance le lookup batch avec streaming SSE.
+     * Met en file l'enrichissement des séries à traiter (traitement asynchrone par le worker).
      */
     #[Route('/run', name: 'api_tools_batch_lookup_run', methods: ['POST'])]
-    public function run(Request $request): StreamedResponse
+    public function run(Request $request): JsonResponse
     {
         /** @var array<string, mixed> $data */
         $data = \json_decode($request->getContent(), true) ?? [];
 
-        /** @var int|string $rawDelay */
-        $rawDelay = $data['delay'] ?? 2;
-        $delay = (int) $rawDelay;
         $force = (bool) ($data['force'] ?? false);
         /** @var int|string $rawLimit */
         $rawLimit = $data['limit'] ?? 0;
@@ -60,53 +54,8 @@ final readonly class BatchLookupController
         $typeValue = $data['type'] ?? null;
         $type = \is_string($typeValue) ? ComicType::tryFrom($typeValue) : null;
 
-        $response = new StreamedResponse(function () use ($delay, $force, $limit, $type): void {
-            $failed = 0;
-            $processed = 0;
-            $skipped = 0;
-            $updated = 0;
+        $queued = $this->batchLookupService->queue($type, $force, $limit);
 
-            foreach ($this->batchLookupService->run(
-                delay: $delay,
-                force: $force,
-                limit: $limit,
-                type: $type,
-            ) as $progress) {
-                echo 'data: '.\json_encode($progress, \JSON_THROW_ON_ERROR)."\n\n";
-
-                if (\ob_get_level() > 0) {
-                    \ob_flush();
-                }
-                \flush();
-
-                ++$processed;
-
-                match ($progress->status) {
-                    BatchLookupStatus::FAILED => ++$failed,
-                    BatchLookupStatus::SKIPPED => ++$skipped,
-                    BatchLookupStatus::UPDATED => ++$updated,
-                };
-            }
-
-            $summary = new BatchLookupSummary(
-                failed: $failed,
-                processed: $processed,
-                skipped: $skipped,
-                updated: $updated,
-            );
-
-            echo "event: complete\ndata: ".\json_encode($summary, \JSON_THROW_ON_ERROR)."\n\n";
-
-            if (\ob_get_level() > 0) {
-                \ob_flush();
-            }
-            \flush();
-        });
-
-        $response->headers->set('Cache-Control', 'no-cache');
-        $response->headers->set('Content-Type', 'text/event-stream');
-        $response->headers->set('X-Accel-Buffering', 'no');
-
-        return $response;
+        return new JsonResponse(['queued' => $queued]);
     }
 }

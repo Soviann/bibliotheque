@@ -4,209 +4,133 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service\Lookup;
 
-use App\DTO\BatchLookupProgress;
-use App\Enum\BatchLookupStatus;
+use App\Entity\ComicSeries;
 use App\Enum\ComicType;
+use App\Message\EnrichSeriesMessage;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Lookup\BatchLookupService;
-use App\Service\Lookup\Contract\LookupResult;
-use App\Service\Lookup\LookupApplier;
-use App\Service\Lookup\LookupOrchestrator;
-use App\Tests\Factory\EntityFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 final class BatchLookupServiceTest extends TestCase
 {
     private ComicSeriesRepository&MockObject $comicSeriesRepository;
     private EntityManagerInterface&MockObject $entityManager;
-    private LookupApplier&Stub $lookupApplier;
-    private LookupOrchestrator&Stub $lookupOrchestrator;
+    private MessageBusInterface&MockObject $messageBus;
     private BatchLookupService $service;
 
     protected function setUp(): void
     {
         $this->comicSeriesRepository = $this->createMock(ComicSeriesRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->lookupApplier = $this->createStub(LookupApplier::class);
-        $this->lookupOrchestrator = $this->createStub(LookupOrchestrator::class);
+        $this->messageBus = $this->createMock(MessageBusInterface::class);
 
         $this->service = new BatchLookupService(
             $this->comicSeriesRepository,
             $this->entityManager,
-            $this->lookupApplier,
-            $this->lookupOrchestrator,
+            $this->messageBus,
         );
     }
 
     #[Test]
     public function countSeriesToProcessDelegatesToRepository(): void
     {
-        $series = [
-            EntityFactory::createComicSeries('A'),
-            EntityFactory::createComicSeries('B'),
-        ];
-
         $this->comicSeriesRepository
             ->expects(self::once())
             ->method('findWithMissingLookupData')
             ->with(type: ComicType::MANGA, limit: null, force: true)
-            ->willReturn($series);
+            ->willReturn([$this->seriesStub(1), $this->seriesStub(2)]);
 
         self::assertSame(2, $this->service->countSeriesToProcess(ComicType::MANGA, true));
     }
 
     #[Test]
-    public function runYieldsUpdatedProgressWhenFieldsUpdated(): void
+    public function queueDispatchesOneMessagePerSeries(): void
     {
-        $series = EntityFactory::createComicSeries('Naruto', type: ComicType::MANGA);
+        $this->comicSeriesRepository
+            ->method('findWithMissingLookupData')
+            ->willReturn([$this->seriesStub(1), $this->seriesStub(2)]);
+
+        // Sans force : pas de réinitialisation.
+        $this->entityManager->expects(self::never())->method('flush');
+
+        $dispatched = [];
+        $this->messageBus
+            ->expects(self::exactly(2))
+            ->method('dispatch')
+            ->willReturnCallback(static function (EnrichSeriesMessage $message) use (&$dispatched): Envelope {
+                $dispatched[] = $message->seriesId;
+
+                return new Envelope($message);
+            });
+
+        self::assertSame(2, $this->service->queue());
+        self::assertSame([1, 2], $dispatched);
+    }
+
+    #[Test]
+    public function queueWithForceResetsLookupCompletedAtThenDispatches(): void
+    {
+        $series = $this->createMock(ComicSeries::class);
+        $series->method('getId')->willReturn(7);
+        $series->expects(self::once())->method('setLookupCompletedAt')->with(null);
 
         $this->comicSeriesRepository
             ->method('findWithMissingLookupData')
             ->willReturn([$series]);
 
-        $result = new LookupResult(source: 'test');
+        $this->entityManager->expects(self::once())->method('flush');
 
-        $this->lookupOrchestrator
-            ->method('lookupByTitle')
-            ->willReturn($result);
-
-        $this->lookupOrchestrator
-            ->method('getLastApiMessages')
-            ->willReturn([]);
-
-        $this->lookupApplier
-            ->method('apply')
-            ->willReturn(['description', 'publisher']);
-
-        $this->entityManager
+        $this->messageBus
             ->expects(self::once())
-            ->method('flush');
+            ->method('dispatch')
+            ->with(self::callback(
+                static fn (EnrichSeriesMessage $m): bool => 7 === $m->seriesId && 'batch' === $m->triggeredBy,
+            ))
+            ->willReturnCallback(static fn (EnrichSeriesMessage $m): Envelope => new Envelope($m));
 
-        $progressItems = \iterator_to_array($this->service->run(delay: 0));
-
-        self::assertCount(1, $progressItems);
-
-        /** @var BatchLookupProgress $progress */
-        $progress = $progressItems[0];
-        self::assertSame(1, $progress->current);
-        self::assertSame(1, $progress->total);
-        self::assertSame('Naruto', $progress->seriesTitle);
-        self::assertSame(BatchLookupStatus::UPDATED, $progress->status);
-        self::assertSame(['description', 'publisher'], $progress->updatedFields);
+        self::assertSame(1, $this->service->queue(force: true));
     }
 
     #[Test]
-    public function runYieldsSkippedWhenNoResult(): void
+    public function queueSkipsSeriesWithoutId(): void
     {
-        $series = EntityFactory::createComicSeries('Unknown');
-
         $this->comicSeriesRepository
             ->method('findWithMissingLookupData')
-            ->willReturn([$series]);
+            ->willReturn([$this->seriesStub(null), $this->seriesStub(5)]);
 
-        $this->lookupOrchestrator
-            ->method('lookupByTitle')
-            ->willReturn(null);
+        // Seule la série avec un id est dispatchée…
+        $this->messageBus
+            ->expects(self::once())
+            ->method('dispatch')
+            ->willReturnCallback(static fn (EnrichSeriesMessage $m): Envelope => new Envelope($m));
 
-        $this->lookupOrchestrator
-            ->method('getLastApiMessages')
-            ->willReturn([]);
-
-        $progressItems = \iterator_to_array($this->service->run(delay: 0));
-
-        self::assertCount(1, $progressItems);
-        self::assertSame(BatchLookupStatus::SKIPPED, $progressItems[0]->status);
+        // …mais le total renvoyé reflète toutes les séries trouvées.
+        self::assertSame(2, $this->service->queue());
     }
 
     #[Test]
-    public function runYieldsSkippedWhenNoFieldsUpdated(): void
-    {
-        $series = EntityFactory::createComicSeries('Complete');
-
-        $this->comicSeriesRepository
-            ->method('findWithMissingLookupData')
-            ->willReturn([$series]);
-
-        $result = new LookupResult(source: 'test');
-
-        $this->lookupOrchestrator
-            ->method('lookupByTitle')
-            ->willReturn($result);
-
-        $this->lookupOrchestrator
-            ->method('getLastApiMessages')
-            ->willReturn([]);
-
-        $this->lookupApplier
-            ->method('apply')
-            ->willReturn([]);
-
-        $progressItems = \iterator_to_array($this->service->run(delay: 0));
-
-        self::assertCount(1, $progressItems);
-        self::assertSame(BatchLookupStatus::SKIPPED, $progressItems[0]->status);
-    }
-
-    #[Test]
-    public function runYieldsFailedOnPersistentRateLimit(): void
-    {
-        $series = EntityFactory::createComicSeries('Rate Limited');
-
-        $this->comicSeriesRepository
-            ->method('findWithMissingLookupData')
-            ->willReturn([$series]);
-
-        $this->lookupOrchestrator
-            ->method('lookupByTitle')
-            ->willReturn(null);
-
-        $this->lookupOrchestrator
-            ->method('hasRateLimitError')
-            ->willReturn(true);
-
-        $progressItems = \iterator_to_array($this->service->run(delay: 0));
-
-        self::assertCount(1, $progressItems);
-        self::assertSame(BatchLookupStatus::FAILED, $progressItems[0]->status);
-    }
-
-    #[Test]
-    public function runDoesNotFlushInDryRunMode(): void
-    {
-        $series = EntityFactory::createComicSeries('DryRun');
-
-        $this->comicSeriesRepository
-            ->method('findWithMissingLookupData')
-            ->willReturn([$series]);
-
-        $this->lookupOrchestrator
-            ->method('lookupByTitle')
-            ->willReturn(null);
-
-        $this->lookupOrchestrator
-            ->method('getLastApiMessages')
-            ->willReturn([]);
-
-        $this->entityManager
-            ->expects(self::never())
-            ->method('flush');
-
-        \iterator_to_array($this->service->run(delay: 0, dryRun: true));
-    }
-
-    #[Test]
-    public function runYieldsEmptyForNoSeries(): void
+    public function queueReturnsZeroForNoSeries(): void
     {
         $this->comicSeriesRepository
             ->method('findWithMissingLookupData')
             ->willReturn([]);
 
-        $progressItems = \iterator_to_array($this->service->run(delay: 0));
+        $this->messageBus->expects(self::never())->method('dispatch');
 
-        self::assertCount(0, $progressItems);
+        self::assertSame(0, $this->service->queue());
+    }
+
+    private function seriesStub(?int $id): ComicSeries&Stub
+    {
+        $series = $this->createStub(ComicSeries::class);
+        $series->method('getId')->willReturn($id);
+
+        return $series;
     }
 }
