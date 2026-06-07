@@ -50,6 +50,17 @@ src/
     unit/         Pure function/utility tests
 ```
 
+## Frontend Stack & Conventions
+
+**Stack**: React 19, TS, Vite, TanStack Query v5, React Router v7, Tailwind 4, Headless UI, Lucide, Sonner, `@react-oauth/google`. Tests: Vitest + jsdom + RTL.
+
+- `apiFetch<T>()` handles JWT, Content-Type, 401 redirects.
+- Mutations invalidate relevant query keys on success.
+- Pages lazy-loaded via `React.lazy()` in `App.tsx`.
+- JWT in `localStorage`, 365-day TTL, token versioning. `AuthGuard` → `/login`. Google OAuth.
+- Dark mode: `useDarkMode` (`.dark` on `<html>`, localStorage).
+- Offline: `useOnlineStatus` + `OfflineBanner`, SW updates via `useServiceWorker` + Sonner toast.
+
 ## Entities
 
 | Entity | Purpose |
@@ -90,6 +101,8 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 
 ## API Platform
 
+**Format & auth**: JSON-LD (`application/ld+json`). Login: `POST /api/login/google` `{credential}` → `{token}`. Single email gate via `OAUTH_ALLOWED_EMAIL`.
+
 **State Processors**: AuthorCreateProcessor, ComicSeriesDeleteProcessor (soft), ComicSeriesPermanentDeleteProcessor, ComicSeriesRestoreProcessor, EnrichmentProposalAcceptProcessor, EnrichmentProposalRejectProcessor.
 
 **State Providers**: SoftDeletedComicSeriesProvider, TrashCollectionProvider, NotificationPreferenceInitializer.
@@ -122,3 +135,27 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 ## Doctrine Filters
 
 SoftDeleteFilter — excludes soft-deleted ComicSeries. Disabled in trash-related providers.
+
+## Deployment
+
+**Docker (Synology NAS)**: 3 containers — nginx (static + reverse proxy), php (php-fpm 8.3), db (MariaDB 10.11). Frontend built in nginx multi-stage Dockerfile. Images on `ghcr.io/soviann/bibliotheque-{php,nginx}` (CI). Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude/SSH).
+
+```bash
+cd backend && docker compose up --build -d                  # dev local (build)
+TAG=2.9.0 docker compose pull && docker compose up -d       # NAS prod (pull)
+```
+
+**Symfony Secrets (prod vault)**: `APP_SECRET`, `JWT_PASSPHRASE`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` in encrypted vault (`config/secrets/prod/`). Public key committed; decrypt key gitignored. `PlaceholderSecretChecker` blocks prod startup if placeholders remain. Deploy unlocks via `SYMFONY_DECRYPTION_SECRET` env or copying `prod.decrypt.private.php`.
+
+```bash
+ddev exec "cd backend && bin/console secrets:set NAME --env=prod"
+ddev exec "cd backend && bin/console secrets:list --env=prod"
+```
+
+**VAPID (Web Push)** — generate once:
+```bash
+ddev exec php -r "use Minishlink\WebPush\VAPID; \$k = VAPID::createVapidKeys(); echo 'Public: '.\$k['publicKey'].PHP_EOL.'Private: '.\$k['privateKey'].PHP_EOL;"
+```
+Set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT=mailto:…` in `backend/.env.local` (dev) or secrets vault (prod). Frontend needs `VITE_VAPID_PUBLIC_KEY` for subscription.
+
+**Symfony Messenger**: transport `doctrine://default` (table `messenger_messages`). Test: `in-memory://`. Config: `backend/config/packages/messenger.yaml`. `EnrichSeriesMessage` routed async.
