@@ -44,7 +44,7 @@ class SimilarSeriesService
 
             foreach ($batch as $item) {
                 $seriesData[] = [
-                    'authors' => $item->authors ?? '',
+                    'authors' => $item->authors,
                     'publisher' => $item->publisher ?? '',
                     'title' => $item->title,
                     'type' => $item->type,
