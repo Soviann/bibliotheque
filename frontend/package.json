@@ -19,7 +19,7 @@
     "html5-qrcode": "^2.3",
     "idb": "^8.0.3",
     "idb-keyval": "^6.2.2",
-    "lucide-react": "^0.575",
+    "lucide-react": "^1.17.0",
     "react": "^19.2",
     "react-dom": "^19.2",
     "react-error-boundary": "^6.1",
