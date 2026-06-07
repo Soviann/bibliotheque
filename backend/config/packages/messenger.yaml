@@ -8,6 +8,7 @@ framework:
         routing:
             App\Message\DownloadCoverMessage: async
             App\Message\EnrichSeriesMessage: async
+            App\Message\WarmThumbnailsMessage: async
         transports:
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'

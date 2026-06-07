@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Message\WarmThumbnailsMessage;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Cover\ThumbnailGenerator;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Génère les miniatures LiipImagine pour toutes les couvertures existantes.
@@ -24,6 +26,7 @@ final class WarmThumbnailsCommand extends Command
 {
     public function __construct(
         private readonly ComicSeriesRepository $comicSeriesRepository,
+        private readonly MessageBusInterface $messageBus,
         private readonly ThumbnailGenerator $thumbnailGenerator,
     ) {
         parent::__construct();
@@ -32,6 +35,7 @@ final class WarmThumbnailsCommand extends Command
     protected function configure(): void
     {
         $this
+            ->addOption('async', null, InputOption::VALUE_NONE, 'Déléguer la génération au worker Messenger (non bloquant)')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simuler sans générer')
         ;
     }
@@ -40,6 +44,8 @@ final class WarmThumbnailsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
+        /** @var bool $async */
+        $async = $input->getOption('async');
         /** @var bool $dryRun */
         $dryRun = $input->getOption('dry-run');
 
@@ -61,7 +67,7 @@ final class WarmThumbnailsCommand extends Command
             return Command::SUCCESS;
         }
 
-        $generated = 0;
+        $count = 0;
 
         foreach ($series as $comic) {
             $coverImage = $comic->getCoverImage();
@@ -70,11 +76,18 @@ final class WarmThumbnailsCommand extends Command
                 continue;
             }
 
-            $this->thumbnailGenerator->generate($coverImage);
-            ++$generated;
+            if ($async) {
+                $this->messageBus->dispatch(new WarmThumbnailsMessage($coverImage));
+            } else {
+                $this->thumbnailGenerator->generate($coverImage);
+            }
+
+            ++$count;
         }
 
-        $io->success(\sprintf('%d miniature(s) générée(s).', $generated));
+        $io->success($async
+            ? \sprintf('%d génération(s) de miniature déléguée(s) au worker.', $count)
+            : \sprintf('%d miniature(s) générée(s).', $count));
 
         return Command::SUCCESS;
     }

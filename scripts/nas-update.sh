@@ -129,9 +129,10 @@ if try_deploy; then
     # Nettoyage du fichier d'import
     docker compose --env-file "$ENV_FILE" exec -T php rm -f var/import.xlsx 2>&1 | tee -a "$LOG_FILE"
 
-    # Miniatures de couverture (LiipImagine)
-    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console app:warm-thumbnails --env=prod 2>&1 | tee -a "$LOG_FILE"
-    log "Miniatures de couverture générées."
+    # Miniatures de couverture (LiipImagine) : délègue au worker Messenger
+    # pour ne pas bloquer le déploiement sur tout le catalogue.
+    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console app:warm-thumbnails --async --env=prod 2>&1 | tee -a "$LOG_FILE"
+    log "Génération des miniatures déléguée au worker."
 
     # Supprimer les anciennes images bibliotheque (garde uniquement la version courante)
     docker images --format '{{.Repository}}:{{.Tag}}' \
