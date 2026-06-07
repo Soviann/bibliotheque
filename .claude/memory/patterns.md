@@ -123,6 +123,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 - Weekly Mon 3-8h: `app:check-author-releases`
 - Monthly 1st 1h: `app:purge-deleted`
 - Monthly 1st 2h: `app:purge-notifications`
+- Daily 9h: `messenger:failed:retry --force` (drain failed queue after Gemini quota reset)
 
 **Other commands**: `app:deploy:run-tasks` (exécute les tasks `deploy-tasks/Task*.php` one-shot), `app:import`, `app:invalidate-tokens`, `app:scan-nas`, `app:warm-thumbnails`.
 
