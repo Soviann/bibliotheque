@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.32.0] — 2026-06-07
+
 ### Added
 
 - **Rejeu auto de la file d'échec** : une tâche planifiée quotidienne (9h, après le reset du quota Gemini) rejoue les messages Messenger en file d'échec (`messenger:failed:retry --force`). Les échecs transitoires (quota, réseau) se résorbent seuls ; un échec définitif y revient et reste visible.
