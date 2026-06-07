@@ -964,7 +964,8 @@ final class AniListLookupTest extends TestCase
         $exception = new class('Timeout') extends \RuntimeException implements TransportExceptionInterface {};
         $response->method('toArray')->willThrowException($exception);
 
-        $this->createLoggerMock();
+        $this->logger = $this->createStub(LoggerInterface::class);
+        $this->provider = new AniListLookup($this->httpClient, $this->logger);
 
         $results = $this->provider->resolveMultipleLookup($response);
 

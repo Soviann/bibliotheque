@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\EntityManagerClosed;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -21,16 +22,16 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 final class DownloadCoversCommandTest extends TestCase
 {
-    private MockObject&ComicSeriesRepository $comicSeriesRepository;
-    private MockObject&CoverDownloader $coverDownloader;
-    private MockObject&EntityManagerInterface $entityManager;
+    private Stub&ComicSeriesRepository $comicSeriesRepository;
+    private Stub&CoverDownloader $coverDownloader;
+    private Stub&EntityManagerInterface $entityManager;
     private MockObject&ManagerRegistry $managerRegistry;
 
     protected function setUp(): void
     {
-        $this->comicSeriesRepository = $this->createMock(ComicSeriesRepository::class);
-        $this->coverDownloader = $this->createMock(CoverDownloader::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->comicSeriesRepository = $this->createStub(ComicSeriesRepository::class);
+        $this->coverDownloader = $this->createStub(CoverDownloader::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
         $this->managerRegistry = $this->createMock(ManagerRegistry::class);
     }
 

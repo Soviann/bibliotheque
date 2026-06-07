@@ -282,7 +282,7 @@ final class LookupApplierTest extends TestCase
             source: 'test',
         );
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
         $this->httpClient->method('request')
             ->with('HEAD', 'https://www.amazon.fr/dp/B08N5WRWNW')
@@ -302,7 +302,7 @@ final class LookupApplierTest extends TestCase
             source: 'test',
         );
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(404);
         $this->httpClient->method('request')
             ->with('HEAD', 'https://www.amazon.fr/dp/FAKE123')

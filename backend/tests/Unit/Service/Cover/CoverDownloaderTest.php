@@ -11,6 +11,7 @@ use App\Tests\Factory\EntityFactory;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\ImageManager;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -22,12 +23,12 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 final class CoverDownloaderTest extends TestCase
 {
     private ThumbnailGenerator&MockObject $thumbnailGenerator;
-    private UploadHandlerInterface&MockObject $uploadHandler;
+    private UploadHandlerInterface&Stub $uploadHandler;
 
     protected function setUp(): void
     {
         $this->thumbnailGenerator = $this->createMock(ThumbnailGenerator::class);
-        $this->uploadHandler = $this->createMock(UploadHandlerInterface::class);
+        $this->uploadHandler = $this->createStub(UploadHandlerInterface::class);
     }
 
     public function testDownloadAndStoreSetsCoverFile(): void

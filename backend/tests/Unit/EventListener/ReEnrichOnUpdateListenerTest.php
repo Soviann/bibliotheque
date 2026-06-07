@@ -32,7 +32,7 @@ final class ReEnrichOnUpdateListenerTest extends TestCase
      */
     public function testDispatchesWhenDescriptionMissing(): void
     {
-        $series = $this->createMock(ComicSeries::class);
+        $series = $this->createStub(ComicSeries::class);
         $series->method('getId')->willReturn(42);
         $series->method('getDescription')->willReturn(null);
         $series->method('getPublisher')->willReturn('Glénat');
@@ -53,7 +53,7 @@ final class ReEnrichOnUpdateListenerTest extends TestCase
      */
     public function testDoesNotDispatchWhenAllFieldsFilled(): void
     {
-        $series = $this->createMock(ComicSeries::class);
+        $series = $this->createStub(ComicSeries::class);
         $series->method('getId')->willReturn(42);
         $series->method('getDescription')->willReturn('Description');
         $series->method('getPublisher')->willReturn('Glénat');
@@ -71,7 +71,7 @@ final class ReEnrichOnUpdateListenerTest extends TestCase
      */
     public function testDoesNotDispatchIfRecentLookup(): void
     {
-        $series = $this->createMock(ComicSeries::class);
+        $series = $this->createStub(ComicSeries::class);
         $series->method('getId')->willReturn(42);
         $series->method('getDescription')->willReturn(null);
         $series->method('getPublisher')->willReturn(null);

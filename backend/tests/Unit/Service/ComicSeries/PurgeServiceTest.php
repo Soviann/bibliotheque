@@ -12,6 +12,7 @@ use App\Service\ComicSeries\PurgeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\FilterCollection;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,7 +22,7 @@ final class PurgeServiceTest extends TestCase
 {
     private ComicSeriesRepository&MockObject $comicSeriesRepository;
     private ComicSeriesService&MockObject $comicSeriesService;
-    private EntityManagerInterface&MockObject $entityManager;
+    private EntityManagerInterface&Stub $entityManager;
     private FilterCollection&MockObject $filterCollection;
     private PurgeService $purgeService;
 
@@ -29,7 +30,7 @@ final class PurgeServiceTest extends TestCase
     {
         $this->comicSeriesRepository = $this->createMock(ComicSeriesRepository::class);
         $this->comicSeriesService = $this->createMock(ComicSeriesService::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->entityManager = $this->createStub(EntityManagerInterface::class);
         $this->filterCollection = $this->createMock(FilterCollection::class);
 
         $this->entityManager->method('getFilters')->willReturn($this->filterCollection);
@@ -133,9 +134,9 @@ final class PurgeServiceTest extends TestCase
         self::assertSame('2025-06-15T10:30:00+00:00', $data['deletedAt']);
     }
 
-    private function createComicSeriesMock(int $id, string $title, \DateTimeImmutable $deletedAt): ComicSeries&MockObject
+    private function createComicSeriesMock(int $id, string $title, \DateTimeImmutable $deletedAt): ComicSeries&Stub
     {
-        $series = $this->createMock(ComicSeries::class);
+        $series = $this->createStub(ComicSeries::class);
         $series->method('getDeletedAt')->willReturn($deletedAt);
         $series->method('getId')->willReturn($id);
         $series->method('getTitle')->willReturn($title);
