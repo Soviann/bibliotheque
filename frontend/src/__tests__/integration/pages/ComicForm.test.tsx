@@ -410,17 +410,20 @@ describe("ComicForm", () => {
       ).toBeInTheDocument();
     });
 
-    it("chains ISBN lookup to title lookup when clicking Appliquer", async () => {
+    it("one-shot résolu via lookup titre : remplit le formulaire", async () => {
       const user = userEvent.setup();
 
+      // ISBN sans statut one-shot (cas BNF) → résolu par le lookup titre.
       const isbnResult = createMockLookupResult({
         isbn: "9781234567890",
+        isOneShot: null,
         title: "ISBN Series Title",
       });
 
       const titleResult = createMockLookupResult({
         authors: "Chained Author",
         description: "Chained description",
+        isOneShot: true,
         publisher: "ChainedPub",
         thumbnail: "https://example.com/chained.jpg",
         title: "ISBN Series Title",
@@ -464,14 +467,15 @@ describe("ComicForm", () => {
       );
     });
 
-    it("ISBN lookup with empty title applies result directly without title lookup", async () => {
+    it("one-shot connu depuis l'ISBN : applique directement sans lookup titre", async () => {
       const user = userEvent.setup();
 
       const isbnResult = createMockLookupResult({
         isbn: "9781234567890",
+        isOneShot: true,
         publisher: "DirectPub",
         thumbnail: "https://example.com/cover.jpg",
-        title: "",
+        title: "Direct One Shot",
       });
 
       let titleLookupCalled = false;
@@ -510,25 +514,24 @@ describe("ComicForm", () => {
 
       await user.click(screen.getByText("Appliquer"));
 
-      // Publisher should be applied directly from ISBN result
+      // One-shot : titre et éditeur appliqués directement depuis l'ISBN.
       await waitFor(() => {
-        expect(screen.getByLabelText("Éditeur")).toHaveValue("DirectPub");
+        expect(screen.getByLabelText("Titre *")).toHaveValue("Direct One Shot");
       });
-      // Title lookup must NOT have been called
+      expect(screen.getByLabelText("Éditeur")).toHaveValue("DirectPub");
+      // Pas de lookup titre puisque le statut one-shot est déjà connu.
       expect(titleLookupCalled).toBe(false);
-      // Toast for direct apply
-      await waitFor(() => {
-        expect(screen.getByText("Informations récupérées")).toBeInTheDocument();
-      });
     });
 
-    it("falls back to ISBN result when title lookup fails after ISBN lookup", async () => {
+    it("statut one-shot indéterminable : bloque et ne touche pas au titre", async () => {
       const user = userEvent.setup();
 
+      // ISBN sans statut one-shot, et le lookup titre échoue → indéterminé.
       const isbnResult = createMockLookupResult({
         isbn: "9781234567890",
+        isOneShot: null,
         publisher: "ISBN-Only Pub",
-        title: "Fallback Title",
+        title: "Tome Title",
       });
 
       server.use(
@@ -564,11 +567,14 @@ describe("ComicForm", () => {
 
       await user.click(screen.getByText("Appliquer"));
 
-      // Should fall back to ISBN result fields
+      // Message d'erreur affiché, et aucun champ série corrompu.
       await waitFor(() => {
-        expect(screen.getByLabelText("Titre *")).toHaveValue("Fallback Title");
+        expect(
+          screen.getByText(/Impossible de déterminer la série/),
+        ).toBeInTheDocument();
       });
-      expect(screen.getByLabelText("Éditeur")).toHaveValue("ISBN-Only Pub");
+      expect(screen.getByLabelText("Titre *")).toHaveValue("");
+      expect(screen.getByLabelText("Éditeur")).toHaveValue("");
     });
 
     it("applies isOneShot=true from lookup result and checks the oneshot checkbox", async () => {

@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Recherche par ISBN (fiche série)** : un ISBN identifie un album précis. Pour une série multi-tomes, la recherche remplissait la fiche série avec les infos du **tome** (ex. ISBN du tome 1 d'« Akademy » → titre « La cour des grands » au lieu d'« Akademy »). Désormais : un ISBN one-shot remplit la série normalement ; un ISBN de tome ne modifie jamais le titre de la série et n'applique que les champs de série ; si le statut (one-shot ou non) ne peut être déterminé, la recherche est bloquée avec un message invitant à utiliser la recherche par titre.
+
 ## [v2.31.0] — 2026-06-07
 
 ### Changed
