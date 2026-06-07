@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.30.1] — 2026-06-07
+
 ### Fixed
 
 - **Tâches de déploiement** : `Task001ResetAndImport` échouait en production (`make: No rule to make target 'db-reset'`) car aucun Makefile n'est livré dans l'image. La réinitialisation passe désormais par les commandes console Doctrine directes. Le helper `runMake` (inutilisable en prod) est remplacé par `runProcess()` pour les commandes système arbitraires.
