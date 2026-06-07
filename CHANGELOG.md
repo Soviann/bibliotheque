@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Déploiement** : la génération des miniatures de couverture (`app:warm-thumbnails --async`) est désormais déléguée au worker Messenger au lieu de bloquer le déploiement — indispensable à mesure que le catalogue grossit.
+
 ## [v2.30.1] — 2026-06-07
 
 ### Fixed
