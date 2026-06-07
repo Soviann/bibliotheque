@@ -89,7 +89,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 | Enrichment/ | ConfidenceScorer, EnrichmentService |
 | Import/ | ImportService |
 | Lookup/Contract/ | ApiMessage, LookupProviderInterface, LookupResult… |
-| Lookup/Gemini/ | AbstractGeminiLookupProvider, GeminiClientPool, GeminiJsonParser, GeminiQueryService |
+| Lookup/Gemini/ | AbstractGeminiLookupProvider, GeminiCircuitBreaker, GeminiClientPool, GeminiJsonParser, GeminiQueryService |
 | Lookup/Provider/ | 12 providers: AniList, Bedetheque, BNF, ComicVine, Gemini, GoogleBooks, Jikan, Kitsu, MangaDex, OpenLibrary, Wikipedia + AbstractLookupProvider |
 | Lookup/Util/ | GoogleBooksUrlHelper, LookupTitleCleaner, TitleMatcher |
 | Lookup/ | BatchLookupService, LookupApplier, LookupOrchestrator |

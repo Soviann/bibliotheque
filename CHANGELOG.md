@@ -10,6 +10,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Fixed
 
 - **Recherche par ISBN (fiche série)** : un ISBN identifie un album précis. Pour une série multi-tomes, la recherche remplissait la fiche série avec les infos du **tome** (ex. ISBN du tome 1 d'« Akademy » → titre « La cour des grands » au lieu d'« Akademy »). Désormais : un ISBN one-shot remplit la série normalement ; un ISBN de tome ne modifie jamais le titre de la série et n'applique que les champs de série ; si le statut (one-shot ou non) ne peut être déterminé, la recherche est bloquée avec un message invitant à utiliser la recherche par titre.
+- **Enrichissement & quota Gemini** : quand toutes les clés Gemini sont en quota, l'enrichissement en arrière-plan ne gâche plus le quota ni ne met les messages en file d'échec. Un disjoncteur (`GeminiCircuitBreaker`) s'ouvre jusqu'au prochain reset quotidien Gemini (minuit, heure du Pacifique) et le message est reporté via `DelayStamp` au lieu d'être rejoué jusqu'à épuisement des tentatives. Le pool Gemini tourne désormais aussi sur les erreurs serveur transitoires (500/503, fréquentes avec le grounding Google Search) au lieu d'abandonner, et classe correctement un épuisement « quota » même si la dernière erreur est un 500. Le suivi d'épuisement en mémoire est borné dans le temps : un worker longue durée ne reste plus dégradé après une rafale d'erreurs.
 
 ## [v2.31.0] — 2026-06-07
 
