@@ -61,7 +61,7 @@ readonly class CoverDownloader
 
             $tempPath = \sprintf('%s/cover_%s_%s.webp', \sys_get_temp_dir(), $series->getId() ?? 0, \uniqid());
 
-            $this->imageManager->read($content)
+            $this->imageManager->decode($content)
                 ->scaleDown(self::MAX_WIDTH, self::MAX_HEIGHT)
                 ->encode(new WebpEncoder(self::WEBP_QUALITY))
                 ->save($tempPath);

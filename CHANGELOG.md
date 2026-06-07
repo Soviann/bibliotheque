@@ -11,6 +11,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 - **Revue d'enrichissement** : les propositions de couverture affichent une miniature (192 px) au lieu de l'URL brute, avec placeholder selon le type (BD/Manga/Comics/Livre). Les propositions de description tronquées se déploient au clic pour lire le texte complet (côté revue `/tools/enrichment-review` et section « Propositions à traiter » de la fiche série).
 - **Dépendances** : mise à jour des paquets Composer et npm vers les dernières versions mineures/patch (Symfony 7.4.13, API Platform 4.3.10, Doctrine ORM 3.6.7, PHPUnit 12.5.29, PHPStan 2.2.2, TanStack Query 5.101, React Router 7.17, MSW 2.14, etc.). `phpseclib/phpseclib` est désormais déclaré en dépendance directe (auparavant transitive via `google/apiclient`, qui ne la requiert plus).
+- **Dépendances (majeures)** : passage de TypeScript 6, Vite 8 (+ `@vitejs/plugin-react` 6), `lucide-react` 1, `jsdom` 29, `@lhci/cli` 0.15 et `intervention/image` 4. Adaptations : nouvelle fabrique du service `ImageManager` (driver GD) et `read()` → `decode()` pour intervention 4, retrait de l'assertion Lighthouse `categories:pwa` supprimée par Lighthouse 12. Vulnérabilités npm résiduelles (dev/CI) corrigées via overrides `tmp`/`uuid` : `npm audit` à 0.
 
 ## [v2.29.0] — 2026-04-12
 

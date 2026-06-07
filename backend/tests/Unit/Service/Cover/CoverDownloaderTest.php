@@ -8,6 +8,7 @@ use App\Service\Cover\CoverDownloader;
 use App\Service\Cover\ThumbnailGenerator;
 use App\Service\Cover\Upload\UploadHandlerInterface;
 use App\Tests\Factory\EntityFactory;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\ImageManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,7 @@ final class CoverDownloaderTest extends TestCase
     {
         $imageData = $this->createTestImage(800, 1200);
         $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/cover.jpg');
@@ -50,7 +51,7 @@ final class CoverDownloaderTest extends TestCase
     {
         $imageData = $this->createTestImage(1200, 1800);
         $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $downloader->downloadAndStore($series, 'https://example.com/cover.jpg');
@@ -71,7 +72,7 @@ final class CoverDownloaderTest extends TestCase
     {
         $imageData = $this->createTestImage(200, 300);
         $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $downloader->downloadAndStore($series, 'https://example.com/small.jpg');
@@ -90,7 +91,7 @@ final class CoverDownloaderTest extends TestCase
     public function testDownloadReturnsFalseOnHttpError(): void
     {
         $httpClient = new MockHttpClient([new MockResponse('', ['http_code' => 404])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/missing.jpg');
@@ -102,7 +103,7 @@ final class CoverDownloaderTest extends TestCase
     public function testDownloadReturnsFalseOnInvalidImage(): void
     {
         $httpClient = new MockHttpClient([new MockResponse('not an image', ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/bad.txt');
@@ -114,7 +115,7 @@ final class CoverDownloaderTest extends TestCase
     public function testDownloadReturnsFalseOnEmptyBody(): void
     {
         $httpClient = new MockHttpClient([new MockResponse('', ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $series = EntityFactory::createComicSeries('Test');
         $result = $downloader->downloadAndStore($series, 'https://example.com/empty');
@@ -127,7 +128,7 @@ final class CoverDownloaderTest extends TestCase
     {
         $imageData = $this->createTestImage(800, 1200);
         $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         // Simule le comportement de VichUploader qui définit coverImage après upload
         $this->uploadHandler->method('upload')
@@ -150,7 +151,7 @@ final class CoverDownloaderTest extends TestCase
     public function testDownloadDoesNotGenerateThumbnailOnFailure(): void
     {
         $httpClient = new MockHttpClient([new MockResponse('', ['http_code' => 404])]);
-        $downloader = new CoverDownloader($httpClient, ImageManager::gd(), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
+        $downloader = new CoverDownloader($httpClient, new ImageManager(GdDriver::class), new NullLogger(), $this->thumbnailGenerator, $this->uploadHandler);
 
         $this->thumbnailGenerator->expects(self::never())
             ->method('generate');

@@ -43,7 +43,8 @@ services:
         alias: Gemini\Client
 
     Intervention\Image\ImageManager:
-        factory: ['Intervention\Image\ImageManager', 'gd']
+        arguments:
+            - 'Intervention\Image\Drivers\Gd\Driver'
 
     Vich\UploaderBundle\Templating\Helper\UploaderHelperInterface:
         alias: Vich\UploaderBundle\Templating\Helper\UploaderHelper
