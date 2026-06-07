@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Lookup métadonnées (`/tools/lookup`)** : l'enrichissement batch est désormais entièrement asynchrone. L'endpoint met en file un message Messenger par série (un `EnrichSeriesMessage`) et répond immédiatement ; le worker enrichit, score et déclenche le téléchargement des couvertures en arrière-plan. Fini le streaming HTTP qui risquait un timeout sur tout le catalogue. Les correspondances incertaines partent en file de revue (`/tools/enrichment-review`), comme `app:auto-enrich`.
+
 ## [v2.30.2] — 2026-06-07
 
 ### Changed

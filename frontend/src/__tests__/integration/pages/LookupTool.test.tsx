@@ -1,4 +1,5 @@
 import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import LookupTool from "../../../pages/LookupTool";
@@ -64,7 +65,7 @@ describe("LookupTool", () => {
     expect(screen.getByLabelText("Limite")).toBeInTheDocument();
   });
 
-  it("shows force checkbox and delay input", () => {
+  it("shows force checkbox", () => {
     server.use(
       http.get("/api/tools/batch-lookup/preview", () =>
         HttpResponse.json({ count: 0 }),
@@ -74,6 +75,31 @@ describe("LookupTool", () => {
     renderWithProviders(<LookupTool />);
 
     expect(screen.getByLabelText(/forcer/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/délai/i)).toBeInTheDocument();
+  });
+
+  it("queues enrichment via the run endpoint on click", async () => {
+    let runCalled = false;
+    server.use(
+      http.get("/api/tools/batch-lookup/preview", () =>
+        HttpResponse.json({ count: 3 }),
+      ),
+      http.post("/api/tools/batch-lookup/run", () => {
+        runCalled = true;
+        return HttpResponse.json({ queued: 3 });
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderWithProviders(<LookupTool />);
+
+    await waitFor(() => {
+      expect(screen.getByText("3")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /lancer/i }));
+
+    await waitFor(() => {
+      expect(runCalled).toBe(true);
+    });
   });
 });

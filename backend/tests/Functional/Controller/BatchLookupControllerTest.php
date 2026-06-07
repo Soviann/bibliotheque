@@ -103,7 +103,7 @@ final class BatchLookupControllerTest extends ApiTestCase
     // POST /api/tools/batch-lookup/run
     // ---------------------------------------------------------------
 
-    public function testRunReturnsSuccessfulResponse(): void
+    public function testRunQueuesEnrichmentAndReturnsCount(): void
     {
         $client = $this->createAuthenticatedClient();
 
@@ -112,6 +112,9 @@ final class BatchLookupControllerTest extends ApiTestCase
         ]);
 
         self::assertResponseIsSuccessful();
+        $data = $client->getResponse()->toArray();
+        self::assertArrayHasKey('queued', $data);
+        self::assertIsInt($data['queued']);
     }
 
     public function testRunWithTypeFilter(): void
@@ -123,5 +126,6 @@ final class BatchLookupControllerTest extends ApiTestCase
         ]);
 
         self::assertResponseIsSuccessful();
+        self::assertArrayHasKey('queued', $client->getResponse()->toArray());
     }
 }

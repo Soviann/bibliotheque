@@ -107,13 +107,13 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 
 **State Providers**: SoftDeletedComicSeriesProvider, TrashCollectionProvider, NotificationPreferenceInitializer.
 
-**Controllers**: ApiController (lookup: title/ISBN/covers), BatchLookupController (SSE streaming), GoogleLoginController, ImportController (books/Excel), MergeSeriesController (detect/preview/execute/suggest), NotificationController (read-all/unread-count), PurgeController (preview/execute purge), ShareController (`POST /api/share` — Web Share Target : parsing URL + lookup + match/enrichissement).
+**Controllers**: ApiController (lookup: title/ISBN/covers), BatchLookupController (preview + mise en file async de l'enrichissement), GoogleLoginController, ImportController (books/Excel), MergeSeriesController (detect/preview/execute/suggest), NotificationController (read-all/unread-count), PurgeController (preview/execute purge), ShareController (`POST /api/share` — Web Share Target : parsing URL + lookup + match/enrichissement).
 
 **Resources**: ComicSeries, Tome, Author, EnrichmentProposal, Notification, NotificationPreference, SeriesSuggestion. Format: JSON-LD.
 
 ## Messenger & Scheduler
 
-**Messenger**: transport `doctrine://default` (test: `in-memory://`). Message: EnrichSeriesMessage → EnrichSeriesHandler. Dispatched by: EnrichOnCreateListener, ReEnrichOnUpdateListener.
+**Messenger**: transport `doctrine://default` (test: `in-memory://`). Messages → handlers : EnrichSeriesMessage (champ `force`) → EnrichSeriesHandler ; DownloadCoverMessage → DownloadCoverHandler ; WarmThumbnailsMessage → WarmThumbnailsHandler. EnrichSeriesMessage dispatché par : EnrichOnCreateListener, ReEnrichOnUpdateListener, ShareResolver, BatchLookupService (`/tools/lookup` met en file un message par série).
 
 **Scheduler** (Schedule.php):
 - Daily 3-8h Tue-Sat: `app:auto-enrich`
@@ -158,4 +158,4 @@ ddev exec php -r "use Minishlink\WebPush\VAPID; \$k = VAPID::createVapidKeys(); 
 ```
 Set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT=mailto:…` in `backend/.env.local` (dev) or secrets vault (prod). Frontend needs `VITE_VAPID_PUBLIC_KEY` for subscription.
 
-**Symfony Messenger**: transport `doctrine://default` (table `messenger_messages`). Test: `in-memory://`. Config: `backend/config/packages/messenger.yaml`. `EnrichSeriesMessage` routed async.
+**Symfony Messenger**: transport `doctrine://default` (table `messenger_messages`). Test: `in-memory://`. Config: `backend/config/packages/messenger.yaml`. `EnrichSeriesMessage`, `DownloadCoverMessage`, `WarmThumbnailsMessage` routed async (worker : `messenger:consume async`).
