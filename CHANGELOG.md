@@ -10,6 +10,7 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 ### Fixed
 
 - **Tâches de déploiement** : `Task001ResetAndImport` échouait en production (`make: No rule to make target 'db-reset'`) car aucun Makefile n'est livré dans l'image. La réinitialisation passe désormais par les commandes console Doctrine directes. Le helper `runMake` (inutilisable en prod) est remplacé par `runProcess()` pour les commandes système arbitraires.
+- **Déploiement NAS** : `nas-update.sh` ne signalait pas l'échec des étapes post-déploiement (cache, migrations, tâches one-shot) — le déploiement restait « vert » malgré une tâche en échec. Ces commandes font désormais échouer le déploiement (sortie non nulle → job GitHub rouge + collecte des logs de crash).
 
 ## [v2.30.0] — 2026-06-07
 
