@@ -111,6 +111,24 @@ describe("LookupCandidateCard", () => {
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 
+  it("calls onSelect when Enter or Space is pressed on the focused card", async () => {
+    const user = userEvent.setup();
+    const candidate = buildCandidate({ title: "Akira" });
+    const onSelect = vi.fn();
+
+    renderWithProviders(
+      <LookupCandidateCard candidate={candidate} onSelect={onSelect} />,
+    );
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: /Akira/i })).toHaveFocus();
+
+    await user.keyboard("{Enter}");
+    await user.keyboard(" ");
+
+    expect(onSelect).toHaveBeenCalledTimes(2);
+  });
+
   it("shows placeholder and no img element when thumbnail is null", () => {
     const candidate = buildCandidate({ thumbnail: null });
     const onSelect = vi.fn();
