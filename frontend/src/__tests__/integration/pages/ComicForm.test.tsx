@@ -395,6 +395,32 @@ describe("ComicForm", () => {
       );
     });
 
+    it("closes the candidate results when clicking Fermer", async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        mockTitleLookup(createMockLookupResult({ title: "Lookup Title" })),
+      );
+
+      renderCreateForm();
+
+      const lookupInput = screen.getByPlaceholderText("Titre de la série");
+      await user.type(lookupInput, "Lookup Title");
+      await user.click(screen.getByTitle("Rechercher"));
+
+      await waitFor(() => {
+        expect(screen.getByText(/sélectionnez une série/)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole("button", { name: /Fermer/ }));
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText(/sélectionnez une série/),
+        ).not.toBeInTheDocument();
+      });
+    });
+
     it("switches to ISBN mode when clicking ISBN toggle", async () => {
       const user = userEvent.setup();
       renderCreateForm();

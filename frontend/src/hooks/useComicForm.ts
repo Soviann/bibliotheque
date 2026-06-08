@@ -331,6 +331,7 @@ export function useComicForm() {
     // Lookup
     applyLookup: lookup.applyLookup,
     clearCandidate: lookup.clearCandidate,
+    clearTitleSearch: lookup.clearTitleSearch,
     isApplying: lookup.isApplying,
     lookupIsbn: lookup.lookupIsbn,
     lookupMode: lookup.lookupMode,

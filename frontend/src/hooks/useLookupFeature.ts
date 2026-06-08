@@ -13,6 +13,7 @@ import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 export interface LookupFeature {
   applyLookup: () => Promise<void>;
   clearCandidate: () => void;
+  clearTitleSearch: () => void;
   isApplying: boolean;
   lookupIsbn: string;
   lookupMode: "isbn" | "title";
@@ -119,6 +120,12 @@ export function useLookupFeature(
     setSelectedCandidateTitle(null);
   };
 
+  /** Ferme la liste des résultats de recherche par titre (conserve la saisie). */
+  const clearTitleSearch = () => {
+    setSubmittedTitle("");
+    setSelectedCandidateTitle(null);
+  };
+
   const applyLookup = async () => {
     const result = lookupResult.data;
     if (!result) return;
@@ -171,6 +178,7 @@ export function useLookupFeature(
   return {
     applyLookup,
     clearCandidate,
+    clearTitleSearch,
     isApplying,
     lookupIsbn,
     lookupMode,

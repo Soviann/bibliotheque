@@ -241,3 +241,43 @@ describe("useLookupFeature.applyLookup (ISBN)", () => {
     expect(toastError).toHaveBeenCalled();
   });
 });
+
+describe("useLookupFeature.clearTitleSearch", () => {
+  it("ferme la liste des résultats de recherche par titre", async () => {
+    server.use(
+      http.get(`${API_BASE}/lookup/title`, () =>
+        HttpResponse.json({
+          apiMessages: {},
+          results: [createMockLookupResult({ title: "Akademy" })],
+          sources: ["Test"],
+        }),
+      ),
+    );
+
+    const update = vi.fn();
+    const form = createForm();
+    const view = renderHook(
+      () => useLookupFeature(form, update as unknown as UpdateFn),
+      { wrapper: createWrapper() },
+    );
+
+    act(() => {
+      view.result.current.setLookupTitle("Akademy");
+    });
+    act(() => {
+      view.result.current.submitTitleSearch();
+    });
+
+    await waitFor(() =>
+      expect(view.result.current.titleCandidates.data).toBeDefined(),
+    );
+
+    act(() => {
+      view.result.current.clearTitleSearch();
+    });
+
+    await waitFor(() =>
+      expect(view.result.current.titleCandidates.data).toBeUndefined(),
+    );
+  });
+});
