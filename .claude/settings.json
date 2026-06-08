@@ -3,22 +3,6 @@
     "commit": "",
     "pr": ""
   },
-  "extraKnownMarketplaces": {
-    "soviann-tools": {
-      "source": {
-        "source": "github",
-        "repo": "Soviann/claude-marketplace"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "commit-commands@claude-plugins-official": false,
-    "commit-conventions@soviann-tools": true,
-    "session-continuity@soviann-tools": true,
-    "phased-development@soviann-tools": true,
-    "parsing-decisions@soviann-tools": true,
-    "soviann-conventions@soviann-tools": true
-  },
   "permissions": {
     "allow": [
       "Bash(ddev describe*)",
@@ -66,7 +50,6 @@
       "Bash(git -C * branch -D:*)",
       "Bash(git -C * checkout .:*)",
       "Bash(git -C * clean -f:*)",
-      "Bash(git -C * commit:*)",
       "Bash(git -C * push --force:*)",
       "Bash(git -C * push -f:*)",
       "Bash(git -C * reset --hard:*)",
@@ -74,7 +57,6 @@
       "Bash(git branch -D:*)",
       "Bash(git checkout .:*)",
       "Bash(git clean -f:*)",
-      "Bash(git commit:*)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(git reset --hard:*)",
@@ -104,5 +86,21 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "commit-commands@claude-plugins-official": false,
+    "commit-conventions@soviann-tools": true,
+    "session-continuity@soviann-tools": true,
+    "phased-development@soviann-tools": true,
+    "parsing-decisions@soviann-tools": true,
+    "soviann-conventions@soviann-tools": true
+  },
+  "extraKnownMarketplaces": {
+    "soviann-tools": {
+      "source": {
+        "source": "github",
+        "repo": "Soviann/claude-marketplace"
+      }
+    }
   }
 }
