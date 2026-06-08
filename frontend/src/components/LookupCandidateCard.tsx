@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { LookupCandidate } from "../types/api";
 import { candidateVolumeChip, candidateYear } from "../utils/lookupCandidate";
-import CoverImage from "./CoverImage";
 
 interface LookupCandidateCardProps {
   candidate: LookupCandidate;
@@ -70,9 +69,12 @@ export default function LookupCandidateCard({
     >
       <div className="flex gap-3">
         {candidate.thumbnail ? (
-          <CoverImage
+          // Vignette externe (Google Books, Bédéthèque…) : <img> simple, sans
+          // crossOrigin (contrairement à CoverImage réservé aux couvertures
+          // locales), sinon le CORS bloque le chargement.
+          <img
             alt={candidate.title ?? ""}
-            className="h-24 w-16 shrink-0 rounded-lg"
+            className="h-24 w-16 shrink-0 rounded-lg object-cover"
             src={candidate.thumbnail}
           />
         ) : (

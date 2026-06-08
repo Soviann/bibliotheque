@@ -129,6 +129,23 @@ describe("LookupCandidateCard", () => {
     expect(onSelect).toHaveBeenCalledTimes(2);
   });
 
+  it("renders an external thumbnail as a plain img without crossOrigin", () => {
+    const candidate = buildCandidate({
+      thumbnail: "https://books.google.com/cover.jpg",
+      title: "One Piece",
+    });
+    const onSelect = vi.fn();
+
+    renderWithProviders(
+      <LookupCandidateCard candidate={candidate} onSelect={onSelect} />,
+    );
+
+    const img = screen.getByRole("img");
+    expect(img).toHaveAttribute("src", "https://books.google.com/cover.jpg");
+    // External lookup thumbnails must load without CORS — no crossOrigin.
+    expect(img).not.toHaveAttribute("crossorigin");
+  });
+
   it("shows placeholder and no img element when thumbnail is null", () => {
     const candidate = buildCandidate({ thumbnail: null });
     const onSelect = vi.fn();
