@@ -485,7 +485,9 @@ describe("ComicDetail — inline tome toggle", () => {
     const headerCheckbox = screen.getByRole("checkbox", {
       name: /tout cocher acheté/i,
     }) as HTMLInputElement;
-    expect(headerCheckbox.indeterminate).toBe(true);
+    // `indeterminate` est posé dans un useEffect (après le rendu) : on attend
+    // qu'il soit appliqué plutôt que de le lire de façon synchrone (flaky).
+    await waitFor(() => expect(headerCheckbox.indeterminate).toBe(true));
     expect(headerCheckbox.checked).toBe(false);
   });
 
