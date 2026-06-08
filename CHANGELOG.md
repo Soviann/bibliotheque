@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Recherche par titre**: les résultats affichent la description, l'année et le nombre de tomes (ou un badge One-shot), avec une couverture agrandie, et un bouton « Fermer » pour masquer la liste.
+
 ## [v2.32.0] — 2026-06-07
 
 ### Added

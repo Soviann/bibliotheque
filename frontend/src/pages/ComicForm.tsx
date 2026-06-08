@@ -30,6 +30,7 @@ export default function ComicForm() {
     authorOptions,
     authorSearch,
     clearCandidate,
+    clearTitleSearch,
     coverSearchOpen,
     form,
     handleSubmit,
@@ -134,6 +135,7 @@ export default function ComicForm() {
         <LookupSection
           applyLookup={applyLookup}
           clearCandidate={clearCandidate}
+          clearTitleSearch={clearTitleSearch}
           formTitle={form.title}
           isApplying={isApplying}
           isOnline={isOnline}

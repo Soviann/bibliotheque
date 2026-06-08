@@ -1,12 +1,14 @@
-import { ArrowLeft, Layers, Loader2, Search } from "lucide-react";
+import { ArrowLeft, Layers, Loader2, Search, X } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { formInputClassName } from "../styles/formStyles";
 import BarcodeScanner from "./BarcodeScanner";
+import LookupCandidateCard from "./LookupCandidateCard";
 import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 
 interface LookupSectionProps {
   applyLookup: () => void;
   clearCandidate: () => void;
+  clearTitleSearch: () => void;
   formTitle: string;
   isApplying: boolean;
   isOnline: boolean;
@@ -26,6 +28,7 @@ interface LookupSectionProps {
 export default function LookupSection({
   applyLookup,
   clearCandidate,
+  clearTitleSearch,
   formTitle,
   isApplying,
   isOnline,
@@ -144,53 +147,40 @@ export default function LookupSection({
         titleCandidates.data &&
         !titleCandidates.isFetching && (
           <div className="space-y-2">
-            {titleCandidates.data.results.length === 0 ? (
-              <p className="text-sm text-text-muted">Aucun résultat trouvé</p>
-            ) : (
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-text-muted">
+                {titleCandidates.data.results.length === 0
+                  ? "Aucun résultat trouvé"
+                  : `${titleCandidates.data.results.length} résultat(s) — sélectionnez une série :`}
+              </p>
+              <button
+                className="flex shrink-0 items-center gap-1 text-xs text-text-muted transition hover:text-text-secondary"
+                onClick={clearTitleSearch}
+                type="button"
+              >
+                <X className="h-3.5 w-3.5" />
+                Fermer
+              </button>
+            </div>
+            {titleCandidates.data.results.length > 0 && (
               <>
-                <p className="text-xs text-text-muted">
-                  {titleCandidates.data.results.length} résultat(s) —
-                  sélectionnez une série :
-                </p>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {titleCandidates.data.results.map((candidate, index) => (
-                    <button
-                      className="flex w-full items-center gap-3 rounded-lg bg-surface-primary p-2.5 border border-surface-border text-left hover:border-primary-400 transition"
+                    <LookupCandidateCard
+                      candidate={candidate}
                       key={index}
-                      onClick={() =>
+                      onSelect={() =>
                         candidate.title && selectCandidate(candidate.title)
                       }
-                      type="button"
-                    >
-                      {candidate.thumbnail ? (
-                        <img
-                          alt=""
-                          className="h-12 w-9 shrink-0 rounded object-cover"
-                          src={candidate.thumbnail}
-                        />
-                      ) : (
-                        <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded bg-surface-tertiary text-text-muted">
-                          <Layers className="h-4 w-4" />
-                        </div>
-                      )}
-                      <div className="min-w-0 text-sm">
-                        <p className="truncate font-medium text-text-primary">
-                          {candidate.title}
-                        </p>
-                        <p className="truncate text-text-muted">
-                          {candidate.authors ?? ""}
-                          {candidate.publisher && ` — ${candidate.publisher}`}
-                        </p>
-                      </div>
-                    </button>
+                    />
                   ))}
                 </div>
+                {titleCandidates.data.sources.length > 0 && (
+                  <p className="text-xs text-text-muted">
+                    Sources : {titleCandidates.data.sources.join(", ")}
+                  </p>
+                )}
               </>
-            )}
-            {titleCandidates.data.sources.length > 0 && (
-              <p className="text-xs text-text-muted">
-                Sources : {titleCandidates.data.sources.join(", ")}
-              </p>
             )}
           </div>
         )}
