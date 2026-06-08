@@ -53,9 +53,14 @@ class GeminiCircuitBreaker
     {
         $until = $this->nextDailyReset();
 
+        // TTL relatif (et non `expiresAt($until)` absolu) : l'expiration du cache
+        // suit l'horloge réelle au moment du save, tandis que la décision
+        // ouvert/fermé reste pilotée par l'horloge injectée (cf. openUntil).
+        $ttl = \max(1, $until->getTimestamp() - $this->clock->now()->getTimestamp());
+
         $item = $this->cache->getItem(self::CACHE_KEY);
         $item->set($until->getTimestamp());
-        $item->expiresAt($until);
+        $item->expiresAfter($ttl);
         $this->cache->save($item);
 
         return $until;
