@@ -2,6 +2,7 @@ import { ArrowLeft, Layers, Loader2, Search } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { formInputClassName } from "../styles/formStyles";
 import BarcodeScanner from "./BarcodeScanner";
+import LookupCandidateCard from "./LookupCandidateCard";
 import type { LookupCandidatesResponse, LookupResult } from "../types/api";
 
 interface LookupSectionProps {
@@ -152,37 +153,15 @@ export default function LookupSection({
                   {titleCandidates.data.results.length} résultat(s) —
                   sélectionnez une série :
                 </p>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {titleCandidates.data.results.map((candidate, index) => (
-                    <button
-                      className="flex w-full items-center gap-3 rounded-lg bg-surface-primary p-2.5 border border-surface-border text-left hover:border-primary-400 transition"
+                    <LookupCandidateCard
+                      candidate={candidate}
                       key={index}
-                      onClick={() =>
+                      onSelect={() =>
                         candidate.title && selectCandidate(candidate.title)
                       }
-                      type="button"
-                    >
-                      {candidate.thumbnail ? (
-                        <img
-                          alt=""
-                          className="h-12 w-9 shrink-0 rounded object-cover"
-                          src={candidate.thumbnail}
-                        />
-                      ) : (
-                        <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded bg-surface-tertiary text-text-muted">
-                          <Layers className="h-4 w-4" />
-                        </div>
-                      )}
-                      <div className="min-w-0 text-sm">
-                        <p className="truncate font-medium text-text-primary">
-                          {candidate.title}
-                        </p>
-                        <p className="truncate text-text-muted">
-                          {candidate.authors ?? ""}
-                          {candidate.publisher && ` — ${candidate.publisher}`}
-                        </p>
-                      </div>
-                    </button>
+                    />
                   ))}
                 </div>
               </>
