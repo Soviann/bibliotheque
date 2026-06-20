@@ -89,7 +89,7 @@ ApiLookupStatus, BatchLookupStatus, ComicStatus (buying/downloading/finished/sto
 | Enrichment/ | ConfidenceScorer, EnrichmentService |
 | Import/ | ImportService |
 | Lookup/Contract/ | ApiMessage, LookupProviderInterface, LookupResult… |
-| Lookup/Gemini/ | AbstractGeminiLookupProvider, GeminiCircuitBreaker, GeminiClientPool, GeminiJsonParser, GeminiQueryService |
+| Lookup/Gemini/ | AbstractGeminiLookupProvider, GeminiCircuitBreaker, GeminiClientPool, GeminiJsonParser, GeminiQueryService — built on `google-gemini-php/symfony`, NOT Symfony AI. Migration to Symfony AI rejected 2026-06-20 (multi-key rotation has no clean equivalent): see `docs/decisions/0001-pas-de-migration-vers-symfony-ai.md` |
 | Lookup/Provider/ | 12 providers: AniList, Bedetheque, BNF, ComicVine, Gemini, GoogleBooks, Jikan, Kitsu, MangaDex, OpenLibrary, Wikipedia + AbstractLookupProvider |
 | Lookup/Util/ | GoogleBooksUrlHelper, LookupTitleCleaner, TitleMatcher |
 | Lookup/ | BatchLookupService, LookupApplier, LookupOrchestrator |

@@ -19,6 +19,10 @@ use Psr\Log\LoggerInterface;
  * Le suivi d'épuisement est en mémoire et borné dans le temps ({@see self::EXHAUSTION_COOLDOWN_SECONDS}) :
  * une combinaison en échec est ignorée brièvement puis réessayée, ce qui évite qu'un worker
  * longue durée reste dégradé indéfiniment après une rafale d'erreurs.
+ *
+ * NB : cette rotation clé×modèle est la raison pour laquelle on n'a PAS migré vers Symfony AI
+ * (son FailoverPlatform bascule entre plateformes, pas entre N clés d'une même plateforme).
+ * Voir docs/decisions/0001-pas-de-migration-vers-symfony-ai.md.
  */
 class GeminiClientPool
 {
