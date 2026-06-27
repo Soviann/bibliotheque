@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.34.0] — 2026-06-27
+
 ### Changed
 
 - **Infrastructure FrankenPHP** : les conteneurs `nginx` + `php` + `worker` fusionnent en un seul conteneur `app` (FrankenPHP : serveur web Caddy + PHP en processus + worker Messenger + scheduler, orchestrés par supervisord). La production passe de 4 à 2 conteneurs (`app` + `db`) et d'une image double (`bibliotheque-php`/`bibliotheque-nginx`) à une image unique `bibliotheque`. DDEV gagne un démon `scheduler` pour refléter la prod.
