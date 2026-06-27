@@ -187,18 +187,18 @@ NAS_SUDO := echo $(NAS_PASSWORD) | sudo -S
 NAS_COMPOSE := cd /volume1/docker/bibliotheque/backend && $(NAS_SUDO) /usr/local/bin/docker compose --env-file .env.nas
 
 import: ## Importer depuis import.xlsx sur le NAS (usage : make import [DRY_RUN=1])
-	$(NAS_SSH) '$(NAS_SUDO) /usr/local/bin/docker cp $(NAS_IMPORT_FILE) backend-php-1:$(NAS_CONTAINER_FILE)'
+	$(NAS_SSH) '$(NAS_SUDO) /usr/local/bin/docker cp $(NAS_IMPORT_FILE) backend-app-1:$(NAS_CONTAINER_FILE)'
 ifdef DRY_RUN
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php php bin/console app:import $(NAS_CONTAINER_FILE) --dry-run --env=prod'
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app php bin/console app:import $(NAS_CONTAINER_FILE) --dry-run --env=prod'
 else
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php php bin/console app:import $(NAS_CONTAINER_FILE) --env=prod'
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app php bin/console app:import $(NAS_CONTAINER_FILE) --env=prod'
 endif
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php rm -f $(NAS_CONTAINER_FILE)'
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app rm -f $(NAS_CONTAINER_FILE)'
 
 .PHONY: nas-db-reset ssh-db-pull
 
 nas-db-reset: ## Reset la BDD du NAS : drop + create + migrate
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T php sh -c "php bin/console doctrine:database:drop --force --env=prod && php bin/console doctrine:database:create --env=prod && php bin/console doctrine:migrations:migrate -n --env=prod"'
+	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app sh -c "php bin/console doctrine:database:drop --force --env=prod && php bin/console doctrine:database:create --env=prod && php bin/console doctrine:migrations:migrate -n --env=prod"'
 
 ssh-db-pull: ## Pull la BDD prod depuis le NAS et l'importe dans DDEV
 	@echo "Dump de la BDD production depuis le NAS..."

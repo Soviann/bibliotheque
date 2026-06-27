@@ -1,50 +1,68 @@
-FROM php:8.3-fpm
+# syntax=docker/dockerfile:1
 
-RUN apt-get update && apt-get install -y \
-    git \
-    gosu \
-    libfcgi-bin \
-    libicu-dev \
-    libjpeg62-turbo-dev \
-    libpng-dev \
-    libwebp-dev \
-    libzip-dev \
-    make \
-    supervisor \
-    unzip \
-    && docker-php-ext-configure gd --with-jpeg --with-webp \
-    && docker-php-ext-configure intl \
-    && docker-php-ext-install \
-    gd \
-    intl \
-    opcache \
-    pdo_mysql \
-    zip \
+# Image unique FrankenPHP : serveur web (Caddy) + PHP en processus + worker Messenger.
+# Le contexte de build est la racine du dépôt (besoin de backend/ et frontend/).
+
+# Stage 1 — Build du frontend React (Vite)
+FROM node:22-alpine AS frontend-build
+
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+COPY frontend/ .
+RUN npm run build
+
+# Stage 2 — Runtime FrankenPHP (web + PHP + worker)
+FROM dunglas/frankenphp:1-php8.3 AS app
+
+# gosu : drop de privilèges vers www-data ; supervisor : multi-process (web + messenger)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        gosu \
+        supervisor \
+    && install-php-extensions \
+        gd \
+        intl \
+        opcache \
+        pdo_mysql \
+        zip \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+ENV APP_ENV=prod
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-WORKDIR /var/www/html
+WORKDIR /app
 
-COPY composer.json composer.lock ./
-
+# Dépendances PHP (couche cache séparée du code)
+COPY backend/composer.json backend/composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-COPY . .
+# Code applicatif
+COPY backend/ .
+RUN composer dump-autoload --optimize --no-dev
 
-RUN composer dump-autoload --optimize
+# Frontend compilé → racine web servie par Caddy (public/)
+COPY --from=frontend-build /app/dist ./public
 
+# Configuration FrankenPHP / supervisor / entrypoint
+COPY backend/docker/frankenphp/Caddyfile /etc/frankenphp/Caddyfile
+COPY backend/docker/frankenphp/supervisord.conf /etc/supervisor/conf.d/app.conf
+COPY backend/docker/frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Répertoires inscriptibles (les volumes montés écraseront ces droits au runtime)
 RUN mkdir -p public/uploads public/media var/cache var/log \
     && chown -R www-data:www-data public/uploads public/media var
 
-COPY docker/php/healthcheck.conf /usr/local/etc/php-fpm.d/zz-healthcheck.conf
-COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY docker/worker/supervisord.conf /var/www/html/docker/worker/supervisord.conf
-COPY docker/worker/docker-entrypoint.sh /usr/local/bin/worker-entrypoint.sh
-
-EXPOSE 9000
+EXPOSE 8080
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["php-fpm"]
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/app.conf"]

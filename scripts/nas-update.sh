@@ -76,11 +76,11 @@ if [ "$TARGET_TAG" = "$CURRENT_TAG" ]; then
     # Vérifier que les conteneurs tournent, sinon forcer un rebuild
     cd "$BACKEND_DIR" || { log "ERREUR: impossible d'accéder à ${BACKEND_DIR}"; exit 1; }
     RUNNING=$(docker compose --env-file "$ENV_FILE" ps --format '{{.State}}' 2>/dev/null | grep -ci "running" || true)
-    if [ "$RUNNING" -ge 3 ]; then
+    if [ "$RUNNING" -ge 2 ]; then
         log "Déjà sur le tag ${TARGET_TAG}, conteneurs OK."
         exit 0
     fi
-    log "Tag ${TARGET_TAG} déjà déployé mais conteneurs non running (${RUNNING}/3). Redéploiement..."
+    log "Tag ${TARGET_TAG} déjà déployé mais conteneurs non running (${RUNNING}/2). Redéploiement..."
 fi
 
 log "Mise à jour : ${CURRENT_TAG:-aucun tag} → ${TARGET_TAG}"
@@ -100,14 +100,14 @@ if try_deploy; then
     sleep 15
 
     # Vider le cache Symfony en tant que www-data (le volume app_var persiste entre les rebuilds)
-    if ! docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"; then
+    if ! docker compose --env-file "$ENV_FILE" exec -T -u www-data app php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"; then
         log "ERREUR: le vidage du cache Symfony a échoué."
         exit 1
     fi
     log "Cache Symfony vidé."
 
     # Migrations
-    if ! docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"; then
+    if ! docker compose --env-file "$ENV_FILE" exec -T app php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"; then
         log "ERREUR: les migrations ont échoué."
         exit 1
     fi
@@ -115,28 +115,28 @@ if try_deploy; then
 
     # Copier le fichier d'import s'il existe
     if [ -f "/volume1/downloads/import.xlsx" ]; then
-        docker compose --env-file "$ENV_FILE" cp /volume1/downloads/import.xlsx php:/var/www/html/var/import.xlsx 2>&1 | tee -a "$LOG_FILE"
+        docker compose --env-file "$ENV_FILE" cp /volume1/downloads/import.xlsx app:/app/var/import.xlsx 2>&1 | tee -a "$LOG_FILE"
         log "Fichier d'import copié dans var/."
     fi
 
     # Tâches de déploiement one-shot
-    if ! docker compose --env-file "$ENV_FILE" exec -T php php bin/console app:deploy:run-tasks -n --env=prod 2>&1 | tee -a "$LOG_FILE"; then
+    if ! docker compose --env-file "$ENV_FILE" exec -T app php bin/console app:deploy:run-tasks -n --env=prod 2>&1 | tee -a "$LOG_FILE"; then
         log "ERREUR: les tâches de déploiement ont échoué."
         exit 1
     fi
     log "Tâches de déploiement exécutées."
 
     # Nettoyage du fichier d'import
-    docker compose --env-file "$ENV_FILE" exec -T php rm -f var/import.xlsx 2>&1 | tee -a "$LOG_FILE"
+    docker compose --env-file "$ENV_FILE" exec -T app rm -f var/import.xlsx 2>&1 | tee -a "$LOG_FILE"
 
     # Miniatures de couverture (LiipImagine) : délègue au worker Messenger
     # pour ne pas bloquer le déploiement sur tout le catalogue.
-    docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console app:warm-thumbnails --async --env=prod 2>&1 | tee -a "$LOG_FILE"
+    docker compose --env-file "$ENV_FILE" exec -T -u www-data app php bin/console app:warm-thumbnails --async --env=prod 2>&1 | tee -a "$LOG_FILE"
     log "Génération des miniatures déléguée au worker."
 
     # Supprimer les anciennes images bibliotheque (garde uniquement la version courante)
     docker images --format '{{.Repository}}:{{.Tag}}' \
-        | grep 'ghcr.io/soviann/bibliotheque-' \
+        | grep 'ghcr.io/soviann/bibliotheque' \
         | grep -v ":${TAG}" \
         | xargs -r docker rmi 2>&1 | tee -a "$LOG_FILE"
     docker image prune -f 2>&1 | tee -a "$LOG_FILE"
@@ -160,10 +160,10 @@ for tag in $PREVIOUS_TAGS; do
     if try_deploy; then
         sleep 15
         # Vider le cache Symfony après rollback (en tant que www-data pour les permissions)
-        docker compose --env-file "$ENV_FILE" exec -T -u www-data php php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"
+        docker compose --env-file "$ENV_FILE" exec -T -u www-data app php bin/console cache:clear --env=prod 2>&1 | tee -a "$LOG_FILE"
         log "Cache Symfony vidé après rollback."
         log "ATTENTION: rollback effectué — vérifier manuellement la cohérence des migrations si le tag annulé contenait des changements de schéma."
-        docker compose --env-file "$ENV_FILE" exec -T php php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
+        docker compose --env-file "$ENV_FILE" exec -T app php bin/console doctrine:migrations:migrate -n --env=prod 2>&1 | tee -a "$LOG_FILE"
         log "Migrations exécutées après rollback."
         log "=== Mise à jour terminée (rollback vers ${tag}) ==="
         exit 1

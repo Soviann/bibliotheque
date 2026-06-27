@@ -20,20 +20,20 @@ case "${1:-help}" in
         $DC up --build -d
         ;;
     logs)
-        $DC logs --tail=50 "${2:-php}"
+        $DC logs --tail=50 "${2:-app}"
         ;;
     migrate)
-        $DC exec php php bin/console doctrine:migrations:migrate -n --env=prod
+        $DC exec app php bin/console doctrine:migrations:migrate -n --env=prod
         ;;
     ps)
         $DC ps
         ;;
     shell)
-        $DC exec php bash
+        $DC exec app bash
         ;;
     console)
         shift
-        $DC exec php php bin/console "$@" --env=prod
+        $DC exec app php bin/console "$@" --env=prod
         ;;
     help|*)
         echo "Usage: biblio <commande>"
@@ -41,7 +41,7 @@ case "${1:-help}" in
         echo "  up        Construire et démarrer les conteneurs"
         echo "  down      Arrêter les conteneurs"
         echo "  restart   Redémarrer (down + up --build)"
-        echo "  logs [s]  Logs d'un service (défaut: php)"
+        echo "  logs [s]  Logs d'un service (défaut: app)"
         echo "  migrate   Exécuter les migrations"
         echo "  ps        État des conteneurs"
         echo "  shell     Shell dans le conteneur PHP"

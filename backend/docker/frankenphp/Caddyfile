@@ -1,0 +1,52 @@
+{
+	frankenphp
+	# Pas de HTTPS automatique : TLS terminé par le reverse proxy (NAS / DDEV).
+	auto_https off
+	# API d'admin Caddy inutile en conteneur prod.
+	admin off
+}
+
+:8080 {
+	root * /app/public
+	encode zstd gzip
+
+	# En-têtes de sécurité appliqués à toutes les réponses.
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; frame-src https://accounts.google.com; img-src 'self' data: https:; connect-src 'self' https:;"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# Taille max des uploads (couvertures).
+	request_body {
+		max_size 12MB
+	}
+
+	# Cache long pour les assets hashés du frontend.
+	@assets path /assets/*
+	header @assets Cache-Control "public, immutable, max-age=31536000"
+
+	# Cache moyen pour uploads (couvertures) et miniatures LiipImagine.
+	@uploads path /uploads/*
+	header @uploads Cache-Control "public, max-age=2592000"
+	@media path /media/*
+	header @media Cache-Control "public, max-age=2592000"
+
+	# API Symfony + génération à la volée des miniatures LiipImagine.
+	# php_server sert le fichier statique s'il existe (miniature déjà générée),
+	# sinon délègue au front-controller Symfony (public/index.php).
+	@symfony path /api /api/* /media /media/*
+	handle @symfony {
+		php_server
+	}
+
+	# Tout le reste : SPA React (statique + fallback index.html pour React Router).
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+}

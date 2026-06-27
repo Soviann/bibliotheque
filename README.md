@@ -12,11 +12,10 @@ Application de gestion de collection BD / Manga / Comics / Livres.
 
 3 conteneurs Docker : **nginx** (reverse proxy + frontend React) + **php** (PHP-FPM 8.3, Symfony 7) + **db** (MariaDB 10.11).
 
-Les images `php` et `nginx` sont pré-buildées en CI et publiées sur ghcr.io à chaque release :
+L'image unique (FrankenPHP : web Caddy + PHP + worker Messenger) est pré-buildée en CI et publiée sur ghcr.io à chaque release :
 
 ```bash
-docker pull ghcr.io/soviann/bibliotheque-php:latest
-docker pull ghcr.io/soviann/bibliotheque-nginx:latest
+docker pull ghcr.io/soviann/bibliotheque:latest
 ```
 
 Déploiement (dans `backend/`) :
