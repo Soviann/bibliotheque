@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.34.1] — 2026-06-27
+
+### Fixed
+
+- **Déploiement FrankenPHP (cutover)** : `nas-update.sh` ajoute `--remove-orphans` au `down`/`up`. Sans ce flag, le renommage des services (`nginx`/`php`/`worker` → `app`) laissait les anciens conteneurs en vie ; l'ancien `nginx` gardait le port hôte 8082 et le nouveau conteneur `app` ne pouvait pas le lier (`port is already allocated`), provoquant un rollback automatique vers v2.33.0.
+
 ## [v2.34.0] — 2026-06-27
 
 ### Changed

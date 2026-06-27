@@ -38,14 +38,16 @@ try_deploy() {
 
     export TAG="${tag#v}"
 
-    docker compose --env-file "$ENV_FILE" down 2>&1 | tee -a "$LOG_FILE"
+    # --remove-orphans : indispensable lors d'un renommage de services (ex. nginx/php/worker → app),
+    # sinon les anciens conteneurs survivent au `down` et gardent le port hôte (8082) → bind échoue.
+    docker compose --env-file "$ENV_FILE" down --remove-orphans 2>&1 | tee -a "$LOG_FILE"
 
     if ! docker compose --env-file "$ENV_FILE" pull 2>&1 | tee -a "$LOG_FILE"; then
         log "ERREUR: docker compose pull a échoué."
         return 1
     fi
 
-    if ! docker compose --env-file "$ENV_FILE" up -d --wait 2>&1 | tee -a "$LOG_FILE"; then
+    if ! docker compose --env-file "$ENV_FILE" up -d --wait --remove-orphans 2>&1 | tee -a "$LOG_FILE"; then
         log "ERREUR: docker compose up a échoué (conteneurs non healthy)."
         return 1
     fi
