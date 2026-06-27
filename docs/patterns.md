@@ -457,17 +457,15 @@ Three-tier: Unit + Integration. Vitest 4 + jsdom + RTL + MSW.
 
 ## Docker Production
 
-3 containers: nginx + php-fpm + MariaDB. All non-root. Files:
+2 containers: `app` (FrankenPHP) + `db` (MariaDB). FrankenPHP runs as www-data (gosu); supervisord runs web + worker + scheduler. Files:
 
 | File | Purpose |
 |------|---------|
-| `backend/Dockerfile` | php:8.3-fpm + gosu (drops to www-data) + composer:2 + cache warmup |
-| `backend/docker/nginx/Dockerfile` | Multi-stage: Node.js 22 builds frontend → nginxinc/nginx-unprivileged:alpine (port 8080) |
-| `backend/docker/nginx/default.conf` | SPA fallback, `/api` → php:9000, cache headers, gzip, security headers |
-| `backend/docker/nginx/security-headers.conf` | CSP, HSTS, X-Content-Type-Options, etc. |
-| `backend/docker/php/healthcheck.conf` | php-fpm ping endpoint for Docker healthcheck |
-| `backend/docker/php/docker-entrypoint.sh` | chown volumes (root) → gosu www-data for composer dump-env + php-fpm |
-| `backend/docker-compose.yml` | 3 services + 5 volumes (app_var, db_data, jwt_keys, media, uploads) |
-| `backend/.dockerignore` | Excludes tests, var, vendor, dev configs from build context |
+| `backend/Dockerfile` | Multi-stage: Node.js 22 builds frontend (Vite) → `dunglas/frankenphp:1-php8.3` + composer:2 + extensions (gd/intl/opcache/pdo_mysql/zip). Build context = monorepo root (needs `frontend/` + `backend/`) |
+| `backend/docker/frankenphp/Caddyfile` | Caddy site (port 8080): security headers, `/api` + `/media` (LiipImagine fallback) → PHP, reste → SPA React (`index.html` fallback), upload 12 Mo |
+| `backend/docker/frankenphp/supervisord.conf` | PID 1: `frankenphp run` + `messenger:consume async` + `messenger:consume scheduler_default`, tous en www-data |
+| `backend/docker/frankenphp/docker-entrypoint.sh` | chown volumes + /data /config (root) → cache:clear/warmup (www-data) → exec supervisord |
+| `backend/docker-compose.yml` | 2 services (`app`, `db`) + 5 volumes (app_var, db_data, jwt_keys, media, uploads) |
+| `.dockerignore` (racine) | Contexte = racine ; exclut tests, var, vendor, node_modules, env locaux (garde le vault `config/secrets/prod/`) |
 
-Build context for nginx: `..` (monorepo root) to access `frontend/`.
+Single image: `ghcr.io/soviann/bibliotheque` (CI `docker-publish.yml`). App paths under `/app` (was `/var/www/html`).

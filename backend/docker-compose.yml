@@ -1,32 +1,22 @@
 services:
-  nginx:
-    image: ghcr.io/soviann/bibliotheque-nginx:${TAG:-latest}
+  app:
+    image: ghcr.io/soviann/bibliotheque:${TAG:-latest}
     build:
+      context: ..
+      dockerfile: backend/Dockerfile
       args:
         - VITE_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_ID}
-      context: ..
-      dockerfile: backend/docker/nginx/Dockerfile
     depends_on:
-      php:
+      db:
         condition: service_healthy
     ports:
       - "${APP_PORT:-8080}:8080"
     restart: unless-stopped
-    volumes:
-      - media:/var/www/html/public/media:ro
-      - uploads:/var/www/html/public/uploads:ro
-
-  php:
-    image: ghcr.io/soviann/bibliotheque-php:${TAG:-latest}
-    build: .
-    depends_on:
-      db:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 2>/dev/null | grep -q pong"]
-      interval: 10s
-      retries: 10
-      start_period: 60s
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/"]
+      interval: 15s
+      retries: 5
+      start_period: 90s
       timeout: 5s
     environment:
       - APP_ENV=prod
@@ -46,41 +36,14 @@ services:
       - OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}
       - SERPER_API_KEY=${SERPER_API_KEY}
       - SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}
-    restart: unless-stopped
-    volumes:
-      - app_var:/var/www/html/var
-      - jwt_keys:/var/www/html/config/jwt
-      - media:/var/www/html/public/media
-      - uploads:/var/www/html/public/uploads
-
-  worker:
-    image: ghcr.io/soviann/bibliotheque-php:${TAG:-latest}
-    build: .
-    depends_on:
-      php:
-        condition: service_healthy
-    entrypoint: ["worker-entrypoint.sh"]
-    command: []
-    environment:
-      - APP_ENV=prod
-      - APP_SECRET=${APP_SECRET}
-      - COMICVINE_API_KEY=${COMICVINE_API_KEY}
-      - DATABASE_URL=mysql://biblio:${MYSQL_PASSWORD}@db:3306/bibliotheque?serverVersion=10.11.0-MariaDB&charset=utf8mb4
-      - GEMINI_API_KEYS=${GEMINI_API_KEYS}
-      - GEMINI_MODELS=${GEMINI_MODELS}
-      - GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
-      - MESSENGER_TRANSPORT_DSN=doctrine://default
-      - SERPER_API_KEY=${SERPER_API_KEY}
-      - SYMFONY_DECRYPTION_SECRET=${SYMFONY_DECRYPTION_SECRET}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
       - VAPID_SUBJECT=${VAPID_SUBJECT}
-    restart: unless-stopped
     volumes:
-      - app_var:/var/www/html/var
-      - jwt_keys:/var/www/html/config/jwt
-      - media:/var/www/html/public/media
-      - uploads:/var/www/html/public/uploads
+      - app_var:/app/var
+      - jwt_keys:/app/config/jwt
+      - media:/app/public/media
+      - uploads:/app/public/uploads
 
   db:
     image: mariadb:10.11

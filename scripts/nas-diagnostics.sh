@@ -52,7 +52,7 @@ run_section "ÉTAT DES CONTENEURS" docker compose --env-file "$ENV_FILE" ps -a
 
 # 2. Healthcheck results
 section "HEALTHCHECKS"
-for service in php db; do
+for service in app db; do
     container=$(docker compose --env-file "$ENV_FILE" ps -q "$service" 2>/dev/null)
     if [ -n "$container" ]; then
         echo "--- ${service} ---"
@@ -69,14 +69,14 @@ for service in php db; do
 done
 
 # 3. Docker logs per service
-for service in nginx php db; do
+for service in app db; do
     run_section "LOGS DOCKER: ${service} (${LINES} dernières lignes)" \
         docker compose --env-file "$ENV_FILE" logs --tail="$LINES" --no-color "$service"
 done
 
 # 4. Symfony prod.log
 section "SYMFONY PROD.LOG (${LINES} dernières lignes)"
-docker compose --env-file "$ENV_FILE" exec -T php sh -c "cat var/log/prod.log 2>/dev/null | tail -${LINES}" 2>&1 || echo "(fichier prod.log introuvable ou conteneur arrêté)"
+docker compose --env-file "$ENV_FILE" exec -T app sh -c "cat var/log/prod.log 2>/dev/null | tail -${LINES}" 2>&1 || echo "(fichier prod.log introuvable ou conteneur arrêté)"
 
 # 5. OOM / kill events (best-effort)
 section "OOM / KILL (dmesg)"

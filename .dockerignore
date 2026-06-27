@@ -1,11 +1,35 @@
-# Root .dockerignore (used by nginx multi-stage build context)
-.ddev/
+# Contexte de build : racine du dépôt (image unique FrankenPHP, backend + frontend).
 .git/
+.github/
+.ddev/
 .idea/
 .vscode/
+docs/
+
+# Env locaux et clés en clair — ne jamais embarquer dans l'image.
+# NB : config/secrets/prod/ (vault Symfony chiffré) DOIT rester dans l'image ;
+# seule la clé de déchiffrement (SYMFONY_DECRYPTION_SECRET) est injectée à l'exécution.
+backend/.env.local
+backend/.env.*.local
+backend/.env.prod
+backend/config/jwt/
+
+# Dépendances et artefacts régénérés dans l'image
 backend/var/
 backend/vendor/
-backend/tests/
 backend/node_modules/
-docs/
+backend/public/bundles/
+backend/.php-cs-fixer.cache
 frontend/node_modules/
+frontend/dist/
+
+# Tests et outillage inutiles au runtime prod
+backend/tests/
+backend/phpunit.xml
+backend/phpstan-baseline-new.neon
+backend/rector.php
+backend/docker-compose.yml
+
+# Divers
+**/.DS_Store
+README.md

@@ -139,7 +139,7 @@ SoftDeleteFilter — excludes soft-deleted ComicSeries. Disabled in trash-relate
 
 ## Deployment
 
-**Docker (Synology NAS)**: 3 containers — nginx (static + reverse proxy), php (php-fpm 8.3), db (MariaDB 10.11). Frontend built in nginx multi-stage Dockerfile. Images on `ghcr.io/soviann/bibliotheque-{php,nginx}` (CI). Guides: `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude/SSH).
+**Docker (Synology NAS)**: 2 containers — `app` (FrankenPHP : web Caddy + PHP 8.3 + worker Messenger + scheduler via supervisord) and `db` (MariaDB 10.11). Image unique `ghcr.io/soviann/bibliotheque` (CI, contexte = racine du dépôt : `backend/Dockerfile` build frontend Vite + backend). Config FrankenPHP : `backend/docker/frankenphp/{Caddyfile,supervisord.conf,docker-entrypoint.sh}`. Routage Caddy : `/api` + `/media` (fallback LiipImagine) → PHP ; reste → SPA React (fallback `index.html`). Guides : `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude/SSH).
 
 ```bash
 cd backend && docker compose up --build -d                  # dev local (build)
@@ -159,4 +159,4 @@ ddev exec php -r "use Minishlink\WebPush\VAPID; \$k = VAPID::createVapidKeys(); 
 ```
 Set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT=mailto:…` in `backend/.env.local` (dev) or secrets vault (prod). Frontend needs `VITE_VAPID_PUBLIC_KEY` for subscription.
 
-**Symfony Messenger**: transport `doctrine://default` (table `messenger_messages`). Test: `in-memory://`. Config: `backend/config/packages/messenger.yaml`. `EnrichSeriesMessage`, `DownloadCoverMessage`, `WarmThumbnailsMessage` routed async (worker : `messenger:consume async`).
+**Symfony Messenger**: transport `doctrine://default` (table `messenger_messages`). Test: `in-memory://`. Config: `backend/config/packages/messenger.yaml`. `EnrichSeriesMessage`, `DownloadCoverMessage`, `WarmThumbnailsMessage` routed async (worker : `messenger:consume async`). En prod, le worker + le scheduler (`messenger:consume scheduler_default`) tournent dans le conteneur `app` via supervisord ; en DDEV via `web_extra_daemons` (`messenger-worker` + `scheduler`). Tâches planifiées : `backend/src/Schedule.php` (`#[AsSchedule('default')]`) — remplace le planificateur du NAS.

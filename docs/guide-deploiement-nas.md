@@ -86,7 +86,7 @@ ddev exec "cd backend && php -r 'echo base64_encode(include \"config/secrets/pro
 ddev exec 'php -r "require \"vendor/autoload.php\"; \$k = Minishlink\WebPush\VAPID::createVapidKeys(); echo \"Public: \".\$k[\"publicKey\"].PHP_EOL.\"Private: \".\$k[\"privateKey\"].PHP_EOL;"'
 ```
 
-Copier les clés dans `.env.nas`. La clé publique doit aussi être exposée au frontend via `VITE_VAPID_PUBLIC_KEY` dans le build (ajoutée dans le Dockerfile nginx si besoin, ou en dur dans le code frontend pour une app single-user).
+Copier les clés dans `.env.nas`. La clé publique doit aussi être exposée au frontend via `VITE_VAPID_PUBLIC_KEY` dans le build (ajoutée dans le `Dockerfile` si besoin, ou en dur dans le code frontend pour une app single-user).
 
 ---
 
@@ -106,8 +106,8 @@ Attendre que `db` affiche `healthy` (~30 secondes).
 
 ```bash
 cd /volume1/docker/bibliotheque/backend
-sudo docker compose --env-file .env.nas exec php php bin/console lexik:jwt:generate-keypair --env=prod
-sudo docker compose --env-file .env.nas exec php php bin/console doctrine:migrations:migrate -n --env=prod
+sudo docker compose --env-file .env.nas exec app php bin/console lexik:jwt:generate-keypair --env=prod
+sudo docker compose --env-file .env.nas exec app php bin/console doctrine:migrations:migrate -n --env=prod
 ```
 
 Pas de création d'utilisateur — le premier login Google crée le compte.
@@ -140,13 +140,15 @@ DSM > **Sécurité > Certificat > Ajouter** > **Obtenir un certificat de Let's E
 
 DSM > **Panneau de configuration > Planificateur de tâches**, utilisateur **root** :
 
-### Mise à jour automatique (quotidien, 04:00)
+### Mise à jour (déclenchée par GitHub Actions, pas de cron DSM requis)
+
+`scripts/nas-update.sh` est lancé automatiquement en SSH par le workflow `docker-publish.yml` à chaque tag `vX.Y.Z` poussé : il déploie le dernier tag (pull des images pré-buildées), exécute les migrations et les tâches de déploiement, avec rollback automatique vers les tags précédents en cas d'échec. Logs dans `/var/log/bibliotheque/update-YYYY-MM-DD.log` (rétention 7 jours).
+
+Un cron DSM quotidien lançant ce script reste possible comme filet de sécurité (re-déploie si les conteneurs sont tombés), mais n'est pas nécessaire :
 
 ```bash
 bash /volume1/docker/bibliotheque/scripts/nas-update.sh
 ```
-
-Le script (`scripts/nas-update.sh`) : pull, rebuild si changements, migrations. Si le build échoue, rollback automatique par merge commit (`--first-parent`, max 5 tentatives) jusqu'à retrouver un build fonctionnel. Logs dans `/var/log/bibliotheque/update-YYYY-MM-DD.log` (rétention 7 jours).
 
 ### Backup de la BDD (quotidien, 02:00)
 
@@ -156,11 +158,9 @@ bash /volume1/docker/bibliotheque/scripts/nas-backup.sh
 
 Le script (`scripts/nas-backup.sh`) : dump MariaDB compressé gzip dans `/volume1/google drive/Backup/Bibliotheque/`, rotation à 7 jours. Logs dans `/var/log/bibliotheque/backup-YYYY-MM-DD.log`.
 
-### Purge des séries supprimées (quotidien, 03:00)
+### Tâches applicatives (purge, nouvelles sorties, enrichissement…)
 
-```bash
-cd /volume1/docker/bibliotheque/backend && docker compose --env-file .env.nas exec -T php php bin/console app:purge-deleted --env=prod
-```
+**Aucune tâche DSM à créer.** Toutes les tâches applicatives (`app:purge-deleted`, `app:check-new-releases`, `app:auto-enrich`, `app:download-covers`, etc.) sont planifiées par le scheduler Symfony (`backend/src/Schedule.php`, `#[AsSchedule('default')]`) et exécutées en continu par le scheduler du conteneur `app` (`messenger:consume scheduler_default`, lancé par supervisord). Pour ajouter/modifier une tâche, éditer `Schedule.php` — pas le planificateur DSM.
 
 ### Nettoyage des logs (quotidien, 05:00)
 
@@ -177,7 +177,7 @@ Le script (`scripts/nas-cleanup-logs.sh`) : supprime les fichiers `.log` de plus
 ```bash
 cd /volume1/docker/bibliotheque && git pull
 cd backend && sudo docker compose --env-file .env.nas up --build -d
-sudo docker compose --env-file .env.nas exec php php bin/console doctrine:migrations:migrate -n --env=prod
+sudo docker compose --env-file .env.nas exec app php bin/console doctrine:migrations:migrate -n --env=prod
 ```
 
 ---
@@ -208,10 +208,10 @@ gunzip -c "/volume1/google drive/Backup/Bibliotheque/bibliotheque-YYYYMMDD_HHMMS
 
 ---
 
-## 9. Accéder au conteneur PHP
+## 9. Accéder au conteneur applicatif
 
 ```bash
-sudo docker exec -it backend-php-1 bash
+sudo docker exec -it backend-app-1 bash
 ```
 
 Utile pour exécuter des commandes Symfony manuellement (`bin/console ...`).
@@ -223,9 +223,8 @@ Utile pour exécuter des commandes Symfony manuellement (`bin/console ...`).
 ```bash
 cd /volume1/docker/bibliotheque/backend
 
-# Logs d'un service
-sudo docker compose --env-file .env.nas logs php --tail=50
-sudo docker compose --env-file .env.nas logs nginx --tail=50
+# Logs du service applicatif (web + worker + scheduler)
+sudo docker compose --env-file .env.nas logs app --tail=50
 
 # Redémarrer
 sudo docker compose --env-file .env.nas restart
@@ -245,7 +244,7 @@ sudo docker compose --env-file .env.nas up --build -d
 - **"dubious ownership"** sur git : `sudo git config --global --add safe.directory /volume1/docker/bibliotheque`
 - **"PlaceholderSecretChecker"** : `SYMFONY_DECRYPTION_SECRET` manquant ou incorrect dans `.env.nas`
 - **"Malformed parameter url"** : caractère spécial dans `MYSQL_PASSWORD`
-- **"directory is not writable"** : `sudo docker compose --env-file .env.nas exec php chown -R www-data:www-data /var/www/html/var`
+- **"directory is not writable"** : `sudo docker compose --env-file .env.nas exec app chown -R www-data:www-data /app/var`
 
 ---
 
@@ -253,8 +252,7 @@ sudo docker compose --env-file .env.nas up --build -d
 
 | Conteneur | Image | Port | Rôle |
 |-----------|-------|------|------|
-| nginx | nginxinc/nginx-unprivileged:alpine + frontend build | 8080 → 8082 | SPA React + proxy API + uploads |
-| php | php:8.3-fpm + Symfony | 9000 (interne) | PHP-FPM, API |
+| app | ghcr.io/soviann/bibliotheque (FrankenPHP) | 8080 → 8082 | Web Caddy + PHP + SPA React + proxy API + worker Messenger + scheduler |
 | db | mariadb:10.11 | 3306 (interne) | Base de données |
 
 | Volume | Usage |
