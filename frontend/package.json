@@ -13,8 +13,8 @@
   "dependencies": {
     "@headlessui/react": "^2.2",
     "@react-oauth/google": "^0.13.4",
-    "@tanstack/react-query": "^5.90",
-    "@tanstack/react-query-persist-client": "^5.90.24",
+    "@tanstack/react-query": "^5.101",
+    "@tanstack/react-query-persist-client": "^5.101.4",
     "fuse.js": "^7.1.0",
     "html5-qrcode": "^2.3",
     "idb": "^8.0.3",
@@ -35,7 +35,7 @@
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
     "@tailwindcss/vite": "^4.1",
-    "@tanstack/react-query-devtools": "^5.91",
+    "@tanstack/react-query-devtools": "^5.101",
     "@testing-library/jest-dom": "^6.9",
     "@testing-library/react": "^16.3",
     "@testing-library/user-event": "^14.6",
