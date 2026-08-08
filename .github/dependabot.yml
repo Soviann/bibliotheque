@@ -1,0 +1,74 @@
+version: 2
+updates:
+  # Backend PHP / Symfony (Composer)
+  - package-ecosystem: "composer"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build(deps-backend)"
+    groups:
+      symfony-packages:
+        patterns:
+          - "symfony/*"
+          - "api-platform/*"
+          - "lexik/jwt-authentication-bundle"
+      testing-dev:
+        dependency-type: "development"
+        patterns:
+          - "phpunit/*"
+          - "phpstan/*"
+          - "friendsofphp/php-cs-fixer"
+          - "rector/*"
+
+  # Frontend React / TypeScript (npm)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build(deps-frontend)"
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      testing-dev:
+        dependency-type: "development"
+        patterns:
+          - "vitest*"
+          - "@vitest/*"
+          - "typescript"
+          - "vite*"
+
+  # GitHub Actions Workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps-actions)"
+
+  # Docker Base Images
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps-docker)"
