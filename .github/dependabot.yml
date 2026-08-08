@@ -12,17 +12,23 @@ updates:
       prefix: "build(deps-backend)"
     groups:
       symfony-packages:
+        applies-to: all
         patterns:
           - "symfony/*"
           - "api-platform/*"
           - "lexik/jwt-authentication-bundle"
       testing-dev:
+        applies-to: all
         dependency-type: "development"
         patterns:
           - "phpunit/*"
           - "phpstan/*"
           - "friendsofphp/php-cs-fixer"
           - "rector/*"
+      security-backend:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # Frontend React / TypeScript (npm)
   - package-ecosystem: "npm"
@@ -36,20 +42,27 @@ updates:
       prefix: "build(deps-frontend)"
     groups:
       react-ecosystem:
+        applies-to: all
         patterns:
           - "react"
           - "react-dom"
           - "@types/react*"
       tanstack:
+        applies-to: all
         patterns:
           - "@tanstack/*"
       testing-dev:
+        applies-to: all
         dependency-type: "development"
         patterns:
           - "vitest*"
           - "@vitest/*"
           - "typescript"
           - "vite*"
+      security-frontend:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # GitHub Actions Workflows
   - package-ecosystem: "github-actions"
@@ -61,6 +74,11 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build(deps-actions)"
+    groups:
+      security-actions:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # Docker Base Images
   - package-ecosystem: "docker"
@@ -72,3 +90,8 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build(deps-docker)"
+    groups:
+      security-docker:
+        applies-to: security-updates
+        patterns:
+          - "*"
