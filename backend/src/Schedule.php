@@ -17,10 +17,10 @@ use Symfony\Contracts\Cache\CacheInterface;
  * Remplace le planificateur de tâches du NAS Synology.
  */
 #[AsSchedule('default')]
-final class Schedule implements ScheduleProviderInterface
+final readonly class Schedule implements ScheduleProviderInterface
 {
     public function __construct(
-        private readonly CacheInterface $cache,
+        private CacheInterface $cache,
     ) {
     }
 

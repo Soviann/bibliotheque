@@ -6,12 +6,12 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "api-platform/doctrine-orm": "^4.3.10",
         "api-platform/symfony": ">=4.3.10",
-        "doctrine/doctrine-bundle": "^2.18.2",
+        "doctrine/doctrine-bundle": "^2.19.0",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6.7",
         "dragonmantank/cron-expression": "^3.6",
@@ -27,20 +27,20 @@
         "phpoffice/phpspreadsheet": "^5.8",
         "phpseclib/phpseclib": "^3.0",
         "symfony/console": "^7.4.13",
-        "symfony/doctrine-messenger": "^7.4.6",
-        "symfony/dotenv": "^7.4.11",
+        "symfony/doctrine-messenger": "^7.4.15",
+        "symfony/dotenv": "^7.4.15",
         "symfony/flex": "^2.11",
         "symfony/framework-bundle": "^7.4.13",
-        "symfony/messenger": "^7.4.12",
+        "symfony/messenger": "^7.4.15",
         "symfony/monolog-bundle": "^4.0.2",
-        "symfony/rate-limiter": "^7.4.13",
-        "symfony/runtime": "^7.4.13",
-        "symfony/scheduler": "^7.4.13",
-        "symfony/security-bundle": "^7.4.13",
-        "symfony/translation": "^7.4.10",
+        "symfony/rate-limiter": "^7.4.16",
+        "symfony/runtime": "^7.4.14",
+        "symfony/scheduler": "^7.4.15",
+        "symfony/security-bundle": "^7.4.15",
+        "symfony/translation": "^7.4.16",
         "symfony/validator": "^7.4.10",
-        "symfony/yaml": "^7.4.13",
-        "vich/uploader-bundle": "^2.9.4"
+        "symfony/yaml": "^7.4.15",
+        "vich/uploader-bundle": "^2.10.0"
     },
     "config": {
         "allow-plugins": {
@@ -70,7 +70,8 @@
         "symfony/polyfill-php80": "*",
         "symfony/polyfill-php81": "*",
         "symfony/polyfill-php82": "*",
-        "symfony/polyfill-php83": "*"
+        "symfony/polyfill-php83": "*",
+        "symfony/polyfill-php84": "*"
     },
     "scripts": {
         "auto-scripts": {
@@ -96,12 +97,12 @@
     "require-dev": {
         "dama/doctrine-test-bundle": "^8.6",
         "doctrine/doctrine-fixtures-bundle": "^4.3.1",
-        "friendsofphp/php-cs-fixer": "^3.95.4",
+        "friendsofphp/php-cs-fixer": "^3.95.21",
         "phpstan/phpstan": "^2.2.2",
         "phpstan/phpstan-symfony": "^2.0.19",
-        "phpunit/phpunit": "^12.5.29",
-        "rector/rector": "^2.4.5",
-        "symfony/browser-kit": "^7.4.8",
+        "phpunit/phpunit": "^12.5.33",
+        "rector/rector": "^2.6.3",
+        "symfony/browser-kit": "^7.4.14",
         "symfony/css-selector": "^7.4.9",
         "symfony/http-client": "^7.4.13",
         "symfony/maker-bundle": "^1.67",

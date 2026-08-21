@@ -30,7 +30,7 @@ final class ComicVineLookup extends AbstractLookupProvider implements MultiResul
     private const string API_URL = 'https://comicvine.gamespot.com/api/search/';
 
     public function __construct(
-        #[Autowire('%env(COMICVINE_API_KEY)%')]
+        #[Autowire(env: 'COMICVINE_API_KEY')]
         private readonly string $apiKey,
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,

@@ -11,6 +11,7 @@ use App\Entity\Tome;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -403,7 +404,7 @@ class ComicSeriesRepository extends ServiceEntityRepository
      * Les vérifications scalaires (NULL) sont placées dans WHERE (pas d'agrégation nécessaire).
      * L'absence d'auteurs est détectée via NOT EXISTS pour éviter un GROUP BY sur toute la table.
      */
-    private function buildMissingDataQueryBuilder(?ComicType $type, ?int $limit): \Doctrine\ORM\QueryBuilder
+    private function buildMissingDataQueryBuilder(?ComicType $type, ?int $limit): QueryBuilder
     {
         $qb = $this->createQueryBuilder('c')
             ->where(

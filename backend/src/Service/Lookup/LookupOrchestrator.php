@@ -34,7 +34,7 @@ class LookupOrchestrator
      * @param iterable<LookupProviderInterface> $providers
      */
     public function __construct(
-        #[Autowire('%app.lookup_global_timeout%')]
+        #[Autowire(param: 'app.lookup_global_timeout')]
         private readonly float $globalTimeout,
         private readonly LoggerInterface $logger,
         #[AutowireIterator('app.lookup_provider')]
@@ -63,13 +63,7 @@ class LookupOrchestrator
      */
     public function hasRateLimitError(): bool
     {
-        foreach ($this->apiMessages as $message) {
-            if (ApiLookupStatus::RATE_LIMITED->value === $message->status) {
-                return true;
-            }
-        }
-
-        return false;
+        return \array_any($this->apiMessages, static fn (ApiMessage $message): bool => ApiLookupStatus::RATE_LIMITED->value === $message->status);
     }
 
     /**
@@ -86,7 +80,7 @@ class LookupOrchestrator
         $result = $this->doLookup($isbn, $type, LookupMode::ISBN);
 
         if ($result instanceof LookupResult) {
-            $result = $result->withIsbn($isbn);
+            return $result->withIsbn($isbn);
         }
 
         return $result;
@@ -161,12 +155,12 @@ class LookupOrchestrator
                     $results = $provider->resolveMultipleLookup($state);
                 } else {
                     $single = $provider->resolveLookup($state);
-                    $results = null !== $single ? [$single] : [];
+                    $results = $single instanceof LookupResult ? [$single] : [];
                 }
 
                 $apiMessage = $provider->getLastApiMessage();
 
-                if (null !== $apiMessage) {
+                if ($apiMessage instanceof ApiMessage) {
                     $this->apiMessages[$provider->getName()] = $apiMessage;
                 }
 
@@ -273,11 +267,11 @@ class LookupOrchestrator
                 $result = $provider->resolveLookup($state);
                 $apiMessage = $provider->getLastApiMessage();
 
-                if (null !== $apiMessage) {
+                if ($apiMessage instanceof ApiMessage) {
                     $this->apiMessages[$provider->getName()] = $apiMessage;
                 }
 
-                if (null !== $result) {
+                if ($result instanceof LookupResult) {
                     $providerResults[] = [$provider, $result];
                     $this->sources[] = $provider->getName();
                 }
@@ -300,7 +294,7 @@ class LookupOrchestrator
         $merged = $this->mergeByFieldPriority($providerResults, $type);
 
         if (!$merged->isComplete()) {
-            $merged = $this->tryEnrich($merged, $providerResults, $type);
+            return $this->tryEnrich($merged, $providerResults, $type);
         }
 
         return $merged;
@@ -392,11 +386,11 @@ class LookupOrchestrator
                 $enriched = $provider->resolveEnrich($state);
                 $apiMessage = $provider->getLastApiMessage();
 
-                if (null !== $apiMessage) {
+                if ($apiMessage instanceof ApiMessage) {
                     $this->apiMessages[$provider->getName().'.enrich'] = $apiMessage;
                 }
 
-                if (null !== $enriched) {
+                if ($enriched instanceof LookupResult) {
                     $enrichResults[] = [$provider, $enriched];
                     $this->sources[] = $enriched->source;
                 }

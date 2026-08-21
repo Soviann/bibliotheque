@@ -585,7 +585,7 @@ final class ImportService
         }
 
         if (\str_ends_with($isbn, '.0')) {
-            $isbn = \substr($isbn, 0, -2);
+            return \substr($isbn, 0, -2);
         }
 
         return $isbn;
@@ -665,7 +665,7 @@ final class ImportService
      */
     private function findOrCreateAuthor(string $name): Author
     {
-        $key = self::normalizeAuthorKey($name);
+        $key = $this->normalizeAuthorKey($name);
 
         if (isset($this->pendingAuthors[$key])) {
             return $this->pendingAuthors[$key];
@@ -687,7 +687,7 @@ final class ImportService
     /**
      * Normalise un nom pour le rendre insensible aux accents et à la casse.
      */
-    private static function normalizeAuthorKey(string $name): string
+    private function normalizeAuthorKey(string $name): string
     {
         $key = \mb_strtolower(\trim($name));
         $decomposed = \Normalizer::normalize($key, \Normalizer::NFD);

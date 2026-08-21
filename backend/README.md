@@ -3,7 +3,7 @@
 Application web de gestion de collection de BD, Comics, Mangas et Livres avec support hors-ligne (PWA).
 
 ![Symfony](https://img.shields.io/badge/Symfony-7.4-000000?logo=symfony)
-![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php)
+![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
@@ -94,7 +94,7 @@ Voir le [guide d'installation complet](docs/installation/README.md).
 
 | Composant | Version | Usage |
 |-----------|---------|-------|
-| PHP | 8.3+ | Backend |
+| PHP | 8.4+ | Backend |
 | Symfony | 7.4 | Framework |
 | MariaDB | 10.11+ | Base de donnees |
 | Doctrine ORM | - | Persistence |

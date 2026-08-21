@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
-use Rector\Symfony\CodeQuality\Rector\Class_\ControllerMethodInjectionToConstructorRector;
 use Rector\Symfony\CodeQuality\Rector\Class_\InlineClassRoutePrefixRector;
 use Rector\Symfony\Set\SymfonySetList;
 
@@ -21,6 +19,7 @@ use Rector\Symfony\Set\SymfonySetList;
  * - Sur un fichier spécifique :      ddev exec vendor/bin/rector process src/MonFichier.php
  */
 return RectorConfig::configure()
+    ->withoutParallel()
     ->withPaths([
         __DIR__.'/src',
         __DIR__.'/tests',
@@ -32,25 +31,18 @@ return RectorConfig::configure()
         // DataFixtures : patterns spécifiques acceptables
         __DIR__.'/src/DataFixtures',
 
-        // #[Override] ajoute du bruit visuel sans valeur significative
-        AddOverrideAttributeToOverriddenMethodsRector::class,
-
-        // L'injection par action (autowiring dans les paramètres de méthode)
-        // est un pattern Symfony valide et souvent préférable pour les contrôleurs
-        ControllerMethodInjectionToConstructorRector::class,
-
         // Conserver les préfixes de route sur la classe pour la lisibilité
         InlineClassRoutePrefixRector::class,
     ])
-    ->withPhpSets(php83: true)
+    ->withPhpSets(php84: true)
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,
         typeDeclarations: true,
     )
     ->withSets([
-        SymfonySetList::SYMFONY_74,
         SymfonySetList::SYMFONY_CODE_QUALITY,
+        SymfonySetList::COMPOSER_BASED,
         // Note : SYMFONY_CONSTRUCTOR_INJECTION volontairement omis
         // L'injection par action (autowiring dans les paramètres) est un pattern
         // valide en Symfony et souvent préférable pour les contrôleurs légers.

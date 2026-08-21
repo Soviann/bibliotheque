@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Recommendation;
 
+use App\DTO\ComicSeriesListItem;
 use App\Entity\SeriesSuggestion;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
@@ -35,7 +36,7 @@ class SimilarSeriesService
     {
         $allSeries = $this->comicSeriesRepository->findAllForApi();
         $dismissedTitles = $this->suggestionRepository->findDismissedTitles();
-        $existingTitles = \array_map(static fn ($s) => \mb_strtolower($s->title), $allSeries);
+        $existingTitles = \array_map(static fn (ComicSeriesListItem $s): string => \mb_strtolower($s->title), $allSeries);
 
         $batches = \array_chunk($allSeries, self::BATCH_SIZE);
 
@@ -116,7 +117,7 @@ class SimilarSeriesService
     private function querySuggestions(array $seriesData): array
     {
         $seriesList = \implode("\n", \array_map(
-            static fn (array $s) => \sprintf('- %s (%s) par %s', $s['title'], $s['type'], $s['authors']),
+            static fn (array $s): string => \sprintf('- %s (%s) par %s', $s['title'], $s['type'], $s['authors']),
             $seriesData,
         ));
 

@@ -9,6 +9,7 @@ use App\Enum\EnrichmentConfidence;
 use App\Enum\LookupMode;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Enrichment\EnrichmentService;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -120,7 +121,7 @@ final class AutoEnrichCommand extends Command
                     $series->getType(),
                 );
 
-                if (null === $result) {
+                if (!$result instanceof LookupResult) {
                     $io->text(\sprintf('[%d/%d] %s — aucun résultat', $processed, \count($seriesList), $series->getTitle()));
                     ++$skipped;
 

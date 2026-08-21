@@ -28,7 +28,7 @@ final class ConfidenceScorerTest extends TestCase
      */
     public function testIsbnExactMatchReturnsHigh(): void
     {
-        $result = new LookupResult(isbn: '978-2-1234-5678-9', title: 'One Piece', source: 'google');
+        $result = new LookupResult(isbn: '978-2-1234-5678-9', source: 'google', title: 'One Piece');
 
         $confidence = $this->scorer->score(
             '978-2-1234-5678-9',
@@ -46,7 +46,7 @@ final class ConfidenceScorerTest extends TestCase
      */
     public function testIsbnMatchIgnoresFormatting(): void
     {
-        $result = new LookupResult(isbn: '9782123456789', title: 'One Piece', source: 'google');
+        $result = new LookupResult(isbn: '9782123456789', source: 'google', title: 'One Piece');
 
         $confidence = $this->scorer->score(
             '978-2-1234-5678-9',
@@ -66,8 +66,8 @@ final class ConfidenceScorerTest extends TestCase
     {
         $result = new LookupResult(
             authors: 'Eiichiro Oda',
-            title: 'One Piece',
             source: 'google',
+            title: 'One Piece',
         );
 
         $confidence = $this->scorer->score(
@@ -89,8 +89,8 @@ final class ConfidenceScorerTest extends TestCase
         // "One Piece" vs "One Piéce" — titre très similaire mais pas exact
         $result = new LookupResult(
             authors: 'Eiichiro Oda',
-            title: 'One Piéce',
             source: 'google',
+            title: 'One Piéce',
         );
 
         $confidence = $this->scorer->score(
@@ -109,7 +109,7 @@ final class ConfidenceScorerTest extends TestCase
      */
     public function testVeryDifferentTitleReturnsLow(): void
     {
-        $result = new LookupResult(title: 'Dragon Ball Super', source: 'google');
+        $result = new LookupResult(source: 'google', title: 'Dragon Ball Super');
 
         $confidence = $this->scorer->score(
             'One Piece',
@@ -129,16 +129,16 @@ final class ConfidenceScorerTest extends TestCase
     {
         $resultWithAuthors = new LookupResult(
             authors: 'Eiichiro Oda',
-            title: 'One Piece',
             source: 'google',
+            title: 'One Piece',
         );
         $resultWithoutAuthors = new LookupResult(
-            title: 'One Piece',
             source: 'google',
+            title: 'One Piece',
         );
 
         $withAuthors = $this->scorer->score('One Piece', null, LookupMode::TITLE, $resultWithAuthors, ['google']);
-        $withoutAuthors = $this->scorer->score('One Piece', null, LookupMode::TITLE, $resultWithoutAuthors, ['google']);
+        $this->scorer->score('One Piece', null, LookupMode::TITLE, $resultWithoutAuthors, ['google']);
 
         // Avec auteurs devrait être >= MEDIUM, sans auteurs pourrait être < MEDIUM
         // L'important est que le score avec auteurs est supérieur ou égal
@@ -152,8 +152,8 @@ final class ConfidenceScorerTest extends TestCase
     {
         $result = new LookupResult(
             authors: 'Author',
-            title: 'One Piece',
             source: 'google',
+            title: 'One Piece',
         );
 
         $singleProvider = $this->scorer->score('One Piece', ComicType::MANGA, LookupMode::TITLE, $result, ['google']);

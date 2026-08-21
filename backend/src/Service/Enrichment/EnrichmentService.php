@@ -227,7 +227,7 @@ class EnrichmentService
             }
 
             // Vérifie qu'il n'y a pas déjà une proposition en attente
-            if (null !== $this->proposalRepository->findPendingBySeriesAndField($series, $enrichableField)) {
+            if ($this->proposalRepository->findPendingBySeriesAndField($series, $enrichableField) instanceof EnrichmentProposal) {
                 continue;
             }
 

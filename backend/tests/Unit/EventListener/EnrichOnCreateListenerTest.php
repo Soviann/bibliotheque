@@ -37,7 +37,7 @@ final class EnrichOnCreateListenerTest extends TestCase
 
         $this->messageBus->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static fn ($msg) => $msg instanceof EnrichSeriesMessage && 42 === $msg->seriesId))
+            ->with(self::callback(static fn ($msg): bool => $msg instanceof EnrichSeriesMessage && 42 === $msg->seriesId))
             ->willReturn(new Envelope(new EnrichSeriesMessage(42)));
 
         ($this->listener)(new ComicSeriesCreatedEvent($series));

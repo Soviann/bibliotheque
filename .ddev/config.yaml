@@ -1,7 +1,7 @@
 name: bibliotheque
 type: php
 docroot: backend/public
-php_version: "8.3"
+php_version: "8.4"
 webimage_extra_packages:
   - build-essential
   - zsh

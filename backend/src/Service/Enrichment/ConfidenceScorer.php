@@ -66,7 +66,7 @@ class ConfidenceScorer
         $score += $providerBonus;
 
         // Correspondance de type (0.10)
-        if (null !== $queryType) {
+        if ($queryType instanceof ComicType) {
             $score += 0.10;
         }
 

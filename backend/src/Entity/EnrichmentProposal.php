@@ -53,26 +53,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class EnrichmentProposal
 {
-    #[ORM\ManyToOne(targetEntity: ComicSeries::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['enrichment:read'])]
-    private ComicSeries $comicSeries;
-
-    #[ORM\Column(type: Types::STRING, enumType: EnrichmentConfidence::class)]
-    #[Groups(['enrichment:read'])]
-    private EnrichmentConfidence $confidence;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['enrichment:read'])]
     private \DateTimeImmutable $createdAt;
-
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['enrichment:read'])]
-    private mixed $currentValue = null;
-
-    #[ORM\Column(type: Types::STRING, enumType: EnrichableField::class)]
-    #[Groups(['enrichment:read'])]
-    private EnrichableField $field;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -80,44 +63,40 @@ class EnrichmentProposal
     #[Groups(['enrichment:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::JSON)]
-    #[Groups(['enrichment:read'])]
-    private mixed $proposedValue = null;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['enrichment:read'])]
     private ?\DateTimeImmutable $reviewedAt = null;
-
-    #[ORM\Column(length: 100)]
-    #[Groups(['enrichment:read'])]
-    private string $source;
 
     #[ORM\Column(type: Types::STRING, enumType: ProposalStatus::class)]
     #[Groups(['enrichment:read'])]
     private ProposalStatus $status;
 
-    #[ORM\Column(length: 100, nullable: true)]
-    #[Groups(['enrichment:read'])]
-    private ?string $triggeredBy = null;
-
     public function __construct(
-        ComicSeries $comicSeries,
-        EnrichmentConfidence $confidence,
-        mixed $currentValue,
-        EnrichableField $field,
-        mixed $proposedValue,
-        string $source,
-        ?string $triggeredBy = null,
+        #[ORM\ManyToOne(targetEntity: ComicSeries::class)]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        #[Groups(['enrichment:read'])]
+        private ComicSeries $comicSeries,
+        #[ORM\Column(type: Types::STRING, enumType: EnrichmentConfidence::class)]
+        #[Groups(['enrichment:read'])]
+        private EnrichmentConfidence $confidence,
+        #[ORM\Column(type: Types::JSON, nullable: true)]
+        #[Groups(['enrichment:read'])]
+        private mixed $currentValue,
+        #[ORM\Column(type: Types::STRING, enumType: EnrichableField::class)]
+        #[Groups(['enrichment:read'])]
+        private EnrichableField $field,
+        #[ORM\Column(type: Types::JSON)]
+        #[Groups(['enrichment:read'])]
+        private mixed $proposedValue,
+        #[ORM\Column(length: 100)]
+        #[Groups(['enrichment:read'])]
+        private string $source,
+        #[ORM\Column(length: 100, nullable: true)]
+        #[Groups(['enrichment:read'])]
+        private ?string $triggeredBy = null,
     ) {
-        $this->comicSeries = $comicSeries;
-        $this->confidence = $confidence;
         $this->createdAt = new \DateTimeImmutable();
-        $this->currentValue = $currentValue;
-        $this->field = $field;
-        $this->proposedValue = $proposedValue;
-        $this->source = $source;
         $this->status = ProposalStatus::PENDING;
-        $this->triggeredBy = $triggeredBy;
     }
 
     public function getComicSeries(): ComicSeries

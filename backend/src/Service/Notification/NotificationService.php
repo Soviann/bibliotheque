@@ -80,7 +80,7 @@ class NotificationService implements NotifierInterface
 
     private function buildEntityUrl(?NotificationEntityType $entityType, ?int $entityId): ?string
     {
-        if (null === $entityType || null === $entityId) {
+        if (!$entityType instanceof NotificationEntityType || null === $entityId) {
             return null;
         }
 

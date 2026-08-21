@@ -6,9 +6,11 @@ namespace App\Service\Share;
 
 use App\DTO\Share\ShareResolution;
 use App\DTO\Share\ShareUrlInfo;
+use App\Entity\ComicSeries;
 use App\Enum\ComicType;
 use App\Message\EnrichSeriesMessage;
 use App\Repository\ComicSeriesRepository;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupOrchestrator;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -16,12 +18,12 @@ use Symfony\Component\Messenger\MessageBusInterface;
  * Orchestre la résolution d'un lien partagé :
  * parsing → lookup → match base → enrichissement.
  */
-final class ShareResolver
+final readonly class ShareResolver
 {
     public function __construct(
-        private readonly ComicSeriesRepository $comicSeriesRepository,
-        private readonly LookupOrchestrator $lookupOrchestrator,
-        private readonly MessageBusInterface $messageBus,
+        private ComicSeriesRepository $comicSeriesRepository,
+        private LookupOrchestrator $lookupOrchestrator,
+        private MessageBusInterface $messageBus,
     ) {
     }
 
@@ -42,7 +44,7 @@ final class ShareResolver
             return ShareResolution::empty();
         }
 
-        if (null === $result) {
+        if (!$result instanceof LookupResult) {
             return ShareResolution::empty();
         }
 
@@ -52,18 +54,18 @@ final class ShareResolver
             $series = $this->comicSeriesRepository->findOneByTomeIsbn($result->isbn);
         }
 
-        if (null === $series && null !== $result->title) {
+        if (!$series instanceof ComicSeries && null !== $result->title) {
             $series = $this->comicSeriesRepository->findOneByFuzzyTitle(
                 $result->title,
                 $info->type ?? ComicType::BD,
             );
         }
 
-        if (null === $series && null !== $result->title) {
+        if (!$series instanceof ComicSeries && null !== $result->title) {
             $series = $this->comicSeriesRepository->findOneByFuzzyTitleAnyType($result->title);
         }
 
-        if (null !== $series) {
+        if ($series instanceof ComicSeries) {
             $seriesId = $series->getId();
 
             if (null !== $seriesId) {

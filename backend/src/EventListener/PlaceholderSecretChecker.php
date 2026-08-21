@@ -25,11 +25,11 @@ final readonly class PlaceholderSecretChecker
     ];
 
     public function __construct(
-        #[Autowire('%kernel.secret%')]
+        #[Autowire(param: 'kernel.secret')]
         private string $appSecret,
-        #[Autowire('%kernel.environment%')]
+        #[Autowire(param: 'kernel.environment')]
         private string $env,
-        #[Autowire('%env(JWT_PASSPHRASE)%')]
+        #[Autowire(env: 'JWT_PASSPHRASE')]
         private string $jwtPassphrase,
     ) {
     }

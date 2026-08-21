@@ -93,7 +93,7 @@ final class PurgeControllerTest extends ApiTestCase
         $em->getConnection()->executeStatement(
             'UPDATE comic_series SET deleted_at = :date WHERE id = :id',
             [
-                'date' => (new \DateTime('-60 days'))->format('Y-m-d H:i:s'),
+                'date' => new \DateTime('-60 days')->format('Y-m-d H:i:s'),
                 'id' => $series->getId(),
             ]
         );
@@ -148,7 +148,7 @@ final class PurgeControllerTest extends ApiTestCase
         $em->getConnection()->executeStatement(
             'UPDATE comic_series SET deleted_at = :date WHERE id = :id',
             [
-                'date' => (new \DateTime('-60 days'))->format('Y-m-d H:i:s'),
+                'date' => new \DateTime('-60 days')->format('Y-m-d H:i:s'),
                 'id' => $seriesId,
             ]
         );

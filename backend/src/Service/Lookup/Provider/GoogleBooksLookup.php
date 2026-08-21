@@ -31,7 +31,7 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
     private const string API_URL = 'https://www.googleapis.com/books/v1/volumes';
 
     public function __construct(
-        #[Autowire('%env(GOOGLE_BOOKS_API_KEY)%')]
+        #[Autowire(env: 'GOOGLE_BOOKS_API_KEY')]
         private readonly string $apiKey,
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,

@@ -18,7 +18,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2 — Runtime FrankenPHP (web + PHP + worker)
-FROM dunglas/frankenphp:1-php8.3 AS app
+FROM dunglas/frankenphp:1-php8.4 AS app
 
 # gosu : drop de privilèges vers www-data ; supervisor : multi-process (web + messenger)
 RUN apt-get update && apt-get install -y --no-install-recommends \

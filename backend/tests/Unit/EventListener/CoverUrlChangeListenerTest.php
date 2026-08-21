@@ -42,7 +42,7 @@ final class CoverUrlChangeListenerTest extends TestCase
         $this->messageBus->expects(self::once())
             ->method('dispatch')
             ->with(self::callback(
-                static fn ($msg) => $msg instanceof DownloadCoverMessage
+                static fn ($msg): bool => $msg instanceof DownloadCoverMessage
                     && 42 === $msg->seriesId
                     && 'https://new.com/cover.jpg' === $msg->coverUrl,
             ))
@@ -61,7 +61,7 @@ final class CoverUrlChangeListenerTest extends TestCase
         $this->messageBus->expects(self::once())
             ->method('dispatch')
             ->with(self::callback(
-                static fn ($msg) => $msg instanceof DownloadCoverMessage
+                static fn ($msg): bool => $msg instanceof DownloadCoverMessage
                     && 10 === $msg->seriesId
                     && 'https://new.com/cover.jpg' === $msg->coverUrl,
             ))

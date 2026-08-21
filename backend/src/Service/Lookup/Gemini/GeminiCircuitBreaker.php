@@ -41,7 +41,7 @@ class GeminiCircuitBreaker
      */
     public function isOpen(): bool
     {
-        return null !== $this->openUntil();
+        return $this->openUntil() instanceof \DateTimeImmutable;
     }
 
     /**
@@ -95,7 +95,7 @@ class GeminiCircuitBreaker
     {
         $until = $this->openUntil();
 
-        if (null === $until) {
+        if (!$until instanceof \DateTimeImmutable) {
             return 0;
         }
 

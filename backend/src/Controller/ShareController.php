@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Share\ShareResolver;
 use App\Service\Share\ShareUrlParser;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -51,7 +52,7 @@ final readonly class ShareController
             return new JsonResponse(['matched' => true, 'seriesId' => $resolution->seriesId]);
         }
 
-        if (null !== $resolution->lookupResult) {
+        if ($resolution->lookupResult instanceof LookupResult) {
             return new JsonResponse(['matched' => false, 'lookupResult' => $resolution->lookupResult->jsonSerialize()]);
         }
 

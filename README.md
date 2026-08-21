@@ -4,13 +4,13 @@ Application de gestion de collection BD / Manga / Comics / Livres.
 
 ## Stack technique
 
-**Backend** : Symfony 7.4, PHP 8.3, API Platform 4, MariaDB 10.11, JWT
+**Backend** : Symfony 7.4, PHP 8.4, API Platform 4, MariaDB 10.11, JWT
 **Frontend** : React 19, TypeScript, Vite, TanStack Query, Tailwind CSS 4
 **Infra** : DDEV (dev), Docker Compose (prod), PWA
 
 ## Production
 
-3 conteneurs Docker : **nginx** (reverse proxy + frontend React) + **php** (PHP-FPM 8.3, Symfony 7) + **db** (MariaDB 10.11).
+3 conteneurs Docker : **nginx** (reverse proxy + frontend React) + **php** (PHP-FPM 8.4, Symfony 7) + **db** (MariaDB 10.11).
 
 L'image unique (FrankenPHP : web Caddy + PHP + worker Messenger) est pré-buildée en CI et publiée sur ghcr.io à chaque release :
 

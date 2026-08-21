@@ -53,60 +53,38 @@ class Notification
     #[Groups(['notification:list', 'notification:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['notification:list', 'notification:read'])]
-    private string $message;
-
-    /** @var array<string, mixed>|null */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['notification:list', 'notification:read'])]
-    private ?array $metadata;
-
     #[ORM\Column(name: 'read_status', type: Types::BOOLEAN)]
     #[Groups(['notification:list', 'notification:read', 'notification:write'])]
     private bool $read;
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['notification:list', 'notification:read'])]
-    private ?int $relatedEntityId;
-
-    #[ORM\Column(type: Types::STRING, nullable: true, enumType: NotificationEntityType::class)]
-    #[Groups(['notification:list', 'notification:read'])]
-    private ?NotificationEntityType $relatedEntityType;
-
-    #[ORM\Column(length: 255)]
-    #[Groups(['notification:list', 'notification:read'])]
-    private string $title;
-
-    #[ORM\Column(type: Types::STRING, enumType: NotificationType::class)]
-    #[Groups(['notification:list', 'notification:read'])]
-    private NotificationType $type;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private User $user;
 
     /**
      * @param array<string, mixed>|null $metadata
      */
     public function __construct(
-        string $message,
-        ?array $metadata,
-        ?int $relatedEntityId,
-        ?NotificationEntityType $relatedEntityType,
-        string $title,
-        NotificationType $type,
-        User $user,
+        #[ORM\Column(type: Types::TEXT)]
+        #[Groups(['notification:list', 'notification:read'])]
+        private string $message,
+        #[ORM\Column(type: Types::JSON, nullable: true)]
+        #[Groups(['notification:list', 'notification:read'])]
+        private ?array $metadata,
+        #[ORM\Column(nullable: true)]
+        #[Groups(['notification:list', 'notification:read'])]
+        private ?int $relatedEntityId,
+        #[ORM\Column(type: Types::STRING, nullable: true, enumType: NotificationEntityType::class)]
+        #[Groups(['notification:list', 'notification:read'])]
+        private ?NotificationEntityType $relatedEntityType,
+        #[ORM\Column(length: 255)]
+        #[Groups(['notification:list', 'notification:read'])]
+        private string $title,
+        #[ORM\Column(type: Types::STRING, enumType: NotificationType::class)]
+        #[Groups(['notification:list', 'notification:read'])]
+        private NotificationType $type,
+        #[ORM\ManyToOne(targetEntity: User::class)]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        private User $user,
     ) {
         $this->createdAt = new \DateTimeImmutable();
-        $this->message = $message;
-        $this->metadata = $metadata;
         $this->read = false;
-        $this->relatedEntityId = $relatedEntityId;
-        $this->relatedEntityType = $relatedEntityType;
-        $this->title = $title;
-        $this->type = $type;
-        $this->user = $user;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

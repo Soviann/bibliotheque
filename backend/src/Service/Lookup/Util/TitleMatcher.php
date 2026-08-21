@@ -36,14 +36,7 @@ final class TitleMatcher
             return false;
         }
 
-        // Au moins un mot significatif de la requête doit apparaître dans le titre
-        foreach ($queryWords as $word) {
-            if (\str_contains($normalizedTitle, $word)) {
-                return true;
-            }
-        }
-
-        return false;
+        return \array_any($queryWords, static fn ($word): bool => \str_contains($normalizedTitle, $word));
     }
 
     /**

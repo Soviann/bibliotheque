@@ -21,11 +21,11 @@ final readonly class CoverSearchService
     private const string SERPER_URL = 'https://google.serper.dev/images';
 
     public function __construct(
-        #[Autowire('%env(GOOGLE_BOOKS_API_KEY)%')]
+        #[Autowire(env: 'GOOGLE_BOOKS_API_KEY')]
         private string $googleBooksApiKey,
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
-        #[Autowire('%env(SERPER_API_KEY)%')]
+        #[Autowire(env: 'SERPER_API_KEY')]
         private string $serperApiKey,
     ) {
     }

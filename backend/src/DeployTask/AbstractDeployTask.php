@@ -26,14 +26,7 @@ abstract class AbstractDeployTask implements DeployTaskInterface
      */
     protected function runConsole(string $command, array $arguments, SymfonyStyle $io): void
     {
-        $allowed = false;
-        foreach (self::ALLOWED_CONSOLE_PREFIXES as $prefix) {
-            if (\str_starts_with($command, $prefix)) {
-                $allowed = true;
-                break;
-            }
-        }
-
+        $allowed = \array_any(self::ALLOWED_CONSOLE_PREFIXES, static fn (string $prefix): bool => \str_starts_with($command, $prefix));
         if (!$allowed) {
             throw new \InvalidArgumentException(\sprintf('Commande console non autorisée : %s', $command));
         }
