@@ -36,7 +36,7 @@
     "@lhci/cli": "^0.15.1",
     "@tailwindcss/vite": "^4.1",
     "@tanstack/react-query-devtools": "^5.101",
-    "@testing-library/jest-dom": "^6.9",
+    "@testing-library/jest-dom": "^7.0",
     "@testing-library/react": "^16.3",
     "@testing-library/user-event": "^14.6",
     "@types/react": "^19.2",
