@@ -1,6 +1,11 @@
 name: Dependabot Auto-Merge
 
-on: pull_request
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
 
 permissions:
   contents: write
@@ -8,19 +13,44 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Auto-merge non-major Dependabot PRs
+    name: Auto-merge Dependabot PR
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
     steps:
-      - name: Dependabot metadata
+      - name: Extract PR details
+        id: pr
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+              echo "CI workflow did not succeed. Skipping auto-merge."
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            PR_NUM="${{ github.event.workflow_run.pull_requests[0].number }}"
+          else
+            PR_NUM="${{ github.event.pull_request.number }}"
+          fi
+
+          if [ -z "$PR_NUM" ] || [ "$PR_NUM" = "null" ]; then
+            echo "No associated PR found."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "number=$PR_NUM" >> "$GITHUB_OUTPUT"
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch Dependabot metadata
+        if: steps.pr.outputs.should_run == 'true'
         id: metadata
         uses: dependabot/fetch-metadata@v2
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+          pr-number: ${{ steps.pr.outputs.number }}
 
-      - name: Enable auto-merge for patch and minor updates
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --squash "$PR_URL"
+      - name: Merge Dependabot PR
+        if: steps.pr.outputs.should_run == 'true' && steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: |
+          gh pr merge "$PR_NUM" --squash --delete-branch || gh pr merge "$PR_NUM" --auto --squash --delete-branch
         env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_NUM: ${{ steps.pr.outputs.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
