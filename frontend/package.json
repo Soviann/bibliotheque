@@ -28,6 +28,10 @@
     "sonner": "^2.0"
   },
   "overrides": {
+    "body-parser": ">=1.20.6",
+    "js-yaml": "^3.15.1",
+    "lighthouse": "^13.4.1",
+    "puppeteer-core": "^25.8.0",
     "serialize-javascript": ">=7.0.3",
     "tmp": "^0.2.6",
     "uuid": "^11.1.1"
