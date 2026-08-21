@@ -4,7 +4,7 @@
 # Le contexte de build est la racine du dépôt (besoin de backend/ et frontend/).
 
 # Stage 1 — Build du frontend React (Vite)
-FROM node:22-alpine AS frontend-build
+FROM node:26-alpine AS frontend-build
 
 ARG VITE_GOOGLE_CLIENT_ID
 ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
