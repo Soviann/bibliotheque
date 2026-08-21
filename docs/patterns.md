@@ -461,7 +461,7 @@ Three-tier: Unit + Integration. Vitest 4 + jsdom + RTL + MSW.
 
 | File | Purpose |
 |------|---------|
-| `backend/Dockerfile` | Multi-stage: Node.js 22 builds frontend (Vite) → `dunglas/frankenphp:1-php8.3` + composer:2 + extensions (gd/intl/opcache/pdo_mysql/zip). Build context = monorepo root (needs `frontend/` + `backend/`) |
+| `backend/Dockerfile` | Multi-stage: Node.js 22 builds frontend (Vite) → `dunglas/frankenphp:1-php8.4` + composer:2 + extensions (gd/intl/opcache/pdo_mysql/zip). Build context = monorepo root (needs `frontend/` + `backend/`) |
 | `backend/docker/frankenphp/Caddyfile` | Caddy site (port 8080): security headers, `/api` + `/media` (LiipImagine fallback) → PHP, reste → SPA React (`index.html` fallback), upload 12 Mo |
 | `backend/docker/frankenphp/supervisord.conf` | PID 1: `frankenphp run` + `messenger:consume async` + `messenger:consume scheduler_default`, tous en www-data |
 | `backend/docker/frankenphp/docker-entrypoint.sh` | chown volumes + /data /config (root) → cache:clear/warmup (www-data) → exec supervisord |

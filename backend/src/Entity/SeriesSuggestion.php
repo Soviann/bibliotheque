@@ -34,11 +34,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(name: 'idx_suggestion_status', columns: ['status'])]
 class SeriesSuggestion
 {
-    /** @var list<string> */
-    #[ORM\Column(type: Types::JSON)]
-    #[Groups(['suggestion:read'])]
-    private array $authors;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['suggestion:read'])]
     private \DateTimeImmutable $createdAt;
@@ -49,44 +44,33 @@ class SeriesSuggestion
     #[Groups(['suggestion:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['suggestion:read'])]
-    private string $reason;
-
-    #[ORM\ManyToOne(targetEntity: ComicSeries::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    #[Groups(['suggestion:read'])]
-    private ?ComicSeries $sourceSeries;
-
     #[ORM\Column(type: Types::STRING, enumType: SuggestionStatus::class)]
     #[Groups(['suggestion:read', 'suggestion:write'])]
     private SuggestionStatus $status;
-
-    #[ORM\Column(length: 255)]
-    #[Groups(['suggestion:read'])]
-    private string $title;
-
-    #[ORM\Column(type: Types::STRING, enumType: ComicType::class)]
-    #[Groups(['suggestion:read'])]
-    private ComicType $type;
 
     /**
      * @param list<string> $authors
      */
     public function __construct(
-        array $authors,
-        string $reason,
-        ?ComicSeries $sourceSeries,
-        string $title,
-        ComicType $type,
+        #[ORM\Column(type: Types::JSON)]
+        #[Groups(['suggestion:read'])]
+        private array $authors,
+        #[ORM\Column(type: Types::TEXT)]
+        #[Groups(['suggestion:read'])]
+        private string $reason,
+        #[ORM\ManyToOne(targetEntity: ComicSeries::class)]
+        #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+        #[Groups(['suggestion:read'])]
+        private ?ComicSeries $sourceSeries,
+        #[ORM\Column(length: 255)]
+        #[Groups(['suggestion:read'])]
+        private string $title,
+        #[ORM\Column(type: Types::STRING, enumType: ComicType::class)]
+        #[Groups(['suggestion:read'])]
+        private ComicType $type,
     ) {
-        $this->authors = $authors;
         $this->createdAt = new \DateTimeImmutable();
-        $this->reason = $reason;
-        $this->sourceSeries = $sourceSeries;
         $this->status = SuggestionStatus::PENDING;
-        $this->title = $title;
-        $this->type = $type;
     }
 
     /** @return list<string> */

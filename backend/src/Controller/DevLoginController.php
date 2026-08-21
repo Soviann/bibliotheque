@@ -26,15 +26,15 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class DevLoginController
 {
     public function __construct(
-        #[Autowire('%env(OAUTH_ALLOWED_EMAIL)%')]
+        #[Autowire(env: 'OAUTH_ALLOWED_EMAIL')]
         private string $allowedEmail,
         #[Autowire('%env(bool:APP_DEBUG_LOGIN)%')]
         private bool $enabled,
-        #[Autowire('%env(APP_DEBUG_LOGIN_PASSWORD)%')]
+        #[Autowire(env: 'APP_DEBUG_LOGIN_PASSWORD')]
         private string $debugPassword,
-        #[Autowire('%env(APP_DEBUG_LOGIN_USER)%')]
+        #[Autowire(env: 'APP_DEBUG_LOGIN_USER')]
         private string $debugUser,
-        #[Autowire('%kernel.environment%')]
+        #[Autowire(param: 'kernel.environment')]
         private string $environment,
         private JWTTokenManagerInterface $jwtManager,
         private LoggerInterface $logger,

@@ -908,6 +908,28 @@ class ComicSeries implements SoftDeletableInterface
     }
 
     /**
+     * Indique si tous les tomes parus sont possédés.
+     */
+    #[ApiProperty]
+    #[Groups(['comic:list'])]
+    public function isComplete(): bool
+    {
+        return $this->isOneShot || $this->latestPublishedIssueComplete || $this->isIssueComplete($this->getMaxTomeNumber());
+    }
+
+    /**
+     * Pourcentage de tomes lus (0 à 100).
+     */
+    #[ApiProperty]
+    #[Groups(['comic:list'])]
+    public function getReadPercent(): float
+    {
+        $total = $this->getCoveredCount();
+
+        return 0 === $total ? 0.0 : \round(($this->getReadCount() / $total) * 100, 1);
+    }
+
+    /**
      * Retourne le numéro maximum des tomes, optionnellement filtrés.
      *
      * @param \Closure(Tome, int):bool|null $filter Filtre optionnel à appliquer

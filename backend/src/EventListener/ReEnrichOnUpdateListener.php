@@ -41,7 +41,7 @@ final readonly class ReEnrichOnUpdateListener
         // Ne pas re-enrichir si un lookup a été fait récemment (< 24h)
         $lookupAt = $series->getLookupCompletedAt();
 
-        if (null !== $lookupAt && $lookupAt > new \DateTimeImmutable('-1 day')) {
+        if ($lookupAt instanceof \DateTimeImmutable && $lookupAt > new \DateTimeImmutable('-1 day')) {
             return;
         }
 

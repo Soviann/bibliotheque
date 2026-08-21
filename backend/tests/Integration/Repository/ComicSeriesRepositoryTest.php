@@ -426,14 +426,14 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // onNas=true
         $nasTitles = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithFilters(new ComicSeriesFilter(onNas: true)),
         );
         self::assertSame(['With NAS'], $nasTitles, 'onNas=true');
 
         // onNas=false — séries sans aucun tome NAS (inclut celles sans tomes)
         $noNasTitles = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithFilters(new ComicSeriesFilter(onNas: false)),
         );
         self::assertContains('Without NAS', $noNasTitles);
@@ -444,14 +444,14 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // reading=reading (partiellement lu : au moins 1 lu ET 1 non lu)
         $readingTitles = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithFilters(new ComicSeriesFilter(reading: 'reading')),
         );
         self::assertSame(['With NAS'], $readingTitles, 'reading=reading');
 
         // reading=read (aucun tome non lu — inclut séries sans tomes !)
         $readTitles = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithFilters(new ComicSeriesFilter(reading: 'read')),
         );
         self::assertContains('Without NAS', $readTitles);
@@ -462,7 +462,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // reading=unread (aucun tome lu — inclut séries sans tomes !)
         $unreadTitles = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithFilters(new ComicSeriesFilter(reading: 'unread')),
         );
         self::assertContains('Unread Series', $unreadTitles);
@@ -473,14 +473,14 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
 
         // search ISBN
         $isbnTitles = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithFilters(new ComicSeriesFilter(search: '978-NAS')),
         );
         self::assertSame(['With NAS'], $isbnTitles, 'search ISBN');
 
         // search titre
         $titleTitles = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithFilters(new ComicSeriesFilter(search: 'Without')),
         );
         self::assertSame(['Without NAS'], $titleTitles, 'search title');
@@ -628,7 +628,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $this->em->flush();
 
         // onNas null → pas de filtre, toutes les séries retournées
-        $result = $this->repository->findWithFilters(new ComicSeriesFilter(onNas: null));
+        $result = $this->repository->findWithFilters(new ComicSeriesFilter());
 
         self::assertCount(2, $result);
     }
@@ -980,7 +980,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         );
 
         $optimizedResults = \array_map(
-            static fn ($s) => $s->getTitle(),
+            static fn (ComicSeries $s): string => $s->getTitle(),
             $this->repository->findWithMissingLookupData(),
         );
 
@@ -1158,7 +1158,7 @@ final class ComicSeriesRepositoryTest extends KernelTestCase
         $result = $this->repository->findActiveForReleaseCheck();
 
         self::assertCount(2, $result);
-        $titles = \array_map(static fn ($s): string => $s->getTitle(), $result);
+        $titles = \array_map(static fn (ComicSeries $s): string => $s->getTitle(), $result);
         self::assertContains('Buying Series', $titles);
         self::assertContains('Downloading Series', $titles);
     }

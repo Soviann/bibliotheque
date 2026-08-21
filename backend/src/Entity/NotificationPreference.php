@@ -32,32 +32,23 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\UniqueConstraint(name: 'uniq_pref_user_type', columns: ['user_id', 'type'])]
 class NotificationPreference
 {
-    #[ORM\Column(type: Types::STRING, enumType: NotificationChannel::class)]
-    #[Groups(['preference:list', 'preference:write'])]
-    private NotificationChannel $channel;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups(['preference:list'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, enumType: NotificationType::class)]
-    #[Groups(['preference:list'])]
-    private NotificationType $type;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private User $user;
-
     public function __construct(
-        NotificationChannel $channel,
-        NotificationType $type,
-        User $user,
+        #[ORM\Column(type: Types::STRING, enumType: NotificationChannel::class)]
+        #[Groups(['preference:list', 'preference:write'])]
+        private NotificationChannel $channel,
+        #[ORM\Column(type: Types::STRING, enumType: NotificationType::class)]
+        #[Groups(['preference:list'])]
+        private NotificationType $type,
+        #[ORM\ManyToOne(targetEntity: User::class)]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        private User $user,
     ) {
-        $this->channel = $channel;
-        $this->type = $type;
-        $this->user = $user;
     }
 
     public function getChannel(): NotificationChannel

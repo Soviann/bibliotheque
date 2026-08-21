@@ -58,7 +58,7 @@ final class PurgeDeletedCommandTest extends KernelTestCase
         $this->em->getConnection()->executeStatement(
             'UPDATE comic_series SET deleted_at = :date WHERE id = :id',
             [
-                'date' => (new \DateTime('-60 days'))->format('Y-m-d H:i:s'),
+                'date' => new \DateTime('-60 days')->format('Y-m-d H:i:s'),
                 'id' => $oldDeleted->getId(),
             ]
         );
@@ -90,7 +90,7 @@ final class PurgeDeletedCommandTest extends KernelTestCase
         $this->em->getConnection()->executeStatement(
             'UPDATE comic_series SET deleted_at = :date WHERE id = :id',
             [
-                'date' => (new \DateTime('-10 days'))->format('Y-m-d H:i:s'),
+                'date' => new \DateTime('-10 days')->format('Y-m-d H:i:s'),
                 'id' => $recentDeleted->getId(),
             ]
         );
@@ -123,7 +123,7 @@ final class PurgeDeletedCommandTest extends KernelTestCase
         $this->em->getConnection()->executeStatement(
             'UPDATE comic_series SET deleted_at = :date WHERE id = :id',
             [
-                'date' => (new \DateTime('-60 days'))->format('Y-m-d H:i:s'),
+                'date' => new \DateTime('-60 days')->format('Y-m-d H:i:s'),
                 'id' => $seriesId,
             ]
         );
@@ -180,7 +180,7 @@ final class PurgeDeletedCommandTest extends KernelTestCase
         $this->em->getConnection()->executeStatement(
             'UPDATE comic_series SET deleted_at = :date WHERE id IN (:id1, :id2)',
             [
-                'date' => (new \DateTime('-60 days'))->format('Y-m-d H:i:s'),
+                'date' => new \DateTime('-60 days')->format('Y-m-d H:i:s'),
                 'id1' => $id1,
                 'id2' => $id2,
             ]

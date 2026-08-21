@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 final readonly class GoogleLoginController
 {
     public function __construct(
-        #[Autowire('%env(OAUTH_ALLOWED_EMAIL)%')]
+        #[Autowire(env: 'OAUTH_ALLOWED_EMAIL')]
         private string $allowedEmail,
         private EntityManagerInterface $entityManager,
         private GoogleClient $googleClient,

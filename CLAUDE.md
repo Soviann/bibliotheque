@@ -4,7 +4,7 @@
 
 ## Project
 
-**Comic/Manga Library** — Monorepo: `backend/` (Symfony 7.4, PHP 8.3, API Platform 4, JWT) + `frontend/` (React 19, TS, Vite, TanStack Query). MariaDB 10.11, DDEV, PWA. Sole developer (Claude) → maximum rigor; keep this file + tests current.
+**Comic/Manga Library** — Monorepo: `backend/` (Symfony 7.4, PHP 8.4, API Platform 4, JWT) + `frontend/` (React 19, TS, Vite, TanStack Query). MariaDB 10.11, DDEV, PWA. Sole developer (Claude) → maximum rigor; keep this file + tests current.
 
 ## Approach (overrides)
 

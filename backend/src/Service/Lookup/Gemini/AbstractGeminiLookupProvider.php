@@ -176,14 +176,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
 
                     return null;
                 }
-
-                $hasData = false;
-                foreach ($this->getUsefulDataFields() as $field) {
-                    if (!empty($data[$field])) {
-                        $hasData = true;
-                        break;
-                    }
-                }
+                $hasData = \array_any($this->getUsefulDataFields(), static fn (string $field): bool => !empty($data[$field]));
 
                 if (!$hasData) {
                     $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, $this->getNotFoundMessage());

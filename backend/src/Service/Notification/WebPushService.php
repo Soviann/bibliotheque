@@ -6,6 +6,7 @@ namespace App\Service\Notification;
 
 use App\Entity\User;
 use App\Repository\PushSubscriptionRepository;
+use Minishlink\WebPush\MessageSentReport;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
 use Psr\Log\LoggerInterface;
@@ -19,11 +20,11 @@ class WebPushService
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly PushSubscriptionRepository $pushSubscriptionRepository,
-        #[Autowire('%env(VAPID_PRIVATE_KEY)%')]
+        #[Autowire(env: 'VAPID_PRIVATE_KEY')]
         private readonly string $vapidPrivateKey,
-        #[Autowire('%env(VAPID_PUBLIC_KEY)%')]
+        #[Autowire(env: 'VAPID_PUBLIC_KEY')]
         private readonly string $vapidPublicKey,
-        #[Autowire('%env(VAPID_SUBJECT)%')]
+        #[Autowire(env: 'VAPID_SUBJECT')]
         private readonly string $vapidSubject,
     ) {
     }
@@ -68,7 +69,7 @@ class WebPushService
                 );
             }
 
-            /** @var \Minishlink\WebPush\MessageSentReport $report */
+            /** @var MessageSentReport $report */
             foreach ($webPush->flush() as $report) {
                 if (!$report->isSuccess()) {
                     $this->logger->warning('Push échoué pour {endpoint} : {reason}', [

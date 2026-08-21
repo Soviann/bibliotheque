@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use App\Entity\Tome;
 use App\Repository\UserRepository;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupOrchestrator;
@@ -101,7 +100,7 @@ final class ShareControllerTest extends ApiTestCase
         // Mocker LookupOrchestrator après création du client (le container est partagé)
         $mockOrchestrator = $this->createStub(LookupOrchestrator::class);
         $mockOrchestrator->method('lookup')->willReturn(
-            new LookupResult(isbn: '2723492532', title: 'Astérix', source: 'test'),
+            new LookupResult(isbn: '2723492532', source: 'test', title: 'Astérix'),
         );
 
         self::getContainer()->set(LookupOrchestrator::class, $mockOrchestrator);
@@ -134,7 +133,7 @@ final class ShareControllerTest extends ApiTestCase
         // Mocker pour retourner un résultat sans ISBN connu en base
         $mockOrchestrator = $this->createStub(LookupOrchestrator::class);
         $mockOrchestrator->method('lookupByTitle')->willReturn(
-            new LookupResult(title: 'Série inconnue', source: 'test'),
+            new LookupResult(source: 'test', title: 'Série inconnue'),
         );
 
         self::getContainer()->set(LookupOrchestrator::class, $mockOrchestrator);

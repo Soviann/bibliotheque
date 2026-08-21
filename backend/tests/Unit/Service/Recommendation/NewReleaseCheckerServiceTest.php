@@ -230,7 +230,7 @@ final class NewReleaseCheckerServiceTest extends TestCase
 
         $this->repository->method('findActiveForReleaseCheck')->willReturn([$series]);
 
-        $result = new LookupResult(latestPublishedIssue: null);
+        $result = new LookupResult();
         $this->lookupOrchestrator->method('lookupByTitle')->willReturn($result);
         $this->lookupOrchestrator->method('getLastApiMessages')->willReturn([]);
 

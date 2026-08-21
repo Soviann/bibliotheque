@@ -64,9 +64,7 @@ final class ShareResolverTest extends TestCase
         $this->messageBus
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->callback(static function (EnrichSeriesMessage $msg): bool {
-                return 42 === $msg->seriesId && 'event:share' === $msg->triggeredBy;
-            }))
+            ->with($this->callback(static fn (EnrichSeriesMessage $msg): bool => 42 === $msg->seriesId && 'event:share' === $msg->triggeredBy))
             ->willReturn(new Envelope(new EnrichSeriesMessage(42, 'event:share')));
 
         $resolution = $this->resolver->resolve($info);
@@ -84,7 +82,7 @@ final class ShareResolverTest extends TestCase
             titleHint: 'Lanfeust de Troy',
         );
 
-        $result = new LookupResult(title: 'Lanfeust de Troy', isbn: null);
+        $result = new LookupResult(title: 'Lanfeust de Troy');
 
         $this->lookupOrchestrator
             ->expects($this->once())
@@ -165,7 +163,7 @@ final class ShareResolverTest extends TestCase
             type: ComicType::BD,
         );
 
-        $result = new LookupResult(title: 'Astérix', isbn: null);
+        $result = new LookupResult(title: 'Astérix');
         $series = $this->createSeriesStub(7);
 
         $this->lookupOrchestrator
@@ -229,9 +227,7 @@ final class ShareResolverTest extends TestCase
         $this->messageBus
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->callback(static function (EnrichSeriesMessage $msg): bool {
-                return 15 === $msg->seriesId && 'event:share' === $msg->triggeredBy;
-            }))
+            ->with($this->callback(static fn (EnrichSeriesMessage $msg): bool => 15 === $msg->seriesId && 'event:share' === $msg->triggeredBy))
             ->willReturn(new Envelope(new EnrichSeriesMessage(15, 'event:share')));
 
         $resolution = $this->resolver->resolve($info);

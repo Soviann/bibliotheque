@@ -27,21 +27,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\UniqueConstraint(name: 'uniq_push_endpoint', columns: ['endpoint'])]
 class PushSubscription
 {
-    #[ORM\Column(length: 255)]
-    #[Groups(['push:write'])]
-    private string $authToken;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['push:list'])]
     private \DateTimeImmutable $createdAt;
-
-    #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['push:list', 'push:write'])]
-    private string $endpoint;
-
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Groups(['push:list', 'push:write'])]
-    private ?\DateTimeImmutable $expirationTime;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -49,27 +37,24 @@ class PushSubscription
     #[Groups(['push:list'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    #[Groups(['push:write'])]
-    private string $publicKey;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private User $user;
-
     public function __construct(
-        string $authToken,
-        string $endpoint,
-        ?\DateTimeImmutable $expirationTime,
-        string $publicKey,
-        User $user,
+        #[ORM\Column(length: 255)]
+        #[Groups(['push:write'])]
+        private string $authToken,
+        #[ORM\Column(type: Types::TEXT)]
+        #[Groups(['push:list', 'push:write'])]
+        private string $endpoint,
+        #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+        #[Groups(['push:list', 'push:write'])]
+        private ?\DateTimeImmutable $expirationTime,
+        #[ORM\Column(length: 255)]
+        #[Groups(['push:write'])]
+        private string $publicKey,
+        #[ORM\ManyToOne(targetEntity: User::class)]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        private User $user,
     ) {
-        $this->authToken = $authToken;
         $this->createdAt = new \DateTimeImmutable();
-        $this->endpoint = $endpoint;
-        $this->expirationTime = $expirationTime;
-        $this->publicKey = $publicKey;
-        $this->user = $user;
     }
 
     public function getAuthToken(): string

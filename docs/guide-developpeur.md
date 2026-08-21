@@ -4,7 +4,7 @@
 
 - **DDEV** >= 1.24 (inclut PHP, MariaDB, nginx, Node.js)
 - **Git**
-- Ou bien : PHP 8.3+, MariaDB 10.11+, Composer 2, Node.js 20+, nginx (voir les guides de déploiement [NAS](guide-deploiement-nas.md))
+- Ou bien : PHP 8.4+, MariaDB 10.11+, Composer 2, Node.js 20+, nginx (voir les guides de déploiement [NAS](guide-deploiement-nas.md))
 
 ---
 
@@ -124,7 +124,7 @@ Toutes les commandes s'exécutent via `ddev exec make <cible>` :
 
 | Composant | Version | Usage |
 |-----------|---------|-------|
-| PHP | 8.3+ | Langage |
+| PHP | 8.4+ | Langage |
 | Symfony | 7.4 | Framework |
 | API Platform | 4 | Génération de l'API REST (JSON-LD) |
 | Doctrine ORM | 3 | Persistance |

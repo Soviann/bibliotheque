@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service\Cover;
 
+use App\Entity\ComicSeries;
 use App\Service\Cover\CoverDownloader;
 use App\Service\Cover\ThumbnailGenerator;
 use App\Service\Cover\Upload\UploadHandlerInterface;
@@ -134,7 +135,7 @@ final class CoverDownloaderTest extends TestCase
         // Simule le comportement de VichUploader qui définit coverImage après upload
         $this->uploadHandler->method('upload')
             ->willReturnCallback(static function (object $entity): void {
-                \assert($entity instanceof \App\Entity\ComicSeries);
+                \assert($entity instanceof ComicSeries);
                 $entity->setCoverImage('cover_test.webp');
             });
 

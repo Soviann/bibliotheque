@@ -15,9 +15,7 @@ class GeminiQueryServiceTest extends TestCase
         $pool = $this->createMock(GeminiClientPool::class);
         $pool->expects(self::once())
             ->method('executeWithRetry')
-            ->willReturnCallback(static function (callable $callback): string {
-                return '[{"title": "Test", "type": "bd"}]';
-            });
+            ->willReturnCallback(static fn (callable $callback): string => '[{"title": "Test", "type": "bd"}]');
 
         $service = new GeminiQueryService($pool);
         $result = $service->queryJsonArray('prompt');

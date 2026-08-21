@@ -7,11 +7,13 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\NotificationPreference;
+use App\Entity\User;
 use App\Enum\NotificationChannel;
 use App\Enum\NotificationType;
 use App\Repository\NotificationPreferenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * Initialise les préférences de notification par défaut (IN_APP) au premier accès.
@@ -34,11 +36,11 @@ final readonly class NotificationPreferenceInitializer implements ProviderInterf
     {
         $user = $this->security->getUser();
 
-        if (null === $user) {
+        if (!$user instanceof UserInterface) {
             return [];
         }
 
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $existing = $this->notificationPreferenceRepository->findByUser($user);
 
         if (\count($existing) >= \count(NotificationType::cases())) {
@@ -47,7 +49,7 @@ final readonly class NotificationPreferenceInitializer implements ProviderInterf
 
         // Créer les préférences manquantes
         $existingTypes = \array_map(
-            static fn (NotificationPreference $p) => $p->getType(),
+            static fn (NotificationPreference $p): NotificationType => $p->getType(),
             $existing,
         );
 

@@ -206,13 +206,7 @@ final readonly class MergePreviewBuilder
      */
     private function reconcileLatestPublishedIssueComplete(array $seriesList): bool
     {
-        foreach ($seriesList as $series) {
-            if ($series->isLatestPublishedIssueComplete()) {
-                return true;
-            }
-        }
-
-        return false;
+        return \array_any($seriesList, static fn (ComicSeries $series): bool => $series->isLatestPublishedIssueComplete());
     }
 
     /**

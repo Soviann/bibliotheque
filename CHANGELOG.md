@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **PHP 8.4** : Migration du backend vers PHP 8.4, mise à niveau de l'infrastructure (DDEV, image Docker FrankenPHP `1-php8.4`, CI GitHub Actions), mise à jour des dépendances Composer et application des règles Rector PHP 8.4 (#442).
+
 ## [v2.34.1] — 2026-06-27
 
 ### Fixed

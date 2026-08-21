@@ -139,7 +139,7 @@ SoftDeleteFilter — excludes soft-deleted ComicSeries. Disabled in trash-relate
 
 ## Deployment
 
-**Docker (Synology NAS)**: 2 containers — `app` (FrankenPHP : web Caddy + PHP 8.3 + worker Messenger + scheduler via supervisord) and `db` (MariaDB 10.11). Image unique `ghcr.io/soviann/bibliotheque` (CI, contexte = racine du dépôt : `backend/Dockerfile` build frontend Vite + backend). Config FrankenPHP : `backend/docker/frankenphp/{Caddyfile,supervisord.conf,docker-entrypoint.sh}`. Routage Caddy : `/api` + `/media` (fallback LiipImagine) → PHP ; reste → SPA React (fallback `index.html`). Guides : `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude/SSH).
+**Docker (Synology NAS)**: 2 containers — `app` (FrankenPHP : web Caddy + PHP 8.4 + worker Messenger + scheduler via supervisord) and `db` (MariaDB 10.11). Image unique `ghcr.io/soviann/bibliotheque` (CI, contexte = racine du dépôt : `backend/Dockerfile` build frontend Vite + backend). Config FrankenPHP : `backend/docker/frankenphp/{Caddyfile,supervisord.conf,docker-entrypoint.sh}`. Routage Caddy : `/api` + `/media` (fallback LiipImagine) → PHP ; reste → SPA React (fallback `index.html`). Guides : `docs/guide-deploiement-nas.md` (human), `docs/guide-deploiement-nas-claude.md` (Claude/SSH).
 
 ```bash
 cd backend && docker compose up --build -d                  # dev local (build)

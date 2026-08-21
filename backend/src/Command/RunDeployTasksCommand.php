@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 final class RunDeployTasksCommand extends Command
 {
     public function __construct(
-        #[Autowire('%kernel.project_dir%')] private readonly string $projectDir,
+        #[Autowire(param: 'kernel.project_dir')] private readonly string $projectDir,
     ) {
         parent::__construct();
     }
@@ -67,7 +67,7 @@ final class RunDeployTasksCommand extends Command
 
         $io->table(['Tâche', 'Description', 'Statut'], $rows);
 
-        $pending = \array_filter($tasks, static fn (array $t) => !\in_array($t['shortName'], $executed, true));
+        $pending = \array_filter($tasks, static fn (array $t): bool => !\in_array($t['shortName'], $executed, true));
 
         if ([] === $pending) {
             $io->success('Aucune tâche de déploiement en attente.');

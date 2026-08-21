@@ -6,9 +6,11 @@ namespace App\Tests\Unit\Service\Lookup\Gemini;
 
 use App\Service\Lookup\Gemini\GeminiAllKeysExhaustedException;
 use App\Service\Lookup\Gemini\GeminiClientPool;
+use Gemini\Contracts\ClientContract;
 use Gemini\Exceptions\ErrorException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Tests unitaires pour GeminiClientPool.
@@ -322,7 +324,7 @@ final class GeminiClientPoolTest extends TestCase
      * Le type de retour déclaré (string) évite que PHPStan infère « never »
      * au site d'appel, ce qui marquerait à tort le code suivant comme mort.
      *
-     * @return callable(\Gemini\Contracts\ClientContract, string): string
+     * @return callable(ClientContract, string):string
      */
     private function alwaysFailingCallback(int $code): callable
     {

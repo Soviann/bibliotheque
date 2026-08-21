@@ -350,16 +350,7 @@ final class LookupOrchestratorTest extends TestCase
         // Le slow provider doit avoir eu le temps de s'executer (premier dans la liste)
         // Le fast provider devrait etre en timeout
         $messages = $orchestrator->getLastApiMessages();
-
-        // Au moins un provider doit avoir le statut timeout
-        $hasTimeout = false;
-        foreach ($messages as $message) {
-            if ('timeout' === $message->status) {
-                $hasTimeout = true;
-
-                break;
-            }
-        }
+        $hasTimeout = \array_any($messages, static fn (ApiMessage $message): bool => 'timeout' === $message->status);
 
         self::assertTrue($hasTimeout, 'Au moins un provider devrait avoir le statut timeout');
     }
@@ -575,15 +566,9 @@ final class LookupOrchestratorTest extends TestCase
      */
     public function testLookupByTitlePropagatesComicType(): void
     {
-        $calledWithType = null;
-        $calledSupportsType = null;
-
-        $provider = new class($calledWithType, $calledSupportsType) implements LookupProviderInterface {
-            public function __construct(
-                private mixed &$calledWithType,
-                private mixed &$calledSupportsType,
-            ) {
-            }
+        $provider = new class implements LookupProviderInterface {
+            public ?ComicType $calledWithType = null;
+            public ?ComicType $calledSupportsType = null;
 
             public function getFieldPriority(string $field, ?ComicType $type = null): int
             {
@@ -624,8 +609,8 @@ final class LookupOrchestratorTest extends TestCase
 
         $orchestrator->lookupByTitle('One Piece', ComicType::MANGA);
 
-        self::assertSame(ComicType::MANGA, $calledWithType);
-        self::assertSame(ComicType::MANGA, $calledSupportsType);
+        self::assertSame(ComicType::MANGA, $provider->calledWithType);
+        self::assertSame(ComicType::MANGA, $provider->calledSupportsType);
     }
 
     /**
@@ -754,7 +739,6 @@ final class LookupOrchestratorTest extends TestCase
             name: 'silent_provider',
             result: new LookupResult(source: 'silent', title: 'Test'),
             supports: true,
-            apiMessage: null,
         );
 
         $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);

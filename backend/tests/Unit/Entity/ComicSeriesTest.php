@@ -908,4 +908,50 @@ final class ComicSeriesTest extends TestCase
 
         self::assertSame([], $comic->getUnboughtTomes());
     }
+
+    public function testIsWishlist(): void
+    {
+        $comic = EntityFactory::createComicSeries();
+        $comic->setStatus(ComicStatus::WISHLIST);
+
+        self::assertTrue($comic->isWishlist());
+
+        $comic->setStatus(ComicStatus::BUYING);
+        self::assertFalse($comic->isWishlist());
+    }
+
+    public function testIsComplete(): void
+    {
+        $comic = EntityFactory::createComicSeries();
+        self::assertFalse($comic->isComplete());
+
+        $comic->setIsOneShot(true);
+        self::assertTrue($comic->isComplete());
+
+        $comic->setIsOneShot(false);
+        $comic->setLatestPublishedIssue(3);
+        self::assertFalse($comic->isComplete());
+
+        $tome1 = EntityFactory::createTome(number: 1);
+        $tome2 = EntityFactory::createTome(number: 2);
+        $tome3 = EntityFactory::createTome(number: 3);
+        $comic->addTome($tome1);
+        $comic->addTome($tome2);
+        $comic->addTome($tome3);
+
+        self::assertTrue($comic->isComplete());
+    }
+
+    public function testGetReadPercent(): void
+    {
+        $comic = EntityFactory::createComicSeries();
+        self::assertSame(0.0, $comic->getReadPercent());
+
+        $tome1 = EntityFactory::createTome(number: 1, read: true);
+        $tome2 = EntityFactory::createTome(number: 2, read: false);
+        $comic->addTome($tome1);
+        $comic->addTome($tome2);
+
+        self::assertSame(50.0, $comic->getReadPercent());
+    }
 }

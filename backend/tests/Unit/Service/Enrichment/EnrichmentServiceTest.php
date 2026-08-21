@@ -79,7 +79,7 @@ final class EnrichmentServiceTest extends TestCase
 
         self::assertSame(EnrichmentConfidence::HIGH, $confidence);
 
-        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        $proposals = \array_filter($this->persisted, static fn (object $e): bool => $e instanceof EnrichmentProposal);
         self::assertCount(2, $proposals);
 
         /** @var EnrichmentProposal $proposal */
@@ -101,7 +101,7 @@ final class EnrichmentServiceTest extends TestCase
 
         $this->enrichmentService->enrich($series, $result, LookupMode::TITLE, ['bnf'], 'command:auto-enrich');
 
-        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        $proposals = \array_filter($this->persisted, static fn (object $e): bool => $e instanceof EnrichmentProposal);
         self::assertGreaterThanOrEqual(1, \count($proposals));
 
         /** @var EnrichmentProposal $proposal */
@@ -122,7 +122,7 @@ final class EnrichmentServiceTest extends TestCase
 
         $this->enrichmentService->enrich($series, $result, LookupMode::TITLE, ['bnf']);
 
-        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        $proposals = \array_filter($this->persisted, static fn (object $e): bool => $e instanceof EnrichmentProposal);
 
         /** @var EnrichmentProposal $proposal */
         $proposal = \array_values($proposals)[0];
@@ -144,7 +144,7 @@ final class EnrichmentServiceTest extends TestCase
 
         self::assertSame(EnrichmentConfidence::MEDIUM, $confidence);
 
-        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        $proposals = \array_filter($this->persisted, static fn (object $e): bool => $e instanceof EnrichmentProposal);
         self::assertGreaterThanOrEqual(1, \count($proposals));
 
         /** @var EnrichmentProposal $proposal */
@@ -168,7 +168,7 @@ final class EnrichmentServiceTest extends TestCase
 
         $this->enrichmentService->enrich($series, $result, LookupMode::TITLE, ['bnf']);
 
-        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        $proposals = \array_filter($this->persisted, static fn (object $e): bool => $e instanceof EnrichmentProposal);
         self::assertCount(0, $proposals);
     }
 
@@ -186,7 +186,7 @@ final class EnrichmentServiceTest extends TestCase
 
         self::assertSame(EnrichmentConfidence::LOW, $confidence);
 
-        $proposals = \array_filter($this->persisted, static fn ($e) => $e instanceof EnrichmentProposal);
+        $proposals = \array_filter($this->persisted, static fn (object $e): bool => $e instanceof EnrichmentProposal);
         self::assertCount(1, $proposals);
 
         /** @var EnrichmentProposal $proposal */

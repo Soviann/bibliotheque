@@ -8,6 +8,7 @@ use App\Enum\LookupMode;
 use App\Message\EnrichSeriesMessage;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Enrichment\EnrichmentService;
+use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Gemini\GeminiCircuitBreaker;
 use App\Service\Lookup\LookupOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -86,7 +87,7 @@ final readonly class EnrichSeriesHandler
             return;
         }
 
-        if (null !== $result) {
+        if ($result instanceof LookupResult) {
             $sources = $this->lookupOrchestrator->getLastSources();
 
             $confidence = $this->enrichmentService->enrich(

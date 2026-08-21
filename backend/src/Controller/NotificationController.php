@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Repository\NotificationRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -26,7 +27,7 @@ final class NotificationController
         #[CurrentUser] UserInterface $user,
         NotificationRepository $notificationRepository,
     ): JsonResponse {
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $count = $notificationRepository->countUnread($user);
 
         return new JsonResponse(['count' => $count]);
@@ -40,7 +41,7 @@ final class NotificationController
         #[CurrentUser] UserInterface $user,
         NotificationRepository $notificationRepository,
     ): JsonResponse {
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $updated = $notificationRepository->markAllRead($user);
 
         return new JsonResponse(['updated' => $updated]);
