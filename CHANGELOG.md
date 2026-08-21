@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.35.1] — 2026-08-21
+
+### Security
+
+- **Dépendances frontend (Dependabot)** : Résolution des alertes de sécurité par overrides npm pour `js-yaml` (DoS CPU quadratique), `extract-zip` (via mise à niveau de `lighthouse` et `puppeteer-core`), et `body-parser` (déni de service).
+
 ## [v2.35.0] — 2026-08-21
 
 ### Changed
