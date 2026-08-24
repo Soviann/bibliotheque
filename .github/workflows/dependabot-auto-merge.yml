@@ -90,10 +90,7 @@ jobs:
           gh pr edit "$PR_NUM" --add-assignee "Soviann" || true
 
           # Post notification comment mentioning the owner
-          gh pr comment "$PR_NUM" --body "⚠️ **Auto-merge impossible** pour la PR #$PR_NUM.
-
-**Raison** : $REASON
-
-CC @Soviann — Merci de vérifier cette Pull Request."
+          COMMENT_BODY=$(printf '⚠️ **Auto-merge impossible** pour la PR #%s.\n\n**Raison** : %s\n\nCC @Soviann — Merci de vérifier cette Pull Request.' "$PR_NUM" "$REASON")
+          gh pr comment "$PR_NUM" --body "$COMMENT_BODY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
