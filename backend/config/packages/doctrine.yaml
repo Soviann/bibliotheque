@@ -8,8 +8,6 @@ doctrine:
 
         profiling_collect_backtrace: '%kernel.debug%'
     orm:
-        auto_generate_proxy_classes: true
-        enable_lazy_ghost_objects: true
         filters:
             soft_delete:
                 class: App\Doctrine\Filter\SoftDeleteFilter
@@ -38,8 +36,6 @@ when@test:
 when@prod:
     doctrine:
         orm:
-            auto_generate_proxy_classes: false
-            proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
             query_cache_driver:
                 type: pool
                 pool: doctrine.system_cache_pool

@@ -19,7 +19,7 @@
     "html5-qrcode": "^2.3",
     "idb": "^8.0.3",
     "idb-keyval": "^6.3.0",
-    "lucide-react": "^1.31.0",
+    "lucide-react": "^1.33.0",
     "react": "^19.2",
     "react-dom": "^19.2",
     "react-error-boundary": "^6.1",
@@ -28,6 +28,7 @@
     "sonner": "^2.0"
   },
   "overrides": {
+    "@babel/plugin-transform-runtime": "^7.26.9",
     "body-parser": ">=1.20.6",
     "js-yaml": "^3.15.1",
     "lighthouse": "^13.4.1",
@@ -45,7 +46,7 @@
     "@testing-library/user-event": "^14.6",
     "@types/react": "^19.2",
     "@types/react-dom": "^19.2",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-react": "^6.1.0",
     "@vitest/coverage-v8": "^4.1",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.0.1",

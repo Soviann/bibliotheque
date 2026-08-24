@@ -11,7 +11,7 @@
         "ext-iconv": "*",
         "api-platform/doctrine-orm": "^4.3.10",
         "api-platform/symfony": ">=4.3.10",
-        "doctrine/doctrine-bundle": "^2.19.0",
+        "doctrine/doctrine-bundle": "^3.3.1",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6.7",
         "dragonmantank/cron-expression": "^3.6",
@@ -26,11 +26,11 @@
         "nelmio/security-bundle": "^3.9",
         "phpoffice/phpspreadsheet": "^5.8",
         "phpseclib/phpseclib": "^3.0",
-        "symfony/console": "^7.4.13",
+        "symfony/console": "^7.4.17",
         "symfony/doctrine-messenger": "^7.4.15",
         "symfony/dotenv": "^7.4.15",
         "symfony/flex": "^2.11",
-        "symfony/framework-bundle": "^7.4.13",
+        "symfony/framework-bundle": "^7.4.17",
         "symfony/messenger": "^7.4.15",
         "symfony/monolog-bundle": "^4.0.2",
         "symfony/rate-limiter": "^7.4.16",
@@ -106,6 +106,6 @@
         "symfony/css-selector": "^7.4.9",
         "symfony/http-client": "^7.4.13",
         "symfony/maker-bundle": "^1.67",
-        "symfony/process": "^7.4.13"
+        "symfony/process": "^7.4.17"
     }
 }
