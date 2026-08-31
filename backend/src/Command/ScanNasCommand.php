@@ -8,7 +8,7 @@ use App\DTO\NasSeriesData;
 use App\Service\Nas\NasDirectoryParser;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use phpseclib3\Net\SSH2;
+use phpseclib4\Net\SSH2;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -274,13 +274,7 @@ final class ScanNasCommand extends Command
         $command = \sprintf('ls %s 2>/dev/null', \escapeshellarg($remotePath));
 
         // phpseclib SSH2::exec() — exécution sécurisée via connexion persistante
-        $result = $this->ssh->exec($command);
-
-        if (!\is_string($result)) {
-            return [];
-        }
-
-        $result = \trim($result);
+        $result = \trim($this->ssh->exec($command));
 
         if ('' === $result) {
             return [];
