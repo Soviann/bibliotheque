@@ -12,7 +12,7 @@
         "api-platform/doctrine-orm": "^4.3.10",
         "api-platform/symfony": ">=4.3.10",
         "doctrine/doctrine-bundle": "^3.3.1",
-        "doctrine/doctrine-migrations-bundle": "^3.7",
+        "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.6.7",
         "dragonmantank/cron-expression": "^3.6",
         "google-gemini-php/symfony": "^2.0",
