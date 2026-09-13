@@ -8,6 +8,10 @@ updates:
       day: "monday"
       time: "04:00"
     open-pull-requests-limit: 10
+    reviewers:
+      - "Soviann"
+    assignees:
+      - "Soviann"
     commit-message:
       prefix: "build(deps-backend)"
     groups:
@@ -38,6 +42,10 @@ updates:
       day: "monday"
       time: "04:00"
     open-pull-requests-limit: 10
+    reviewers:
+      - "Soviann"
+    assignees:
+      - "Soviann"
     commit-message:
       prefix: "build(deps-frontend)"
     groups:
@@ -72,6 +80,10 @@ updates:
       day: "monday"
       time: "04:00"
     open-pull-requests-limit: 5
+    reviewers:
+      - "Soviann"
+    assignees:
+      - "Soviann"
     commit-message:
       prefix: "build(deps-actions)"
     groups:
@@ -88,6 +100,10 @@ updates:
       day: "monday"
       time: "04:00"
     open-pull-requests-limit: 5
+    reviewers:
+      - "Soviann"
+    assignees:
+      - "Soviann"
     commit-message:
       prefix: "build(deps-docker)"
     groups:
