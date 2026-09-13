@@ -8,6 +8,36 @@ import { Suspense, useEffect } from "react";
 import type { ComponentType } from "react";
 import ErrorFallback from "../../components/ErrorFallback";
 
+// Mock lazy page components as simple identifiable divs for route rendering tests
+vi.mock("../../pages/Home", () => ({
+  default: () => <div>Home Page</div>,
+}));
+
+vi.mock("../../pages/Trash", () => ({
+  default: () => <div>Trash Page</div>,
+}));
+
+vi.mock("../../pages/Login", () => ({
+  default: () => <div>Login Page</div>,
+}));
+
+vi.mock("../../pages/NotFound", () => ({
+  default: () => <div>NotFound Page</div>,
+}));
+
+vi.mock("../../components/AuthGuard", () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock("../../components/Layout", async () => {
+  const { Outlet } = await import("react-router-dom");
+  return { default: () => <Outlet /> };
+});
+
+vi.mock("../../hooks/useServiceWorker", () => ({
+  useServiceWorker: () => {},
+}));
+
 // --- Helpers ----------------------------------------------------------------
 
 function createTestQueryClient() {
@@ -307,36 +337,6 @@ describe("ScrollToTop", () => {
 });
 
 describe("Route rendering", () => {
-  // Mock all lazy page components as simple identifiable divs
-  vi.mock("../../pages/Home", () => ({
-    default: () => <div>Home Page</div>,
-  }));
-
-  vi.mock("../../pages/Trash", () => ({
-    default: () => <div>Trash Page</div>,
-  }));
-
-  vi.mock("../../pages/Login", () => ({
-    default: () => <div>Login Page</div>,
-  }));
-
-  vi.mock("../../pages/NotFound", () => ({
-    default: () => <div>NotFound Page</div>,
-  }));
-
-  vi.mock("../../components/AuthGuard", () => ({
-    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  }));
-
-  vi.mock("../../components/Layout", () => {
-    const { Outlet } = require("react-router-dom");
-    return { default: () => <Outlet /> };
-  });
-
-  vi.mock("../../hooks/useServiceWorker", () => ({
-    useServiceWorker: () => {},
-  }));
-
   function renderApp(route: string) {
     const qc = createTestQueryClient();
     // We import App dynamically after mocks are set

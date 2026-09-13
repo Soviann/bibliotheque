@@ -307,7 +307,7 @@ describe("useOfflineMutation", () => {
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 
-  it("returns undefined for offlineResourceId when not provided (useCreateComic)", async () => {
+  it("returns undefined for offlineResourceId when not provided", async () => {
     Object.defineProperty(navigator, "onLine", {
       configurable: true,
       value: false,
@@ -323,10 +323,20 @@ describe("useOfflineMutation", () => {
     });
 
     const { enqueue } = await import("../../../services/offlineQueue");
+    const { useOfflineMutation } = await import(
+      "../../../hooks/useOfflineMutation"
+    );
 
-    const { result } = renderHook(() => useCreateComic(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () =>
+        useOfflineMutation({
+          mutationFn: vi.fn(),
+          offlineOperation: "create" as const,
+          offlineResourceType: "comic_series" as const,
+          queryKeysToInvalidate: [],
+        }),
+      { wrapper: createWrapper() },
+    );
 
     await act(async () => {
       result.current.mutate({ title: "No Resource ID" });
@@ -334,7 +344,7 @@ describe("useOfflineMutation", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    // useCreateComic does not provide offlineResourceId, so resourceId should be undefined
+    // When offlineResourceId is not provided and generateTempId is false, resourceId should be undefined
     expect(enqueue).toHaveBeenCalledWith(
       expect.objectContaining({ resourceId: undefined }),
     );

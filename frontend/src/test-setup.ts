@@ -11,6 +11,44 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+// Ensure localStorage is available globally (fixes Node 22+ globalThis.localStorage conflict)
+const createStorageMock = () => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => {
+      store[key] = String(value);
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+  };
+};
+const storageInstance =
+  typeof window !== "undefined" && typeof window.localStorage?.clear === "function"
+    ? window.localStorage
+    : createStorageMock();
+
+Object.defineProperty(globalThis, "localStorage", {
+  value: storageInstance,
+  configurable: true,
+  writable: true,
+});
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "localStorage", {
+    value: storageInstance,
+    configurable: true,
+    writable: true,
+  });
+}
+
 // jsdom does not implement ResizeObserver — required by @headlessui/react
 globalThis.ResizeObserver = class {
   observe() {}

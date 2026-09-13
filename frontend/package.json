@@ -19,7 +19,7 @@
     "html5-qrcode": "^2.3",
     "idb": "^8.0.3",
     "idb-keyval": "^6.3.0",
-    "lucide-react": "^1.34.0",
+    "lucide-react": "^1.40.0",
     "react": "^19.2",
     "react-dom": "^19.2",
     "react-error-boundary": "^6.1",
@@ -40,21 +40,21 @@
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
     "@tailwindcss/vite": "^4.1",
-    "@tanstack/react-query-devtools": "^5.101",
+    "@tanstack/react-query-devtools": "^5.102",
     "@testing-library/jest-dom": "^7.0",
     "@testing-library/react": "^16.3",
     "@testing-library/user-event": "^14.6",
     "@types/react": "^19.2",
     "@types/react-dom": "^19.2",
     "@vitejs/plugin-react": "^6.1.1",
-    "@vitest/coverage-v8": "^4.1",
+    "@vitest/coverage-v8": "^5.0",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.0.1",
     "msw": "^2.15.0",
     "tailwindcss": "^4.3",
     "typescript": "~7.0",
-    "vite": "^8.2.1",
+    "vite": "^8.2.2",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^4.0"
+    "vitest": "^5.0"
   }
 }

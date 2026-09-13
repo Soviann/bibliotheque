@@ -76,6 +76,7 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
 
       - name: Notify owner if auto-merge failed or manual review is required
         if: steps.pr.outputs.should_run == 'true' && (steps.merge.outcome != 'success' || steps.pr.outputs.ci_status == 'failure')
@@ -94,3 +95,4 @@ jobs:
           gh pr comment "$PR_NUM" --body "$COMMENT_BODY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}

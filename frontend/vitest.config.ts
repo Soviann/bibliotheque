@@ -15,6 +15,11 @@ export default defineConfig({
       ).pathname,
     },
     environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        url: "http://localhost",
+      },
+    },
     globals: true,
     setupFiles: "./src/test-setup.ts",
   },
