@@ -7,6 +7,26 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.35.2] — 2026-09-14
+
+### Changed
+
+- **Dépendances backend** :
+  - Mise à niveau majeure de `vich/uploader-bundle` vers `v3.0.0` (#569).
+  - Mise à niveau de `doctrine/orm` vers `3.7.0` (#571) et `doctrine/doctrine-bundle` vers `3.3.2` (#567).
+  - Mise à niveau des paquets Symfony et outils de développement (`friendsofphp/php-cs-fixer` vers `3.95.25`, #566).
+- **Dépendances frontend** :
+  - Mise à niveau du groupe React (`react`, `react-dom`, `@types/react`, `@types/react-dom`) vers `19.3.0` (#562).
+  - Mise à niveau de `vite` vers `8.3.0` (#563).
+  - Mise à niveau de `lucide-react` vers `1.44.0` (#568).
+  - Mises à jour mineures de `react-virtuoso` (`4.18.13`, #565) et `react-error-boundary` (`6.1.5`, #570).
+  - Mise à niveau de sécurité de `js-yaml` vers `3.15.2`.
+
+### Fixed
+
+- **CI Frontend (Node 22)** : Synchronisation de `frontend/package-lock.json` pour restaurer les dépendances optionnelles/peer (`proxy-agent-negotiate`, `socks-proxy-agent`, etc.) requises par `npm ci` sous Node 22 dans les runners GitHub Actions.
+- **Workflow Dependabot** : Consolidation des groupes de mise à jour Dependabot et notification du propriétaire en cas de mise à jour majeure nécessitant une revue manuelle.
+
 ## [v2.35.1] — 2026-08-21
 
 ### Security
