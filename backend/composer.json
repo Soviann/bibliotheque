@@ -40,7 +40,7 @@
         "symfony/translation": "^7.4.16",
         "symfony/validator": "^7.4.10",
         "symfony/yaml": "^7.4.15",
-        "vich/uploader-bundle": "^2.10.0"
+        "vich/uploader-bundle": "^3.0.0"
     },
     "config": {
         "allow-plugins": {
