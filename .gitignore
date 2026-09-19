@@ -65,6 +65,7 @@ logs/
 .DS_Store
 .claude/settings.local.json
 .claude/session-handoff.md
+.claude/skills/
 .superpowers/
 .worktrees/
 docs/plans/

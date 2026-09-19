@@ -9,7 +9,7 @@
 ## Approach (overrides)
 
 - No issues/plans unless requested.
-- **Patterns file**: `.claude/memory/patterns.md` (NOT `docs/patterns.md`).
+- **Patterns file**: `docs/patterns.md`.
 - **Docs upkeep**: when adding entities, enums, services, routes, or commands, update CLAUDE.md + patterns.md in the same session.
 - **No codebase exploration.** CLAUDE.md + MEMORY.md + patterns.md is the full map.
 
@@ -94,7 +94,7 @@ Skip strict red-green-refactor when failure is obvious (class doesn't exist yet)
 
 ## Frontend & API
 
-Stack, conventions, API Platform 4 format/auth/endpoints → `.claude/memory/patterns.md`.
+Stack, conventions, API Platform 4 format/auth/endpoints → `docs/patterns.md`.
 
 ## Rector
 
@@ -140,4 +140,4 @@ Add to `## [Unreleased]` under `### Added|Changed|Fixed|Removed`. Format: `- **N
 
 ## Structure & Deployment
 
-Full file map, services, Docker/NAS deploy, Symfony Secrets vault, VAPID, Messenger → `.claude/memory/patterns.md`.
+Full file map, services, Docker/NAS deploy, Symfony Secrets vault, VAPID, Messenger → `docs/patterns.md`.
