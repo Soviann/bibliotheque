@@ -420,14 +420,14 @@ Three-tier: Unit + Integration. Vitest 4 + jsdom + RTL + MSW.
 2. State processors/providers if needed (`backend/src/State/`)
 3. Migration: `make db-diff && make db-migrate`
 4. Tests: `Unit/State/` + `Functional/Api/`
-5. **Update patterns.md + CLAUDE.md**
+5. **Update patterns.md + AGENTS.md**
 
 ### New React Page
 1. Hook in `hooks/` with `useQuery`/`useMutation` + `apiFetch`
 2. Page in `pages/`
 3. Lazy route in `App.tsx`
 4. Tests: `__tests__/integration/pages/`
-5. **Update patterns.md + CLAUDE.md**
+5. **Update patterns.md + AGENTS.md**
 
 ### New React Component
 1. Component in `components/`, props interface at top

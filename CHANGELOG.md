@@ -7,6 +7,10 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+
+- **Antigravity** : Migration de l'outillage agent de Claude Code vers Antigravity (`AGENTS.md`, centralisation des skills Soviann, suppression de la configuration `.claude`).
+
 ## [v2.35.2] — 2026-09-14
 
 ### Changed

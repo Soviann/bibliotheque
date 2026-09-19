@@ -66,7 +66,7 @@ bibliotheque/
 ├── .ddev/                   # Configuration DDEV
 ├── docs/                    # Documentation
 ├── Makefile                 # Commandes raccourcies
-├── CLAUDE.md                # Instructions pour Claude Code
+├── AGENTS.md                # Instructions et règles pour agents Antigravity
 └── CHANGELOG.md
 ```
 
