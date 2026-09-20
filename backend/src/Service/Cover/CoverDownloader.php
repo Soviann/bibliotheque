@@ -21,12 +21,16 @@ readonly class CoverDownloader
     private const int MAX_WIDTH = 600;
     private const int WEBP_QUALITY = 85;
 
+    /**
+     * @param (callable(string): list<string>)|null $dnsResolver
+     */
     public function __construct(
         private HttpClientInterface $httpClient,
         private ImageManager $imageManager,
         private LoggerInterface $logger,
         private ThumbnailGenerator $thumbnailGenerator,
         private UploadHandlerInterface $uploadHandler,
+        private mixed $dnsResolver = null,
     ) {
     }
 
@@ -35,8 +39,19 @@ readonly class CoverDownloader
      */
     public function downloadAndStore(ComicSeries $series, string $url): bool
     {
+        if (!$this->isSafeUrl($url)) {
+            $this->logger->warning('Téléchargement de couverture rejeté pour URL non sécurisée (SSRF)', [
+                'series' => $series->getTitle(),
+                'url' => $url,
+            ]);
+
+            return false;
+        }
         try {
-            $response = $this->httpClient->request('GET', $url, ['timeout' => 15]);
+            $response = $this->httpClient->request('GET', $url, [
+                'max_redirects' => 0,
+                'timeout' => 15,
+            ]);
 
             if (200 !== $response->getStatusCode()) {
                 $this->logger->warning('Échec du téléchargement de la couverture : HTTP {code}', [
@@ -83,5 +98,51 @@ readonly class CoverDownloader
 
             return false;
         }
+    }
+
+    /**
+     * Valide qu'une URL est sécurisée contre les attaques SSRF.
+     */
+    private function isSafeUrl(string $url): bool
+    {
+        $parsed = \parse_url($url);
+        if (false === $parsed || !isset($parsed['scheme'], $parsed['host'])) {
+            return false;
+        }
+
+        $scheme = \mb_strtolower($parsed['scheme']);
+        if (!\in_array($scheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        if (isset($parsed['port']) && !\in_array($parsed['port'], [80, 443], true)) {
+            return false;
+        }
+
+        $host = \mb_strtolower($parsed['host']);
+        if ('' === $host || 'localhost' === $host || \str_ends_with($host, '.localhost') || \str_ends_with($host, '.local') || \str_ends_with($host, '.internal') || \str_ends_with($host, '.lan')) {
+            return false;
+        }
+
+        // Si l'hôte est une adresse IP directe (y compris IPv6 entre crochets)
+        $rawHost = \trim($host, '[]');
+        if (false !== \filter_var($rawHost, \FILTER_VALIDATE_IP)) {
+            return false !== \filter_var($rawHost, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE);
+        }
+
+        // L'hôte est un nom de domaine : résolution DNS
+        /** @var list<string>|false $ips */
+        $ips = null !== $this->dnsResolver ? ($this->dnsResolver)($host) : @\gethostbynamel($host);
+        if (false === $ips || [] === $ips) {
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            if (false === \filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

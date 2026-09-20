@@ -59,6 +59,8 @@ class EnrichmentProposalRepository extends ServiceEntityRepository
             ->setParameter('field', $field)
             ->setParameter('series', $series)
             ->setParameter('status', ProposalStatus::PENDING)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
 
