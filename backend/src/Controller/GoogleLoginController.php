@@ -55,6 +55,11 @@ final readonly class GoogleLoginController
             return new JsonResponse(['error' => 'Token Google invalide.'], Response::HTTP_UNAUTHORIZED);
         }
 
+        $isEmailVerified = true === ($payload['email_verified'] ?? false) || 'true' === ($payload['email_verified'] ?? false);
+        if (false === $isEmailVerified) {
+            return new JsonResponse(['error' => 'Adresse email non vérifiée par Google.'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $email = \strtolower($payload['email'] ?? '');
 
         if ($email !== \strtolower($this->allowedEmail)) {

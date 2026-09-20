@@ -68,10 +68,29 @@ final class GoogleLoginControllerTest extends TestCase
         self::assertStringContainsString('Token Google invalide', $response->getContent());
     }
 
+    public function testUnverifiedEmailReturns401(): void
+    {
+        $this->googleClient->method('verifyIdToken')->willReturn([
+            'email' => self::ALLOWED_EMAIL,
+            'email_verified' => false,
+            'sub' => 'google-id-123',
+        ]);
+
+        $controller = $this->createController();
+        $request = $this->createJsonRequest('{"credential": "valid-token"}');
+
+        $response = $controller($request);
+
+        self::assertSame(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+        $data = \json_decode($response->getContent(), true);
+        self::assertSame('Adresse email non vérifiée par Google.', $data['error']);
+    }
+
     public function testEmailNotMatchingAllowedEmailReturns403(): void
     {
         $this->googleClient->method('verifyIdToken')->willReturn([
             'email' => 'unauthorized@example.com',
+            'email_verified' => true,
             'sub' => 'google-id-123',
         ]);
 
@@ -89,6 +108,7 @@ final class GoogleLoginControllerTest extends TestCase
     {
         $this->googleClient->method('verifyIdToken')->willReturn([
             'email' => self::ALLOWED_EMAIL,
+            'email_verified' => true,
             'sub' => 'google-id-123',
         ]);
         $this->userRepository->method('findOneBy')->willReturn(null);
@@ -116,6 +136,7 @@ final class GoogleLoginControllerTest extends TestCase
 
         $this->googleClient->method('verifyIdToken')->willReturn([
             'email' => self::ALLOWED_EMAIL,
+            'email_verified' => true,
             'sub' => 'google-id-456',
         ]);
         $this->userRepository->method('findOneBy')->willReturn($user);
@@ -142,6 +163,7 @@ final class GoogleLoginControllerTest extends TestCase
 
         $this->googleClient->method('verifyIdToken')->willReturn([
             'email' => self::ALLOWED_EMAIL,
+            'email_verified' => true,
             'sub' => 'existing-google-id',
         ]);
         $this->userRepository->method('findOneBy')->willReturn($user);
@@ -164,6 +186,7 @@ final class GoogleLoginControllerTest extends TestCase
     {
         $this->googleClient->method('verifyIdToken')->willReturn([
             'email' => self::ALLOWED_EMAIL,
+            'email_verified' => true,
             'sub' => 'google-id-789',
         ]);
         $this->userRepository->method('findOneBy')->willReturn(null);
