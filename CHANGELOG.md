@@ -7,9 +7,24 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Garde-fous de recherche et enrichissement (Track D)** : Filtrage strict par similarité Levenshtein ($\ge 85\%$) sur les titres après nettoyage des tomes/articles et translitération, et validation rigoureuse des images de couverture (dimensions minimales $120\times 180$, ratio portrait $[0.40, 0.95]$, détection des placeholders et suivi sécurisé des redirections CDN).
+- **Interface utilisateur (Track C)** : Refonte de la fiche série avec mini-dashboard épuré (`ComicCard`), carte interactive de collection avec panneau coulissant mobile (`CollectionMap` + `TomeDrawer`), et réorganisation de la navigation basse (`BottomNav`).
+
 ### Changed
 
+- **Cache client** : Extension de la persistance IndexedDB TanStack Query et du `gcTime` à 30 jours pour une consultation fluide hors ligne.
 - **Antigravity** : Migration de l'outillage agent de Claude Code vers Antigravity (`AGENTS.md`, centralisation des skills Soviann, suppression de la configuration `.claude`).
+
+### Fixed
+
+- **Import Excel** : Correction de la classification des statuts de séries et des plages de tomes lors de l'import.
+- **Téléchargement des couvertures** : Résolution du blocage des propositions d'enrichissement et sécurisation SSRF avec gestion sécurisée des redirections.
+
+### Performance
+
+- **API séries** : Suppression des requêtes redondantes sur le listing des séries via le renvoi anticipé du code HTTP 304 Not Modified.
 
 ## [v2.35.2] — 2026-09-14
 
