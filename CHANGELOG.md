@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.36.0] — 2026-09-20
+
 ### Added
 
 - **Création groupée de tomes** : Nouvel endpoint d'API `POST /api/comic_series/{id}/tomes/batch` et hook React `useCreateTomesBatch` pour la création en une seule requête des tomes manquants depuis la fiche série.
