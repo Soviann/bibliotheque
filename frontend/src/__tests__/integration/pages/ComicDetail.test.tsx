@@ -1688,24 +1688,24 @@ describe("ComicDetail", () => {
             }),
           ),
         ),
-        http.post("/api/comic_series/1/tomes", async ({ request }) => {
-          const body = (await request.json()) as Record<string, unknown>;
-          createdPayloads.push(body);
+        http.post("/api/comic_series/1/tomes/batch", async ({ request }) => {
+          const body = (await request.json()) as { tomes: Array<Record<string, unknown>> };
+          createdPayloads.push(...body.tomes);
           return HttpResponse.json(
-            {
-              "@id": `/api/tomes/${100 + createdPayloads.length}`,
-              bought: body.bought,
+            body.tomes.map((tome, idx) => ({
+              "@id": `/api/tomes/${100 + idx}`,
+              bought: tome.bought,
               createdAt: "2025-01-01T00:00:00+00:00",
-              id: 100 + createdPayloads.length,
+              id: 100 + idx,
               isHorsSerie: false,
               isbn: null,
-              number: body.number,
-              onNas: body.onNas,
-              read: body.read,
+              number: tome.number,
+              onNas: tome.onNas,
+              read: tome.read,
               title: null,
               tomeEnd: null,
               updatedAt: "2025-01-01T00:00:00+00:00",
-            },
+            })),
             { status: 201 },
           );
         }),

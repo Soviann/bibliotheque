@@ -37,6 +37,7 @@ import TomeDrawer from "../components/TomeDrawer";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useCreateTome } from "../hooks/useCreateTome";
+import { useCreateTomesBatch } from "../hooks/useCreateTomesBatch";
 import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useDominantColor } from "../hooks/useDominantColor";
 import { useRestoreComic } from "../hooks/useTrash";
@@ -185,6 +186,7 @@ export default function ComicDetail() {
   const restoreComic = useRestoreComic();
   const updateTome = useUpdateTome(id ? Number(id) : undefined);
   const createTome = useCreateTome(id ? Number(id) : 0);
+  const createTomesBatch = useCreateTomesBatch(id ? Number(id) : 0);
   const [isCompleting, setIsCompleting] = useState(false);
   const coverSrc = comic ? getCoverSrc(comic) : null;
   const [dominantColor, extractColor] = useDominantColor(coverSrc);
@@ -376,38 +378,37 @@ export default function ComicDetail() {
     const onNas = comic.defaultTomeOnNas;
     const read = comic.defaultTomeRead;
     const count = trailingMissing.length;
-    let errorShown = false;
 
-    for (const number of trailingMissing) {
-      createTome.mutate(
-        {
-          bought,
-          isHorsSerie: false,
-          isbn: null,
-          number,
-          onNas,
-          read,
-          title: null,
-          tomeEnd: null,
-        },
-        {
-          onError: () => {
-            if (!errorShown) {
-              errorShown = true;
-              toast.error("Erreur lors de l'ajout des tomes");
-            }
-          },
-        },
-      );
-    }
+    const tomes = trailingMissing.map((number) => ({
+      bought,
+      isHorsSerie: false,
+      isbn: null,
+      number,
+      onNas,
+      read,
+      title: null,
+      tomeEnd: null,
+    }));
 
-    setIsCompleting(false);
-    if (navigator.onLine) {
-      toast.success(count === 1 ? "1 tome ajouté" : `${count} tomes ajoutés`, {
-        duration: 1500,
-      });
-    }
-  }, [comic, createTome, isCompleting, trailingMissing]);
+    createTomesBatch.mutate(
+      { tomes },
+      {
+        onError: () => {
+          setIsCompleting(false);
+          toast.error("Erreur lors de l'ajout des tomes");
+        },
+        onSuccess: () => {
+          setIsCompleting(false);
+          if (navigator.onLine) {
+            toast.success(
+              count === 1 ? "1 tome ajouté" : `${count} tomes ajoutés`,
+              { duration: 1500 },
+            );
+          }
+        },
+      },
+    );
+  }, [comic, createTomesBatch, isCompleting, trailingMissing]);
 
   const handleToggleAllTomes = useCallback(
     (field: "bought" | "onNas" | "read") => {

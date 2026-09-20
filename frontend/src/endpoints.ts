@@ -10,6 +10,7 @@ export const endpoints = {
     reject: (id: number) => `/enrichment_proposals/${id}/reject`,
   },
   comicSeries: {
+    batchTomes: (seriesId: number) => `/comic_series/${seriesId}/tomes/batch`,
     collection: "/comic_series",
     detail: (id: number) => `/comic_series/${id}`,
     restore: (id: number) => `/comic_series/${id}/restore`,
