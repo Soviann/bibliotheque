@@ -7,6 +7,8 @@ namespace App\Tests\Unit\Service\Lookup\Provider;
 use App\Enum\ComicType;
 use App\Enum\LookupMode;
 use App\Service\Lookup\Contract\LookupResult;
+use App\Service\Lookup\Gemini\GeminiAllKeysExhaustedException;
+use App\Service\Lookup\Gemini\GeminiCircuitBreaker;
 use App\Service\Lookup\Gemini\GeminiClientPool;
 use App\Service\Lookup\Provider\GeminiLookup;
 use Gemini\Contracts\ClientContract as GeminiClient;
@@ -779,6 +781,73 @@ final class GeminiLookupTest extends TestCase
         self::assertSame('rate_limited', $apiMessage->status);
     }
 
+    public function testResolveLookupAbortsWhenTimeElapsedExceedsSafetyThreshold(): void
+    {
+        $provider = $this->createProvider();
+        $state = [
+            'cacheKey' => 'test_key',
+            'preparedAt' => \microtime(true) - 9.0,
+            'prompt' => 'test prompt',
+        ];
+
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertNotNull($apiMessage);
+        self::assertSame('timeout', $apiMessage->status);
+        self::assertSame('Délai restant insuffisant pour interroger Gemini', $apiMessage->message);
+    }
+
+    public function testPrepareLookupAbortsWhenCircuitBreakerIsOpen(): void
+    {
+        $circuitBreaker = $this->createStub(GeminiCircuitBreaker::class);
+        $circuitBreaker->method('isOpen')->willReturn(true);
+
+        $provider = $this->createProvider(circuitBreaker: $circuitBreaker);
+        $state = $provider->prepareLookup('One Piece', ComicType::MANGA, LookupMode::TITLE);
+
+        self::assertNull($state);
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertNotNull($apiMessage);
+        self::assertSame('rate_limited', $apiMessage->status);
+    }
+
+    public function testResolveLookupAbortsWhenCircuitBreakerIsOpen(): void
+    {
+        $circuitBreaker = $this->createStub(GeminiCircuitBreaker::class);
+        $circuitBreaker->method('isOpen')->willReturn(true);
+
+        $provider = $this->createProvider(circuitBreaker: $circuitBreaker);
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'prompt'];
+
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertNotNull($apiMessage);
+        self::assertSame('rate_limited', $apiMessage->status);
+    }
+
+    public function testCallGeminiOpensCircuitBreakerWhenAllKeysExhaustedRateLimited(): void
+    {
+        $pool = $this->createStub(GeminiClientPool::class);
+        $pool->method('executeWithRetry')->willThrowException(new GeminiAllKeysExhaustedException(true));
+
+        $circuitBreaker = $this->createMock(GeminiCircuitBreaker::class);
+        $circuitBreaker->expects(self::once())->method('open');
+
+        $provider = $this->createProvider(pool: $pool, circuitBreaker: $circuitBreaker);
+        $state = ['cacheKey' => 'test_key', 'prompt' => 'prompt'];
+
+        $result = $provider->resolveLookup($state);
+
+        self::assertNull($result);
+        $apiMessage = $provider->getLastApiMessage();
+        self::assertNotNull($apiMessage);
+        self::assertSame('rate_limited', $apiMessage->status);
+    }
+
     /**
      * Cree un CacheItem avec les valeurs souhaitees via reflexion.
      */
@@ -812,6 +881,7 @@ final class GeminiLookupTest extends TestCase
     private function createProvider(
         ?GeminiClientPool $pool = null,
         ?RateLimiterFactory $limiterFactory = null,
+        ?GeminiCircuitBreaker $circuitBreaker = null,
     ): GeminiLookup {
         $pool ??= $this->createStub(GeminiClientPool::class);
 
@@ -825,6 +895,7 @@ final class GeminiLookupTest extends TestCase
             $pool,
             $limiterFactory,
             $this->logger,
+            $circuitBreaker,
         );
     }
 }

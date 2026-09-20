@@ -9,6 +9,7 @@ use App\Enum\LookupMode;
 use App\Service\Lookup\Contract\EnrichableLookupProviderInterface;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Gemini\AbstractGeminiLookupProvider;
+use App\Service\Lookup\Gemini\GeminiCircuitBreaker;
 use App\Service\Lookup\Gemini\GeminiClientPool;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -44,8 +45,9 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
         #[Autowire(service: 'limiter.gemini_api')]
         RateLimiterFactoryInterface $limiterFactory,
         LoggerInterface $logger,
+        ?GeminiCircuitBreaker $circuitBreaker = null,
     ) {
-        parent::__construct($cache, $geminiClientPool, $limiterFactory, $logger);
+        parent::__construct($cache, $geminiClientPool, $limiterFactory, $logger, $circuitBreaker);
     }
 
     public function getFieldPriority(string $field, ?ComicType $type = null): int

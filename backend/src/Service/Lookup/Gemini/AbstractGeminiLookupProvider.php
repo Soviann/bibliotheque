@@ -26,12 +26,14 @@ use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
 {
     private const int CACHE_TTL = 2592000; // 30 jours
+    private const float MAX_PREPARE_ELAPSED_SECONDS = 8.0;
 
     public function __construct(
         protected readonly AdapterInterface $cache,
         protected readonly GeminiClientPool $geminiClientPool,
         protected readonly RateLimiterFactoryInterface $limiterFactory,
         protected readonly LoggerInterface $logger,
+        protected readonly ?GeminiCircuitBreaker $circuitBreaker = null,
     ) {
     }
 
@@ -45,7 +47,23 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
             return null;
         }
 
-        /** @var array{cacheKey: string, prompt: string} $state */
+        if (null !== $this->circuitBreaker && $this->circuitBreaker->isOpen()) {
+            $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Disjoncteur Gemini ouvert (quota)');
+
+            return null;
+        }
+
+        /** @var array{cacheKey: string, prompt: string, preparedAt?: float} $state */
+        if (isset($state['preparedAt'])) {
+            $elapsed = \microtime(true) - $state['preparedAt'];
+            if ($elapsed >= self::MAX_PREPARE_ELAPSED_SECONDS) {
+                $this->recordApiMessage(ApiLookupStatus::TIMEOUT, 'Délai restant insuffisant pour interroger Gemini');
+                $this->logger->warning("Gemini ({$this->getLogName()}) : annulé car déjà {$elapsed}s écoulées depuis la préparation");
+
+                return null;
+            }
+        }
+
         $result = $this->callGemini($state['prompt']);
 
         if ($result instanceof LookupResult) {
@@ -92,6 +110,12 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
      */
     protected function prepareWithCache(string $cacheKey, callable $buildPrompt): mixed
     {
+        if (null !== $this->circuitBreaker && $this->circuitBreaker->isOpen()) {
+            $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Disjoncteur Gemini ouvert (quota)');
+
+            return null;
+        }
+
         $item = $this->cache->getItem($cacheKey);
 
         if ($item->isHit()) {
@@ -107,7 +131,11 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
             return null;
         }
 
-        return ['cacheKey' => $cacheKey, 'prompt' => $buildPrompt()];
+        return [
+            'cacheKey' => $cacheKey,
+            'preparedAt' => \microtime(true),
+            'prompt' => $buildPrompt(),
+        ];
     }
 
     protected function getLogger(): LoggerInterface
@@ -192,6 +220,7 @@ abstract class AbstractGeminiLookupProvider extends AbstractLookupProvider
             $this->logger->error("Gemini ({$logName}) : toutes les clés épuisées", ['rateLimited' => $e->rateLimited]);
 
             if ($e->rateLimited) {
+                $this->circuitBreaker?->open();
                 $this->recordApiMessage(ApiLookupStatus::RATE_LIMITED, 'Toutes les clés API épuisées (quota)');
             } else {
                 $this->recordApiMessage(ApiLookupStatus::ERROR, 'Toutes les clés API indisponibles');

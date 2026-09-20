@@ -12,6 +12,7 @@ use App\Service\Lookup\Contract\EnrichableLookupProviderInterface;
 use App\Service\Lookup\Contract\LookupProviderInterface;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Contract\MultiResultLookupProviderInterface;
+use App\Service\Lookup\Gemini\AbstractGeminiLookupProvider;
 use App\Service\Lookup\LookupOrchestrator;
 use App\Service\Lookup\Provider\AbstractLookupProvider;
 use PHPUnit\Framework\TestCase;
@@ -1015,6 +1016,120 @@ final class LookupOrchestratorTest extends TestCase
         $result = $orchestrator->lookupByTitle('Naruto');
 
         self::assertNull($result);
+    }
+
+    public function testResolvesNonGeminiProvidersBeforeGeminiProvidersInPhase2(): void
+    {
+        /** @var \ArrayObject<int, string> $resolutionOrder */
+        $resolutionOrder = new \ArrayObject();
+
+        $geminiProvider = new class($resolutionOrder) extends AbstractGeminiLookupProvider {
+            /**
+             * @param \ArrayObject<int, string> $order
+             */
+            public function __construct(private readonly \ArrayObject $order)
+            {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return 100;
+            }
+
+            public function getName(): string
+            {
+                return 'gemini_mock';
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
+            {
+                return 'gemini_state';
+            }
+
+            public function resolveLookup(mixed $state): LookupResult
+            {
+                $this->order->append('gemini');
+
+                return new LookupResult(source: 'gemini_mock', title: 'Test Title');
+            }
+
+            public function supports(LookupMode $mode, ?ComicType $type): bool
+            {
+                return true;
+            }
+
+            protected function buildResult(array $data): LookupResult
+            {
+                return new LookupResult(source: 'gemini_mock');
+            }
+
+            protected function getUsefulDataFields(): array
+            {
+                return [];
+            }
+
+            protected function getLogName(): string
+            {
+                return 'gemini_mock';
+            }
+
+            protected function getSuccessMessage(): string
+            {
+                return 'ok';
+            }
+
+            protected function getNotFoundMessage(): string
+            {
+                return 'none';
+            }
+        };
+
+        $httpProvider = new class($resolutionOrder) extends AbstractLookupProvider {
+            /**
+             * @param \ArrayObject<int, string> $order
+             */
+            public function __construct(private readonly \ArrayObject $order)
+            {
+            }
+
+            public function getFieldPriority(string $field, ?ComicType $type = null): int
+            {
+                return 50;
+            }
+
+            public function getName(): string
+            {
+                return 'http_mock';
+            }
+
+            public function prepareLookup(string $query, ?ComicType $type, LookupMode $mode = LookupMode::TITLE): mixed
+            {
+                return 'http_state';
+            }
+
+            public function resolveLookup(mixed $state): LookupResult
+            {
+                $this->order->append('http');
+
+                return new LookupResult(source: 'http_mock', title: 'Test Title');
+            }
+
+            public function supports(LookupMode $mode, ?ComicType $type): bool
+            {
+                return true;
+            }
+
+            protected function getLogger(): LoggerInterface
+            {
+                return new NullLogger();
+            }
+        };
+
+        // Note: geminiProvider est passé en premier dans la liste des providers
+        $orchestrator = new LookupOrchestrator(15.0, new NullLogger(), [$geminiProvider, $httpProvider]);
+        $orchestrator->lookupByTitle('Test Title');
+
+        self::assertSame(['http', 'gemini'], $resolutionOrder->getArrayCopy());
     }
 
     /**

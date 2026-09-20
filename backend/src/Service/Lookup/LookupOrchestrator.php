@@ -12,6 +12,7 @@ use App\Service\Lookup\Contract\EnrichableLookupProviderInterface;
 use App\Service\Lookup\Contract\LookupProviderInterface;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Contract\MultiResultLookupProviderInterface;
+use App\Service\Lookup\Gemini\AbstractGeminiLookupProvider;
 use App\Service\Lookup\Util\TitleMatcher;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -133,7 +134,15 @@ class LookupOrchestrator
             }
         }
 
-        // Phase 2 : résoudre les réponses
+        // Phase 2 : résoudre les réponses en traitant d'abord les providers asynchrones (HTTP)
+        // afin que les providers bloquants (Gemini) ne provoquent pas de timeout prématuré sur eux.
+        \usort($prepared, static function (array $a, array $b): int {
+            $aIsGemini = $a['provider'] instanceof AbstractGeminiLookupProvider;
+            $bIsGemini = $b['provider'] instanceof AbstractGeminiLookupProvider;
+
+            return $aIsGemini <=> $bIsGemini;
+        });
+
         /** @var list<LookupResult> $allResults */
         $allResults = [];
 
@@ -254,6 +263,14 @@ class LookupOrchestrator
         }
 
         // Phase 2 : résoudre les réponses (bloquant, avec timeout global)
+        // Résoudre d'abord les providers HTTP non bloquants pour ne pas les pénaliser
+        \usort($prepared, static function (array $a, array $b): int {
+            $aIsGemini = $a['provider'] instanceof AbstractGeminiLookupProvider;
+            $bIsGemini = $b['provider'] instanceof AbstractGeminiLookupProvider;
+
+            return $aIsGemini <=> $bIsGemini;
+        });
+
         /** @var list<array{LookupProviderInterface, LookupResult}> $providerResults */
         $providerResults = [];
 
