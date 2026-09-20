@@ -13,7 +13,7 @@
 
 - **No codebase exploration:** `docs/patterns.md` + `MEMORY.md` is the full map. Read `docs/patterns.md` before searching. Consult `docs/CONTEXT.md` for ubiquitous domain vocabulary.
 - **Docs upkeep:** When adding or modifying entities, enums, DTOs, services, routes, or commands, update `AGENTS.md` + `docs/patterns.md` within the same commit/session.
-- **Plans:** Path `<docs_dir>/plans/` (gitignored). Actionable steps only — no code blocks. Archive to `docs/plans/done/` after PR/merge per global rules.
+- **Plans:** Path `<docs_dir>/plans/`. Actionable steps only — no code blocks. Archive to `docs/plans/done/` after PR/merge per global rules.
 
 ## Translations
 

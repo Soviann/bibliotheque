@@ -44,10 +44,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new ComicSeries();
         $event = new PostPersistEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postPersist($event);
     }
@@ -57,10 +54,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Tome();
         $event = new PostPersistEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postPersist($event);
     }
@@ -70,10 +64,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Author();
         $event = new PostPersistEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postPersist($event);
     }
@@ -100,10 +91,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
             ->with($entity)
             ->willReturn(['title' => ['Old', 'New']]);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postUpdate($event);
     }
@@ -113,10 +101,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Tome();
         $event = new PostUpdateEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postUpdate($event);
     }
@@ -126,10 +111,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Author();
         $event = new PostUpdateEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postUpdate($event);
     }
@@ -151,10 +133,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new ComicSeries();
         $event = new PostRemoveEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postRemove($event);
     }
@@ -164,10 +143,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Tome();
         $event = new PostRemoveEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postRemove($event);
     }
@@ -177,10 +153,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Author();
         $event = new PostRemoveEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postRemove($event);
     }
@@ -230,10 +203,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
                 'title' => ['Old Title', 'New Title'],
             ]);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postUpdate($event);
     }
@@ -262,10 +232,7 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Tome();
         $event = new PostUpdateEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postUpdate($event);
     }
@@ -275,11 +242,35 @@ final class ComicSeriesCacheInvalidatorTest extends TestCase
         $entity = new Author();
         $event = new PostUpdateEventArgs($entity, $this->entityManager);
 
-        $this->cache
-            ->expects(self::once())
-            ->method('delete')
-            ->with('comic_series_api_all');
+        $this->expectCacheInvalidation();
 
         $this->listener->postUpdate($event);
+    }
+
+    public function testGetVersionReturnsVersionFromCache(): void
+    {
+        $this->cache
+            ->expects(self::once())
+            ->method('get')
+            ->with(
+                ComicSeriesCacheInvalidator::CACHE_KEY_VERSION,
+                self::isCallable(),
+            )
+            ->willReturn('version_12345');
+
+        $version = $this->listener->getVersion();
+
+        self::assertSame('version_12345', $version);
+    }
+
+    private function expectCacheInvalidation(): void
+    {
+        $this->cache
+            ->expects(self::exactly(2))
+            ->method('delete')
+            ->with(self::logicalOr(
+                self::equalTo(ComicSeriesCacheInvalidator::CACHE_KEY_API_ALL),
+                self::equalTo(ComicSeriesCacheInvalidator::CACHE_KEY_VERSION),
+            ));
     }
 }

@@ -399,6 +399,42 @@ class ComicSeriesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne toutes les séries actives avec auteurs et tomes préchargés
+     * pour l'API collection, éliminant tout problème N+1.
+     *
+     * @return list<ComicSeries>
+     */
+    public function findCollectionForApi(): array
+    {
+        // Requête 1 : séries + auteurs (pas de produit cartésien avec les tomes)
+        /** @var list<ComicSeries> $comics */
+        $comics = $this->createQueryBuilder('c')
+            ->leftJoin('c.authors', 'a')
+            ->addSelect('a')
+            ->orderBy('c.title', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        if ([] === $comics) {
+            return [];
+        }
+
+        // Requête 2 : charger les tomes via l'identity map
+        $ids = \array_map(static fn (ComicSeries $c): ?int => $c->getId(), $comics);
+        $this->getEntityManager()->createQueryBuilder()
+            ->select('t')
+            ->from(Tome::class, 't')
+            ->where('t.comicSeries IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('t.isHorsSerie', 'ASC')
+            ->addOrderBy('t.number', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $comics;
+    }
+
+    /**
      * Construit le QueryBuilder commun pour les séries avec données manquantes.
      *
      * Les vérifications scalaires (NULL) sont placées dans WHERE (pas d'agrégation nécessaire).

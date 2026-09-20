@@ -5,21 +5,74 @@ declare(strict_types=1);
 namespace App\EventListener;
 
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Ajoute un ETag (hash du contenu) aux réponses GET des endpoints ComicSeries.
- * Retourne 304 Not Modified si le client envoie un If-None-Match valide.
+ * Gère le cache HTTP et les ETags pour les endpoints ComicSeries.
  *
- * Note : la réponse complète est calculée côté serveur avant le hash.
- * L'optimisation porte sur la bande passante (pas de retransfert si inchangé).
+ * Pour la collection (/api/comic_series), utilise un ETag versionné instantané
+ * permettant de répondre 304 dès kernel.request sans exécuter de requêtes SQL
+ * ni de sérialisation.
+ *
+ * Pour les ressources individuelles (/api/comic_series/{id}), calcule l'ETag
+ * à partir du contenu de la réponse sur kernel.response.
  */
+#[AsEventListener(event: KernelEvents::REQUEST, method: 'onKernelRequest', priority: 0)]
 #[AsEventListener(event: KernelEvents::RESPONSE, method: 'onKernelResponse')]
-final class HttpCacheListener
+final readonly class HttpCacheListener
 {
+    private const string CACHE_PATH_COLLECTION = '/api/comic_series';
     private const string CACHE_PATH_PREFIX = '/api/comic_series';
 
+    public function __construct(
+        private ComicSeriesCacheInvalidator $cacheInvalidator,
+    ) {
+    }
+
+    /**
+     * Court-circuit 304 instantané pour la collection sur If-None-Match valide.
+     */
+    public function onKernelRequest(RequestEvent $event): void
+    {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
+        $request = $event->getRequest();
+
+        if ('GET' !== $request->getMethod()) {
+            return;
+        }
+
+        if (self::CACHE_PATH_COLLECTION !== $request->getPathInfo() || [] !== $request->query->all()) {
+            return;
+        }
+
+        $etag = $this->getCollectionEtag();
+        $cleanEtag = (string) \preg_replace('/^W\//', '', $etag);
+        $ifNoneMatch = $request->headers->get('If-None-Match');
+
+        if (null !== $ifNoneMatch && '' !== $ifNoneMatch) {
+            $clientEtags = \array_map(
+                static fn (string $tag): string => (string) \preg_replace('/^W\//', '', \trim($tag)),
+                \explode(',', $ifNoneMatch),
+            );
+            if (\in_array($cleanEtag, $clientEtags, true) || \in_array('*', $clientEtags, true)) {
+                $response = new Response('', Response::HTTP_NOT_MODIFIED, [
+                    'Cache-Control' => 'no-cache, private',
+                    'ETag' => $etag,
+                ]);
+                $event->setResponse($response);
+            }
+        }
+    }
+
+    /**
+     * Positionne l'ETag et les en-têtes de cache sur la réponse.
+     */
     public function onKernelResponse(ResponseEvent $event): void
     {
         if (!$event->isMainRequest()) {
@@ -41,15 +94,21 @@ final class HttpCacheListener
             return;
         }
 
-        $etag = \md5((string) $response->getContent());
+        if (self::CACHE_PATH_COLLECTION === $request->getPathInfo() && [] === $request->query->all()) {
+            $etag = $this->getCollectionEtag();
+        } else {
+            $etag = \md5((string) $response->getContent());
+        }
+
         $response->setEtag($etag);
         $response->setPrivate();
-        // no-cache : la réponse peut être stockée mais doit être revalidée
-        // auprès du serveur à chaque usage (via If-None-Match / ETag).
-        // Évite qu'une mutation backend soit invisible côté client tant que
-        // max-age n'a pas expiré.
         $response->headers->addCacheControlDirective('no-cache');
 
         $response->isNotModified($request);
+    }
+
+    private function getCollectionEtag(): string
+    {
+        return \sprintf('"%s"', \md5('comic_series_collection_'.$this->cacheInvalidator->getVersion()));
     }
 }

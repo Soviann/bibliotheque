@@ -30,6 +30,9 @@ use Symfony\Contracts\Cache\CacheInterface;
 #[AsDoctrineListener(event: Events::postUpdate)]
 final readonly class ComicSeriesCacheInvalidator
 {
+    public const string CACHE_KEY_API_ALL = 'comic_series_api_all';
+    public const string CACHE_KEY_VERSION = 'comic_series_version';
+
     private const array WATCHED_ENTITIES = [
         Author::class,
         ComicSeries::class,
@@ -47,6 +50,18 @@ final readonly class ComicSeriesCacheInvalidator
         #[Autowire(service: 'comic_series_api.cache')]
         private CacheInterface $cache,
     ) {
+    }
+
+    /**
+     * Retourne la version actuelle de la collection pour le calcul de l'ETag.
+     */
+    public function getVersion(): string
+    {
+        /* @var string */
+        return $this->cache->get(
+            self::CACHE_KEY_VERSION,
+            static fn (): string => \sprintf('%d_%s', \time(), \bin2hex(\random_bytes(4))),
+        );
     }
 
     public function postPersist(PostPersistEventArgs $event): void
@@ -80,7 +95,8 @@ final readonly class ComicSeriesCacheInvalidator
     {
         foreach (self::WATCHED_ENTITIES as $watchedClass) {
             if ($entity instanceof $watchedClass) {
-                $this->cache->delete('comic_series_api_all');
+                $this->cache->delete(self::CACHE_KEY_API_ALL);
+                $this->cache->delete(self::CACHE_KEY_VERSION);
 
                 return;
             }

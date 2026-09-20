@@ -47,7 +47,7 @@ Reference for implementing features without exploring the codebase.
 | `MissingTomeResult` | Missing tomes result (missingNumbers, seriesId, seriesTitle) |
 | `NasSeriesData` | Series extracted from NAS (title, lastOnNas, readUpTo, readComplete, isComplete) |
 | `NewReleaseProgress` | New release check progress (JsonSerializable) |
-| `ParsedIntegerValue` | Parsed Excel integer/fini/fini N |
+| `ParsedIntegerValue` | Parsed Excel integer/fini/stop/ranges/CSV (hsCount, isComplete, isStopped, specificValues, value) |
 | `PurgeableSeries` | Series eligible for purge (JsonSerializable) |
 | `RowImportResult` | Per-row import result (isUpdate, metadataApplied, series, tomesCount) |
 | `Service/Lookup/Contract/ApiMessage` | Lookup provider API status (JsonSerializable) |
@@ -64,11 +64,11 @@ Reference for implementing features without exploring the codebase.
 
 | Listener | Purpose |
 |----------|---------|
-| `ComicSeriesCacheInvalidator` | postPersist/Update/Remove: invalidates `comic_series_api.cache` for ComicSeries, Tome, Author |
+| `ComicSeriesCacheInvalidator` | postPersist/Update/Remove: invalidates cache & collection version for ComicSeries, Tome, Author |
 | `ComicSeriesEventListener` | postPersist/Update/Remove: dispatches domain events |
 | `CoverUrlChangeListener` | preUpdate: dispatches `DownloadCoverMessage` (async) when `coverUrl` changes on ComicSeries |
 | `EnrichOnCreateListener` | ComicSeriesCreatedEvent → dispatches `EnrichSeriesMessage` (async). `disable()`/`enable()` for batch imports |
-| `HttpCacheListener` | kernel.response: ETag (content hash) + 304 Not Modified on GET `/api/comic_series` |
+| `HttpCacheListener` | kernel.request (early 304 on versioned ETag) & kernel.response (ETag + no-cache) on GET `/api/comic_series` |
 | `JwtTokenVersionListener` | JWT create: adds tokenVersion. JWT decode: validates version match |
 | `PlaceholderSecretChecker` | kernel.request (priority 255): blocks prod if placeholder secrets |
 | `ReEnrichOnUpdateListener` | ComicSeriesUpdatedEvent → re-dispatches `EnrichSeriesMessage` if cover/description/publisher still null (cooldown 24h) |
@@ -92,6 +92,7 @@ Reference for implementing features without exploring the codebase.
 | File | Purpose |
 |------|---------|
 | `AuthorCreateProcessor` | POST `/api/authors`: find-or-create by name without triggering UniqueEntity violation |
+| `ComicSeriesCollectionProvider` | GET `/api/comic_series` (join-fetch eager-loading authors & tomes, prevents N+1) |
 | `ComicSeriesDeleteProcessor` | Soft delete |
 | `ComicSeriesPermanentDeleteProcessor` | Permanent delete |
 | `ComicSeriesRestoreProcessor` | Restore from trash |

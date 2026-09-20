@@ -18,6 +18,7 @@ use ApiPlatform\Metadata\Put;
 use App\Enum\ComicStatus;
 use App\Enum\ComicType;
 use App\Repository\ComicSeriesRepository;
+use App\State\ComicSeriesCollectionProvider;
 use App\State\ComicSeriesDeleteProcessor;
 use App\State\ComicSeriesPermanentDeleteProcessor;
 use App\State\ComicSeriesRestoreProcessor;
@@ -40,6 +41,7 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
             paginationEnabled: false,
             order: ['title' => 'ASC'],
             normalizationContext: ['groups' => ['comic:list']],
+            provider: ComicSeriesCollectionProvider::class,
         ),
         new GetCollection(
             uriTemplate: '/trash',
