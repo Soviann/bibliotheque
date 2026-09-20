@@ -7,7 +7,7 @@ Reference for implementing features without exploring the codebase.
 | Entity | Key fields | Relations | API |
 |--------|-----------|-----------|-----|
 | `ComicSeries` | title, status:`ComicStatus`, type:`ComicType`, latestPublishedIssue?:int, latestPublishedIssueComplete:bool, isOneShot:bool, defaultTome{Bought,OnNas,Read}:bool, amazonUrl?, description?, publisher?, coverFile?:File, coverImage?, coverUrl?, deletedAt?, lookupCompletedAt?, mergeCheckedAt?, newReleasesCheckedAt? | `authors:M2M→Author`, `tomes:O2M→Tome(cascade,orphanRemoval)` | GetCollection, Get, Post, Patch, Delete(soft), Put(/restore), Delete(/trash/permanent) |
-| `Tome` | number:int, tomeEnd?:int, bought, onNas, read, isbn?, title? | `comicSeries:M2O→ComicSeries` | Sub: `/comic_series/{id}/tomes` (GetCollection, Post), standalone: Get, Patch, Put, Delete |
+| `Tome` | number:int, tomeEnd?:int, isHorsSerie:bool, bought, onNas, read, isbn?, title? | `comicSeries:M2O→ComicSeries` | Sub: `/comic_series/{id}/tomes` (GetCollection, Post), standalone: Get, Patch, Put, Delete |
 | `Author` | name:string(unique), followedForNewSeries:bool(default false) | `comicSeries:M2M(mappedBy)` | GetCollection(search by name), Get, Patch, Post |
 | `SeriesSuggestion` | title, type:`ComicType`, authors:JSON, reason:string, status:`SuggestionStatus`(default PENDING) | `sourceSeries:M2O→ComicSeries(SET NULL)` | GetCollection(filter status), Patch(status) |
 | `User` | email:string(unique), googleId?, roles, tokenVersion:int(default=1) | — | — |
@@ -80,6 +80,7 @@ Reference for implementing features without exploring the codebase.
 |------------|--------|
 | `ApiController` | `GET /api/lookup/{isbn,title}?...&type=...` (JWT, 30/min) |
 | `BatchLookupController` | `GET /api/tools/batch-lookup/preview`, `POST .../run` (async Messenger queue) |
+| `BatchTomeController` | `POST /api/comic_series/{id}/tomes/batch` (batch create tomes with validation) |
 | `DevLoginController` | `POST /api/login/dev` (dev-only, bypasses OAuth for automated testing/MCP) |
 | `GoogleLoginController` | `POST /api/login/google` (public) |
 | `MergeSeriesController` | `POST /api/merge-series/{detect,preview,execute,suggest}` |
@@ -252,14 +253,14 @@ Reference for implementing features without exploring the codebase.
 
 | File | Key settings |
 |------|-------------|
-| `rate_limiter.yaml` | `api_lookup` 30/min, `batch_lookup` 2/min, `cover_search` 20/min, `gemini_api` 20/min, `google_login` 10/min, `import` 5/min, `merge_series` 5/min, `purge` 5/min (sliding window) |
+| `rate_limiter.yaml` | `gemini_api` 20/min, `dev_login` 5/min, `google_login` 10/min (sliding window) |
 | `cache.yaml` | `gemini.cache` 30d, `wikipedia.cache` 7d |
 | `lexik_jwt_authentication.yaml` | TTL 365d, token versioning via `JwtTokenVersionListener` |
 | `liip_imagine.yaml` | `cover_thumbnail` 300x450 webp, `cover_medium` 600x900 webp |
 | `security.yaml` | JWT firewall `/api/` (stateless). Public: `POST /api/login/google` |
 | `vich_uploader.yaml` | `comic_covers` → `public/uploads/covers` |
 | `messenger.yaml` | Doctrine transport (`doctrine://default`), `DownloadCoverMessage` + `EnrichSeriesMessage` → async, failed transport, retry ×3. Test: `in-memory://` |
-| `secrets/prod/` | Vault: `APP_SECRET` + `JWT_PASSPHRASE` + `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY`. Decrypt key gitignored. |
+| `secrets/prod/` | Vault: `APP_SECRET` + `JWT_PASSPHRASE`. Decrypt key gitignored. VAPID keys (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) are configured via `.env` / `.env.local`. |
 
 ### Backend Tests (`backend/tests/`)
 
