@@ -88,9 +88,10 @@ describe("Layout", () => {
       </Routes>,
     );
 
-    expect(screen.getByText("Accueil")).toBeInTheDocument();
+    expect(screen.getByText("Collection")).toBeInTheDocument();
     expect(screen.getByText("À acheter")).toBeInTheDocument();
-    expect(screen.getByText("Corbeille")).toBeInTheDocument();
+    expect(screen.getByText("Sur NAS")).toBeInTheDocument();
+    expect(screen.getByText("Envies")).toBeInTheDocument();
   });
 
   it("has a dark mode toggle button with aria-label", () => {

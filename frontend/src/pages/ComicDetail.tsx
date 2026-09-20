@@ -33,6 +33,7 @@ import ProgressBar from "../components/ProgressBar";
 import SkeletonBox from "../components/SkeletonBox";
 import SeriesEnrichmentProposals from "../components/SeriesEnrichmentProposals";
 import SyncPendingIndicator from "../components/SyncPendingIndicator";
+import TomeDrawer from "../components/TomeDrawer";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useCreateTome } from "../hooks/useCreateTome";
@@ -289,6 +290,82 @@ export default function ComicDetail() {
       );
     },
     [updateTome],
+  );
+
+  const [selectedDrawerTome, setSelectedDrawerTome] = useState<{
+    isHorsSerie: boolean;
+    number: number;
+    tome?: Tome;
+  } | null>(null);
+
+  const activeDrawerTome = useMemo(() => {
+    if (!selectedDrawerTome) return undefined;
+    if (selectedDrawerTome.isHorsSerie) {
+      return optimisticTomes.find(
+        (t) => t.isHorsSerie && t.number === selectedDrawerTome.number,
+      );
+    }
+    return (
+      optimisticTomes.find(
+        (t) =>
+          !t.isHorsSerie &&
+          selectedDrawerTome.number >= t.number &&
+          selectedDrawerTome.number <= (t.tomeEnd ?? t.number),
+      ) ?? selectedDrawerTome.tome
+    );
+  }, [optimisticTomes, selectedDrawerTome]);
+
+  const handleSelectMapTome = useCallback(
+    (tomeNumber: number, tome?: Tome, isHorsSerie = false) => {
+      setSelectedDrawerTome({
+        isHorsSerie,
+        number: tomeNumber,
+        tome,
+      });
+    },
+    [],
+  );
+
+  const handleDrawerToggleField = useCallback(
+    (field: "bought" | "onNas" | "read") => {
+      if (!selectedDrawerTome) return;
+
+      const currentTome = activeDrawerTome ?? selectedDrawerTome.tome;
+      if (currentTome) {
+        handleToggleTome(currentTome, field);
+      } else {
+        const number = selectedDrawerTome.number;
+        const isHorsSerie = selectedDrawerTome.isHorsSerie;
+        const bought = field === "bought";
+        const onNas = field === "onNas";
+        const read = field === "read";
+
+        createTome.mutate(
+          {
+            bought,
+            isHorsSerie,
+            isbn: null,
+            number,
+            onNas,
+            read,
+            title: null,
+            tomeEnd: null,
+          },
+          {
+            onError: () => {
+              toast.error("Erreur lors de l'ajout du tome");
+            },
+            onSuccess: (newTome) => {
+              setSelectedDrawerTome((prev) =>
+                prev ? { ...prev, tome: newTome } : null,
+              );
+              toast.success("Tome ajouté", { duration: 1500 });
+            },
+          },
+        );
+      }
+    },
+    [activeDrawerTome, createTome, handleToggleTome, selectedDrawerTome],
   );
 
   const handleCompleteMissingTomes = useCallback(() => {
@@ -712,6 +789,7 @@ export default function ComicDetail() {
             {tomeView === "map" && (
               <CollectionMap
                 latestPublishedIssue={comic.latestPublishedIssue}
+                onSelectTome={handleSelectMapTome}
                 tomes={optimisticTomes}
               />
             )}
@@ -838,6 +916,19 @@ export default function ComicDetail() {
           open={lightboxOpen}
           src={coverSrc}
           title={comic.title}
+        />
+      )}
+
+      {/* Tome Bottom Drawer */}
+      {selectedDrawerTome && (
+        <TomeDrawer
+          isHorsSerie={selectedDrawerTome.isHorsSerie}
+          isOpen={true}
+          onClose={() => setSelectedDrawerTome(null)}
+          onToggleField={handleDrawerToggleField}
+          seriesTitle={comic?.title}
+          tome={activeDrawerTome}
+          tomeNumber={selectedDrawerTome.number}
         />
       )}
     </div>

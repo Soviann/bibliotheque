@@ -102,4 +102,54 @@ describe("CollectionMap", () => {
       expect(cell.className).toMatch(/border-dashed/);
     }
   });
+
+  it("calls onSelectTome when clicking a regular tome cell", async () => {
+    const onSelectTome = vi.fn();
+    const tome = createMockTome({ id: 10, number: 2, bought: true });
+    render(
+      <CollectionMap
+        latestPublishedIssue={3}
+        onSelectTome={onSelectTome}
+        tomes={[tome]}
+      />,
+    );
+
+    const cell = screen.getByTitle(/Tome 2/);
+    cell.click();
+
+    expect(onSelectTome).toHaveBeenCalledWith(2, tome, false);
+  });
+
+  it("calls onSelectTome when clicking a missing tome cell", async () => {
+    const onSelectTome = vi.fn();
+    render(
+      <CollectionMap
+        latestPublishedIssue={3}
+        onSelectTome={onSelectTome}
+        tomes={[]}
+      />,
+    );
+
+    const cell = screen.getByTitle(/Tome 1/);
+    cell.click();
+
+    expect(onSelectTome).toHaveBeenCalledWith(1, undefined, false);
+  });
+
+  it("calls onSelectTome when clicking a hors-série cell", async () => {
+    const onSelectTome = vi.fn();
+    const hsTome = createMockTome({ id: 15, isHorsSerie: true, number: 1 });
+    render(
+      <CollectionMap
+        latestPublishedIssue={1}
+        onSelectTome={onSelectTome}
+        tomes={[hsTome]}
+      />,
+    );
+
+    const cell = screen.getByTitle(/HS 1/);
+    cell.click();
+
+    expect(onSelectTome).toHaveBeenCalledWith(1, hsTome, true);
+  });
 });

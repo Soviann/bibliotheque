@@ -19,7 +19,7 @@ describe("queryClient default options", () => {
   it("has correct query defaults", () => {
     const defaults = queryClient.getDefaultOptions().queries;
 
-    expect(defaults?.gcTime).toBe(60 * 60 * 1000);
+    expect(defaults?.gcTime).toBe(30 * 24 * 60 * 60 * 1000);
     expect(defaults?.networkMode).toBe("offlineFirst");
     expect(defaults?.refetchOnWindowFocus).toBe(true);
     expect(defaults?.retry).toBe(1);

@@ -299,4 +299,45 @@ describe("ComicCard", () => {
 
     expect(screen.queryByText("Nouveau")).not.toBeInTheDocument();
   });
+
+  it("shows missing tomes micro-badge on cover when unbought tomes exist", () => {
+    const comic = createMockComicSeries({
+      isOneShot: false,
+      notInterestedBuy: false,
+      title: "Missing Tomes Series",
+      unboughtTomes: [
+        { id: 1, isHorsSerie: false, number: 3 },
+        { id: 2, isHorsSerie: false, number: 4 },
+      ],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.getByText("-2 à acheter")).toBeInTheDocument();
+  });
+
+  it("does not show missing tomes badge when notInterestedBuy is true", () => {
+    const comic = createMockComicSeries({
+      isOneShot: false,
+      notInterestedBuy: true,
+      title: "Not Interested",
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 3 }],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.queryByText(/-.*à acheter/)).not.toBeInTheDocument();
+  });
+
+  it("does not show missing tomes badge for oneshot", () => {
+    const comic = createMockComicSeries({
+      isOneShot: true,
+      title: "One-shot missing",
+      unboughtTomes: [{ id: 1, isHorsSerie: false, number: 1 }],
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    expect(screen.queryByText(/-.*à acheter/)).not.toBeInTheDocument();
+  });
 });

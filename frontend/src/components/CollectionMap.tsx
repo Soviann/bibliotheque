@@ -5,6 +5,11 @@ import { countCoveredTomes } from "../utils/tomeUtils";
 
 interface CollectionMapProps {
   latestPublishedIssue: number | null;
+  onSelectTome?: (
+    tomeNumber: number,
+    tome?: Tome,
+    isHorsSerie?: boolean,
+  ) => void;
   tomes: Tome[];
 }
 
@@ -23,22 +28,22 @@ function buildTomeMap(tomes: Tome[]): Map<number, Tome> {
 
 function cellClasses(tome: Tome | undefined): string {
   const base =
-    "flex aspect-square items-center justify-center rounded text-xs font-medium";
+    "flex aspect-square items-center justify-center rounded text-xs font-medium transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer";
 
   if (!tome) {
-    return `${base} border border-dashed border-text-muted/30 text-text-muted/50`;
+    return `${base} border border-dashed border-text-muted/30 text-text-muted/50 hover:border-text-muted/60`;
   }
 
   if (tome.bought) {
-    return `${base} bg-[rgb(var(--series-color))] text-white`;
+    return `${base} bg-[rgb(var(--series-color))] text-white hover:brightness-110`;
   }
 
   if (tome.onNas) {
-    return `${base} border-2 border-[rgb(var(--series-color))] text-[rgb(var(--series-color))]`;
+    return `${base} border-2 border-[rgb(var(--series-color))] text-[rgb(var(--series-color))] hover:opacity-80`;
   }
 
   // Tome exists but neither bought nor on NAS
-  return `${base} border border-dashed border-text-muted/30 text-text-muted/50`;
+  return `${base} border border-dashed border-text-muted/30 text-text-muted/50 hover:border-text-muted/60`;
 }
 
 function cellTitle(number: number, tome: Tome | undefined, hs = false): string {
@@ -56,6 +61,7 @@ function cellTitle(number: number, tome: Tome | undefined, hs = false): string {
 
 export default function CollectionMap({
   latestPublishedIssue,
+  onSelectTome,
   tomes,
 }: CollectionMapProps) {
   const tomeMap = useMemo(() => buildTomeMap(tomes), [tomes]);
@@ -80,17 +86,19 @@ export default function CollectionMap({
         {cells.map((n) => {
           const tome = tomeMap.get(n);
           return (
-            <div
+            <button
               className={cellClasses(tome)}
               key={n}
+              onClick={() => onSelectTome?.(n, tome, false)}
               title={cellTitle(n, tome)}
+              type="button"
             >
               {tome?.read ? (
                 <Check className="h-3.5 w-3.5" strokeWidth={3} />
               ) : (
                 n
               )}
-            </div>
+            </button>
           );
         })}
       </div>
@@ -100,17 +108,19 @@ export default function CollectionMap({
           <p className="text-xs font-medium text-text-muted">Hors-série</p>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(2.25rem,1fr))] gap-1.5">
             {hsTomes.map((tome) => (
-              <div
+              <button
                 className={cellClasses(tome)}
                 key={tome.id}
+                onClick={() => onSelectTome?.(tome.number, tome, true)}
                 title={cellTitle(tome.number, tome, true)}
+                type="button"
               >
                 {tome.read ? (
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 ) : (
                   `HS${tome.number}`
                 )}
-              </div>
+              </button>
             ))}
           </div>
         </>

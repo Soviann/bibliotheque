@@ -14,7 +14,7 @@ const scheduleIdle: typeof requestIdleCallback =
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      gcTime: 60 * 60 * 1000,
+      gcTime: 30 * 24 * 60 * 60 * 1000,
       networkMode: "offlineFirst",
       refetchOnWindowFocus: true,
       retry: 1,

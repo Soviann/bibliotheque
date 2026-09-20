@@ -1871,5 +1871,28 @@ describe("ComicDetail", () => {
         screen.getByRole("img", { name: /carte de collection/i }),
       ).toBeInTheDocument();
     });
+
+    it("opens TomeDrawer when clicking a cell in map view", async () => {
+      const user = userEvent.setup();
+      localStorage.setItem("tome-view-mode", "map");
+
+      server.use(
+        http.get("/api/comic_series/1", () => HttpResponse.json(tomeSeries())),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Toggle Test")).toBeInTheDocument();
+      });
+
+      const cell = screen.getByTitle(/Tome 1/);
+      await user.click(cell);
+
+      expect(
+        await screen.findByText("Sauvegarde automatique au tap"),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Acheté/ })).toBeInTheDocument();
+    });
   });
 });

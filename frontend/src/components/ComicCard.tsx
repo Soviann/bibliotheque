@@ -3,9 +3,6 @@ import {
   Bell,
   Edit,
   EllipsisVertical,
-  Euro,
-  Eye,
-  HardDrive,
   Trash2,
 } from "lucide-react";
 import { memo } from "react";
@@ -33,6 +30,9 @@ export default memo(function ComicCard({
   const coverSrc = getCoverThumbnailSrc(comic) ?? getCoverSrc(comic);
   const total = Math.max(comic.latestPublishedIssue ?? 0, comic.coveredCount);
   const showStats = !comic.isOneShot && comic.tomesCount > 0;
+  const unboughtCount = comic.unboughtTomes?.length ?? 0;
+  const showMissingAlert =
+    !comic.isOneShot && !comic.notInterestedBuy && unboughtCount > 0;
   const hasActions = !!onDelete;
   const isNewRelease = hasNewRelease(comic);
   const [dominantColor, extractColor] = useDominantColor(coverSrc);
@@ -64,7 +64,7 @@ export default memo(function ComicCard({
 
   return (
     <Link
-      className="card-glow group block overflow-hidden rounded-xl border border-surface-border bg-surface-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-500/50 dark:border-transparent dark:bg-surface-secondary dark:hover:border-primary-400/30"
+      className="card-glow group flex flex-col overflow-hidden rounded-xl border border-surface-border bg-surface-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-500/50 dark:border-transparent dark:bg-surface-secondary dark:hover:border-primary-400/30"
       style={{
         // Ambient glow en dark mode — couleur dominante de la couverture
         ["--glow-rgb" as string]: dominantColor,
@@ -100,38 +100,28 @@ export default memo(function ComicCard({
           {ComicTypeLabel[comic.type]}
         </span>
 
-        {/* Stats overlay — toujours visible, hover effect sur desktop */}
-        {showStats && (
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-around bg-black/60 px-2 py-1.5 text-[10px] text-white/90 backdrop-blur-sm lg:translate-y-full lg:transition-transform lg:duration-200 lg:group-hover:translate-y-0">
-            <span className="flex items-center gap-0.5" title="Achetés">
-              <Euro className="h-3 w-3" strokeWidth={1.5} />
-              {comic.boughtCount}/{total}
-            </span>
-            <span className="flex items-center gap-0.5" title="Lus">
-              <Eye className="h-3 w-3" strokeWidth={1.5} />
-              {comic.readCount}/{total}
-            </span>
-            <span className="flex items-center gap-0.5" title="Sur NAS">
-              <HardDrive className="h-3 w-3" strokeWidth={1.5} />
-              {comic.onNasCount}/{total}
-            </span>
-          </div>
+        {/* Micro-badge tomes manquants */}
+        {showMissingAlert && (
+          <span className="absolute bottom-1.5 right-1.5 rounded-md bg-amber-600/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow backdrop-blur-sm">
+            -{unboughtCount} à acheter
+          </span>
         )}
       </div>
 
-      {/* Info — minimal: title + tome count */}
-      <div className="flex items-start gap-1 px-2 py-1.5">
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-sm font-semibold text-text-primary">
-            {comic._syncPending && <SyncPendingIndicator className="mr-1" />}
-            {comic.title}
-          </h3>
-          {!comic.isOneShot && (
-            <p className="font-mono-stats text-xs text-text-muted">
-              {comic.tomesCount} t.
-            </p>
-          )}
-        </div>
+      {/* Info Box — Mini-Dashboard */}
+      <div className="flex flex-1 flex-col justify-between gap-1.5 p-2.5">
+        <div className="flex items-start gap-1">
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate font-display text-sm font-semibold text-text-primary">
+              {comic._syncPending && <SyncPendingIndicator className="mr-1" />}
+              {comic.title}
+            </h3>
+            {!comic.isOneShot && (
+              <p className="font-mono-stats text-xs text-text-muted">
+                {comic.tomesCount} t.
+              </p>
+            )}
+          </div>
 
         {hasActions && (
           <>
@@ -201,6 +191,43 @@ export default memo(function ComicCard({
             </Menu>
           </>
         )}
+      </div>
+
+      {/* Tracking Row with Mini Badges & Counters */}
+      {showStats && (
+        <div className="grid grid-cols-3 gap-1 border-t border-surface-border pt-1.5 text-[11px] dark:border-white/5">
+          <div
+            className="flex items-center gap-1.5 text-text-secondary"
+            title="Achetés"
+          >
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+            <span className="font-mono-stats text-[10px]">
+              {comic.boughtCount}/{total}{" "}
+              <span className="text-text-muted">€</span>
+            </span>
+          </div>
+          <div
+            className="flex items-center gap-1.5 text-text-secondary"
+            title="Sur NAS"
+          >
+            <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+            <span className="font-mono-stats text-[10px]">
+              {comic.onNasCount}/{total}{" "}
+              <span className="text-text-muted">NAS</span>
+            </span>
+          </div>
+          <div
+            className="flex items-center gap-1.5 text-text-secondary"
+            title="Lus"
+          >
+            <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+            <span className="font-mono-stats text-[10px]">
+              {comic.readCount}/{total}{" "}
+              <span className="text-text-muted">Lu</span>
+            </span>
+          </div>
+        </div>
+      )}
       </div>
     </Link>
   );

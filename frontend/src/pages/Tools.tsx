@@ -45,6 +45,12 @@ const tools: ToolCard[] = [
     to: "/tools/lookup",
   },
   {
+    description: "Consulter et restaurer les séries supprimées.",
+    icon: Trash2,
+    title: "Corbeille",
+    to: "/trash",
+  },
+  {
     description:
       "Supprimer definitivement les series dans la corbeille depuis plus de 30 jours.",
     icon: Trash2,

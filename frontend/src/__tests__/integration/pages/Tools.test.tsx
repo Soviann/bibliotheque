@@ -20,6 +20,7 @@ describe("Tools", () => {
 
     expect(screen.getByText("Fusion de series")).toBeInTheDocument();
     expect(screen.getByText("Lookup metadonnees")).toBeInTheDocument();
+    expect(screen.getByText("Corbeille")).toBeInTheDocument();
     expect(screen.getByText("Purge corbeille")).toBeInTheDocument();
   });
 
@@ -31,6 +32,7 @@ describe("Tools", () => {
 
     expect(hrefs).toContain("/tools/merge-series");
     expect(hrefs).toContain("/tools/lookup");
+    expect(hrefs).toContain("/trash");
     expect(hrefs).toContain("/tools/purge");
   });
 

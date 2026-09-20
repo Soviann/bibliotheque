@@ -161,7 +161,7 @@ export default function App() {
                 return query.queryKey[0] === queryKeys.comics.all[0];
               },
             },
-            maxAge: 60 * 60 * 1000,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
             persister,
           }}
         >

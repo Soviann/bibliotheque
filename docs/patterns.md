@@ -335,12 +335,12 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `AuthGuard` | Route wrapper redirecting unauthenticated users to `/login` |
 | `AuthorAutocomplete` | Headless UI combobox for searching and creating authors |
 | `BarcodeScanner` | Continuous camera barcode scanner via `html5-qrcode` |
-| `BottomNav` | Mobile bottom navigation bar (Home, Wishlist, Add, Trash) |
+| `BottomNav` | Acquisition navigation bar (Collection, À acheter, elevated Add, Sur NAS, Envies) |
 | `Breadcrumb` | Hierarchical breadcrumb navigation with accessibility attributes |
 | `CardActionBar` | Mobile fixed action overlay for series card (Edit/Delete) |
 | `CollapsibleSection` | Expandable accordion container with animated toggle |
-| `CollectionMap` | Visual grid of numbered tome status squares with series accent color |
-| `ComicCard` | Grid card: cover image, title, type badge, tome counts, progress bar, action menu |
+| `CollectionMap` | Interactive visual grid of numbered tome squares opening TomeDrawer |
+| `ComicCard` | Option 1C Mini-dashboard card: unobstructed cover, missing tomes micro-badge, 3-metric tracking row (€, NAS, Lu) |
 | `ComicCardSkeleton` / `SkeletonBox` | Shimmering loading placeholders |
 | `ComponentErrorBoundary` | Contextual error boundary with retry support |
 | `ConfirmModal` | Headless UI modal dialog for confirming destructive operations |
@@ -377,6 +377,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `StickySearchBar` | Sticky header containing search input and filter toggles |
 | `SyncErrorBanner` / `SyncPendingIndicator` | Offline synchronization state and conflict alerts |
 | `SyncFailureSection` | Accordion view detailing failed offline mutations with retry triggers |
+| `TomeDrawer` | Mobile bottom drawer with 3 large toggles (Acheté, Sur NAS, Lu) and instant auto-save |
 | `TomeTable` | Responsive tome list (desktop table / mobile cards) with batch tome creation |
 | `VirtualGrid` | High-performance virtualized grid powered by `react-virtuoso` |
 
