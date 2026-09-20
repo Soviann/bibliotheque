@@ -287,6 +287,9 @@ final class AniListLookup extends AbstractLookupProvider implements MultiResultL
         /** @var array<string, string|null> $coverData */
         $coverData = \is_array($media['coverImage'] ?? null) ? $media['coverImage'] : [];
         $thumbnail = $coverData['extraLarge'] ?? $coverData['large'] ?? null;
+        if (\is_string($thumbnail) && \str_contains($thumbnail, 'default.jpg')) {
+            $thumbnail = null;
+        }
 
         /** @var array{year?: int|null, month?: int|null, day?: int|null} $startDate */
         $startDate = \is_array($media['startDate'] ?? null) ? $media['startDate'] : [];

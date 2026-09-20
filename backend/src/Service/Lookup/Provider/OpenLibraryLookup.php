@@ -86,9 +86,9 @@ final class OpenLibraryLookup extends AbstractLookupProvider
             $publishedDate = $data['publish_date'] ?? null;
 
             $thumbnail = null;
-            if (!empty($data['covers'][0])) {
-                $coverId = $data['covers'][0];
-                $thumbnail = "https://covers.openlibrary.org/b/id/{$coverId}-M.jpg";
+            if (!empty($data['covers'][0]) && (int) $data['covers'][0] > 0) {
+                $coverId = (int) $data['covers'][0];
+                $thumbnail = "https://covers.openlibrary.org/b/id/{$coverId}-M.jpg?default=false";
             }
 
             $this->recordApiMessage(ApiLookupStatus::SUCCESS, 'Données trouvées');

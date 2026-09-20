@@ -100,6 +100,9 @@ final readonly class CoverSearchService
             }
 
             $url = GoogleBooksUrlHelper::optimizeThumbnailUrl($rawThumbnail);
+            if (null === $url) {
+                continue;
+            }
             $title = \is_string($volumeInfo['title'] ?? null) ? $volumeInfo['title'] : '';
 
             $results[] = new CoverSearchResult(

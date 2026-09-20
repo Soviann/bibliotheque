@@ -9,12 +9,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests unitaires pour TitleMatcher.
+ * Tests unitaires pour TitleMatcher avec garde-fou Levenshtein > 85%.
  */
 final class TitleMatcherTest extends TestCase
 {
     /**
-     * Teste les cas de correspondance évidents.
+     * Teste les cas nominaux et de correspondance forte (Levenshtein >= 85%).
      */
     #[DataProvider('matchingTitlesProvider')]
     public function testMatchingTitles(string $query, string $resultTitle): void
@@ -33,17 +33,19 @@ final class TitleMatcherTest extends TestCase
         yield 'titre exact' => ['One Piece', 'One Piece'];
         yield 'casse différente' => ['one piece', 'One Piece'];
         yield 'titre avec articles' => ['Les 3 instincts', 'Les 3 instincts'];
-        yield 'mot clé présent' => ['3 instincts', '3 instincts : La survie'];
-        yield 'sous-titre dans résultat' => ['Naruto', 'Naruto Shippuden'];
+        yield 'article manquant' => ['Walking Dead', 'The Walking Dead'];
         yield 'accentuation différente' => ['étoile', 'Etoile'];
-        yield 'pluriel/singulier' => ['instinct', 'Les instincts'];
-        yield 'titre avec tirets' => ['Spider-Man', 'Spider-Man: No Way Home'];
-        yield 'mots significatifs partagés' => ['Walking Dead', 'The Walking Dead'];
-        yield 'un seul mot significatif correspondant' => ['Astérix', 'Astérix le Gaulois'];
+        yield 'translitération accents' => ['Astérix', 'Asterix'];
+        yield 'esperluette vs et' => ['Tom & Jerry', 'Tom et Jerry'];
+        yield 'tirets et ponctuation' => ['Spider-Man', 'Spider Man'];
+        yield 'nettoyage suffixe tome' => ['One Piece', 'One Piece - Tome 1'];
+        yield 'nettoyage suffixe volume' => ['Naruto', 'Naruto Vol. 1'];
+        yield 'nettoyage suffixe hashtag' => ['Batman', 'Batman #42'];
+        yield 'faible faute de frappe (>= 85%)' => ['Berserk', 'Berzerk']; // 1 diff sur 7 = 85.7%
     }
 
     /**
-     * Teste les cas de non-correspondance.
+     * Teste les cas de rejet (sous-titres, spin-offs, titres différents < 85%).
      */
     #[DataProvider('nonMatchingTitlesProvider')]
     public function testNonMatchingTitles(string $query, string $resultTitle): void
@@ -61,33 +63,50 @@ final class TitleMatcherTest extends TestCase
     {
         yield 'aucun mot commun' => ['3 instincts', 'Le guide des oiseaux'];
         yield 'titre complètement différent' => ['One Piece', 'Dragon Ball'];
-        yield 'partage uniquement des stopwords' => ['Les aventures', 'Les misérables'];
-        yield 'partage uniquement un article' => ['Le chat', 'Le chien'];
+        yield 'spin-off Naruto' => ['Naruto', 'Naruto Shippuden'];
+        yield 'spin-off Dragon Ball' => ['Dragon Ball', 'Dragon Ball Super'];
+        yield 'film / sous-titre différent' => ['Spider-Man', 'Spider-Man: No Way Home'];
+        yield 'album spécifique vs série' => ['Astérix', 'Astérix le Gaulois'];
+        yield 'mot clé partagé mais série différente' => ['Solo', 'Han Solo'];
+        yield 'distance Levenshtein trop élevée' => ['Monster', 'Monster Hunter'];
     }
 
     /**
-     * Teste que les cas limites ne plantent pas.
+     * Teste les cas limites (chaînes vides, espaces, stopwords seuls).
      */
     public function testEdgeCases(): void
     {
-        // Requête vide → pas de filtrage, tout passe
-        self::assertTrue(TitleMatcher::matches('', 'Anything'));
-        self::assertTrue(TitleMatcher::matches('   ', 'Anything'));
+        // Requête vide → rejet
+        self::assertFalse(TitleMatcher::matches('', 'Anything'));
+        self::assertFalse(TitleMatcher::matches('   ', 'Anything'));
 
-        // Titre résultat vide → ne correspond pas
+        // Titre résultat vide → rejet
         self::assertFalse(TitleMatcher::matches('query', ''));
+        self::assertFalse(TitleMatcher::matches('query', '   '));
 
-        // Requête avec uniquement des mots courts/stopwords → tout passe
-        self::assertTrue(TitleMatcher::matches('le la de', 'Anything'));
+        // Deux chaînes vides
+        self::assertFalse(TitleMatcher::matches('', ''));
     }
 
     /**
-     * Teste la normalisation des accents.
+     * Teste le calcul direct de similarité.
      */
-    public function testAccentNormalization(): void
+    public function testSimilarityCalculation(): void
     {
-        self::assertTrue(TitleMatcher::matches('Astérix', 'Asterix'));
-        self::assertTrue(TitleMatcher::matches('café', 'Cafe'));
-        self::assertTrue(TitleMatcher::matches('noel', 'Noël'));
+        self::assertSame(1.0, TitleMatcher::similarity('One Piece', 'One Piece'));
+        self::assertSame(1.0, TitleMatcher::similarity('The Walking Dead', 'Walking Dead'));
+        self::assertGreaterThanOrEqual(0.85, TitleMatcher::similarity('Berserk', 'Berzerk'));
+        self::assertLessThan(0.85, TitleMatcher::similarity('Naruto', 'Naruto Shippuden'));
+        self::assertSame(0.0, TitleMatcher::similarity('', 'One Piece'));
+    }
+
+    /**
+     * Teste que les chaînes très longues (> 255 caractères) ne contournent pas le seuil de similarité.
+     */
+    public function testLongStringBypassPrevention(): void
+    {
+        $longGarbage = \str_repeat('something completely unrelated ', 20); // ~600 chars
+        self::assertSame(0.0, TitleMatcher::similarity('Batman', $longGarbage));
+        self::assertFalse(TitleMatcher::matches('Batman', $longGarbage));
     }
 }

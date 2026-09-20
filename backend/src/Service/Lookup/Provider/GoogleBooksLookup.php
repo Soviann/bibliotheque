@@ -10,6 +10,7 @@ use App\Enum\LookupMode;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\Contract\MultiResultLookupProviderInterface;
 use App\Service\Lookup\Util\GoogleBooksUrlHelper;
+use App\Service\Lookup\Util\LookupTitleCleaner;
 use App\Service\Lookup\Util\TitleMatcher;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
@@ -161,6 +162,11 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
             }
 
             $items = $this->filterItemsByTitle($data['items'], $query);
+            if (empty($items)) {
+                $this->recordApiMessage(ApiLookupStatus::NOT_FOUND, 'Aucun résultat correspondant au titre');
+
+                return null;
+            }
             $result = $this->mergeItems($items);
             $this->recordApiMessage(ApiLookupStatus::SUCCESS, 'Données trouvées');
 
@@ -374,7 +380,7 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
             },
         );
 
-        return \count($filtered) > 0 ? \array_values($filtered) : $items;
+        return \array_values($filtered);
     }
 
     /**
@@ -382,19 +388,6 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
      */
     private function normalizeTitle(string $title): string
     {
-        $patterns = [
-            '/\s*[-–—]\s*(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
-            '/\s+(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+.*$/iu',
-            '/\s*#\d+.*$/u',
-            '/\s*\(\d+\)\s*$/u',
-            '/\s+\d+\s*$/u',
-        ];
-
-        $normalized = $title;
-        foreach ($patterns as $pattern) {
-            $normalized = \preg_replace($pattern, '', $normalized) ?? $normalized;
-        }
-
-        return \mb_strtolower(\trim($normalized));
+        return \mb_strtolower(LookupTitleCleaner::clean($title));
     }
 }

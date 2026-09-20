@@ -184,8 +184,10 @@ final class KitsuLookup extends AbstractLookupProvider implements MultiResultLoo
         $thumbnail = null;
         $posterImage = $attrs['posterImage'] ?? null;
         if (\is_array($posterImage)) {
-            $thumbnail = $posterImage['original'] ?? $posterImage['large'] ?? $posterImage['medium'] ?? null;
-            $thumbnail = \is_string($thumbnail) ? $thumbnail : null;
+            $rawThumbnail = $posterImage['original'] ?? $posterImage['large'] ?? $posterImage['medium'] ?? null;
+            if (\is_string($rawThumbnail) && !\str_contains($rawThumbnail, 'default') && !\str_contains($rawThumbnail, 'missing')) {
+                $thumbnail = $rawThumbnail;
+            }
         }
 
         $publishedDate = $attrs['startDate'] ?? null;

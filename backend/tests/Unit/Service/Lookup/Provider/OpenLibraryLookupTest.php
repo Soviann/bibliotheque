@@ -131,7 +131,7 @@ final class OpenLibraryLookupTest extends TestCase
         self::assertSame('Eiichiro Oda', $result->authors);
         self::assertSame('Glenat', $result->publisher);
         self::assertSame('1997', $result->publishedDate);
-        self::assertSame('https://covers.openlibrary.org/b/id/12345-M.jpg', $result->thumbnail);
+        self::assertSame('https://covers.openlibrary.org/b/id/12345-M.jpg?default=false', $result->thumbnail);
         self::assertSame('open_library', $result->source);
     }
 
@@ -409,7 +409,25 @@ final class OpenLibraryLookupTest extends TestCase
         $result = $this->provider->resolveLookup($response);
 
         self::assertNotNull($result);
-        self::assertSame('https://covers.openlibrary.org/b/id/11111-M.jpg', $result->thumbnail);
+        self::assertSame('https://covers.openlibrary.org/b/id/11111-M.jpg?default=false', $result->thumbnail);
+    }
+
+    /**
+     * Teste que les coverId négatifs ou nuls retournent thumbnail null.
+     */
+    public function testResolveLookupNegativeCoverIdReturnsNullThumbnail(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willReturn([
+            'covers' => [-1],
+            'title' => 'Test',
+        ]);
+
+        $result = $this->provider->resolveLookup($response);
+
+        self::assertNotNull($result);
+        self::assertNull($result->thumbnail);
     }
 
     /**

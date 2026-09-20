@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service\Lookup\Provider;
 
+use App\Enum\ApiLookupStatus;
 use App\Enum\ComicType;
 use App\Enum\LookupMode;
 use App\Service\Lookup\Provider\GoogleBooksLookup;
@@ -769,9 +770,9 @@ final class GoogleBooksLookupTest extends TestCase
     }
 
     /**
-     * Teste que resolveLookup utilise tous les items si aucun ne correspond au titre.
+     * Teste que resolveLookup retourne null si aucun item ne correspond au titre recherché (garde-fou strict).
      */
-    public function testResolveLookupFallsBackWhenAllFiltered(): void
+    public function testResolveLookupRejectsWhenNoItemMatchesTitle(): void
     {
         $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn([
@@ -787,9 +788,8 @@ final class GoogleBooksLookupTest extends TestCase
 
         $result = $this->provider->resolveLookup(['query' => 'Dragon Ball', 'response' => $response]);
 
-        self::assertNotNull($result);
-        self::assertSame('Something Completely Different', $result->title);
-        self::assertSame('https://example.com/img.jpg', $result->thumbnail);
+        self::assertNull($result);
+        self::assertSame(ApiLookupStatus::NOT_FOUND->value, $this->provider->getLastApiMessage()?->status);
     }
 
     /**

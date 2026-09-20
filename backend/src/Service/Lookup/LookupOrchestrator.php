@@ -166,7 +166,6 @@ class LookupOrchestrator
 
                 if (\count($results) > 0) {
                     \array_push($allResults, ...$results);
-                    $this->sources[] = $provider->getName();
                 }
             } catch (\Throwable $e) {
                 $this->logger->error('Erreur resolveLookup {provider} : {error}', [
@@ -199,7 +198,14 @@ class LookupOrchestrator
             $deduplicated[] = $result;
         }
 
-        return \array_slice($deduplicated, 0, $limit);
+        $limited = \array_slice($deduplicated, 0, $limit);
+
+        $this->sources = \array_values(\array_unique(\array_map(
+            static fn (LookupResult $r): string => $r->source,
+            $limited,
+        )));
+
+        return $limited;
     }
 
     /**
@@ -272,6 +278,16 @@ class LookupOrchestrator
                 }
 
                 if ($result instanceof LookupResult) {
+                    if (LookupMode::TITLE === $mode && !TitleMatcher::matches($query, $result->title ?? '')) {
+                        $this->logger->warning('Résultat rejeté par le garde-fou de titre pour {provider} : "{resultTitle}" vs "{query}"', [
+                            'provider' => $provider->getName(),
+                            'query' => $query,
+                            'resultTitle' => $result->title,
+                        ]);
+
+                        continue;
+                    }
+
                     $providerResults[] = [$provider, $result];
                     $this->sources[] = $provider->getName();
                 }
@@ -391,6 +407,16 @@ class LookupOrchestrator
                 }
 
                 if ($enriched instanceof LookupResult) {
+                    if (null !== $merged->title && null !== $enriched->title && !TitleMatcher::matches($merged->title, $enriched->title)) {
+                        $this->logger->warning('Enrichissement rejeté par le garde-fou de titre pour {provider} : "{resultTitle}" vs "{mergedTitle}"', [
+                            'provider' => $provider->getName(),
+                            'mergedTitle' => $merged->title,
+                            'resultTitle' => $enriched->title,
+                        ]);
+
+                        continue;
+                    }
+
                     $enrichResults[] = [$provider, $enriched];
                     $this->sources[] = $enriched->source;
                 }

@@ -9,71 +9,94 @@ namespace App\Service\Lookup\Util;
  */
 final class TitleMatcher
 {
-    /** Mots trop courants pour être discriminants (articles, prépositions, etc.). */
-    private const array STOPWORDS = ['au', 'aux', 'ce', 'ces', 'de', 'des', 'du', 'en', 'et', 'la', 'le', 'les', 'of', 'the', 'un', 'une'];
+    /** Seuil minimal de similarité Levenshtein par défaut (85%). */
+    public const float DEFAULT_THRESHOLD = 0.85;
 
-    /** Longueur minimale pour qu'un mot soit considéré significatif. */
-    private const int MIN_WORD_LENGTH = 3;
+    /** Articles et stopwords courants ignorés pour la comparaison de titre. */
+    private const array ARTICLES = [
+        'a', 'an', 'au', 'aux', 'ce', 'ces', 'd', 'de', 'des', 'du', 'en', 'et', 'l', 'la', 'le', 'les', 'of', 'the', 'un', 'une',
+    ];
 
     /**
-     * Vérifie si un titre de résultat correspond suffisamment à la requête.
-     *
-     * Retourne true si la requête n'a pas de mots significatifs (pas de filtrage possible)
-     * ou si au moins un mot significatif de la requête est présent dans le titre.
+     * Vérifie si un titre de résultat correspond à la requête selon le seuil Levenshtein.
      */
-    public static function matches(string $query, string $resultTitle): bool
+    public static function matches(string $query, string $resultTitle, float $threshold = self::DEFAULT_THRESHOLD): bool
     {
-        $queryWords = self::extractSignificantWords($query);
-
-        // Pas de mots significatifs dans la requête → pas de filtrage
-        if (0 === \count($queryWords)) {
-            return true;
-        }
-
-        $normalizedTitle = self::normalize($resultTitle);
-
-        if ('' === $normalizedTitle) {
-            return false;
-        }
-
-        return \array_any($queryWords, static fn ($word): bool => \str_contains($normalizedTitle, $word));
+        return self::similarity($query, $resultTitle) >= $threshold;
     }
 
     /**
-     * Extrait les mots significatifs d'une chaîne (hors stopwords et mots courts).
-     *
-     * @return list<string>
+     * Calcule le score de similarité normalisé (0.0 à 1.0) entre la requête et le titre.
      */
-    private static function extractSignificantWords(string $text): array
+    public static function similarity(string $query, string $resultTitle): float
     {
-        $normalized = self::normalize($text);
+        $normQuery = self::normalizeForMatching($query);
+        $normTitle = self::normalizeForMatching($resultTitle);
 
-        if ('' === $normalized) {
-            return [];
+        if ($normQuery === $normTitle) {
+            return '' === $normQuery ? 0.0 : 1.0;
         }
 
-        $words = \preg_split('/[\s\-_:,;.!?]+/', $normalized, -1, \PREG_SPLIT_NO_EMPTY) ?: [];
-        $significant = [];
+        if ('' === $normQuery || '' === $normTitle) {
+            return 0.0;
+        }
 
-        foreach ($words as $word) {
-            if (\mb_strlen($word) >= self::MIN_WORD_LENGTH && !\in_array($word, self::STOPWORDS, true)) {
-                $significant[] = $word;
+        $lenQuery = \strlen($normQuery);
+        $lenTitle = \strlen($normTitle);
+        $maxLen = \max($lenQuery, $lenTitle);
+
+        // Borne inférieure mathématique : dist >= |lenA - lenB|
+        // Si |lenA - lenB| / maxLen > (1.0 - 0.85), la similarité ne peut pas atteindre 85%
+        $diff = \abs($lenQuery - $lenTitle);
+        if (($diff / $maxLen) > (1.0 - self::DEFAULT_THRESHOLD)) {
+            return 0.0;
+        }
+
+        if ($maxLen > 255) {
+            $safeQuery = \mb_substr($normQuery, 0, 255);
+            $safeTitle = \mb_substr($normTitle, 0, 255);
+            $safeMaxLen = \max(\strlen($safeQuery), \strlen($safeTitle));
+            $dist = \levenshtein($safeQuery, $safeTitle);
+            if ($dist < 0) {
+                return 0.0;
             }
+
+            return \max(0.0, 1.0 - ($dist / $safeMaxLen));
         }
 
-        return $significant;
+        $dist = \levenshtein($normQuery, $normTitle);
+        if ($dist < 0) {
+            return 0.0;
+        }
+
+        return \max(0.0, 1.0 - ($dist / $maxLen));
     }
 
     /**
-     * Normalise une chaîne : minuscules, suppression des accents, trim.
+     * Normalise un titre pour la comparaison : nettoyage tomes, casse, accents, stopwords, ponctuation.
      */
-    private static function normalize(string $text): string
+    public static function normalizeForMatching(string $text): string
     {
-        $text = \mb_strtolower(\trim($text));
+        $cleaned = LookupTitleCleaner::clean($text);
+        $normalized = \mb_strtolower(\trim($cleaned));
 
-        // Suppression des accents via translitération
-        $transliterated = \transliterator_transliterate('NFD; [:Nonspacing Mark:] Remove; NFC', $text);
+        $transliterated = \transliterator_transliterate('NFD; [:Nonspacing Mark:] Remove; NFC', $normalized);
+        if (\is_string($transliterated)) {
+            $normalized = $transliterated;
+        }
 
-        return \is_string($transliterated) ? $transliterated : $text;
+        $normalized = \str_replace('&', 'et', $normalized);
+        $normalized = (string) \preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $normalized);
+
+        $articlesPattern = '/\b('.\implode('|', self::ARTICLES).')\b/u';
+        $withoutArticles = (string) \preg_replace($articlesPattern, ' ', $normalized);
+
+        $collapsed = \trim((string) \preg_replace('/\s+/', ' ', $withoutArticles));
+
+        if ('' === $collapsed) {
+            $collapsed = \trim((string) \preg_replace('/\s+/', ' ', $normalized));
+        }
+
+        return $collapsed;
     }
 }

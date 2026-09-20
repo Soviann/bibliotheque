@@ -214,6 +214,101 @@ final class CoverDownloaderTest extends TestCase
         self::assertNull($series->getCoverFile());
     }
 
+    public function testDownloadRejectsLowResolutionImage(): void
+    {
+        $imageData = $this->createTestImage(80, 100);
+        $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
+        $downloader = $this->createDownloader($httpClient);
+
+        $series = EntityFactory::createComicSeries('Test');
+        $result = $downloader->downloadAndStore($series, 'https://example.com/too-small.jpg');
+
+        self::assertFalse($result);
+        self::assertNull($series->getCoverFile());
+    }
+
+    public function testDownloadRejectsLandscapeRatio(): void
+    {
+        $imageData = $this->createTestImage(800, 600); // ratio 1.33 > 0.95
+        $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
+        $downloader = $this->createDownloader($httpClient);
+
+        $series = EntityFactory::createComicSeries('Test');
+        $result = $downloader->downloadAndStore($series, 'https://example.com/landscape.jpg');
+
+        self::assertFalse($result);
+        self::assertNull($series->getCoverFile());
+    }
+
+    public function testDownloadRejectsTooNarrowRatio(): void
+    {
+        $imageData = $this->createTestImage(150, 600); // ratio 0.25 < 0.40
+        $httpClient = new MockHttpClient([new MockResponse($imageData, ['http_code' => 200])]);
+        $downloader = $this->createDownloader($httpClient);
+
+        $series = EntityFactory::createComicSeries('Test');
+        $result = $downloader->downloadAndStore($series, 'https://example.com/strip.jpg');
+
+        self::assertFalse($result);
+        self::assertNull($series->getCoverFile());
+    }
+
+    public function testDownloadRejectsPlaceholderUrl(): void
+    {
+        $httpClient = new MockHttpClient([]);
+        $downloader = $this->createDownloader($httpClient);
+
+        $series = EntityFactory::createComicSeries('Test');
+        $result = $downloader->downloadAndStore($series, 'https://example.com/images/default.jpg');
+
+        self::assertFalse($result);
+        self::assertNull($series->getCoverFile());
+    }
+
+    public function testDownloadRejectsTinyPayload(): void
+    {
+        $httpClient = new MockHttpClient([new MockResponse('GIF89a...', ['http_code' => 200])]);
+        $downloader = $this->createDownloader($httpClient);
+
+        $series = EntityFactory::createComicSeries('Test');
+        $result = $downloader->downloadAndStore($series, 'https://example.com/tiny.gif');
+
+        self::assertFalse($result);
+        self::assertNull($series->getCoverFile());
+    }
+
+    public function testDownloadFollowsSafeRedirect(): void
+    {
+        $imageData = $this->createTestImage(600, 900);
+        $httpClient = new MockHttpClient([
+            new MockResponse('', ['http_code' => 302, 'response_headers' => ['Location' => 'https://example.com/cdn/cover.jpg']]),
+            new MockResponse($imageData, ['http_code' => 200]),
+        ]);
+        $downloader = $this->createDownloader($httpClient);
+
+        $series = EntityFactory::createComicSeries('Test');
+        $result = $downloader->downloadAndStore($series, 'https://example.com/redirect-cover');
+
+        self::assertTrue($result);
+        self::assertNotNull($series->getCoverFile());
+
+        @\unlink($series->getCoverFile()->getPathname());
+    }
+
+    public function testDownloadRejectsRedirectToPrivateIp(): void
+    {
+        $httpClient = new MockHttpClient([
+            new MockResponse('', ['http_code' => 302, 'response_headers' => ['Location' => 'http://10.0.0.1/private.jpg']]),
+        ]);
+        $downloader = $this->createDownloader($httpClient);
+
+        $series = EntityFactory::createComicSeries('Test');
+        $result = $downloader->downloadAndStore($series, 'https://example.com/redirect-to-private');
+
+        self::assertFalse($result);
+        self::assertNull($series->getCoverFile());
+    }
+
     private function createDownloader(
         MockHttpClient $httpClient,
         ?callable $dnsResolver = null,

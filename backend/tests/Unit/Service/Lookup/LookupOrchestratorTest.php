@@ -562,6 +562,51 @@ final class LookupOrchestratorTest extends TestCase
     }
 
     /**
+     * Teste qu'un enrichissement avec un titre trop divergent est rejeté par le garde-fou.
+     */
+    public function testTryEnrichRejectsMismatchedTitle(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('warning');
+
+        $lookupResult = new LookupResult(
+            authors: 'Oda',
+            source: 'lookup_provider',
+            title: 'One Piece',
+        );
+
+        $lookupProvider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'lookup_provider',
+            result: $lookupResult,
+            supports: true,
+        );
+
+        $enrichResult = new LookupResult(
+            description: 'Un autre manga complètement différent',
+            source: 'mismatched_enrich',
+            title: 'Naruto Shippuden',
+        );
+
+        $enrichProvider = $this->createStubEnrichableProvider(
+            enrichResult: $enrichResult,
+            fieldPriority: 50,
+            name: 'mismatched_enrich',
+            result: null,
+            supports: false,
+        );
+
+        $orchestrator = new LookupOrchestrator(30.0, $logger, [$lookupProvider, $enrichProvider]);
+
+        $result = $orchestrator->lookup('1234567890');
+
+        self::assertNotNull($result);
+        self::assertSame('One Piece', $result->title);
+        self::assertNull($result->description);
+        self::assertNotContains('mismatched_enrich', $orchestrator->getLastSources());
+    }
+
+    /**
      * Teste que lookupByTitle propage le ComicType aux appels supports() et prepareLookup().
      */
     public function testLookupByTitlePropagatesComicType(): void
@@ -797,7 +842,7 @@ final class LookupOrchestratorTest extends TestCase
             name: 'multi_provider',
             results: [
                 new LookupResult(authors: 'Oda', source: 'multi_provider', title: 'One Piece'),
-                new LookupResult(authors: 'Oda', source: 'multi_provider', title: 'One Piece Party'),
+                new LookupResult(authors: 'Oda', source: 'multi_provider', title: 'One Piece - Tome 1'),
             ],
             supports: true,
         );
@@ -808,7 +853,7 @@ final class LookupOrchestratorTest extends TestCase
 
         self::assertCount(2, $results);
         self::assertSame('One Piece', $results[0]->title);
-        self::assertSame('One Piece Party', $results[1]->title);
+        self::assertSame('One Piece - Tome 1', $results[1]->title);
     }
 
     /**
@@ -821,7 +866,6 @@ final class LookupOrchestratorTest extends TestCase
             name: 'provider1',
             results: [
                 new LookupResult(source: 'provider1', title: 'One Piece'),
-                new LookupResult(source: 'provider1', title: 'Naruto'),
             ],
             supports: true,
         );
@@ -831,21 +875,17 @@ final class LookupOrchestratorTest extends TestCase
             name: 'provider2',
             results: [
                 new LookupResult(source: 'provider2', thumbnail: 'https://img.jpg', title: 'one piece'),
-                new LookupResult(source: 'provider2', title: 'Bleach'),
             ],
             supports: true,
         );
 
         $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider1, $provider2]);
 
-        $results = $orchestrator->lookupByTitleMultiple('piece naruto bleach', null, 10);
+        $results = $orchestrator->lookupByTitleMultiple('One Piece', null, 10);
 
-        // 3 titres distincts: one piece, naruto, bleach
-        self::assertCount(3, $results);
-        $titles = \array_map(static fn (LookupResult $r): ?string => $r->title, $results);
-        self::assertContains('One Piece', $titles);
-        self::assertContains('Naruto', $titles);
-        self::assertContains('Bleach', $titles);
+        // 'One Piece' et 'one piece' doivent être dédupliqués en 1 seul résultat
+        self::assertCount(1, $results);
+        self::assertSame('One Piece', $results[0]->title);
     }
 
     /**
@@ -856,25 +896,25 @@ final class LookupOrchestratorTest extends TestCase
         $regularProvider = $this->createStubProvider(
             fieldPriority: 200,
             name: 'regular',
-            result: new LookupResult(source: 'regular', title: 'Single Result'),
+            result: new LookupResult(source: 'regular', title: 'My Series'),
             supports: true,
         );
 
         $multiProvider = $this->createStubMultiResultProvider(
             fieldPriority: 100,
             name: 'multi',
-            results: [new LookupResult(source: 'multi', title: 'Multi Result')],
+            results: [new LookupResult(source: 'multi', title: 'My Series - Tome 1')],
             supports: true,
         );
 
         $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$regularProvider, $multiProvider]);
 
-        $results = $orchestrator->lookupByTitleMultiple('Result', null, 5);
+        $results = $orchestrator->lookupByTitleMultiple('My Series', null, 5);
 
         self::assertCount(2, $results);
         $titles = \array_map(static fn (LookupResult $r): ?string => $r->title, $results);
-        self::assertContains('Single Result', $titles);
-        self::assertContains('Multi Result', $titles);
+        self::assertContains('My Series', $titles);
+        self::assertContains('My Series - Tome 1', $titles);
     }
 
     /**
@@ -928,7 +968,7 @@ final class LookupOrchestratorTest extends TestCase
     }
 
     /**
-     * Teste lookupByTitleMultiple filtre les résultats dont le titre ne correspond pas à la requête.
+     * Teste lookupByTitleMultiple filtre les résultats dont le titre ne correspond pas à la requête avec Levenshtein >= 85%.
      */
     public function testLookupByTitleMultipleFiltersIrrelevantResults(): void
     {
@@ -936,7 +976,8 @@ final class LookupOrchestratorTest extends TestCase
             fieldPriority: 100,
             name: 'provider',
             results: [
-                new LookupResult(source: 'provider', title: '3 instincts : La survie'),
+                new LookupResult(source: 'provider', title: '3 instincts'),
+                new LookupResult(source: 'provider', title: '3 instincts - Tome 1'),
                 new LookupResult(source: 'provider', title: 'Le guide des oiseaux'),
                 new LookupResult(source: 'provider', title: 'Cuisine pour les nuls'),
                 new LookupResult(source: 'provider', title: 'Les instincts primaires'),
@@ -949,34 +990,31 @@ final class LookupOrchestratorTest extends TestCase
 
         $results = $orchestrator->lookupByTitleMultiple('3 instincts', ComicType::BD, 5);
 
-        // Seuls les titres contenant "instinct" devraient passer
+        // Seuls "3 instincts" et "3 instincts - Tome 1" doivent passer
         self::assertCount(2, $results);
         $titles = \array_map(static fn (LookupResult $r): ?string => $r->title, $results);
-        self::assertContains('3 instincts : La survie', $titles);
-        self::assertContains('Les instincts primaires', $titles);
+        self::assertContains('3 instincts', $titles);
+        self::assertContains('3 instincts - Tome 1', $titles);
+        self::assertNotContains('Les instincts primaires', $titles);
     }
 
     /**
-     * Teste lookupByTitleMultiple ne filtre pas quand la requête n'a pas de mots significatifs.
+     * Teste que doLookup rejette un résultat dont le titre a une similarité Levenshtein < 85%.
      */
-    public function testLookupByTitleMultipleNoFilterWhenNoSignificantWords(): void
+    public function testLookupByTitleRejectsResultWhenTitleDoesNotMatchWithLevenshtein(): void
     {
-        $provider = $this->createStubMultiResultProvider(
+        $provider = $this->createStubProvider(
             fieldPriority: 100,
-            name: 'provider',
-            results: [
-                new LookupResult(source: 'provider', title: 'Titre A'),
-                new LookupResult(source: 'provider', title: 'Titre B'),
-            ],
+            name: 'spin_off_provider',
+            result: new LookupResult(source: 'spin_off_provider', title: 'Naruto Shippuden'),
             supports: true,
         );
 
         $orchestrator = new LookupOrchestrator(30.0, new NullLogger(), [$provider]);
 
-        // Requête avec uniquement des mots courts → pas de filtrage
-        $results = $orchestrator->lookupByTitleMultiple('le la', null, 5);
+        $result = $orchestrator->lookupByTitle('Naruto');
 
-        self::assertCount(2, $results);
+        self::assertNull($result);
     }
 
     /**

@@ -12,16 +12,20 @@ namespace App\Service\Lookup\Util;
  */
 final class GoogleBooksUrlHelper
 {
-    public static function optimizeThumbnailUrl(string $url): string
+    public static function optimizeThumbnailUrl(string $url): ?string
     {
+        if (\str_contains($url, 'gbs_preview_button') || \str_contains($url, 'no_cover')) {
+            return null;
+        }
+
         if (!\str_contains($url, 'books.google.com/')) {
             return $url;
         }
 
         $url = (string) \preg_replace('#^http://#', 'https://', $url);
         $url = \str_replace('zoom=1', 'zoom=0', $url);
-        $url = (string) \preg_replace('/&?edge=curl&?/', '&', $url);
+        $url = (string) \preg_replace('/([?&])edge=curl(&|$)/', '$1', $url);
 
-        return \rtrim($url, '&');
+        return \rtrim($url, '?&');
     }
 }

@@ -127,7 +127,7 @@ Reference for implementing features without exploring the codebase.
 ### Cover (`Service/Cover/`)
 | Service | Key API |
 |---------|---------|
-| `CoverDownloader` | `downloadAndStore(series, url): bool` — HTTP GET → resize 600×900 → WebP → VichUploader |
+| `CoverDownloader` | `downloadAndStore(series, url): bool` — HTTP GET → validation ratio/résolution/placeholders → resize 600×900 → WebP → VichUploader |
 | `CoverRemoverInterface` / `VichCoverRemover` | Cover removal + LiipImagine cache invalidation |
 | `CoverSearchService` | `search(query, ?type): CoverSearchResult[]` — Google Books + Serper |
 | `ThumbnailGenerator` | `generate(coverImage): void` — pre-warms LiipImagine `cover_thumbnail` |
@@ -207,9 +207,9 @@ Reference for implementing features without exploring the codebase.
 **Util/ (stateless helpers):**
 | Class | Purpose |
 |-------|---------|
-| `GoogleBooksUrlHelper` | Static `optimizeThumbnailUrl(string): string` — HTTPS, zoom=0, remove edge=curl |
+| `GoogleBooksUrlHelper` | Static `optimizeThumbnailUrl(string): ?string` — HTTPS, zoom=0, remove edge=curl, null on placeholder |
 | `LookupTitleCleaner` | Static `clean(title): string` — removes tome/volume suffixes |
-| `TitleMatcher` | Static `matches(query, resultTitle): bool` |
+| `TitleMatcher` | Static `matches(query, resultTitle, threshold=0.85): bool`, `similarity(query, resultTitle): float` (Levenshtein > 85%) |
 
 ## Repositories (`backend/src/Repository/`)
 

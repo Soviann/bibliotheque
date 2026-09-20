@@ -25,6 +25,7 @@ final class GoogleBooksUrlHelperTest extends TestCase
     {
         $url = 'http://books.google.com/books/content?id=abc&zoom=0';
         $result = GoogleBooksUrlHelper::optimizeThumbnailUrl($url);
+        self::assertNotNull($result);
         self::assertStringStartsWith('https://', $result);
     }
 
@@ -33,6 +34,7 @@ final class GoogleBooksUrlHelperTest extends TestCase
     {
         $url = 'https://books.google.com/books/content?id=abc&zoom=1';
         $result = GoogleBooksUrlHelper::optimizeThumbnailUrl($url);
+        self::assertNotNull($result);
         self::assertStringContainsString('zoom=0', $result);
         self::assertStringNotContainsString('zoom=1', $result);
     }
@@ -42,7 +44,24 @@ final class GoogleBooksUrlHelperTest extends TestCase
     {
         $url = 'https://books.google.com/books/content?id=abc&edge=curl&zoom=1';
         $result = GoogleBooksUrlHelper::optimizeThumbnailUrl($url);
+        self::assertNotNull($result);
         self::assertStringNotContainsString('edge=curl', $result);
+    }
+
+    #[Test]
+    public function edgeCurlAsFirstParamIsCleanedWithoutLeadingAmpersand(): void
+    {
+        $url = 'https://books.google.com/books/content?edge=curl&id=abc';
+        $result = GoogleBooksUrlHelper::optimizeThumbnailUrl($url);
+        self::assertSame('https://books.google.com/books/content?id=abc', $result);
+    }
+
+    #[Test]
+    public function edgeCurlAsOnlyParamIsCleanedWithoutTrailingQuestionMark(): void
+    {
+        $url = 'https://books.google.com/books/content?edge=curl';
+        $result = GoogleBooksUrlHelper::optimizeThumbnailUrl($url);
+        self::assertSame('https://books.google.com/books/content', $result);
     }
 
     #[Test]
@@ -50,6 +69,7 @@ final class GoogleBooksUrlHelperTest extends TestCase
     {
         $url = 'https://books.google.com/books/content?id=abc&edge=curl';
         $result = GoogleBooksUrlHelper::optimizeThumbnailUrl($url);
+        self::assertNotNull($result);
         self::assertStringEndsNotWith('&', $result);
     }
 
@@ -59,5 +79,12 @@ final class GoogleBooksUrlHelperTest extends TestCase
         $url = 'http://books.google.com/books/content?id=abc&zoom=1&edge=curl';
         $expected = 'https://books.google.com/books/content?id=abc&zoom=0';
         self::assertSame($expected, GoogleBooksUrlHelper::optimizeThumbnailUrl($url));
+    }
+
+    #[Test]
+    public function placeholderUrlsReturnNull(): void
+    {
+        self::assertNull(GoogleBooksUrlHelper::optimizeThumbnailUrl('https://books.google.com/books/content?id=abc&gbs_preview_button=true'));
+        self::assertNull(GoogleBooksUrlHelper::optimizeThumbnailUrl('https://books.google.com/books/content?id=abc&no_cover=1'));
     }
 }

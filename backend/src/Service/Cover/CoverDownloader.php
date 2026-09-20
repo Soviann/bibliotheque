@@ -19,7 +19,27 @@ readonly class CoverDownloader
 {
     private const int MAX_HEIGHT = 900;
     private const int MAX_WIDTH = 600;
+    private const int MIN_HEIGHT = 180;
+    private const int MIN_WIDTH = 120;
+    private const float MIN_ASPECT_RATIO = 0.40;
+    private const float MAX_ASPECT_RATIO = 0.95;
+    private const int MIN_PAYLOAD_SIZE = 100;
     private const int WEBP_QUALITY = 85;
+
+    /** Motifs d'URL indiquant des images de remplacement ou d'absence de couverture. */
+    private const array PLACEHOLDER_URL_PATTERNS = [
+        'blank.gif',
+        'default.jpg',
+        'default.png',
+        'gbs_preview_button',
+        'image-not-available',
+        'no-cover',
+        'no_cover',
+        'nocover',
+        'pixel.gif',
+        'placeholder',
+        'spacer.gif',
+    ];
 
     /**
      * @param (callable(string): list<string>)|null $dnsResolver
@@ -47,17 +67,70 @@ readonly class CoverDownloader
 
             return false;
         }
-        try {
-            $response = $this->httpClient->request('GET', $url, [
-                'max_redirects' => 0,
-                'timeout' => 15,
+
+        if ($this->isPlaceholderUrl($url)) {
+            $this->logger->warning('Téléchargement de couverture rejeté : URL de placeholder détectée', [
+                'series' => $series->getTitle(),
+                'url' => $url,
             ]);
+
+            return false;
+        }
+
+        $currentUrl = $url;
+        $maxRedirects = 3;
+        $redirectCount = 0;
+
+        try {
+            $response = null;
+
+            while ($redirectCount <= $maxRedirects) {
+                $response = $this->httpClient->request('GET', $currentUrl, [
+                    'max_redirects' => 0,
+                    'timeout' => 15,
+                ]);
+
+                $statusCode = $response->getStatusCode();
+
+                if (\in_array($statusCode, [301, 302, 307, 308], true)) {
+                    $headers = $response->getHeaders(false);
+                    $location = $headers['location'][0] ?? null;
+
+                    if (null === $location || '' === $location) {
+                        $this->logger->warning('Redirection sans en-tête Location pour {url}', [
+                            'series' => $series->getTitle(),
+                            'url' => $currentUrl,
+                        ]);
+
+                        return false;
+                    }
+
+                    $nextUrl = $this->resolveRedirectUrl($currentUrl, $location);
+
+                    if (!$this->isSafeUrl($nextUrl) || $this->isPlaceholderUrl($nextUrl)) {
+                        $this->logger->warning('Redirection de couverture rejetée pour URL non sécurisée ou placeholder : {nextUrl}', [
+                            'nextUrl' => $nextUrl,
+                            'series' => $series->getTitle(),
+                            'url' => $currentUrl,
+                        ]);
+
+                        return false;
+                    }
+
+                    $currentUrl = $nextUrl;
+                    ++$redirectCount;
+
+                    continue;
+                }
+
+                break;
+            }
 
             if (200 !== $response->getStatusCode()) {
                 $this->logger->warning('Échec du téléchargement de la couverture : HTTP {code}', [
                     'code' => $response->getStatusCode(),
                     'series' => $series->getTitle(),
-                    'url' => $url,
+                    'url' => $currentUrl,
                 ]);
 
                 return false;
@@ -65,10 +138,44 @@ readonly class CoverDownloader
 
             $content = $response->getContent();
 
-            if ('' === $content) {
-                $this->logger->warning('Couverture vide reçue', [
+            if (\strlen($content) < self::MIN_PAYLOAD_SIZE) {
+                $this->logger->warning('Couverture rejetée : fichier trop petit ou vide (< {min} octets)', [
+                    'min' => self::MIN_PAYLOAD_SIZE,
+                    'series' => $series->getTitle(),
+                    'size' => \strlen($content),
+                    'url' => $url,
+                ]);
+
+                return false;
+            }
+
+            $image = $this->imageManager->decode($content);
+            $width = $image->width();
+            $height = $image->height();
+
+            if ($width < self::MIN_WIDTH || $height < self::MIN_HEIGHT) {
+                $this->logger->warning('Couverture rejetée : résolution insuffisante ({width}x{height}, minimum {minWidth}x{minHeight})', [
+                    'height' => $height,
+                    'minHeight' => self::MIN_HEIGHT,
+                    'minWidth' => self::MIN_WIDTH,
                     'series' => $series->getTitle(),
                     'url' => $url,
+                    'width' => $width,
+                ]);
+
+                return false;
+            }
+
+            $ratio = $width / $height;
+            if ($ratio < self::MIN_ASPECT_RATIO || $ratio > self::MAX_ASPECT_RATIO) {
+                $this->logger->warning('Couverture rejetée : ratio d\'aspect inadapté pour une couverture ({ratio}, attendu entre {minRatio} et {maxRatio})', [
+                    'height' => $height,
+                    'maxRatio' => self::MAX_ASPECT_RATIO,
+                    'minRatio' => self::MIN_ASPECT_RATIO,
+                    'ratio' => \round($ratio, 2),
+                    'series' => $series->getTitle(),
+                    'url' => $url,
+                    'width' => $width,
                 ]);
 
                 return false;
@@ -76,8 +183,7 @@ readonly class CoverDownloader
 
             $tempPath = \sprintf('%s/cover_%s_%s.webp', \sys_get_temp_dir(), $series->getId() ?? 0, \uniqid());
 
-            $this->imageManager->decode($content)
-                ->scaleDown(self::MAX_WIDTH, self::MAX_HEIGHT)
+            $image->scaleDown(self::MAX_WIDTH, self::MAX_HEIGHT)
                 ->encode(new WebpEncoder(self::WEBP_QUALITY))
                 ->save($tempPath);
 
@@ -98,6 +204,21 @@ readonly class CoverDownloader
 
             return false;
         }
+    }
+
+    /**
+     * Détecte si l'URL correspond à un placeholder connu.
+     */
+    private function isPlaceholderUrl(string $url): bool
+    {
+        $lower = \mb_strtolower($url);
+        foreach (self::PLACEHOLDER_URL_PATTERNS as $pattern) {
+            if (\str_contains($lower, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -144,5 +265,38 @@ readonly class CoverDownloader
         }
 
         return true;
+    }
+
+    /**
+     * Résout une URL de redirection (relative ou absolue) par rapport à l'URL courante.
+     */
+    private function resolveRedirectUrl(string $baseUrl, string $location): string
+    {
+        if (1 === \preg_match('#^https?://#i', $location)) {
+            return $location;
+        }
+
+        $parsed = \parse_url($baseUrl);
+        if (false === $parsed || !isset($parsed['scheme'], $parsed['host'])) {
+            return $location;
+        }
+
+        $scheme = $parsed['scheme'];
+        $host = $parsed['host'];
+        $port = isset($parsed['port']) ? ':'.$parsed['port'] : '';
+
+        if (\str_starts_with($location, '//')) {
+            return $scheme.':'.$location;
+        }
+
+        if (\str_starts_with($location, '/')) {
+            return \sprintf('%s://%s%s%s', $scheme, $host, $port, $location);
+        }
+
+        $path = $parsed['path'] ?? '/';
+        $dir = \dirname($path);
+        $cleanDir = '/' === $dir ? '' : $dir;
+
+        return \sprintf('%s://%s%s%s/%s', $scheme, $host, $port, $cleanDir, $location);
     }
 }
