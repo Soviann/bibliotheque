@@ -20,12 +20,13 @@ Reference for implementing features without exploring the codebase.
 
 | Enum | Cases |
 |------|-------|
-| `ComicStatus` | `BUYING`, `FINISHED`, `STOPPED`, `WISHLIST` — `getLabel()` |
+| `ComicStatus` | `BUYING`, `DOWNLOADING`, `FINISHED`, `STOPPED`, `WISHLIST` — `getLabel()` |
 | `ComicType` | `BD`, `COMICS`, `LIVRE`, `MANGA` — `getLabel()` |
 | `ApiLookupStatus` | `ERROR`, `NOT_FOUND`, `RATE_LIMITED`, `SUCCESS`, `TIMEOUT` |
 | `BatchLookupStatus` | `FAILED`, `SKIPPED`, `UPDATED` — `getLabel()` |
 | `EnrichableField` | `AMAZON_URL`, `AUTHORS`, `COVER`, `DESCRIPTION`, `ISBN`, `IS_ONE_SHOT`, `LATEST_PUBLISHED_ISSUE`, `PUBLISHER` |
 | `EnrichmentConfidence` | `HIGH`, `LOW`, `MEDIUM` — `fromScore(float)` |
+| `LookupMode` | `ISBN`, `TITLE` |
 | `NotificationChannel` | `BOTH`, `IN_APP`, `OFF`, `PUSH` — `getLabel()` |
 | `NotificationEntityType` | `AUTHOR`, `COMIC_SERIES`, `ENRICHMENT_PROPOSAL` |
 | `NotificationType` | `AUTHOR_NEW_SERIES`, `ENRICHMENT_APPLIED`, `ENRICHMENT_REVIEW`, `MISSING_TOME`, `NEW_RELEASE` — `getLabel()` |
@@ -36,20 +37,22 @@ Reference for implementing features without exploring the codebase.
 
 | DTO | Purpose |
 |-----|---------|
-| `BatchLookupProgress` | Single lookup progress (JsonSerializable) |
-| `BatchLookupSummary` | Batch summary: failed/processed/skipped/updated (JsonSerializable) |
-| `RowImportResult` | Per-row import result (isUpdate, metadataApplied, series, tomesCount) |
+| `AuthorReleaseResult` | Result of followed author new series detection (authorName, newSeriesTitle, type) |
 | `ComicSeriesFilter` | Query filters for `findWithFilters()` |
 | `ComicSeriesListItem` | Cached API list item (JsonSerializable, `fromEntity()`, `__unserialize()` for cache compat) |
 | `CoverSearchResult` | Cover image search result (JsonSerializable) |
 | `ImportResult` | Global import result: typeDetails, totals (JsonSerializable) |
-| `NasSeriesData` | Series extracted from NAS (title, lastOnNas, readUpTo, readComplete, isComplete) |
-| `ParsedIntegerValue` | Parsed Excel integer/fini/fini N |
 | `MergeGroup` / `MergeGroupEntry` | Detected merge group + entries (JsonSerializable) |
-| `NewReleaseProgress` | New release check progress (JsonSerializable) |
 | `MergePreview` / `MergePreviewTome` | Full merge preview + tomes (JsonSerializable) |
+| `MissingTomeResult` | Missing tomes result (missingNumbers, seriesId, seriesTitle) |
+| `NasSeriesData` | Series extracted from NAS (title, lastOnNas, readUpTo, readComplete, isComplete) |
+| `NewReleaseProgress` | New release check progress (JsonSerializable) |
+| `ParsedIntegerValue` | Parsed Excel integer/fini/fini N |
 | `PurgeableSeries` | Series eligible for purge (JsonSerializable) |
+| `RowImportResult` | Per-row import result (isUpdate, metadataApplied, series, tomesCount) |
 | `Service/Lookup/Contract/ApiMessage` | Lookup provider API status (JsonSerializable) |
+| `Share/ShareResolution` | Result of shared link resolution (matched, seriesId, lookupResult) |
+| `Share/ShareUrlInfo` | Extracted data from shared URL (isbn, titleHint, type) |
 
 ## Domain Events (`backend/src/Event/`)
 
@@ -63,43 +66,54 @@ Reference for implementing features without exploring the codebase.
 |----------|---------|
 | `ComicSeriesCacheInvalidator` | postPersist/Update/Remove: invalidates `comic_series_api.cache` for ComicSeries, Tome, Author |
 | `ComicSeriesEventListener` | postPersist/Update/Remove: dispatches domain events |
-| `HttpCacheListener` | kernel.response: ETag (content hash) + 304 Not Modified sur GET `/api/comic_series` |
-| `JwtTokenVersionListener` | JWT create: adds tokenVersion. JWT decode: validates version match |
-| `EnrichOnCreateListener` | ComicSeriesCreatedEvent → dispatches `EnrichSeriesMessage` (async). `disable()`/`enable()` for batch imports |
-| `ReEnrichOnUpdateListener` | ComicSeriesUpdatedEvent → re-dispatches `EnrichSeriesMessage` if cover/description/publisher still null (cooldown 24h) |
 | `CoverUrlChangeListener` | preUpdate: dispatches `DownloadCoverMessage` (async) when `coverUrl` changes on ComicSeries |
+| `EnrichOnCreateListener` | ComicSeriesCreatedEvent → dispatches `EnrichSeriesMessage` (async). `disable()`/`enable()` for batch imports |
+| `HttpCacheListener` | kernel.response: ETag (content hash) + 304 Not Modified on GET `/api/comic_series` |
+| `JwtTokenVersionListener` | JWT create: adds tokenVersion. JWT decode: validates version match |
 | `PlaceholderSecretChecker` | kernel.request (priority 255): blocks prod if placeholder secrets |
+| `ReEnrichOnUpdateListener` | ComicSeriesUpdatedEvent → re-dispatches `EnrichSeriesMessage` if cover/description/publisher still null (cooldown 24h) |
+| `TomeLatestIssueListener` | prePersist/Update on Tome: updates `latestPublishedIssue` on parent ComicSeries when tome number is higher |
 
 ## Controllers (`backend/src/Controller/`)
 
 | Controller | Routes |
 |------------|--------|
 | `ApiController` | `GET /api/lookup/{isbn,title}?...&type=...` (JWT, 30/min) |
-| `BatchLookupController` | `GET /api/tools/batch-lookup/preview`, `POST .../run` (SSE) |
+| `BatchLookupController` | `GET /api/tools/batch-lookup/preview`, `POST .../run` (async Messenger queue) |
+| `DevLoginController` | `POST /api/login/dev` (dev-only, bypasses OAuth for automated testing/MCP) |
 | `GoogleLoginController` | `POST /api/login/google` (public) |
-| `MergeSeriesController` | `POST /api/merge-series/{detect,preview,execute}` |
+| `MergeSeriesController` | `POST /api/merge-series/{detect,preview,execute,suggest}` |
 | `NotificationController` | `GET /api/notifications/unread-count`, `PATCH /api/notifications/read-all` |
 | `PurgeController` | `GET /api/tools/purge/preview?days=30`, `POST .../execute` |
+| `ShareController` | `POST /api/share` (Web Share Target resolution: URL/title → DB match or lookup candidate) |
 
 ## State Processors & Providers (`backend/src/State/`)
 
 | File | Purpose |
 |------|---------|
+| `AuthorCreateProcessor` | POST `/api/authors`: find-or-create by name without triggering UniqueEntity violation |
 | `ComicSeriesDeleteProcessor` | Soft delete |
-| `ComicSeriesRestoreProcessor` | Restore from trash |
 | `ComicSeriesPermanentDeleteProcessor` | Permanent delete |
-| `SoftDeletedComicSeriesProvider` | Disables soft-delete filter for trashed access |
+| `ComicSeriesRestoreProcessor` | Restore from trash |
 | `EnrichmentProposalAcceptProcessor` | Accept proposal → apply value + log. Checks stale (409 Conflict) |
 | `EnrichmentProposalRejectProcessor` | Reject proposal → log |
 | `NotificationPreferenceInitializer` | AP4 provider: creates default prefs (IN_APP) on first GET |
+| `SoftDeletedComicSeriesProvider` | Disables soft-delete filter for trashed access |
 | `TrashCollectionProvider` | GET `/api/trash` |
 
 ## Messages & Handlers (`backend/src/Message/`, `backend/src/MessageHandler/`)
 
 | Message | Handler | Purpose |
 |---------|---------|---------|
-| `DownloadCoverMessage(seriesId, coverUrl)` | `DownloadCoverHandler` | Télécharge et stocke la couverture en WebP (async via Messenger) |
-| `EnrichSeriesMessage(seriesId)` | `EnrichSeriesHandler` | Enrichissement automatique via lookup providers (async via Messenger) |
+| `DownloadCoverMessage(seriesId, coverUrl)` | `DownloadCoverHandler` | Downloads and stores cover in WebP format (async via Messenger) |
+| `EnrichSeriesMessage(seriesId)` | `EnrichSeriesHandler` | Automated metadata enrichment via lookup providers (async via Messenger) |
+| `WarmThumbnailsMessage(coverImage)` | `WarmThumbnailsHandler` | Pre-warms LiipImagine thumbnail cache for cover (async via Messenger) |
+
+## Deploy Tasks (`backend/src/DeployTask/`)
+
+| File | Purpose |
+|------|---------|
+| `DeployTaskInterface` / `AbstractDeployTask` | One-off post-deployment database migration and data-fix runner (`app:deploy:run-tasks`) |
 
 ## Services (`backend/src/Service/`)
 
@@ -113,92 +127,100 @@ Reference for implementing features without exploring the codebase.
 | Service | Key API |
 |---------|---------|
 | `CoverDownloader` | `downloadAndStore(series, url): bool` — HTTP GET → resize 600×900 → WebP → VichUploader |
-| `CoverSearchService` | `search(query, ?type): CoverSearchResult[]` — Google Books + Serper |
 | `CoverRemoverInterface` / `VichCoverRemover` | Cover removal + LiipImagine cache invalidation |
+| `CoverSearchService` | `search(query, ?type): CoverSearchResult[]` — Google Books + Serper |
+| `ThumbnailGenerator` | `generate(coverImage): void` — pre-warms LiipImagine `cover_thumbnail` |
 | `Upload/UploadHandlerInterface` / `Upload/VichUploadHandlerAdapter` | VichUploader abstraction |
 
 ### Notification (`Service/Notification/`)
 | Service | Key API |
 |---------|---------|
-| `NotifierInterface` | Contract for notification dispatch |
 | `NotificationService` | `create(user, type, title, message, ?entityType, ?entityId, ?metadata): ?Notification` — checks prefs, sends push |
+| `NotifierInterface` | Contract for notification dispatch |
 | `WebPushService` | `sendToUser(user, title, body, ?url)` — VAPID Web Push via `minishlink/web-push` |
 
 ### Recommendation (`Service/Recommendation/`)
 | Service | Key API |
 |---------|---------|
-| `AuthorReleaseCheckerService` | `check(dryRun): Generator<AuthorReleaseResult>` — vérifie nouvelles séries d'auteurs suivis via GeminiQueryService |
-| `MissingTomeDetectorService` | `detect(dryRun): Generator<MissingTomeResult>` — détecte tomes manquants, crée notifications via NotifierInterface |
+| `AuthorReleaseCheckerService` | `check(dryRun): Generator<AuthorReleaseResult>` — checks new series from followed authors via Gemini |
+| `MissingTomeDetectorService` | `detect(dryRun): Generator<MissingTomeResult>` — detects missing tomes, dispatches notifications |
 | `NewReleaseCheckerService` | `run(dryRun, ?limit): Generator<NewReleaseProgress>` — checks new releases for BUYING series |
-| `SimilarSeriesService` | `generateSuggestions(): Generator<SeriesSuggestion>` — suggestions IA via GeminiQueryService |
+| `SimilarSeriesService` | `generateSuggestions(): Generator<SeriesSuggestion>` — AI suggestions via Gemini |
 
 ### Other modules
 | Service | Key API |
 |---------|---------|
 | `Enrichment/ConfidenceScorer` | `score(query, type, mode, result, sources): EnrichmentConfidence` |
 | `Enrichment/EnrichmentService` | `enrich(series, result, mode, sources): EnrichmentConfidence` — routes HIGH→apply, MEDIUM→propose, LOW→skip |
-| `Import/ImportService` | `import(filePath, dryRun): ImportResult` — tracking (cols 0-7) + métadonnées (cols 8-13) |
-| `Merge/SeriesGroupDetector` | `detect(): list<MergeGroup>` — Gemini AI grouping (batch size 50) |
-| `Merge/MergePreviewBuilder` | `buildFromGroup()`, `buildFromManualSelection()` — via GeminiClientPool |
+| `Import/ImportService` | `import(filePath, dryRun): ImportResult` — tracking + metadata Excel import |
+| `Merge/MergePreviewBuilder` | `buildFromGroup()`, `buildFromManualSelection()`, `suggestFromGemini()` |
 | `Merge/MergePreviewHydrator` | `hydrate(array): MergePreview` — JSON→DTO hydration |
+| `Merge/SeriesGroupDetector` | `detect(): list<MergeGroup>` — Gemini AI grouping (batch size 50) |
 | `Merge/SeriesMerger` | `execute(MergePreview): ComicSeries` — merge + cleanup |
 | `Nas/NasDirectoryParser` | Parse NAS directory listings → `NasSeriesData[]` (unread, read, in-progress) |
+| `Share/ShareResolver` | `resolve(info, ?titleFallback): ShareResolution` — lookup + fuzzy DB match |
+| `Share/ShareUrlParser` | `parse(url): ShareUrlInfo` — extracts ISBN or title hint from shared URL |
 
 ### Lookup (`Service/Lookup/`)
 
 **Root (public API):**
 | Class | Purpose |
 |-------|---------|
-| `LookupOrchestrator` | Coordinates providers, merges by field priority |
+| `BatchLookupService` | `countSeriesToProcess()`, `queue(): int` (dispatches `EnrichSeriesMessage` to worker) |
 | `LookupApplier` | Applies result to series (null fields only), creates missing tomes |
-| `BatchLookupService` | `countSeriesToProcess()`, `run(): Generator<BatchLookupProgress>` |
+| `LookupOrchestrator` | Coordinates providers, merges by field priority |
 
 **Contract/ (interfaces + DTOs):**
 | Class | Purpose |
 |-------|---------|
-| `LookupResult` | Immutable DTO (JsonSerializable): amazonUrl, authors, description, isbn, isOneShot, latestPublishedIssue, publishedDate, publisher, source, thumbnail, title, tomeEnd, tomeNumber |
-| `LookupProviderInterface` | `getFieldPriority(field, ?type)`, `supports(mode, type)`, `prepareLookup()`/`resolveLookup()` |
-| `EnrichableLookupProviderInterface` | Extends: `prepareEnrich`/`resolveEnrich` |
-| `MultiResultLookupProviderInterface` | Extends: `prepareMultipleLookup`/`resolveMultipleLookup` |
 | `ApiMessage` | Lookup provider API status (JsonSerializable) |
+| `EnrichableLookupProviderInterface` | Extends: `prepareEnrich`/`resolveEnrich` |
+| `LookupProviderInterface` | `getFieldPriority(field, ?type)`, `supports(mode, type)`, `prepareLookup()`/`resolveLookup()` |
+| `LookupResult` | Immutable DTO (JsonSerializable): amazonUrl, authors, description, isbn, isOneShot, latestPublishedIssue, publishedDate, publisher, source, thumbnail, title, tomeEnd, tomeNumber |
+| `MultiResultLookupProviderInterface` | Extends: `prepareMultipleLookup`/`resolveMultipleLookup` |
 
 **Gemini/ (Gemini infrastructure):**
 | Class | Purpose |
 |-------|---------|
+| `AbstractGeminiLookupProvider` | Extends AbstractLookupProvider: `callGemini()`, `consumeRateLimit()`, `prepareWithCache()`, CACHE_TTL=30d |
 | `GeminiClientPool` | Key × model rotation on 429, `executeWithRetry(callable): T` |
 | `GeminiJsonParser` | Static `parseJsonFromText(string): ?array` — parses Gemini JSON (with/without markdown code blocks) |
 | `GeminiQueryService` | `queryJsonArray(prompt): list<array>` — DRY helper for Gemini JSON queries |
-| `AbstractGeminiLookupProvider` | Extends AbstractLookupProvider: `callGemini()`, `consumeRateLimit()`, `prepareWithCache()`, CACHE_TTL=30d |
 
 **Provider/ (concrete providers):**
 | Provider | Mode | Default Priority |
 |----------|------|-----------------|
-| `GeminiLookup` | ISBN + title + enrichment | 40 |
 | `AniListLookup` | Title (manga only) | 60 |
-| `OpenLibraryLookup` | ISBN | 80 |
-| `BnfLookup` | ISBN + title | 90 |
-| `GoogleBooksLookup` | ISBN + title | 100 |
 | `BedethequeLookup` | ISBN + title (Gemini grounding) | BD:150, other:110, thumb:50 |
+| `BnfLookup` | ISBN + title | 90 |
+| `ComicVineLookup` | Title | publisher:100 (BD/Comics), other:55 |
+| `GeminiLookup` | ISBN + title + enrichment | 40 |
+| `GoogleBooksLookup` | ISBN + title | 100 |
+| `JikanLookup` | Title (manga only) | description/latestIssue:65, other:50 |
+| `KitsuLookup` | Title (manga only) | thumb:55, other:45 |
+| `MangaDexLookup` | Title (manga only) | authors:55, other:40 |
+| `OpenLibraryLookup` | ISBN | 80 |
 | `WikipediaLookup` | ISBN + title (cache 7d) | 120 (description: 10) |
 | `AbstractLookupProvider` | Base: shared `lastApiMessage`, `recordApiMessage()` |
 
 **Util/ (stateless helpers):**
 | Class | Purpose |
 |-------|---------|
-| `TitleMatcher` | Static `matches(query, resultTitle): bool` |
-| `LookupTitleCleaner` | Static `clean(title): string` — removes tome/volume suffixes |
 | `GoogleBooksUrlHelper` | Static `optimizeThumbnailUrl(string): string` — HTTPS, zoom=0, remove edge=curl |
+| `LookupTitleCleaner` | Static `clean(title): string` — removes tome/volume suffixes |
+| `TitleMatcher` | Static `matches(query, resultTitle): bool` |
 
 ## Repositories (`backend/src/Repository/`)
 
 | Repo | Custom methods |
 |------|----------------|
-| `ComicSeriesRepository` | `findWithFilters()`, `findAllForApi()`, `findBuyingForReleaseCheck()`, `findWithMissingLookupData()`, `findForAutoEnrich()`, `findForMergeDetection()`, `findPurgeable(days)`, `findTrashed()` |
 | `AuthorRepository` | `findOrCreate()`, `findOrCreateMultiple()` |
+| `ComicSeriesRepository` | `findWithFilters()`, `findAllForApi()`, `findBuyingForReleaseCheck()`, `findWithMissingLookupData()`, `findForAutoEnrich()`, `findForMergeDetection()`, `findPurgeable(days)`, `findTrashed()`, `findWithLocalCover()` |
 | `EnrichmentProposalRepository` | `findPendingBySeries()`, `findPendingBySeriesAndField()`, `countPending()` |
-| `NotificationRepository` | `countUnread()`, `existsUnreadByTypeAndEntity()`, `markAllRead()`, `purgeOlderThan()` |
 | `NotificationPreferenceRepository` | `findByUser()`, `findByUserAndType()` |
+| `NotificationRepository` | `countUnread()`, `existsUnreadByTypeAndEntity()`, `markAllRead()`, `purgeOlderThan()` |
 | `PushSubscriptionRepository` | `findByUser()`, `findByEndpoint()` |
+| `SeriesSuggestionRepository` | `existsPendingByTitleAndType()`, `findDismissedTitles()`, `findPending()` |
 | `TomeRepository` | Standard |
 | `UserRepository` | Standard |
 
@@ -206,27 +228,24 @@ Reference for implementing features without exploring the codebase.
 
 | Command | Signature |
 |---------|-----------|
-| `CheckNewReleasesCommand` | `app:check-new-releases [--dry-run] [--limit=0]` |
-| `DownloadCoversCommand` | `app:download-covers [--delay=1] [--dry-run] [--limit=0]` |
-| `ImportCommand` | `app:import <file> [--dry-run]` |
-| `InvalidateTokensCommand` | `app:invalidate-tokens [--email=...]` |
-| `AutoEnrichCommand` | `app:auto-enrich [--delay=2] [--dry-run] [--force] [--limit=0] [--type=...]` — replaces lookup-missing with confidence scoring |
-| `PurgeDeletedCommand` | `app:purge-deleted [--days=30] [--dry-run]` |
-| `PurgeNotificationsCommand` | `app:purge-notifications [--days=90]` |
-| `CheckAuthorReleasesCommand` | `app:check-author-releases [--dry-run]` — vérifie les nouvelles séries des auteurs suivis |
-| `DetectMissingTomesCommand` | `app:detect-missing-tomes [--dry-run]` — détecte les tomes manquants |
-| `ScanNasCommand` | `app:scan-nas [-o var/nas-import.xlsx]` — SSH scan NAS → Excel |
-
-## Traits (`backend/src/Controller/Trait/`)
-
-| Trait | Purpose |
-|-------|---------|
-| `RateLimitTrait` | `checkRateLimit(Request, RateLimiterFactory): ?JsonResponse` — shared rate limiting with `Retry-After` header |
+| `AutoEnrichCommand` | `app:auto-enrich [--delay=2] [--dry-run] [--force] [--limit=0] [--type=...]` — automated metadata enrichment with confidence scoring |
+| `CheckAuthorReleasesCommand` | `app:check-author-releases [--dry-run]` — checks new series from followed authors |
+| `CheckNewReleasesCommand` | `app:check-new-releases [--dry-run] [--limit=0]` — checks new issues for BUYING series |
+| `DetectMissingTomesCommand` | `app:detect-missing-tomes [--dry-run]` — scans for gaps in tome numbers and creates alerts |
+| `DownloadCoversCommand` | `app:download-covers [--delay=1] [--dry-run] [--limit=0]` — downloads pending covers |
+| `ImportCommand` | `app:import <file> [--dry-run]` — Excel catalog import |
+| `InvalidateTokensCommand` | `app:invalidate-tokens [--email=...]` — increments JWT token version |
+| `PurgeDeletedCommand` | `app:purge-deleted [--days=30] [--dry-run]` — permanently deletes old trashed series |
+| `PurgeNotificationsCommand` | `app:purge-notifications [--days=90]` — purges old read notifications |
+| `RunDeployTasksCommand` | `app:deploy:run-tasks` — executes pending post-deploy tasks (`deploy-tasks/Task*.php`) |
+| `ScanNasCommand` | `app:scan-nas [-o var/nas-import.xlsx]` — SSH scan NAS directory structure → Excel |
+| `WarmThumbnailsCommand` | `app:warm-thumbnails [--async] [--dry-run]` — pre-warms LiipImagine cover thumbnails |
 
 ## Other Backend
 
 - **Fixtures**: `UserFixtures` — test user `test@example.com` / googleId `test-google-id`
-- **Filter**: `SoftDeleteFilter` — SQL filter excluding soft-deleted (enabled by default)
+- **Filter**: `SoftDeleteFilter` — SQL filter excluding soft-deleted entities (enabled by default)
+- **Scheduler**: `backend/src/Schedule.php` (`#[AsSchedule('default')]`) — centralizes scheduled cron jobs (auto-enrich Tue-Sat, release checks, cover downloads, missing tomes Sun, author releases Mon, monthly purges, daily failed Messenger retry). Consumed by `messenger:consume scheduler_default` in supervisord.
 
 ### Config highlights (`backend/config/packages/`)
 
@@ -247,29 +266,37 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 
 | Directory | Coverage |
 |-----------|----------|
-| `Unit/Entity/` | ComicSeries, Tome, Author, User |
-| `Unit/Enum/` | All 4 enums |
-| `Unit/Event/` | All 3 domain events |
-| `Unit/EventListener/` | CacheInvalidator, EventListener, HttpCache, JwtTokenVersion, PlaceholderSecretChecker |
-| `Unit/Service/ComicSeries/` | ComicSeriesService, Purge |
-| `Unit/Service/Cover/` | CoverDownloader, CoverSearchService, VichCoverRemover, Upload/VichUploadHandlerAdapter |
-| `Unit/Service/Notification/` | NotificationService |
-| `Unit/Service/Recommendation/` | NewReleaseChecker |
-| `Unit/Service/Merge/` | SeriesGroupDetector, MergePreviewBuilder, MergePreviewHydrator, SeriesMerger |
-| `Unit/State/` | All 5 processors/providers |
-| `Unit/Service/Lookup/` | Orchestrator, LookupApplier, BatchLookupService |
+| `Unit/Entity/` | Author, ComicSeries, Tome, User (4 files) |
+| `Unit/Enum/` | ApiLookupStatus, BatchLookupStatus, ComicStatus, ComicType, EnrichmentConfidence (5 files) |
+| `Unit/Event/` | ComicSeriesCreatedEvent, ComicSeriesDeletedEvent, ComicSeriesUpdatedEvent (3 files) |
+| `Unit/EventListener/` | CacheInvalidator, EventListener, CoverUrlChange, EnrichOnCreate, HttpCache, JwtTokenVersion, PlaceholderSecretChecker, ReEnrichOnUpdate, TomeLatestIssue (9 files) |
+| `Unit/Command/` | AutoEnrichCommand, DownloadCoversCommand (2 files) |
+| `Unit/DeployTask/` | AbstractDeployTask (1 file) |
+| `Unit/DTO/` | CoverSearchResult, NewReleaseProgress (2 files) |
+| `Unit/Message/` & `Unit/MessageHandler/` | DownloadCover, EnrichSeries, WarmThumbnails (4 files) |
+| `Unit/Service/ComicSeries/` | ComicSeriesService, PurgeService |
+| `Unit/Service/Cover/` | CoverDownloader, CoverSearchService, ThumbnailGenerator, VichUploadHandlerAdapter, VichCoverRemover |
+| `Unit/Service/Enrichment/` | ConfidenceScorer, EnrichmentService |
+| `Unit/Service/Import/` | ImportService |
+| `Unit/Service/Lookup/` | BatchLookupService, LookupApplier, LookupOrchestrator |
 | `Unit/Service/Lookup/Contract/` | LookupResult |
-| `Unit/Service/Lookup/Gemini/` | GeminiClientPool, GeminiJsonParser, GeminiQueryService |
-| `Unit/Service/Lookup/Provider/` | All 12 providers + AbstractProvider |
-| `Unit/Service/Lookup/Util/` | TitleMatcher, LookupTitleCleaner, GoogleBooksUrlHelper |
-| `Integration/Repository/` | All 4 repositories |
-| `Integration/Command/` | CheckNewReleases, ImportBooks, ImportExcel, InvalidateTokens, LookupMissing, PurgeDeleted |
+| `Unit/Service/Lookup/Gemini/` | GeminiCircuitBreaker, GeminiClientPool, GeminiJsonParser, GeminiQueryService |
+| `Unit/Service/Lookup/Provider/` | All 11 providers + AbstractLookupProvider (12 files) |
+| `Unit/Service/Lookup/Util/` | GoogleBooksUrlHelper, LookupTitleCleaner, TitleMatcher |
+| `Unit/Service/Merge/` | MergePreviewBuilder, MergePreviewHydrator, SeriesGroupDetector, SeriesMerger |
+| `Unit/Service/Nas/` | NasDirectoryParser |
+| `Unit/Service/Notification/` | NotificationService |
+| `Unit/Service/Recommendation/` | AuthorReleaseCheckerService, NewReleaseCheckerService |
+| `Unit/Service/Share/` | ShareResolver, ShareUrlParser |
+| `Unit/State/` | ComicSeriesDelete, ComicSeriesPermanentDelete, ComicSeriesRestore, EnrichmentProposalAccept, EnrichmentProposalReject, SoftDeletedComicSeriesProvider, TrashCollectionProvider (7 files) |
+| `Integration/Command/` | CheckNewReleases, DownloadCovers, InvalidateTokens, PurgeDeleted, WarmThumbnails (5 files) |
 | `Integration/Doctrine/` | SoftDeleteFilter |
+| `Integration/Repository/` | AuthorRepository, ComicSeriesRepository, TomeRepository, UserRepository (4 files) |
 | `Integration/Service/Merge/` | SeriesMerger (full DB) |
-| `Functional/Api/` | ComicSeries, HttpCache, Tome, Author, Trash, Lookup, MergeSeries |
-| `Functional/Controller/` | BatchLookup, Import, Purge |
-| `Functional/Auth/` | GoogleLogin, JwtAuth |
-| `Functional/Security/` | Authentication, RateLimit |
+| `Functional/Api/` | Author, ComicSeries, HttpCache, Lookup, MergeSeries, Tome, Trash (7 files) |
+| `Functional/Auth/` | GoogleLogin, JwtAuth (2 files) |
+| `Functional/Controller/` | BatchLookup, Purge, Share (3 files) |
+| `Functional/Security/` | Authentication, RateLimit (2 files) |
 | `Factory/` | `EntityFactory` — `createAuthor()`, `createComicSeries()`, `createTome()`, `createUser()` |
 | `Trait/` | `AuthenticatedTestTrait` — JWT auth helper |
 
@@ -277,141 +304,173 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 
 | Page | Route | Purpose |
 |------|-------|---------|
-| `Home` | `/` | Library grid, URL-synced filters (useSearchParams) |
-| `ComicDetail` | `/comic/:id` | Detail: cover, metadata, tomes, edit/delete |
-| `ComicForm` | `/comic/new`, `/comic/:id/edit` | Create/edit: lookup, barcode, tomes, author autocomplete |
-| `Trash` | `/trash` | Restore / permanent delete |
-| `Login` | `/login` | Google OAuth |
-| `LookupTool` | `/tools/lookup` | Batch lookup with SSE progress |
-| `MergeSeries` | `/tools/merge-series` | Auto-detect (Gemini) + manual-select tabs |
-| `Tools` | `/tools` | Hub for admin tools |
-| `PurgeTool` | `/tools/purge` | Purge soft-deleted: preview, confirm, bulk delete |
-| `EnrichmentReview` | `/tools/enrichment-review` | Review enrichment proposals (accept/reject) |
-| `Notifications` | `/notifications` | Notification list, mark read, delete |
-| `NotificationSettings` | `/settings/notifications` | Per-type channel preferences |
-| `Suggestions` | `/tools/suggestions` | AI-powered similar series suggestions (add/dismiss) |
-| `NotFound` | `*` | 404 |
+| `ComicDetail` | `/comic/:id` | Detail view: cover, metadata, tomes list, edit/delete |
+| `ComicForm` | `/comic/new`, `/comic/:id/edit` | Create/edit series: barcode scan, title lookup, tomes table, author autocomplete |
+| `EnrichmentReview` | `/tools/enrichment-review` | Review pending metadata enrichment proposals (accept/reject) |
+| `HelpPage` | `/tools/help` | Integrated user manual and feature guide |
+| `Home` | `/` | Main library grid/shelf view with URL-synced filters (`useSearchParams`) |
+| `Login` | `/login` | Google OAuth authentication |
+| `LookupTool` | `/tools/lookup` | Trigger batch metadata lookup for incomplete series (dispatches to worker) |
+| `MergeSeries` | `/tools/merge-series` | Series deduplication tool (Gemini auto-detect and manual select tabs) |
+| `NotFound` | `*` | 404 fallback |
+| `Notifications` | `/notifications` | Notification center: list alerts, mark as read, delete |
+| `NotificationSettings` | `/settings/notifications` | Configure notification delivery channels per alert type |
+| `PurgeTool` | `/tools/purge` | Preview and execute permanent deletion of old trashed series |
+| `QuickAdd` | `/quick-add` | Rapid collection addition via continuous barcode scanner or fast search |
+| `ShareHandler` | `/share` | Web Share Target handler (opens detail if existing, pre-fills form if new) |
+| `Suggestions` | `/tools/suggestions` | Review AI-generated series recommendations (add to library or dismiss) |
+| `ToBuy` | `/to-buy` | Missing tomes to purchase grouped by series (`bought = false`) |
+| `ToDownload` | `/to-download` | Missing tomes to download on NAS grouped by series (`onNas = false`) |
+| `Tools` | `/tools` | Administrative utilities launcher hub |
+| `Trash` | `/trash` | Trashed series management: restore or permanently delete |
 
 ## Frontend — Components (`frontend/src/components/`)
 
 | Component | Purpose |
 |-----------|---------|
-| `AuthGuard` | Redirect to `/login` if unauthenticated |
-| `BarcodeScanner` | html5-qrcode ISBN scanner |
-| `BottomNav` | Mobile nav (Home, Wishlist→`/?status=wishlist`, Add, Trash) |
-| `CardActionBar` | Mobile fixed bottom overlay: Edit/Delete |
-| `CollectionMap` | Visual grid of numbered tome squares (bought/onNas/read/missing) with series color |
-| `ComicCard` | Card: cover, title, type, tomes, progress, menu |
-| `ContinueReading` | Horizontal slider of series with unread tomes (readCount < max(boughtCount, onNasCount)) |
-| `ComponentErrorBoundary` | Contextual error boundary (label + retry, onReset, resetKeys) — wraps TomeTable, VirtualGrid, LookupSection |
-| `ConfirmModal` | Headless UI destructive confirmation |
-| `CoverLightbox` | Fullscreen cover image overlay (Headless UI Dialog) |
-| `CoverSearchModal` | Image search with debounced input, thumbnail grid |
-| `ErrorFallback` | App-level error boundary UI (full-page) |
-| `FileDropZone` | Drag-drop upload (.xlsx) |
-| `FilterChips` | Quick filter chips (type + status) scrollable, toggle on/off |
-| `AuthorAutocomplete` | Author search/create combobox (extracted from ComicForm) |
-| `Filters` | Type + status + sort dropdowns |
-| `LookupSection` | ISBN/title lookup section (extracted from ComicForm) |
-| `SeriesEnrichmentProposals` | Enrichment proposals (actionable + history) on ComicDetail |
-| `Layout` | Header + BottomNav + NotificationBell + Outlet + Sonner + OfflineBanner |
-| `NotificationBell` | Bell icon + unread count badge in header |
-| `OfflineBanner` | "Mode hors ligne" banner |
-| `ProgressBar` | Reusable bar with aria, color prop, compact mode |
-| `ProgressLog` | Batch lookup progress list with status icons |
-| `SkeletonBox` / `ComicCardSkeleton` | Loading placeholders |
-| `Breadcrumb` | Breadcrumb nav with parent links and aria-current on last item |
-| `EmptyState` | Icon + title + optional description/CTA |
-| `MergeGroupCard` | Merge group: entries, suggested title, action buttons |
-| `MergeMetadataForm` | Merge preview metadata fields (title, type, status, publisher, etc.) — used by MergePreviewModal |
-| `MergePreviewModal` | Thin modal wrapper: uses useMergePreviewForm + MergeMetadataForm + MergeTomeTable |
-| `MergeTomeTable` | Merge-specific tome table with edit/remove/add via dispatch |
-| `SelectListbox` | Reusable Headless UI listbox with optional label/placeholder |
-| `SeriesMultiSelect` | Multi-select with search, chips, checkboxes |
-| `SyncErrorBanner` / `SyncPendingIndicator` | Sync failure details / pending indicator |
-| `SyncFailureSection` | Offline sync failure warning with payload details (extracted from ComicForm) |
-| `TomeTable` | Tome table: mobile cards + desktop table + batch add. Props: `{ form, tomeManager: TomeManager }` |
+| `AcquisitionList` | Grouped list of missing tomes for ToBuy / ToDownload with toggles |
+| `AcquisitionTabs` | Tab navigation between ToBuy (`/to-buy`) and ToDownload (`/to-download`) |
+| `AddedStack` | Animated floating counter stack of recently added items (QuickAdd) |
+| `AuthGuard` | Route wrapper redirecting unauthenticated users to `/login` |
+| `AuthorAutocomplete` | Headless UI combobox for searching and creating authors |
+| `BarcodeScanner` | Continuous camera barcode scanner via `html5-qrcode` |
+| `BottomNav` | Mobile bottom navigation bar (Home, Wishlist, Add, Trash) |
+| `Breadcrumb` | Hierarchical breadcrumb navigation with accessibility attributes |
+| `CardActionBar` | Mobile fixed action overlay for series card (Edit/Delete) |
+| `CollapsibleSection` | Expandable accordion container with animated toggle |
+| `CollectionMap` | Visual grid of numbered tome status squares with series accent color |
+| `ComicCard` | Grid card: cover image, title, type badge, tome counts, progress bar, action menu |
+| `ComicCardSkeleton` / `SkeletonBox` | Shimmering loading placeholders |
+| `ComponentErrorBoundary` | Contextual error boundary with retry support |
+| `ConfirmModal` | Headless UI modal dialog for confirming destructive operations |
+| `ContinueReading` | Horizontal carousel of in-progress series with unread tomes |
+| `CoverImage` | Image component with skeleton loading, placeholder fallback, and aspect ratio constraint |
+| `CoverLightbox` | Fullscreen modal viewer for high-resolution cover images |
+| `CoverSearchModal` | Modal search interface to query and pick online cover thumbnails |
+| `DatePartialSelect` | Granular date picker supporting partial dates (year/month/day) |
+| `EmptyState` | Informative empty screen graphic with optional action button |
+| `ErrorFallback` | Application-level full-page crash fallback UI |
+| `FileDropZone` | Drag-and-drop file upload zone for spreadsheet imports |
+| `FilterChips` | Horizontal scrollable filter pills for quick status and type toggling |
+| `Filters` | Dropdown filter controls (type, status, sort order) |
+| `Layout` | Application shell (Header, BottomNav, NotificationBell, OfflineBanner, Toast container) |
+| `LookupCandidateCard` | Card previewing metadata candidate match with diff and confidence score |
+| `LookupSection` | ISBN and title search input with candidate selection in ComicForm |
+| `MergeGroupCard` | Card representing a detected merge group with candidate entries |
+| `MergeMetadataForm` | Metadata conflict resolution form in merge preview |
+| `MergePreviewModal` | Modal dialog containing merge preview form and tome combination table |
+| `MergeSeriesConfirmModal` | Confirmation prompt before executing series merge |
+| `MergeTomeTable` | Interactive table for resolving overlapping tome numbers during merge |
+| `NotificationBell` | Bell icon in header displaying unread notification count badge |
+| `OfflineBanner` | Sticky alert banner indicating offline mode and queued changes |
+| `ProgressBar` | Accessible progress indicator supporting compact and full variants |
+| `ProposalCard` | Card displaying metadata proposal with before/after diff and accept/reject controls |
+| `QuickAddScan` | Continuous camera barcode scanner view for QuickAdd |
+| `QuickAddSearch` | Instant title lookup search view for QuickAdd |
+| `SearchInput` | Text input with debounced callback and clear button |
+| `SelectListbox` | Accessible custom dropdown select built on Headless UI Listbox |
+| `SeriesEnrichmentProposals` | Tabbed section on ComicDetail displaying active proposals and historical logs |
+| `SeriesMultiSelect` | Multi-item selection combobox with badges and search filter |
+| `ShelfRow` | Horizontal wooden shelf visualization showing book spines |
+| `ShelfView` | Alternate library layout rendering series on virtual bookshelves |
+| `StickySearchBar` | Sticky header containing search input and filter toggles |
+| `SyncErrorBanner` / `SyncPendingIndicator` | Offline synchronization state and conflict alerts |
+| `SyncFailureSection` | Accordion view detailing failed offline mutations with retry triggers |
+| `TomeTable` | Responsive tome list (desktop table / mobile cards) with batch tome creation |
+| `VirtualGrid` | High-performance virtualized grid powered by `react-virtuoso` |
 
 ## Frontend — Hooks (`frontend/src/hooks/`)
 
 | Hook | Purpose |
 |------|---------|
-| `useAuth` | Google login mutation, logout |
-| `useBuyTome` | PATCH tome as bought with optimistic update on comics list (ToBuy page) |
-| `useAuthors` | GET `/api/authors?name=...` (autocomplete) |
-| `useBatchLookup` | Preview query + SSE streaming (start/cancel/progress/summary) |
-| `useComic` / `useComics` | GET single / GET collection with filters |
-| `useAuthorManagement` | Author autocomplete, add/remove — sub-hook of useComicForm |
-| `useComicForm` | Orchestrates sub-hooks (useLookupFeature, useTomeManagement, useAuthorManagement) for ComicForm |
-| `useCoverSearch` | GET `/api/lookup/covers?query=...&type=...` (staleTime 5min) |
-| `useCreateComic` / `useUpdateComic` / `useDeleteComic` | CRUD mutations |
-| `useEnrichment` | Enrichment proposals (list, accept, reject) + logs queries |
-| `useGoBack` | Smart back navigation: `navigate(-1)` if in-app history, fallback to `/` otherwise |
-| `useCreateTome` / `useUpdateTome` / `useDeleteTome` | Tome CRUD (offline-capable, optimistic) |
-| `useDarkMode` | Toggle `.dark` on `<html>`, localStorage |
-| `useLookup` | `useLookupIsbn()`, `useLookupTitle()` |
-| `useNotifications` | `useUnreadCount()` (refetchInterval 60s), `useNotifications()`, `useMarkAsRead()`, `useMarkAllRead()`, `useDeleteNotification()` |
-| `useNotificationPreferences` | `useNotificationPreferences()`, `useUpdatePreference()` |
-| `useLookupFeature` | Lookup state + apply logic — sub-hook of useComicForm |
-| `useMergePreviewForm` | useReducer for MergePreviewModal state (18 fields → single reducer) |
-| `useMergeSeries` | `useDetectMergeGroups`, `useMergePreview`, `useExecuteMerge` |
-| `useOfflineMutation` | Enqueues to IndexedDB offline, pass-through online |
-| `useOnlineStatus` | `useSyncExternalStore` for `navigator.onLine` |
-| `usePendingQueueCount` | Polls `getPendingCount()` every 2s |
-| `usePullToRefresh` | Touch gesture pull-to-refresh with threshold, returns `isRefreshing` + `pullDistance` |
-| `usePurge` | Preview query + execute mutation |
-| `useServiceWorker` | SW registration, update toast, token messaging |
-| `useSyncStatus` / `useSyncFailures` | SW sync events / IndexedDB failure store |
-| `useTomeManagement` | Tome CRUD + batch add + ISBN lookup — sub-hook of useComicForm, exports `TomeManager` interface |
-| `useTrash` | GET soft-deleted, restore, permanent delete |
+| `useAuth` | Google login mutation, session check, logout handler |
+| `useAuthorManagement` | Author autocomplete and addition logic for ComicForm |
+| `useAuthors` | Author query with name filtering |
+| `useBatchLookup` | Preview count query + trigger queue mutation (`POST /api/tools/batch-lookup/run`) |
+| `useBuyTome` | Optimistic PATCH mutation to mark tome as bought |
+| `useColumnCount` | Computes responsive column counts based on viewport and container width |
+| `useComic` / `useComics` | Single series query / filtered library collection query |
+| `useComicForm` | Orchestrator hook managing state across ComicForm sub-hooks |
+| `useCoverSearch` | Queries Google Books and Serper thumbnail images |
+| `useCreateComic` / `useUpdateComic` / `useDeleteComic` | Series CRUD mutations |
+| `useCreateTome` / `useUpdateTome` / `useDeleteTome` | Tome CRUD mutations with offline queue and optimistic updates |
+| `useDarkMode` | Dark mode toggler synced with `<html>` class and `localStorage` |
+| `useDebounce` | Debounces high-frequency input values |
+| `useDominantColor` | Extracts vibrant background color from cover image |
+| `useEnrichment` | Queries pending proposals and performs accept/reject mutations |
+| `useFollowedAuthors` | Manages followed authors list and follow/unfollow toggle |
+| `useGoBack` | Smart navigation navigating to in-app parent or falling back to root |
+| `useLookup` | Hooks for single ISBN or title metadata lookups |
+| `useLookupFeature` | Manages search query, results, and autofill application inside ComicForm |
+| `useMediaQuery` | Subscribes to CSS media query changes |
+| `useMergePreviewForm` | Reducer hook managing form state for merge preview |
+| `useMergeSeries` | Hooks for merge group detection, preview generation, and execution |
+| `useNotificationPreferences` | Queries and updates user notification channel settings |
+| `useNotifications` | Fetches notification list, unread count badge, and mark-read actions |
+| `useOfflineMutation` | Wraps mutations to transparently enqueue to IndexedDB when offline |
+| `useOnlineStatus` | Tracks browser network connectivity via `navigator.onLine` |
+| `usePendingQueueCount` | Polls count of pending offline mutations in IndexedDB |
+| `usePullToRefresh` | Touch gesture hook enabling pull-to-refresh on mobile |
+| `usePurge` | Queries purgeable series preview and executes bulk deletion |
+| `useQuickAdd` | State machine and mutations for rapid continuous tome additions |
+| `useScrollRestoration` | Restores window scroll position across client-side page transitions |
+| `useScrollReveal` | IntersectionObserver hook applying fade-in effects on scroll |
+| `useServiceWorker` | Registers service worker, detects updates, and communicates auth tokens |
+| `useSuggestions` | Manages AI recommendation queries, additions, and dismissals |
+| `useSyncFailures` / `useSyncStatus` | Subscribes to sync failures and background synchronization events |
+| `useTomeManagement` | Manages tome state, batch addition, and barcode scanning in ComicForm |
+| `useTrash` | Queries soft-deleted series and performs restore or permanent purge |
 
 ## Frontend — Services & Utils
 
 | File | Exports |
 |------|---------|
-| `services/api.ts` | `apiFetch<T>()`, `fetchSSE()`, `loginWithGoogle()`, `getToken/setToken/removeToken()`, `isAuthenticated()`, `getErrorMessage(err, fallback?)`, `handleUnauthorized()` |
-| `services/offlineQueue.ts` | IndexedDB queue: enqueue/dequeue/getAll/removeById/updateStatus/clearQueue/getPendingCount |
-| `services/syncHandler.ts` | `processSyncQueue()` — FIFO, `_pendingAuthors`, 4xx skip, 5xx retry |
-| `utils/releaseUtils.ts` | `hasNewRelease()` — detects series with recent new tomes (7d, BUYING) |
-| `utils/searchComics.ts` | `searchComics()` — Fuse.js fuzzy multi-field search |
-| `utils/coverUtils.ts` | `getCoverSrc()` — local cover path or URL fallback |
-| `utils/sortComics.ts` | `SortOption`, `sortComics()` — client-side sort (French locale) |
-| `utils/enrichmentUtils.ts` | `formatEnrichmentValue()` — shared between EnrichmentReview + ProposalCard |
-| `utils/syncLabels.ts` | `operationLabels`, `resourceLabels`, `fieldLabels`, `formatSyncValue()` |
+| `endpoints.ts` | `endpoints` — Centralized catalogue of API endpoint paths (without `/api` prefix) |
+| `queryKeys.ts` | `queryKeys` — Hierarchical query key factory for TanStack Query |
+| `services/api.ts` | `apiFetch<T>()`, `loginWithGoogle()`, `getToken/setToken/removeToken()`, `isAuthenticated()`, error parsers |
+| `services/offlineQueue.ts` | IndexedDB persistent queue: enqueue, dequeue, status tracking, pending count |
+| `services/syncHandler.ts` | `processSyncQueue()` — Sequential FIFO replay of queued mutations with retry logic |
+| `styles/formStyles.ts` | Shared Tailwind CSS design tokens for form inputs and labels |
+| `utils/coverUtils.ts` | `getCoverSrc()` — Resolves local upload image path or falls back to remote URL |
+| `utils/enrichmentUtils.ts` | `formatEnrichmentValue()` — Serializes proposal values for diff presentation |
+| `utils/lookupCandidate.ts` | `scoreCandidate()`, `sortCandidates()` — Match scoring and sorting for lookup candidates |
+| `utils/releaseUtils.ts` | `hasNewRelease()` — Identifies ongoing series with newly added volumes |
+| `utils/searchComics.ts` | `searchComics()` — Fuzzy multi-field search engine powered by Fuse.js |
+| `utils/sortComics.ts` | `SortOption`, `sortComics()` — Client-side locale-aware sorting |
+| `utils/syncLabels.ts` | Human-readable labels and formatters for sync operations and fields |
+| `utils/toBuyUtils.ts` | `getSeriesToBuy()` — Aggregates and groups unbought volumes across series |
+| `utils/tomeUtils.ts` | `parseRange()`, `findMissingNumbers()` — Range expansion (`1-5`) and hole detection |
 
 ## Frontend — Types (`frontend/src/types/`)
 
-- `api.ts`: `HydraCollection<T>`, `Author`, `Tome`, `ComicSeries`, `PurgeableSeries`, `MergeGroup`, `MergeGroupEntry`, `MergePreview`, `MergePreviewTome`, `CreateComicPayload`, `UpdateComicPayload`, `TomePayload`, `CreateTomePayload`, `ImportExcelResult`, `ImportBooksResult`, `BatchLookupProgress`, `BatchLookupSummary`, `LookupResult`
-- `enums.ts`: `ComicStatus`, `ComicType`, `EnrichmentConfidence`, `NotificationChannel`, `NotificationEntityType`, `NotificationType`, `ProposalStatus` (+ labels, colors)
+- `api.ts`: `HydraCollection<T>`, `Author`, `Tome`, `ComicSeries`, `PurgeableSeries`, `MergeGroup`, `MergeGroupEntry`, `MergePreview`, `MergePreviewTome`, `CreateComicPayload`, `UpdateComicPayload`, `TomePayload`, `CreateTomePayload`, `ShareLookupResult`, `ShareResponse`, `LookupCandidatesResponse`, `LookupCandidate`, `EnrichmentProposal`, `LookupResult`
+- `enums.ts`: `ComicStatus`, `ComicType`, `EnrichmentConfidence`, `NotificationChannel`, `NotificationEntityType`, `NotificationType`, `ProposalStatus`, `SuggestionStatus` (+ label and badge color helpers)
 - `notifications.ts`: `AppNotification`, `NotificationPreference`
-- `sync.d.ts`: `SyncManager`, `SyncEvent` type declarations
+- `sync.d.ts`: `SyncManager`, `SyncEvent` ambient service worker types
 
 ### Frontend Tests (`frontend/src/__tests__/`)
 
-Three-tier: Unit + Integration. Vitest 4 + jsdom + RTL + MSW.
+Three-tier: Unit + Integration. Vitest + jsdom + Testing Library + MSW.
 
 | Directory | Coverage |
 |-----------|----------|
-| `helpers/` | `renderWithProviders()`, mock factories, MSW handlers |
-| `unit/` | sw-custom (service worker sync handler + routes) |
-| `unit/services/` | api, offlineQueue, syncHandler |
-| `unit/types/` | enums (typeOptions, statusOptions) |
-| `unit/utils/` | coverUtils, releaseUtils, searchComics, sortComics, syncLabels |
-| `integration/hooks/` | All 22 hooks |
-| `integration/components/` | All 22 components (incl. CollectionMap, ComponentErrorBoundary, ContinueReading, MergeGroupCard, SelectListbox, SeriesMultiSelect) |
-| `integration/pages/` | All 11 pages + ComicDetailToggle (incl. Tools) |
+| `helpers/` | `renderWithProviders()`, MSW server and mock handlers, test factories |
+| `unit/` | Unit tests for components (`AddedStack`, `SearchInput`, `ShelfRow`, `ShelfView`, `VirtualGrid`), hooks (`useColumnCount`, `useDebounce`, `useQuickAdd`), `queryClient`, `queryKeys`, `endpoints`, services (`api`, `offlineQueue`, `syncHandler`), `styles`, `src/sw-custom.ts`, `types/enums`, and all 7 utility files (17 test files) |
+| `integration/components/` | All 29 individual component integration suites |
+| `integration/hooks/` | All 23 hook integration test suites |
+| `integration/pages/` | All 15 page test suites (+ `App.test.tsx`) |
 
 ### Frontend Config
 
 | File | Purpose |
 |------|---------|
-| `vite.config.ts` | React + Tailwind + VitePWA (injectManifest, `sw-custom.ts`) + API/uploads proxy + vendor chunk splitting |
-| `sw-custom.ts` | Precache, NetworkFirst API (5s), CacheFirst covers (30d), Background Sync, Push notifications |
-| `src/theme.ts` | `THEME_COLOR_LIGHT` / `THEME_COLOR_DARK` — canonical source for PWA theme colors |
-| `src/queryClient.ts` | staleTime 5min, retry 1 |
-| `src/App.tsx` | `createBrowserRouter` + providers + lazy loading + View Transitions |
-| `src/index.css` | Tailwind, `@theme` colors, dark mode, `--bottom-nav-h: 3.5rem` |
-| `lighthouserc.json` | Lighthouse CI config — score budgets (perf ≥ 80, a11y ≥ 90, PWA ≥ 80, SEO ≥ 90) |
+| `vite.config.ts` | React + Tailwind + VitePWA (`injectManifest`, `src/sw-custom.ts`) + API/uploads proxy + vendor chunk splitting |
+| `src/sw-custom.ts` | Precache, NetworkFirst API caching (5s timeout), CacheFirst covers (30d), Background Sync, Push notifications |
+| `src/theme.ts` | `THEME_COLOR_LIGHT` / `THEME_COLOR_DARK` — Canonical theme colors for PWA status bar |
+| `src/queryClient.ts` | TanStack Query client configuration (staleTime 5min, retry 1) |
+| `src/App.tsx` | `createBrowserRouter` route tree + providers + code-split lazy loading + View Transitions |
+| `src/index.css` | Tailwind CSS configuration, dark mode tokens, `--bottom-nav-h: 3.5rem` |
+| `lighthouserc.json` | Lighthouse CI budgets (performance ≥ 80, a11y ≥ 90, PWA ≥ 80, SEO ≥ 90) |
 
 ## Implementation Patterns
 
@@ -457,15 +516,15 @@ Three-tier: Unit + Integration. Vitest 4 + jsdom + RTL + MSW.
 
 ## Docker Production
 
-2 containers: `app` (FrankenPHP) + `db` (MariaDB). FrankenPHP runs as www-data (gosu); supervisord runs web + worker + scheduler. Files:
+2 containers: `app` (FrankenPHP) + `db` (MariaDB). FrankenPHP runs as `www-data` (via `gosu`); supervisord manages web server + worker + scheduler. Files:
 
 | File | Purpose |
 |------|---------|
-| `backend/Dockerfile` | Multi-stage: Node.js 22 builds frontend (Vite) → `dunglas/frankenphp:1-php8.4` + composer:2 + extensions (gd/intl/opcache/pdo_mysql/zip). Build context = monorepo root (needs `frontend/` + `backend/`) |
-| `backend/docker/frankenphp/Caddyfile` | Caddy site (port 8080): security headers, `/api` + `/media` (LiipImagine fallback) → PHP, reste → SPA React (`index.html` fallback), upload 12 Mo |
-| `backend/docker/frankenphp/supervisord.conf` | PID 1: `frankenphp run` + `messenger:consume async` + `messenger:consume scheduler_default`, tous en www-data |
-| `backend/docker/frankenphp/docker-entrypoint.sh` | chown volumes + /data /config (root) → cache:clear/warmup (www-data) → exec supervisord |
-| `backend/docker-compose.yml` | 2 services (`app`, `db`) + 5 volumes (app_var, db_data, jwt_keys, media, uploads) |
-| `.dockerignore` (racine) | Contexte = racine ; exclut tests, var, vendor, node_modules, env locaux (garde le vault `config/secrets/prod/`) |
+| `backend/Dockerfile` | Multi-stage build: Node.js 22 builds frontend (Vite) → `dunglas/frankenphp:1-php8.4` + composer:2 + extensions (gd/intl/opcache/pdo_mysql/zip). Build context = monorepo root |
+| `backend/docker/frankenphp/Caddyfile` | Caddy server (port 8080): security headers, `/api` + `/media` (LiipImagine fallback) → PHP, SPA React (`index.html` fallback), 12MB upload limit |
+| `backend/docker/frankenphp/supervisord.conf` | PID 1 supervisor: `frankenphp run` + `messenger:consume async` + `messenger:consume scheduler_default` (all as `www-data`) |
+| `backend/docker/frankenphp/docker-entrypoint.sh` | Sets volume ownership (root) → `cache:clear` and `cache:warmup` (as `www-data`) → executes supervisord |
+| `backend/docker-compose.yml` | 2 services (`app`, `db`) + 5 volumes (`app_var`, `db_data`, `jwt_keys`, `media`, `uploads`) |
+| `.dockerignore` (root) | Root build context: excludes local var, vendor, node_modules, tests, and dev envs (preserves `config/secrets/prod/` vault) |
 
-Single image: `ghcr.io/soviann/bibliotheque` (CI `docker-publish.yml`). App paths under `/app` (was `/var/www/html`).
+Single image: `ghcr.io/soviann/bibliotheque` (CI `docker-publish.yml`). App paths under `/app`.

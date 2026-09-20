@@ -63,11 +63,14 @@ logs/
 
 ###> local ###
 .DS_Store
+.agents/
 .claude/
 .gemini/
 .antigravity/
 .superpowers/
 .worktrees/
+GEMINI.md
+MEMORY.md
 docs/plans/
 docs/superpowers/
 .ddev/share-providers/
