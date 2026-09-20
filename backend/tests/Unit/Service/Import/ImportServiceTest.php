@@ -135,6 +135,226 @@ final class ImportServiceTest extends TestCase
         }
     }
 
+    public function testImportAppliesReadStatusToTomes(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['Manga', 'Série Lectorat', '', 5, 3, 5, '', '', ''],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertCount(5, $series->getTomes());
+
+        $readTomes = [];
+        $unreadTomes = [];
+        foreach ($series->getTomes() as $tome) {
+            if ($tome->isRead()) {
+                $readTomes[] = $tome->getNumber();
+            } else {
+                $unreadTomes[] = $tome->getNumber();
+            }
+        }
+        \sort($readTomes);
+        \sort($unreadTomes);
+
+        self::assertSame([1, 2, 3], $readTomes);
+        self::assertSame([4, 5], $unreadTomes);
+    }
+
+    public function testImportDecouplesNasPresencePerTome(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['BD', 'Série NAS Partiel', '', 5, '', 5, 2, 'oui', ''],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertCount(5, $series->getTomes());
+
+        $onNasTomes = [];
+        $notOnNasTomes = [];
+        foreach ($series->getTomes() as $tome) {
+            if ($tome->isOnNas()) {
+                $onNasTomes[] = $tome->getNumber();
+            } else {
+                $notOnNasTomes[] = $tome->getNumber();
+            }
+        }
+        \sort($onNasTomes);
+        \sort($notOnNasTomes);
+
+        self::assertSame([1, 2], $onNasTomes);
+        self::assertSame([3, 4, 5], $notOnNasTomes);
+    }
+
+    public function testImportDeterminesCorrectComicStatuses(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['BD', 'Série Wishlist', 'non', '', '', 5, '', 'non', ''],
+            ['BD', 'Série Dl Only', 'non', '', '', 5, 3, 'oui', ''],
+            ['BD', 'Série Stopped', '', '', '', 'stop 4', 2, 'oui', ''],
+            ['BD', 'Série Fini', 'fini', 10, 'fini', 10, 10, 'oui', 'oui'],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(4, $this->persistedSeries);
+        self::assertSame(\App\Enum\ComicStatus::WISHLIST, $this->persistedSeries[0]->getStatus());
+        self::assertSame(\App\Enum\ComicStatus::DOWNLOADING, $this->persistedSeries[1]->getStatus());
+        self::assertSame(\App\Enum\ComicStatus::STOPPED, $this->persistedSeries[2]->getStatus());
+        self::assertSame(\App\Enum\ComicStatus::FINISHED, $this->persistedSeries[3]->getStatus());
+    }
+
+    public function testImportHandlesRangesAndComplexFormats(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['Manga', 'Série Range', '', '01-02', '', 5, '1-3, 5', 'oui', ''],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertCount(5, $series->getTomes());
+
+        $bought = [];
+        $onNas = [];
+        foreach ($series->getTomes() as $tome) {
+            if ($tome->isBought()) {
+                $bought[] = $tome->getNumber();
+            }
+            if ($tome->isOnNas()) {
+                $onNas[] = $tome->getNumber();
+            }
+        }
+        \sort($bought);
+        \sort($onNas);
+
+        self::assertSame([1, 2], $bought);
+        self::assertSame([1, 2, 3, 5], $onNas);
+    }
+
+    public function testImportPreventsEmptyShellSeries(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['BD', 'Série OneShot Sans Chiffre', '', '', '', '', '', 'oui', ''],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        $firstTome = $series->getTomes()->first();
+        self::assertInstanceOf(Tome::class, $firstTome);
+        self::assertSame(1, $firstTome->getNumber());
+        self::assertTrue($firstTome->isOnNas());
+    }
+
+    public function testImportDoesNotMarkSeriesCompleteWhenOnlyReadingIsComplete(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['Manga', 'Série En Cours Lecture À Jour', '', 10, 'fini', 10, '', '', ''],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertFalse($series->isLatestPublishedIssueComplete());
+    }
+
+    public function testImportSanitizesMultiIsbnAndScientificNotation(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée', 'ISBN'],
+            ['BD', 'Série Scientific ISBN', '', 2, '', 2, '', '', '', '9.78201E+12,9782012345678'],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertCount(2, $series->getTomes());
+
+        $tomes = $series->getTomes()->toArray();
+        \usort($tomes, static fn (Tome $a, Tome $b): int => $a->getNumber() <=> $b->getNumber());
+
+        self::assertNotNull($tomes[0]->getIsbn());
+        self::assertLessThanOrEqual(20, \strlen((string) $tomes[0]->getIsbn()));
+        self::assertStringNotContainsString('E+', (string) $tomes[0]->getIsbn());
+        self::assertStringNotContainsString(',', (string) $tomes[0]->getIsbn());
+        self::assertSame('9782012345678', $tomes[1]->getIsbn());
+    }
+
+    public function testImportHandlesScientificIsbnWithFrenchDecimalComma(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée', 'ISBN'],
+            ['BD', 'Série French Comma ISBN', '', 1, '', 1, '', '', '', '9,78201E+12'],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $firstTome = $this->persistedSeries[0]->getTomes()->first();
+        self::assertInstanceOf(Tome::class, $firstTome);
+        self::assertSame('9782010000000', $firstTome->getIsbn());
+    }
+
+    public function testImportAppliesReadStatusWithRangeAndSpecificValues(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['Manga', 'Série Lecture Range', '', 6, '1-3, 5', 6, '', '', ''],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertCount(6, $series->getTomes());
+
+        $readTomes = [];
+        $unreadTomes = [];
+        foreach ($series->getTomes() as $tome) {
+            if ($tome->isRead()) {
+                $readTomes[] = $tome->getNumber();
+            } else {
+                $unreadTomes[] = $tome->getNumber();
+            }
+        }
+        \sort($readTomes);
+        \sort($unreadTomes);
+
+        self::assertSame([1, 2, 3, 5], $readTomes);
+        self::assertSame([4, 6], $unreadTomes);
+    }
+
+    public function testImportHandlesUnnumberedStopStatus(): void
+    {
+        $filePath = $this->createExcelFile([
+            ['Type', 'Titre', 'Achète?', 'Dernier acheté', 'Lu', 'Parution', 'Dernier DL', 'Sur NAS?', 'Parution terminée'],
+            ['BD', 'Série Unnumbered Stop', '', '', '', 'stop', 1, 'oui', ''],
+        ]);
+
+        $this->service->import($filePath, dryRun: false);
+
+        self::assertCount(1, $this->persistedSeries);
+        $series = $this->persistedSeries[0];
+        self::assertSame(\App\Enum\ComicStatus::STOPPED, $series->getStatus());
+        self::assertCount(1, $series->getTomes());
+    }
+
     /**
      * @param list<list<mixed>> $rows
      */

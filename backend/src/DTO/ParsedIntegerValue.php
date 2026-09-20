@@ -17,6 +17,7 @@ final readonly class ParsedIntegerValue
         public bool $isComplete,
         public ?array $specificValues,
         public ?int $value,
+        public bool $isStopped = false,
     ) {
     }
 }
