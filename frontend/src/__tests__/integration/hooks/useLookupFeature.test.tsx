@@ -281,3 +281,116 @@ describe("useLookupFeature.clearTitleSearch", () => {
     );
   });
 });
+
+describe("useLookupFeature.selectCandidate & applyLookup (Title)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    toastSuccess.mockClear();
+    toastWarning.mockClear();
+    toastError.mockClear();
+  });
+
+  it("selectCandidate privilégie seriesTitle si fourni", async () => {
+    server.use(
+      http.get(`${API_BASE}/lookup/title`, ({ request }) => {
+        const url = new URL(request.url);
+        const titleParam = url.searchParams.get("title");
+        return HttpResponse.json(
+          createMockLookupResult({
+            seriesTitle: "Tintin",
+            title: titleParam ?? "Tintin",
+          }),
+        );
+      }),
+    );
+
+    const update = vi.fn();
+    const form = createForm();
+    const view = renderHook(
+      () => useLookupFeature(form, update as unknown as UpdateFn),
+      { wrapper: createWrapper() },
+    );
+
+    act(() => {
+      view.result.current.selectCandidate("Les Cigares du Pharaon", "Tintin");
+    });
+
+    await waitFor(() =>
+      expect(view.result.current.lookupResult.data).toBeDefined(),
+    );
+
+    expect(view.result.current.selectedCandidateTitle).toBe("Tintin");
+  });
+
+  it("selectCandidate utilise title si seriesTitle est absent", async () => {
+    server.use(
+      http.get(`${API_BASE}/lookup/title`, ({ request }) => {
+        const url = new URL(request.url);
+        const titleParam = url.searchParams.get("title");
+        return HttpResponse.json(
+          createMockLookupResult({
+            title: titleParam ?? "Tintin",
+          }),
+        );
+      }),
+    );
+
+    const update = vi.fn();
+    const form = createForm();
+    const view = renderHook(
+      () => useLookupFeature(form, update as unknown as UpdateFn),
+      { wrapper: createWrapper() },
+    );
+
+    act(() => {
+      view.result.current.selectCandidate("Tintin");
+    });
+
+    await waitFor(() =>
+      expect(view.result.current.lookupResult.data).toBeDefined(),
+    );
+
+    expect(view.result.current.selectedCandidateTitle).toBe("Tintin");
+  });
+
+  it("applyLookup en mode titre applique seriesTitle comme titre de série s'il est présent", async () => {
+    server.use(
+      http.get(`${API_BASE}/lookup/title`, () =>
+        HttpResponse.json(
+          createMockLookupResult({
+            description: "Les aventures de Tintin",
+            seriesTitle: "Tintin",
+            title: "Les Cigares du Pharaon",
+          }),
+        ),
+      ),
+    );
+
+    const update = vi.fn();
+    const form = createForm({ title: "" });
+    const view = renderHook(
+      () => useLookupFeature(form, update as unknown as UpdateFn),
+      { wrapper: createWrapper() },
+    );
+
+    act(() => {
+      view.result.current.selectCandidate("Les Cigares du Pharaon", "Tintin");
+    });
+
+    await waitFor(() =>
+      expect(view.result.current.lookupResult.data).toBeDefined(),
+    );
+
+    await act(async () => {
+      await view.result.current.applyLookup();
+    });
+
+    expect(update).toHaveBeenCalledWith("title", "Tintin");
+    expect(update).toHaveBeenCalledWith("description", "Les aventures de Tintin");
+    expect(toastSuccess).toHaveBeenCalledWith("Informations récupérées");
+    expect(view.result.current.selectedCandidateTitle).toBeNull();
+  });
+});

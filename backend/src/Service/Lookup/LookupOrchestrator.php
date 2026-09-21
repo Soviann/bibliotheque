@@ -191,16 +191,18 @@ class LookupOrchestrator
         // Filtrer les résultats dont le titre ne correspond pas à la requête
         $filtered = \array_filter(
             $allResults,
-            static fn (LookupResult $r): bool => TitleMatcher::matches($title, $r->title ?? ''),
+            fn (LookupResult $r): bool => $this->matchesQuery($title, $r),
         );
 
-        // Dédupliquer par titre normalisé, garder le premier trouvé
+        // Dédupliquer par titre normalisé (en tenant compte de la série de rattachement), garder le premier trouvé
         $seen = [];
         $deduplicated = [];
 
         foreach ($filtered as $result) {
-            $key = \mb_strtolower(\trim($result->title ?? ''));
-            if ('' === $key || isset($seen[$key])) {
+            $seriesKey = \mb_strtolower(\trim($result->seriesTitle ?? $result->title ?? ''));
+            $tomeKey = \mb_strtolower(\trim($result->tomeTitle ?? ''));
+            $key = $seriesKey.'::'.$tomeKey;
+            if ('::' === $key || isset($seen[$key])) {
                 continue;
             }
             $seen[$key] = true;
@@ -295,7 +297,7 @@ class LookupOrchestrator
                 }
 
                 if ($result instanceof LookupResult) {
-                    if (LookupMode::TITLE === $mode && !TitleMatcher::matches($query, $result->title ?? '')) {
+                    if (LookupMode::TITLE === $mode && !$this->matchesQuery($query, $result)) {
                         $this->logger->warning('Résultat rejeté par le garde-fou de titre pour {provider} : "{resultTitle}" vs "{query}"', [
                             'provider' => $provider->getName(),
                             'query' => $query,
@@ -343,7 +345,22 @@ class LookupOrchestrator
      */
     private function mergeByFieldPriority(array $providerResults, ?ComicType $type): LookupResult
     {
-        $fields = ['amazonUrl', 'authors', 'description', 'isbn', 'isOneShot', 'latestPublishedIssue', 'publishedDate', 'publisher', 'thumbnail', 'title', 'tomeEnd', 'tomeNumber'];
+        $fields = [
+            'amazonUrl',
+            'authors',
+            'description',
+            'isbn',
+            'isOneShot',
+            'latestPublishedIssue',
+            'publishedDate',
+            'publisher',
+            'seriesTitle',
+            'thumbnail',
+            'title',
+            'tomeEnd',
+            'tomeNumber',
+            'tomeTitle',
+        ];
         $bestPriorities = \array_fill_keys($fields, -1);
         $bestValues = \array_fill_keys($fields, null);
 
@@ -371,11 +388,13 @@ class LookupOrchestrator
             latestPublishedIssue: $bestValues['latestPublishedIssue'], // @phpstan-ignore argument.type
             publishedDate: $bestValues['publishedDate'], // @phpstan-ignore argument.type
             publisher: $bestValues['publisher'], // @phpstan-ignore argument.type
+            seriesTitle: $bestValues['seriesTitle'], // @phpstan-ignore argument.type
             source: $providerResults[0][1]->source,
             thumbnail: $bestValues['thumbnail'], // @phpstan-ignore argument.type
             title: $bestValues['title'], // @phpstan-ignore argument.type
             tomeEnd: $bestValues['tomeEnd'], // @phpstan-ignore argument.type
             tomeNumber: $bestValues['tomeNumber'], // @phpstan-ignore argument.type
+            tomeTitle: $bestValues['tomeTitle'], // @phpstan-ignore argument.type
         );
     }
 
@@ -424,7 +443,7 @@ class LookupOrchestrator
                 }
 
                 if ($enriched instanceof LookupResult) {
-                    if (null !== $merged->title && null !== $enriched->title && !TitleMatcher::matches($merged->title, $enriched->title)) {
+                    if (!$this->matchesEnrich($merged, $enriched)) {
                         $this->logger->warning('Enrichissement rejeté par le garde-fou de titre pour {provider} : "{resultTitle}" vs "{mergedTitle}"', [
                             'provider' => $provider->getName(),
                             'mergedTitle' => $merged->title,
@@ -455,5 +474,44 @@ class LookupOrchestrator
 
         // Fusionne tous les résultats (lookup + enrichissement) par priorité de champ
         return $this->mergeByFieldPriority(\array_merge($existingResults, $enrichResults), $type);
+    }
+
+    /**
+     * Vérifie si le résultat enrichi correspond à la série fusionnée.
+     */
+    private function matchesEnrich(LookupResult $merged, LookupResult $enriched): bool
+    {
+        $mergedTitles = \array_filter([$merged->title, $merged->seriesTitle], static fn (?string $t): bool => null !== $t && '' !== $t);
+        $enrichedTitles = \array_filter([$enriched->title, $enriched->seriesTitle], static fn (?string $t): bool => null !== $t && '' !== $t);
+
+        if (0 === \count($mergedTitles) || 0 === \count($enrichedTitles)) {
+            return true;
+        }
+
+        foreach ($mergedTitles as $mTitle) {
+            foreach ($enrichedTitles as $eTitle) {
+                if (TitleMatcher::matches($mTitle, $eTitle)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Vérifie si un résultat correspond au titre recherché (titre, série parente ou tome).
+     */
+    private function matchesQuery(string $query, LookupResult $result): bool
+    {
+        if (TitleMatcher::matches($query, $result->title ?? '')) {
+            return true;
+        }
+
+        if (null !== $result->seriesTitle && TitleMatcher::matches($query, $result->seriesTitle)) {
+            return true;
+        }
+
+        return null !== $result->tomeTitle && TitleMatcher::matches($query, $result->tomeTitle);
     }
 }

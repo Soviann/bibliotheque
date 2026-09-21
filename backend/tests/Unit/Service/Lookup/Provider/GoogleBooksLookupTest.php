@@ -844,6 +844,80 @@ final class GoogleBooksLookupTest extends TestCase
     }
 
     /**
+     * Teste que resolveLookup extrait seriesTitle et tomeTitle depuis subtitle.
+     */
+    public function testResolveLookupExtractsSeriesAndTomeTitleFromSubtitle(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Hergé'],
+                        'subtitle' => 'Les Cigares du Pharaon',
+                        'title' => 'Tintin',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup(['query' => 'Tintin', 'response' => $response]);
+
+        self::assertNotNull($result);
+        self::assertSame('Tintin', $result->title);
+        self::assertSame('Tintin', $result->seriesTitle);
+        self::assertSame('Les Cigares du Pharaon', $result->tomeTitle);
+    }
+
+    /**
+     * Teste que resolveLookup extrait seriesTitle et tomeTitle depuis un séparateur dans le titre.
+     */
+    public function testResolveLookupExtractsSeriesAndTomeTitleFromSeparator(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Hergé'],
+                        'title' => 'Tintin - Tome 4 - Les Cigares du Pharaon',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup(['query' => null, 'response' => $response]);
+
+        self::assertNotNull($result);
+        self::assertSame('Tintin', $result->seriesTitle);
+        self::assertSame('Les Cigares du Pharaon', $result->tomeTitle);
+    }
+
+    /**
+     * Teste que filterItemsByTitle accepte un résultat si la requête correspond au tomeTitle.
+     */
+    public function testResolveLookupMatchesQueryAgainstTomeTitle(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('toArray')->willReturn([
+            'items' => [
+                [
+                    'volumeInfo' => [
+                        'authors' => ['Hergé'],
+                        'title' => 'Tintin - Les Cigares du Pharaon',
+                    ],
+                ],
+            ],
+        ]);
+
+        $result = $this->provider->resolveLookup(['query' => 'Les Cigares du Pharaon', 'response' => $response]);
+
+        self::assertNotNull($result);
+        self::assertSame('Tintin', $result->seriesTitle);
+        self::assertSame('Les Cigares du Pharaon', $result->tomeTitle);
+    }
+
+    /**
      * Recree le provider avec un mock httpClient pour les tests d'attente.
      */
     private function createHttpClientMock(): HttpClientInterface&MockObject

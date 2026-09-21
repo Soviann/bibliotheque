@@ -178,7 +178,7 @@ Reference for implementing features without exploring the codebase.
 | `ApiMessage` | Lookup provider API status (JsonSerializable) |
 | `EnrichableLookupProviderInterface` | Extends: `prepareEnrich`/`resolveEnrich` |
 | `LookupProviderInterface` | `getFieldPriority(field, ?type)`, `supports(mode, type)`, `prepareLookup()`/`resolveLookup()` |
-| `LookupResult` | Immutable DTO (JsonSerializable): amazonUrl, authors, description, isbn, isOneShot, latestPublishedIssue, publishedDate, publisher, source, thumbnail, title, tomeEnd, tomeNumber |
+| `LookupResult` | Immutable DTO (JsonSerializable): amazonUrl, authors, description, isbn, isOneShot, latestPublishedIssue, publishedDate, publisher, seriesTitle, source, thumbnail, title, tomeEnd, tomeNumber, tomeTitle |
 | `MultiResultLookupProviderInterface` | Extends: `prepareMultipleLookup`/`resolveMultipleLookup` |
 
 **Gemini/ (Gemini infrastructure):**
@@ -379,7 +379,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `SyncErrorBanner` / `SyncPendingIndicator` | Offline synchronization state and conflict alerts |
 | `SyncFailureSection` | Accordion view detailing failed offline mutations with retry triggers |
 | `TomeDrawer` | Mobile bottom drawer with 3 large toggles (Acheté, Sur NAS, Lu) and instant auto-save |
-| `TomeTable` | Responsive tome list (desktop table / mobile cards) with batch tome creation |
+| `TomeTable` | Responsive tome list (desktop table / mobile cards) with batch tome creation and per-tome ISBN/title search |
 | `VirtualGrid` | High-performance virtualized grid powered by `react-virtuoso` |
 
 ## Frontend — Hooks (`frontend/src/hooks/`)
@@ -421,7 +421,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `useServiceWorker` | Registers service worker, detects updates, and communicates auth tokens |
 | `useSuggestions` | Manages AI recommendation queries, additions, and dismissals |
 | `useSyncFailures` / `useSyncStatus` | Subscribes to sync failures and background synchronization events |
-| `useTomeManagement` | Manages tome state, batch addition, and barcode scanning in ComicForm |
+| `useTomeManagement` | Manages tome state, batch addition, per-tome ISBN/title lookup, and barcode scanning in ComicForm |
 | `useTrash` | Queries soft-deleted series and performs restore or permanent purge |
 
 ## Frontend — Services & Utils

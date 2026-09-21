@@ -199,11 +199,13 @@ export interface LookupResult {
   latestPublishedIssue: number | null;
   publishedDate: string | null;
   publisher: string | null;
+  seriesTitle?: string | null;
   sources: string[];
   thumbnail: string | null;
   title: string | null;
   tomeEnd: number | null;
   tomeNumber: number | null;
+  tomeTitle?: string | null;
 }
 
 /** Résultat brut retourné par le backend `LookupResult::jsonSerialize()` (via `POST /api/share`). */
@@ -216,10 +218,12 @@ export interface ShareLookupResult {
   latestPublishedIssue: number | null;
   publishedDate: string | null;
   publisher: string | null;
+  seriesTitle?: string | null;
   thumbnail: string | null;
   title: string | null;
   tomeEnd: number | null;
   tomeNumber: number | null;
+  tomeTitle?: string | null;
 }
 
 export type ShareResponse =
@@ -240,10 +244,12 @@ export interface LookupCandidate {
   latestPublishedIssue: number | null;
   publishedDate: string | null;
   publisher: string | null;
+  seriesTitle?: string | null;
   thumbnail: string | null;
   title: string | null;
   tomeEnd: number | null;
   tomeNumber: number | null;
+  tomeTitle?: string | null;
 }
 
 export interface EnrichmentProposal {

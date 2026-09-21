@@ -199,7 +199,9 @@ final class BedethequeLookupTest extends TestCase
             'isOneShot' => false,
             'latestPublishedIssue' => 7,
             'publisher' => 'Dargaud',
+            'seriesTitle' => 'Blacksad',
             'title' => 'Blacksad',
+            'tomeTitle' => 'Quelque part entre les ombres',
         ]);
 
         $fakeResponse = GenerateContentResponse::fake([
@@ -231,6 +233,8 @@ final class BedethequeLookupTest extends TestCase
 
         self::assertNotNull($result);
         self::assertSame('Blacksad', $result->title);
+        self::assertSame('Blacksad', $result->seriesTitle);
+        self::assertSame('Quelque part entre les ombres', $result->tomeTitle);
         self::assertSame('Juan Diaz Canales, Juanjo Guarnido', $result->authors);
         self::assertSame('Dargaud', $result->publisher);
         self::assertSame(7, $result->latestPublishedIssue);

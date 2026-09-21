@@ -1133,6 +1133,134 @@ final class LookupOrchestratorTest extends TestCase
     }
 
     /**
+     * Teste que lookupByTitle accepte un résultat si la requête correspond au titre de la série parente.
+     */
+    public function testLookupByTitleAcceptsResultMatchingSeriesTitle(): void
+    {
+        $provider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'provider',
+            result: new LookupResult(
+                authors: 'Hergé',
+                seriesTitle: 'Tintin',
+                source: 'provider',
+                title: 'Les Cigares du Pharaon',
+            ),
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(15.0, new NullLogger(), [$provider]);
+        $result = $orchestrator->lookupByTitle('Tintin');
+
+        self::assertNotNull($result);
+        self::assertSame('Les Cigares du Pharaon', $result->title);
+        self::assertSame('Tintin', $result->seriesTitle);
+    }
+
+    /**
+     * Teste que lookupByTitle accepte un résultat si la requête correspond au titre du tome.
+     */
+    public function testLookupByTitleAcceptsResultMatchingTomeTitle(): void
+    {
+        $provider = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'provider',
+            result: new LookupResult(
+                authors: 'Hergé',
+                seriesTitle: 'Tintin',
+                source: 'provider',
+                title: 'Tintin',
+                tomeTitle: 'Les Cigares du Pharaon',
+            ),
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(15.0, new NullLogger(), [$provider]);
+        $result = $orchestrator->lookupByTitle('Les Cigares du Pharaon');
+
+        self::assertNotNull($result);
+        self::assertSame('Tintin', $result->title);
+        self::assertSame('Les Cigares du Pharaon', $result->tomeTitle);
+    }
+
+    /**
+     * Teste que lookupByTitleMultiple déduplique en tenant compte de la série et du tome.
+     */
+    public function testLookupByTitleMultipleDeduplicatesBySeriesAndTome(): void
+    {
+        $multiProvider = $this->createStubMultiResultProvider(
+            fieldPriority: 100,
+            name: 'multi',
+            results: [
+                new LookupResult(
+                    authors: 'Hergé',
+                    seriesTitle: 'Tintin',
+                    source: 'multi',
+                    title: 'Tintin - Les Cigares du Pharaon',
+                    tomeTitle: 'Les Cigares du Pharaon',
+                ),
+                new LookupResult(
+                    authors: 'Hergé',
+                    seriesTitle: 'Tintin',
+                    source: 'multi',
+                    title: 'Les Cigares du Pharaon',
+                    tomeTitle: 'Les Cigares du Pharaon',
+                ),
+                new LookupResult(
+                    authors: 'Hergé',
+                    seriesTitle: 'Tintin',
+                    source: 'multi',
+                    title: 'Tintin',
+                ),
+            ],
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(15.0, new NullLogger(), [$multiProvider]);
+        $results = $orchestrator->lookupByTitleMultiple('Tintin', null, 5);
+
+        self::assertCount(2, $results);
+        self::assertSame('Tintin - Les Cigares du Pharaon', $results[0]->title);
+        self::assertSame('Tintin', $results[1]->title);
+    }
+
+    /**
+     * Teste que mergeByFieldPriority fusionne correctement seriesTitle et tomeTitle.
+     */
+    public function testMergeByFieldPriorityMergesSeriesAndTomeTitle(): void
+    {
+        $providerA = $this->createStubProvider(
+            fieldPriority: 200,
+            name: 'provider_a',
+            result: new LookupResult(
+                seriesTitle: 'Série Prioritaire A',
+                source: 'provider_a',
+                title: 'Titre A',
+            ),
+            supports: true,
+        );
+
+        $providerB = $this->createStubProvider(
+            fieldPriority: 100,
+            name: 'provider_b',
+            result: new LookupResult(
+                seriesTitle: 'Série B',
+                source: 'provider_b',
+                title: 'Titre A',
+                tomeTitle: 'Tome B',
+            ),
+            supports: true,
+        );
+
+        $orchestrator = new LookupOrchestrator(15.0, new NullLogger(), [$providerA, $providerB]);
+        $result = $orchestrator->lookupByTitle('Titre A');
+
+        self::assertNotNull($result);
+        self::assertSame('Série Prioritaire A', $result->seriesTitle);
+        self::assertSame('Tome B', $result->tomeTitle);
+    }
+
+    /**
      * Cree un stub MultiResultLookupProviderInterface.
      *
      * @param list<LookupResult> $results

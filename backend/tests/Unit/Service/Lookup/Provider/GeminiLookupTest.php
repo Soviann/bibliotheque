@@ -172,8 +172,10 @@ final class GeminiLookupTest extends TestCase
             'latestPublishedIssue' => 107,
             'publishedDate' => '1997',
             'publisher' => 'Glenat',
+            'seriesTitle' => 'One Piece',
             'thumbnail' => 'https://example.com/cover.jpg',
             'title' => 'One Piece',
+            'tomeTitle' => 'Romance Dawn',
         ]);
 
         $fakeResponse = GenerateContentResponse::fake([
@@ -208,6 +210,8 @@ final class GeminiLookupTest extends TestCase
         self::assertNotNull($result);
         self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $result->amazonUrl);
         self::assertSame('One Piece', $result->title);
+        self::assertSame('One Piece', $result->seriesTitle);
+        self::assertSame('Romance Dawn', $result->tomeTitle);
         self::assertSame('Eiichiro Oda', $result->authors);
         self::assertSame('Glenat', $result->publisher);
         self::assertSame('gemini', $result->source);

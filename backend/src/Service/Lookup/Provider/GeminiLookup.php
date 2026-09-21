@@ -26,6 +26,8 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
     private const string JSON_INSTRUCTIONS = <<<'TEXT'
         Réponds UNIQUEMENT avec un objet JSON (sans bloc markdown) contenant ces champs :
         - "title" (string|null) : titre de la série
+        - "seriesTitle" (string|null) : titre de la série parente (ex : "Tintin") si l'élément correspond à un tome spécifique, ou le titre de la série
+        - "tomeTitle" (string|null) : titre spécifique du tome si la recherche porte sur un tome (ex : "Les Cigares du Pharaon"), null si la recherche porte sur la série globale
         - "authors" (string|null) : auteur(s) séparés par des virgules
         - "publisher" (string|null) : éditeur français
         - "publishedDate" (string|null) : date au format YYYY-MM-DD ou YYYY
@@ -102,11 +104,13 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
             latestPublishedIssue: \is_int($data['latestPublishedIssue'] ?? null) ? $data['latestPublishedIssue'] : null,
             publishedDate: \is_string($data['publishedDate'] ?? null) ? $data['publishedDate'] : null,
             publisher: \is_string($data['publisher'] ?? null) ? $data['publisher'] : null,
+            seriesTitle: \is_string($data['seriesTitle'] ?? null) ? $data['seriesTitle'] : null,
             source: 'gemini',
             thumbnail: \is_string($data['thumbnail'] ?? null) ? $data['thumbnail'] : null,
             title: \is_string($data['title'] ?? null) ? $data['title'] : null,
             tomeEnd: \is_int($data['tomeEnd'] ?? null) ? $data['tomeEnd'] : null,
             tomeNumber: \is_int($data['tomeNumber'] ?? null) ? $data['tomeNumber'] : null,
+            tomeTitle: \is_string($data['tomeTitle'] ?? null) ? $data['tomeTitle'] : null,
         );
     }
 
@@ -161,6 +165,7 @@ final class GeminiLookup extends AbstractGeminiLookupProvider implements Enricha
             Retourne UNIQUEMENT les informations que tu trouves avec certitude.
             Si tu n'es pas sûr d'une information, laisse le champ à null.
             Pour le titre, retourne le titre de la SÉRIE (pas du tome individuel).
+            Si la recherche correspond à un tome spécifique d'une série, indique le titre de la série dans 'seriesTitle' et le titre du tome dans 'tomeTitle'. Dans 'title', retourne toujours le titre de la série.
 
             PROMPT.self::JSON_INSTRUCTIONS;
     }

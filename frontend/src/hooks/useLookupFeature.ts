@@ -19,7 +19,7 @@ export interface LookupFeature {
   lookupMode: "isbn" | "title";
   lookupResult: UseQueryResult<LookupResult>;
   lookupTitle: string;
-  selectCandidate: (title: string) => void;
+  selectCandidate: (title: string, seriesTitle?: string | null) => void;
   selectedCandidateTitle: string | null;
   setLookupIsbn: (v: string) => void;
   setLookupMode: (v: "isbn" | "title") => void;
@@ -66,7 +66,7 @@ export function useLookupFeature(
     update("publishedDate", result.publishedDate ?? form.publishedDate);
     update("lookupCompletedAt", new Date().toISOString());
     update("publisher", result.publisher ?? form.publisher);
-    update("title", result.title || form.title);
+    update("title", result.seriesTitle || result.title || form.title);
 
     if (result.authors) {
       const authorNames = result.authors
@@ -112,8 +112,8 @@ export function useLookupFeature(
     }
   };
 
-  const selectCandidate = (title: string) => {
-    setSelectedCandidateTitle(title);
+  const selectCandidate = (title: string, seriesTitle?: string | null) => {
+    setSelectedCandidateTitle(seriesTitle?.trim() || title);
   };
 
   const clearCandidate = () => {

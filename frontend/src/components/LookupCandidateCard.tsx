@@ -88,6 +88,14 @@ export default function LookupCandidateCard({
             {candidate.title ?? "Sans titre"}
           </h4>
 
+          {candidate.seriesTitle &&
+            candidate.seriesTitle.trim() !== "" &&
+            candidate.seriesTitle !== candidate.title && (
+              <p className="truncate text-xs font-medium text-primary-600 dark:text-primary-400">
+                Série : {candidate.seriesTitle}
+              </p>
+            )}
+
           {candidate.authors && (
             <p className="truncate text-xs text-text-muted">
               {candidate.authors}

@@ -287,8 +287,10 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
         $isOneShot = null;
         $publishedDate = null;
         $publisher = null;
+        $seriesTitle = null;
         $thumbnail = null;
         $title = null;
+        $tomeTitle = null;
 
         foreach ($items as $item) {
             $volumeInfo = $item['volumeInfo'] ?? [];
@@ -338,6 +340,16 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
                 $isOneShot = false;
             }
 
+            if (null === $seriesTitle || null === $tomeTitle) {
+                $extracted = $this->extractSeriesAndTomeTitle($volumeInfo);
+                if (null === $seriesTitle && null !== $extracted['seriesTitle']) {
+                    $seriesTitle = $extracted['seriesTitle'];
+                }
+                if (null === $tomeTitle && null !== $extracted['tomeTitle']) {
+                    $tomeTitle = $extracted['tomeTitle'];
+                }
+            }
+
             if (!\in_array(null, [$authors, $description, $publishedDate, $publisher, $thumbnail, $title], true)) {
                 break;
             }
@@ -350,10 +362,60 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
             isOneShot: $isOneShot,
             publishedDate: $publishedDate,
             publisher: $publisher,
+            seriesTitle: $seriesTitle,
             source: 'google_books',
             thumbnail: $thumbnail,
             title: $title,
+            tomeTitle: $tomeTitle,
         );
+    }
+
+    /**
+     * Tente d'extraire le titre de la série et le titre du tome depuis les données de volumeInfo.
+     *
+     * @param array<string, mixed> $volumeInfo
+     *
+     * @return array{seriesTitle: ?string, tomeTitle: ?string}
+     */
+    private function extractSeriesAndTomeTitle(array $volumeInfo): array
+    {
+        $rawTitle = \is_string($volumeInfo['title'] ?? null) ? $volumeInfo['title'] : null;
+        $subtitle = \is_string($volumeInfo['subtitle'] ?? null) ? $volumeInfo['subtitle'] : null;
+
+        $seriesTitle = null;
+        $tomeTitle = null;
+
+        if (null !== $subtitle && '' !== \trim($subtitle)) {
+            $cleanedSubtitle = LookupTitleCleaner::clean($subtitle);
+            if ('' !== $cleanedSubtitle && !TitleMatcher::matches($subtitle, $rawTitle ?? '')) {
+                $seriesTitle = LookupTitleCleaner::clean($rawTitle ?? '');
+                $tomeTitle = $subtitle;
+            }
+        }
+
+        if (null === $seriesTitle && null !== $rawTitle) {
+            foreach ([' : ', ' - ', ' – '] as $sep) {
+                if (\str_contains($rawTitle, $sep)) {
+                    $parts = \explode($sep, $rawTitle, 2);
+                    $part1 = \trim($parts[0]);
+                    $part2 = \trim($parts[1]);
+
+                    $part2Cleaned = \preg_replace('/^(?:T(?:ome)?|Vol(?:ume)?|V)\.?\s*\d+\s*[-:–]?\s*/iu', '', $part2);
+                    $part2Cleaned = \trim($part2Cleaned ?? $part2);
+
+                    if ('' !== $part1 && '' !== $part2Cleaned) {
+                        $seriesTitle = LookupTitleCleaner::clean($part1);
+                        $tomeTitle = $part2Cleaned;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return [
+            'seriesTitle' => '' !== ($seriesTitle ?? '') ? $seriesTitle : null,
+            'tomeTitle' => '' !== ($tomeTitle ?? '') ? $tomeTitle : null,
+        ];
     }
 
     /**
@@ -372,11 +434,28 @@ final class GoogleBooksLookup extends AbstractLookupProvider implements MultiRes
 
         $filtered = \array_filter(
             $items,
-            static function (array $item) use ($query): bool {
+            function (array $item) use ($query): bool {
                 $volumeInfo = $item['volumeInfo'] ?? null;
-                $title = \is_array($volumeInfo) ? ($volumeInfo['title'] ?? null) : null;
+                if (!\is_array($volumeInfo)) {
+                    return false;
+                }
 
-                return \is_string($title) && TitleMatcher::matches($query, $title);
+                $title = \is_string($volumeInfo['title'] ?? null) ? $volumeInfo['title'] : null;
+                if (\is_string($title) && TitleMatcher::matches($query, $title)) {
+                    return true;
+                }
+
+                $subtitle = \is_string($volumeInfo['subtitle'] ?? null) ? $volumeInfo['subtitle'] : null;
+                if (\is_string($subtitle) && TitleMatcher::matches($query, $subtitle)) {
+                    return true;
+                }
+
+                $extracted = $this->extractSeriesAndTomeTitle($volumeInfo);
+                if (null !== $extracted['seriesTitle'] && TitleMatcher::matches($query, $extracted['seriesTitle'])) {
+                    return true;
+                }
+
+                return null !== $extracted['tomeTitle'] && TitleMatcher::matches($query, $extracted['tomeTitle']);
             },
         );
 

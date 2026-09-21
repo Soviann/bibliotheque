@@ -15,11 +15,13 @@ function createMockTomeManager(
     batchSize: 1,
     batchTo: 1,
     lookupTomeIsbn: vi.fn(),
+    lookupTomeTitle: vi.fn(),
     maxBatchSize: 100,
     removeTome: vi.fn(),
     setBatchFrom: vi.fn(),
     setBatchTo: vi.fn(),
     tomeLookupLoading: null,
+    tomeTitleLookupLoading: null,
     updateTome: vi.fn(),
     ...overrides,
   };
@@ -146,8 +148,15 @@ describe("TomeTable", () => {
     expect(isbnInput).toBeInTheDocument();
 
     // Desktop delete button should have aria-label
-    const deleteButton = table.querySelector("button[aria-label]");
+    const deleteButton = table.querySelector("button[aria-label^='Supprimer']");
     expect(deleteButton).toHaveAttribute("aria-label", "Supprimer tome 1");
+
+    expect(
+      table.querySelector("button[aria-label='Rechercher par titre']"),
+    ).toBeInTheDocument();
+    expect(
+      table.querySelector("button[aria-label='Rechercher par ISBN']"),
+    ).toBeInTheDocument();
   });
 
   it("renders mobile cards collapsed by default with tome summary", () => {
@@ -312,5 +321,128 @@ describe("TomeTable", () => {
 
     const generateButton = screen.getByRole("button", { name: /Générer/ });
     expect(generateButton).not.toHaveAttribute("title");
+  });
+
+  it("calls lookupTomeTitle when clicking desktop title search button with valid title", async () => {
+    const user = userEvent.setup();
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          id: 1,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "Les Cigares du Pharaon",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const table = screen.getByTestId("tomes-table");
+    const searchButton = table.querySelector(
+      "button[aria-label='Rechercher par titre']",
+    ) as HTMLButtonElement;
+
+    expect(searchButton).toBeEnabled();
+    await user.click(searchButton);
+    expect(tomeManager.lookupTomeTitle).toHaveBeenCalledWith(0);
+  });
+
+  it("disables title search button when title has fewer than 2 characters", () => {
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          id: 1,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "A",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const table = screen.getByTestId("tomes-table");
+    const searchButton = table.querySelector(
+      "button[aria-label='Rechercher par titre']",
+    ) as HTMLButtonElement;
+
+    expect(searchButton).toBeDisabled();
+  });
+
+  it("disables title search button when tomeTitleLookupLoading is active for that tome", () => {
+    const tomeManager = createMockTomeManager({
+      tomeTitleLookupLoading: 0,
+    });
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          id: 1,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "Tintin au Tibet",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const table = screen.getByTestId("tomes-table");
+    const searchButton = table.querySelector(
+      "button[aria-label='Rechercher par titre']",
+    ) as HTMLButtonElement;
+
+    expect(searchButton).toBeDisabled();
+  });
+
+  it("calls lookupTomeTitle when clicking mobile card title search button", async () => {
+    const user = userEvent.setup();
+    const tomeManager = createMockTomeManager();
+    const form = createMockForm({
+      tomes: [
+        {
+          bought: false,
+          id: 1,
+          isbn: "",
+          isHorsSerie: false,
+          number: 1,
+          onNas: false,
+          read: false,
+          title: "Le Lotus bleu",
+          tomeEnd: "",
+        },
+      ],
+    });
+
+    renderWithProviders(<TomeTable form={form} tomeManager={tomeManager} />);
+
+    const cards = screen.getByTestId("tomes-cards");
+    const header = cards.querySelector("[data-testid='tome-header-0']")!;
+    await user.click(header);
+
+    const searchButton = cards.querySelector(
+      "button[aria-label='Rechercher par titre']",
+    ) as HTMLButtonElement;
+
+    expect(searchButton).toBeEnabled();
+    await user.click(searchButton);
+    expect(tomeManager.lookupTomeTitle).toHaveBeenCalledWith(0);
   });
 });

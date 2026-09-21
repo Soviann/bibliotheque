@@ -18,11 +18,13 @@ final readonly class LookupResult implements \JsonSerializable
         public ?int $latestPublishedIssue = null,
         public ?string $publishedDate = null,
         public ?string $publisher = null,
+        public ?string $seriesTitle = null,
         public string $source = '',
         public ?string $thumbnail = null,
         public ?string $title = null,
         public ?int $tomeEnd = null,
         public ?int $tomeNumber = null,
+        public ?string $tomeTitle = null,
     ) {
     }
 
@@ -41,11 +43,13 @@ final readonly class LookupResult implements \JsonSerializable
         $this->latestPublishedIssue = \is_int($data['latestPublishedIssue'] ?? null) ? $data['latestPublishedIssue'] : null;
         $this->publishedDate = \is_string($data['publishedDate'] ?? null) ? $data['publishedDate'] : null;
         $this->publisher = \is_string($data['publisher'] ?? null) ? $data['publisher'] : null;
+        $this->seriesTitle = \is_string($data['seriesTitle'] ?? null) ? $data['seriesTitle'] : null;
         $this->source = \is_string($data['source'] ?? null) ? $data['source'] : '';
         $this->thumbnail = \is_string($data['thumbnail'] ?? null) ? $data['thumbnail'] : null;
         $this->title = \is_string($data['title'] ?? null) ? $data['title'] : null;
         $this->tomeEnd = \is_int($data['tomeEnd'] ?? null) ? $data['tomeEnd'] : null;
         $this->tomeNumber = \is_int($data['tomeNumber'] ?? null) ? $data['tomeNumber'] : null;
+        $this->tomeTitle = \is_string($data['tomeTitle'] ?? null) ? $data['tomeTitle'] : null;
     }
 
     /**
@@ -57,7 +61,7 @@ final readonly class LookupResult implements \JsonSerializable
     }
 
     /**
-     * @return array{amazonUrl: ?string, authors: ?string, description: ?string, isbn: ?string, isOneShot: ?bool, latestPublishedIssue: ?int, publishedDate: ?string, publisher: ?string, thumbnail: ?string, title: ?string, tomeEnd: ?int, tomeNumber: ?int}
+     * @return array{amazonUrl: ?string, authors: ?string, description: ?string, isbn: ?string, isOneShot: ?bool, latestPublishedIssue: ?int, publishedDate: ?string, publisher: ?string, seriesTitle: ?string, thumbnail: ?string, title: ?string, tomeEnd: ?int, tomeNumber: ?int, tomeTitle: ?string}
      */
     public function jsonSerialize(): array
     {
@@ -70,10 +74,12 @@ final readonly class LookupResult implements \JsonSerializable
             'latestPublishedIssue' => $this->latestPublishedIssue,
             'publishedDate' => $this->publishedDate,
             'publisher' => $this->publisher,
+            'seriesTitle' => $this->seriesTitle,
             'thumbnail' => $this->thumbnail,
             'title' => $this->title,
             'tomeEnd' => $this->tomeEnd,
             'tomeNumber' => $this->tomeNumber,
+            'tomeTitle' => $this->tomeTitle,
         ];
     }
 
@@ -91,11 +97,13 @@ final readonly class LookupResult implements \JsonSerializable
             latestPublishedIssue: $this->latestPublishedIssue,
             publishedDate: $this->publishedDate,
             publisher: $this->publisher,
+            seriesTitle: $this->seriesTitle,
             source: $this->source,
             thumbnail: $this->thumbnail,
             title: $this->title,
             tomeEnd: $this->tomeEnd,
             tomeNumber: $this->tomeNumber,
+            tomeTitle: $this->tomeTitle,
         );
     }
 }
