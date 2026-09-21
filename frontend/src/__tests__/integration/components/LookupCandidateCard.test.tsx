@@ -168,4 +168,33 @@ describe("LookupCandidateCard", () => {
 
     expect(screen.queryByText(/plus/i)).not.toBeInTheDocument();
   });
+
+  it("displays parent series subtitle when seriesTitle is distinct from title", () => {
+    const candidate = buildCandidate({
+      seriesTitle: "Tintin",
+      title: "Les Cigares du Pharaon",
+    });
+    const onSelect = vi.fn();
+
+    renderWithProviders(
+      <LookupCandidateCard candidate={candidate} onSelect={onSelect} />,
+    );
+
+    expect(screen.getByText("Les Cigares du Pharaon")).toBeInTheDocument();
+    expect(screen.getByText("Série : Tintin")).toBeInTheDocument();
+  });
+
+  it("does not display parent series subtitle when seriesTitle is identical to title", () => {
+    const candidate = buildCandidate({
+      seriesTitle: "Tintin",
+      title: "Tintin",
+    });
+    const onSelect = vi.fn();
+
+    renderWithProviders(
+      <LookupCandidateCard candidate={candidate} onSelect={onSelect} />,
+    );
+
+    expect(screen.queryByText("Série : Tintin")).not.toBeInTheDocument();
+  });
 });

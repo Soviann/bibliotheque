@@ -29,6 +29,8 @@ final class BedethequeLookup extends AbstractGeminiLookupProvider
     private const string JSON_INSTRUCTIONS = <<<'TEXT'
         Réponds UNIQUEMENT avec un objet JSON (sans bloc markdown) contenant ces champs :
         - "title" (string|null) : titre de la série
+        - "seriesTitle" (string|null) : titre de la série parente (ex : "Tintin") si l'élément correspond à un tome spécifique, ou le titre de la série
+        - "tomeTitle" (string|null) : titre spécifique du tome si la recherche porte sur un tome (ex : "Les Cigares du Pharaon"), null si la recherche porte sur la série globale
         - "authors" (string|null) : auteur(s) séparés par des virgules (scénariste, dessinateur)
         - "publisher" (string|null) : éditeur français
         - "publishedDate" (string|null) : date de première publication au format YYYY-MM-DD ou YYYY
@@ -93,11 +95,13 @@ final class BedethequeLookup extends AbstractGeminiLookupProvider
             latestPublishedIssue: \is_int($data['latestPublishedIssue'] ?? null) ? $data['latestPublishedIssue'] : null,
             publishedDate: \is_string($data['publishedDate'] ?? null) ? $data['publishedDate'] : null,
             publisher: \is_string($data['publisher'] ?? null) ? $data['publisher'] : null,
+            seriesTitle: \is_string($data['seriesTitle'] ?? null) ? $data['seriesTitle'] : null,
             source: 'bedetheque',
             thumbnail: \is_string($data['thumbnail'] ?? null) ? $data['thumbnail'] : null,
             title: \is_string($data['title'] ?? null) ? $data['title'] : null,
             tomeEnd: \is_int($data['tomeEnd'] ?? null) ? $data['tomeEnd'] : null,
             tomeNumber: \is_int($data['tomeNumber'] ?? null) ? $data['tomeNumber'] : null,
+            tomeTitle: \is_string($data['tomeTitle'] ?? null) ? $data['tomeTitle'] : null,
         );
     }
 
@@ -134,6 +138,7 @@ final class BedethequeLookup extends AbstractGeminiLookupProvider
 
             Cherche en priorité sur les bases de données francophones de BD comme BDGest/Bedetheque.
             Extrais les informations les plus précises et complètes possibles.
+            Si la recherche correspond à un tome spécifique d'une série, indique le titre de la série dans 'seriesTitle' et le titre du tome dans 'tomeTitle'. Dans 'title', retourne le titre de la série.
             Si tu ne trouves aucune information fiable, retourne tous les champs à null.
 
             PROMPT.self::JSON_INSTRUCTIONS;

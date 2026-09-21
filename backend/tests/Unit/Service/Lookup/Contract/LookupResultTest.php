@@ -27,11 +27,13 @@ final class LookupResultTest extends TestCase
             latestPublishedIssue: 107,
             publishedDate: '1997-07-22',
             publisher: 'Glenat',
+            seriesTitle: 'One Piece (Série)',
             source: 'google_books',
             thumbnail: 'https://example.com/cover.jpg',
             title: 'One Piece',
             tomeEnd: 6,
             tomeNumber: 4,
+            tomeTitle: 'Le Capitaine Baggy',
         );
 
         self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $result->amazonUrl);
@@ -42,11 +44,13 @@ final class LookupResultTest extends TestCase
         self::assertSame(107, $result->latestPublishedIssue);
         self::assertSame('1997-07-22', $result->publishedDate);
         self::assertSame('Glenat', $result->publisher);
+        self::assertSame('One Piece (Série)', $result->seriesTitle);
         self::assertSame('google_books', $result->source);
         self::assertSame('https://example.com/cover.jpg', $result->thumbnail);
         self::assertSame('One Piece', $result->title);
         self::assertSame(6, $result->tomeEnd);
         self::assertSame(4, $result->tomeNumber);
+        self::assertSame('Le Capitaine Baggy', $result->tomeTitle);
     }
 
     /**
@@ -64,11 +68,13 @@ final class LookupResultTest extends TestCase
         self::assertNull($result->latestPublishedIssue);
         self::assertNull($result->publishedDate);
         self::assertNull($result->publisher);
+        self::assertNull($result->seriesTitle);
         self::assertSame('', $result->source);
         self::assertNull($result->thumbnail);
         self::assertNull($result->title);
         self::assertNull($result->tomeEnd);
         self::assertNull($result->tomeNumber);
+        self::assertNull($result->tomeTitle);
     }
 
     /**
@@ -85,11 +91,13 @@ final class LookupResultTest extends TestCase
             latestPublishedIssue: 42,
             publishedDate: '1984',
             publisher: 'Glenat',
+            seriesTitle: 'Dragon Ball (Série)',
             source: 'anilist',
             thumbnail: 'https://example.com/db.jpg',
             title: 'Dragon Ball',
             tomeEnd: 6,
             tomeNumber: 4,
+            tomeTitle: 'Le Grand Tournoi',
         );
 
         $json = $result->jsonSerialize();
@@ -103,10 +111,12 @@ final class LookupResultTest extends TestCase
         self::assertSame(42, $json['latestPublishedIssue']);
         self::assertSame('1984', $json['publishedDate']);
         self::assertSame('Glenat', $json['publisher']);
+        self::assertSame('Dragon Ball (Série)', $json['seriesTitle']);
         self::assertSame('https://example.com/db.jpg', $json['thumbnail']);
         self::assertSame('Dragon Ball', $json['title']);
         self::assertSame(6, $json['tomeEnd']);
         self::assertSame(4, $json['tomeNumber']);
+        self::assertSame('Le Grand Tournoi', $json['tomeTitle']);
     }
 
     /**
@@ -171,10 +181,12 @@ final class LookupResultTest extends TestCase
         $original = new LookupResult(
             amazonUrl: 'https://www.amazon.fr/dp/B08N5WRWNW',
             authors: 'Oda',
+            seriesTitle: 'One Piece (Série)',
             source: 'google_books',
             title: 'One Piece',
             tomeEnd: 6,
             tomeNumber: 4,
+            tomeTitle: 'Le Capitaine Baggy',
         );
 
         $withIsbn = $original->withIsbn('978-2723489');
@@ -184,10 +196,12 @@ final class LookupResultTest extends TestCase
         self::assertSame('978-2723489', $withIsbn->isbn);
         self::assertSame('https://www.amazon.fr/dp/B08N5WRWNW', $withIsbn->amazonUrl);
         self::assertSame('Oda', $withIsbn->authors);
+        self::assertSame('One Piece (Série)', $withIsbn->seriesTitle);
         self::assertSame('google_books', $withIsbn->source);
         self::assertSame('One Piece', $withIsbn->title);
         self::assertSame(6, $withIsbn->tomeEnd);
         self::assertSame(4, $withIsbn->tomeNumber);
+        self::assertSame('Le Capitaine Baggy', $withIsbn->tomeTitle);
     }
 
     /**
@@ -204,11 +218,13 @@ final class LookupResultTest extends TestCase
             latestPublishedIssue: 107,
             publishedDate: '1997',
             publisher: 'Glenat',
+            seriesTitle: 'One Piece (Série)',
             source: 'test',
             thumbnail: 'https://example.com/img.jpg',
             title: 'One Piece',
             tomeEnd: 6,
             tomeNumber: 4,
+            tomeTitle: 'Le Capitaine Baggy',
         );
 
         /** @var LookupResult $result */
@@ -222,11 +238,13 @@ final class LookupResultTest extends TestCase
         self::assertSame(107, $result->latestPublishedIssue);
         self::assertSame('1997', $result->publishedDate);
         self::assertSame('Glenat', $result->publisher);
+        self::assertSame('One Piece (Série)', $result->seriesTitle);
         self::assertSame('test', $result->source);
         self::assertSame('https://example.com/img.jpg', $result->thumbnail);
         self::assertSame('One Piece', $result->title);
         self::assertSame(6, $result->tomeEnd);
         self::assertSame(4, $result->tomeNumber);
+        self::assertSame('Le Capitaine Baggy', $result->tomeTitle);
     }
 
     /**
@@ -252,7 +270,9 @@ final class LookupResultTest extends TestCase
         self::assertNull($result->latestPublishedIssue);
         self::assertNull($result->publishedDate);
         self::assertNull($result->publisher);
+        self::assertNull($result->seriesTitle);
         self::assertNull($result->thumbnail);
+        self::assertNull($result->tomeTitle);
     }
 
     /**
@@ -260,7 +280,7 @@ final class LookupResultTest extends TestCase
      */
     public function testUnserializeWithWrongTypes(): void
     {
-        $serialized = 'O:40:"App\\Service\\Lookup\\Contract\\LookupResult":10:{s:7:"authors";i:123;s:11:"description";b:1;s:4:"isbn";i:456;s:9:"isOneShot";s:10:"not_a_bool";s:20:"latestPublishedIssue";s:10:"not_an_int";s:13:"publishedDate";i:42;s:9:"publisher";N;s:6:"source";i:999;s:9:"thumbnail";b:0;s:5:"title";i:0;}';
+        $serialized = 'O:40:"App\\Service\\Lookup\\Contract\\LookupResult":12:{s:7:"authors";i:123;s:11:"description";b:1;s:4:"isbn";i:456;s:9:"isOneShot";s:10:"not_a_bool";s:20:"latestPublishedIssue";s:10:"not_an_int";s:13:"publishedDate";i:42;s:9:"publisher";N;s:11:"seriesTitle";i:99;s:6:"source";i:999;s:9:"thumbnail";b:0;s:5:"title";i:0;s:9:"tomeTitle";i:88;}';
 
         /** @var LookupResult $result */
         $result = \unserialize($serialized);
@@ -272,9 +292,11 @@ final class LookupResultTest extends TestCase
         self::assertNull($result->latestPublishedIssue);
         self::assertNull($result->publishedDate);
         self::assertNull($result->publisher);
+        self::assertNull($result->seriesTitle);
         // source 999 (int) is not a string, so __unserialize defaults to ''
         self::assertSame('', $result->source);
         self::assertNull($result->thumbnail);
         self::assertNull($result->title);
+        self::assertNull($result->tomeTitle);
     }
 }

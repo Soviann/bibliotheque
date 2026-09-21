@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { fetchLookupIsbn } from "./useLookup";
+import { fetchLookupIsbn, fetchLookupTitle } from "./useLookup";
 import type { FormData, TomeFormData } from "./useComicForm";
 import { compareTomes } from "./useComicForm";
 
@@ -11,11 +11,13 @@ export interface TomeManager {
   batchSize: number;
   batchTo: number;
   lookupTomeIsbn: (index: number) => void;
+  lookupTomeTitle: (index: number) => void;
   maxBatchSize: number;
   removeTome: (index: number) => void;
   setBatchFrom: (v: number) => void;
   setBatchTo: (v: number) => void;
   tomeLookupLoading: number | null;
+  tomeTitleLookupLoading: number | null;
   updateTome: <K extends keyof TomeFormData>(
     index: number,
     key: K,
@@ -34,6 +36,9 @@ export function useTomeManagement(
   const [tomeLookupLoading, setTomeLookupLoading] = useState<number | null>(
     null,
   );
+  const [tomeTitleLookupLoading, setTomeTitleLookupLoading] = useState<
+    number | null
+  >(null);
 
   const batchSize = batchTo - batchFrom + 1;
 
@@ -120,6 +125,40 @@ export function useTomeManagement(
     }
   };
 
+  const lookupTomeTitle = async (index: number) => {
+    const tome = form.tomes[index];
+    if (!tome?.title || tome.title.trim().length < 2) return;
+
+    const query = form.title?.trim()
+      ? `${form.title.trim()} ${tome.title.trim()}`
+      : tome.title.trim();
+
+    setTomeTitleLookupLoading(index);
+    try {
+      const result = await fetchLookupTitle(query, form.type);
+      update(
+        "tomes",
+        form.tomes.map((t, i) =>
+          i === index
+            ? {
+                ...t,
+                isbn: result.isbn ?? t.isbn,
+                title: result.tomeTitle ?? result.title ?? t.title,
+                tomeEnd: result.tomeEnd?.toString() ?? t.tomeEnd,
+              }
+            : t,
+        ),
+      );
+      toast.success(
+        `Tome ${form.tomes[index].number} : informations récupérées`,
+      );
+    } catch {
+      toast.error("Échec de la recherche par titre");
+    } finally {
+      setTomeTitleLookupLoading(null);
+    }
+  };
+
   return {
     addBatchTomes,
     addTome,
@@ -127,11 +166,13 @@ export function useTomeManagement(
     batchSize,
     batchTo,
     lookupTomeIsbn,
+    lookupTomeTitle,
     maxBatchSize,
     removeTome,
     setBatchFrom,
     setBatchTo,
     tomeLookupLoading,
+    tomeTitleLookupLoading,
     updateTome,
   };
 }

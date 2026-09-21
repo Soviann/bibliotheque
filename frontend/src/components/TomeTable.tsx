@@ -66,11 +66,13 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
     batchSize,
     batchTo,
     lookupTomeIsbn,
+    lookupTomeTitle,
     maxBatchSize,
     removeTome,
     setBatchFrom,
     setBatchTo,
     tomeLookupLoading,
+    tomeTitleLookupLoading,
     updateTome,
   } = tomeManager;
 
@@ -238,13 +240,32 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                    <input
-                      aria-label="Titre"
-                      className="w-full rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
-                      onChange={(e) => updateTome(i, "title", e.target.value)}
-                      placeholder="Titre"
-                      value={tome.title}
-                    />
+                    <div className="flex items-center gap-1">
+                      <input
+                        aria-label="Titre"
+                        className="flex-1 rounded border border-surface-border bg-surface-tertiary px-2 py-1 text-sm text-text-primary"
+                        onChange={(e) => updateTome(i, "title", e.target.value)}
+                        placeholder="Titre"
+                        value={tome.title}
+                      />
+                      <button
+                        aria-label="Rechercher par titre"
+                        className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
+                        disabled={
+                          tome.title.trim().length < 2 ||
+                          tomeTitleLookupLoading === i
+                        }
+                        onClick={() => lookupTomeTitle(i)}
+                        title="Rechercher par titre"
+                        type="button"
+                      >
+                        {tomeTitleLookupLoading === i ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                     <div className="flex items-center gap-1">
                       <input
                         aria-label="ISBN"
@@ -254,6 +275,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                         value={tome.isbn}
                       />
                       <button
+                        aria-label="Rechercher par ISBN"
                         className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
                         disabled={
                           tome.isbn.length < 10 || tomeLookupLoading === i
@@ -387,13 +409,32 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                     />
                   </td>
                   <td className="px-3 py-1.5">
-                    <input
-                      aria-label="Titre"
-                      className="w-full min-w-[100px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
-                      onChange={(e) => updateTome(i, "title", e.target.value)}
-                      placeholder="Titre"
-                      value={tome.title}
-                    />
+                    <div className="flex items-center gap-1">
+                      <input
+                        aria-label="Titre"
+                        className="w-full min-w-[100px] rounded border border-surface-border bg-surface-primary px-2 py-1 text-sm text-text-primary"
+                        onChange={(e) => updateTome(i, "title", e.target.value)}
+                        placeholder="Titre"
+                        value={tome.title}
+                      />
+                      <button
+                        aria-label="Rechercher par titre"
+                        className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
+                        disabled={
+                          tome.title.trim().length < 2 ||
+                          tomeTitleLookupLoading === i
+                        }
+                        onClick={() => lookupTomeTitle(i)}
+                        title="Rechercher par titre"
+                        type="button"
+                      >
+                        {tomeTitleLookupLoading === i ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </td>
                   <td className="px-3 py-1.5">
                     <div className="flex items-center gap-1">
@@ -405,6 +446,7 @@ export default function TomeTable({ form, tomeManager }: TomeTableProps) {
                         value={tome.isbn}
                       />
                       <button
+                        aria-label="Rechercher par ISBN"
                         className="shrink-0 rounded p-1 text-text-muted hover:bg-surface-tertiary hover:text-primary-600 disabled:opacity-50"
                         disabled={
                           tome.isbn.length < 10 || tomeLookupLoading === i

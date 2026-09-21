@@ -16,7 +16,7 @@ interface LookupSectionProps {
   lookupMode: "isbn" | "title";
   lookupResult: UseQueryResult<LookupResult>;
   lookupTitle: string;
-  selectCandidate: (title: string) => void;
+  selectCandidate: (title: string, seriesTitle?: string | null) => void;
   selectedCandidateTitle: string | null;
   setLookupIsbn: (v: string) => void;
   setLookupMode: (v: "isbn" | "title") => void;
@@ -170,7 +170,8 @@ export default function LookupSection({
                       candidate={candidate}
                       key={index}
                       onSelect={() =>
-                        candidate.title && selectCandidate(candidate.title)
+                        candidate.title &&
+                        selectCandidate(candidate.title, candidate.seriesTitle)
                       }
                     />
                   ))}

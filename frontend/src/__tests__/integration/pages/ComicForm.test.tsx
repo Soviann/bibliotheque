@@ -1166,7 +1166,7 @@ describe("ComicForm", () => {
 
       // ISBN search button is within the ISBN cell
       const isbnSearchButtons = document.querySelectorAll(
-        "tbody td .flex.items-center button",
+        'tbody td button[title="Rechercher par ISBN"]',
       ) as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeDisabled();
     });
@@ -1195,7 +1195,7 @@ describe("ComicForm", () => {
 
       // ISBN search button should now be enabled
       const isbnSearchButtons = tableView.querySelectorAll(
-        "td .flex.items-center button",
+        'button[title="Rechercher par ISBN"]',
       ) as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeEnabled();
 
@@ -1239,7 +1239,7 @@ describe("ComicForm", () => {
       await user.type(tomeTitleInput, "Original Tome Title");
 
       const isbnSearchButtons = tableView.querySelectorAll(
-        "td .flex.items-center button",
+        'button[title="Rechercher par ISBN"]',
       ) as NodeListOf<HTMLButtonElement>;
       expect(isbnSearchButtons[0]).toBeEnabled();
       await user.click(isbnSearchButtons[0]);
@@ -1277,7 +1277,7 @@ describe("ComicForm", () => {
       await user.type(isbnInput, "9781234567890");
 
       const isbnSearchButtons = tableView.querySelectorAll(
-        "td .flex.items-center button",
+        'button[title="Rechercher par ISBN"]',
       ) as NodeListOf<HTMLButtonElement>;
       await user.click(isbnSearchButtons[0]);
 
@@ -1307,7 +1307,7 @@ describe("ComicForm", () => {
       await user.type(isbnInput, "9781234567890");
 
       const isbnSearchButtons = tableView.querySelectorAll(
-        "td .flex.items-center button",
+        'button[title="Rechercher par ISBN"]',
       ) as NodeListOf<HTMLButtonElement>;
       await user.click(isbnSearchButtons[0]);
 
