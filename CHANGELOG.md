@@ -7,6 +7,14 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.37.0] — 2026-09-21
+
+### Added
+
+- **Recherche de série par tome** : Possibilité de rechercher une série via le nom d'un tome (ex: "Les Cigares du Pharaon") ou de la série ("Tintin") dans le formulaire série tout en garantissant la préservation des métadonnées de la série parente (#581).
+- **Recherche par titre de tome** : Bouton de recherche par titre sur chaque ligne de tome dans le tableau et les cartes mobiles, contextualisé par le titre de série et appliquant les métadonnées exclusivement au tome sélectionné (#581).
+- **Indication de série parente** : Affichage d'un sous-titre clair indiquant la série de rattachement dans les cartes de résultats de recherche lorsqu'un résultat correspond à un tome (#581).
+
 ## [v2.36.0] — 2026-09-20
 
 ### Added
