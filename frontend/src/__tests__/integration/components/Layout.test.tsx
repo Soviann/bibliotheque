@@ -91,7 +91,7 @@ describe("Layout", () => {
     expect(screen.getByText("Collection")).toBeInTheDocument();
     expect(screen.getByText("Recherche")).toBeInTheDocument();
     expect(screen.getByText("Scanner")).toBeInTheDocument();
-    expect(screen.getAllByText("Outils").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Outils")).toBeInTheDocument();
   });
 
   it("has a dark mode toggle button with aria-label", () => {
@@ -118,7 +118,7 @@ describe("Layout", () => {
     expect(screen.getByLabelText("Déconnexion")).toBeInTheDocument();
   });
 
-  it("has a tools link with aria-label", () => {
+  it("does not render a tools button in the header", () => {
     renderWithProviders(
       <Routes>
         <Route element={<Layout />} path="/">
@@ -127,7 +127,7 @@ describe("Layout", () => {
       </Routes>,
     );
 
-    expect(screen.getByLabelText("Outils")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Outils")).not.toBeInTheDocument();
   });
 
   it("toggles dark mode when button is clicked", async () => {

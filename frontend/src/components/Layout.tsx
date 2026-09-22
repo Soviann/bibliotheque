@@ -1,4 +1,4 @@
-import { LogOut, Moon, Sun, Wrench } from "lucide-react";
+import { LogOut, Moon, Sun } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { toast } from "sonner";
@@ -49,15 +49,6 @@ export default function Layout() {
           </Link>
           <div className="flex items-center gap-0.5">
             <NotificationBell />
-            <Link
-              aria-label="Outils"
-              className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
-              title="Outils"
-              to="/tools"
-              viewTransition
-            >
-              <Wrench className="h-5 w-5" strokeWidth={1.5} />
-            </Link>
             <button
               aria-label={isDark ? "Mode clair" : "Mode sombre"}
               className="rounded-lg p-2 text-text-secondary hover:bg-surface-tertiary"
