@@ -22,6 +22,10 @@ function safeOptimisticFields(
   if (variables.status !== undefined) safe.status = variables.status;
   if (variables.type !== undefined) safe.type = variables.type;
   if (variables.isOneShot !== undefined) safe.isOneShot = variables.isOneShot;
+  if (variables.notInterestedBuy !== undefined)
+    safe.notInterestedBuy = variables.notInterestedBuy;
+  if (variables.notInterestedNas !== undefined)
+    safe.notInterestedNas = variables.notInterestedNas;
   return safe;
 }
 

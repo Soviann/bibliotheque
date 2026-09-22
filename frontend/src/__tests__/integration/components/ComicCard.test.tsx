@@ -340,4 +340,88 @@ describe("ComicCard", () => {
 
     expect(screen.queryByText(/-.*à acheter/)).not.toBeInTheDocument();
   });
+
+  it("shows ✕ indicator when notInterestedBuy is true", () => {
+    const comic = createMockComicSeries({
+      boughtCount: 2,
+      coveredCount: 3,
+      isOneShot: false,
+      latestPublishedIssue: 10,
+      notInterestedBuy: true,
+      title: "No Buy Tracking",
+      tomesCount: 3,
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    const buyMetric = screen.getByTitle("Non suivi pour achat");
+    expect(buyMetric).toHaveTextContent("✕");
+  });
+
+  it("shows ✕ indicator when notInterestedNas is true", () => {
+    const comic = createMockComicSeries({
+      coveredCount: 3,
+      isOneShot: false,
+      latestPublishedIssue: 10,
+      notInterestedNas: true,
+      onNasCount: 1,
+      title: "No NAS Tracking",
+      tomesCount: 3,
+    });
+
+    renderWithProviders(<ComicCard comic={comic} />);
+
+    const nasMetric = screen.getByTitle("Non suivi sur le NAS");
+    expect(nasMetric).toHaveTextContent("✕");
+  });
+
+  it("shows tobuy strip when acquisitionMode is 'tobuy'", async () => {
+    const user = userEvent.setup();
+    const onBuyTome = vi.fn();
+    const comic = createMockComicSeries({
+      id: 12,
+      isOneShot: false,
+      notInterestedBuy: false,
+      title: "Buy Series",
+      tomesCount: 5,
+      unboughtTomes: [
+        { id: 101, isHorsSerie: false, number: 4 },
+        { id: 102, isHorsSerie: false, number: 5 },
+      ],
+    });
+
+    renderWithProviders(
+      <ComicCard
+        acquisitionMode="tobuy"
+        comic={comic}
+        onBuyTome={onBuyTome}
+      />,
+    );
+
+    expect(screen.getByText("2 tomes à acheter :")).toBeInTheDocument();
+    const btn = screen.getByRole("button", { name: /Marquer le tome 4/ });
+    expect(btn).toBeInTheDocument();
+
+    await user.click(btn);
+    expect(onBuyTome).toHaveBeenCalledWith(12, 101);
+  });
+
+  it("shows todownload strip when acquisitionMode is 'todownload'", () => {
+    const comic = createMockComicSeries({
+      coveredCount: 5,
+      id: 15,
+      isOneShot: false,
+      latestPublishedIssue: 5,
+      notInterestedNas: false,
+      onNasCount: 3,
+      title: "NAS Series",
+      tomesCount: 5,
+    });
+
+    renderWithProviders(
+      <ComicCard acquisitionMode="todownload" comic={comic} />,
+    );
+
+    expect(screen.getByText("2 tomes manquants sur NAS")).toBeInTheDocument();
+  });
 });

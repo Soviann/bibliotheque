@@ -3,14 +3,13 @@ import BottomNav from "../../../components/BottomNav";
 import { renderWithProviders } from "../../helpers/test-utils";
 
 describe("BottomNav", () => {
-  it("renders all navigation links", () => {
+  it("renders all 4 navigation links", () => {
     renderWithProviders(<BottomNav />);
 
     expect(screen.getByText("Collection")).toBeInTheDocument();
-    expect(screen.getByText("À acheter")).toBeInTheDocument();
-    expect(screen.getByText("Ajout")).toBeInTheDocument();
-    expect(screen.getByText("Sur NAS")).toBeInTheDocument();
-    expect(screen.getByText("Envies")).toBeInTheDocument();
+    expect(screen.getByText("Recherche")).toBeInTheDocument();
+    expect(screen.getByText("Scanner")).toBeInTheDocument();
+    expect(screen.getByText("Outils")).toBeInTheDocument();
   });
 
   it("renders correct link targets", () => {
@@ -20,74 +19,65 @@ describe("BottomNav", () => {
       "href",
       "/",
     );
-    expect(screen.getByText("À acheter").closest("a")).toHaveAttribute(
+    expect(screen.getByText("Recherche").closest("a")).toHaveAttribute(
       "href",
-      "/to-buy",
+      "/search",
     );
-    expect(screen.getByText("Ajout").closest("a")).toHaveAttribute(
+    expect(screen.getByText("Scanner").closest("a")).toHaveAttribute(
       "href",
       "/quick-add",
     );
-    expect(screen.getByText("Sur NAS").closest("a")).toHaveAttribute(
+    expect(screen.getByText("Outils").closest("a")).toHaveAttribute(
       "href",
-      "/to-download",
+      "/tools",
     );
-    expect(screen.getByText("Envies").closest("a")).toHaveAttribute(
-      "href",
-      "/?status=wishlist",
-    );
-  });
-
-  it("highlights À acheter tab on /to-buy", () => {
-    renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
-
-    const toBuyLink = screen.getByText("À acheter").closest("a");
-    expect(toBuyLink?.className).toContain("text-accent-sage");
   });
 
   it("highlights Collection tab on root", () => {
     renderWithProviders(<BottomNav />, { initialEntries: ["/"] });
 
     const homeLink = screen.getByText("Collection").closest("a");
-    expect(homeLink?.className).toContain("text-primary-600");
+    expect(homeLink?.className).toContain("text-amber-600");
+    expect(homeLink).toHaveAttribute("aria-current", "page");
   });
 
-  it("does not highlight Collection tab on /to-buy", () => {
-    renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
+  it("highlights Recherche tab on /search", () => {
+    renderWithProviders(<BottomNav />, { initialEntries: ["/search"] });
 
-    const homeLink = screen.getByText("Collection").closest("a");
-    expect(homeLink?.className).toContain("text-text-muted");
-    expect(homeLink?.className).not.toContain("text-primary-600");
+    const searchLink = screen.getByText("Recherche").closest("a");
+    expect(searchLink?.className).toContain("text-amber-600");
+    expect(searchLink).toHaveAttribute("aria-current", "page");
   });
 
-  it("highlights Envies tab on /?status=wishlist", () => {
-    renderWithProviders(<BottomNav />, {
-      initialEntries: ["/?status=wishlist"],
-    });
+  it("highlights Scanner tab on /quick-add", () => {
+    renderWithProviders(<BottomNav />, { initialEntries: ["/quick-add"] });
 
-    const wishlistLink = screen.getByText("Envies").closest("a");
-    expect(wishlistLink?.className).toContain("text-rose-500");
-    expect(wishlistLink).toHaveAttribute("aria-current", "page");
+    const scanLink = screen.getByText("Scanner").closest("a");
+    expect(scanLink?.className).toContain("text-amber-600");
+    expect(scanLink).toHaveAttribute("aria-current", "page");
   });
 
-  it("highlights Sur NAS tab on /to-download", () => {
-    renderWithProviders(<BottomNav />, { initialEntries: ["/to-download"] });
+  it("highlights Outils tab on /tools", () => {
+    renderWithProviders(<BottomNav />, { initialEntries: ["/tools"] });
 
-    const nasLink = screen.getByText("Sur NAS").closest("a");
-    expect(nasLink?.className).toContain("text-blue-600");
-    expect(nasLink).toHaveAttribute("aria-current", "page");
+    const toolsLink = screen.getByText("Outils").closest("a");
+    expect(toolsLink?.className).toContain("text-amber-600");
+    expect(toolsLink).toHaveAttribute("aria-current", "page");
   });
 
   it("sets aria-current='page' on the active link only", () => {
-    renderWithProviders(<BottomNav />, { initialEntries: ["/to-buy"] });
+    renderWithProviders(<BottomNav />, { initialEntries: ["/search"] });
 
-    const toBuyLink = screen.getByText("À acheter").closest("a");
-    expect(toBuyLink).toHaveAttribute("aria-current", "page");
+    const searchLink = screen.getByText("Recherche").closest("a");
+    expect(searchLink).toHaveAttribute("aria-current", "page");
 
     const homeLink = screen.getByText("Collection").closest("a");
     expect(homeLink).not.toHaveAttribute("aria-current");
 
-    const addLink = screen.getByText("Ajout").closest("a");
-    expect(addLink).not.toHaveAttribute("aria-current");
+    const scanLink = screen.getByText("Scanner").closest("a");
+    expect(scanLink).not.toHaveAttribute("aria-current");
+
+    const toolsLink = screen.getByText("Outils").closest("a");
+    expect(toolsLink).not.toHaveAttribute("aria-current");
   });
 });

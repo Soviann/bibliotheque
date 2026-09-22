@@ -306,7 +306,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 
 | Page | Route | Purpose |
 |------|-------|---------|
-| `ComicDetail` | `/comic/:id` | Detail view: cover, metadata, tomes list, edit/delete |
+| `ComicDetail` | `/comic/:id` | Detail view: cover, unified metrics & acquisition tracking (buy/NAS toggles with ✕ unmonitored axes), foldable `VolumeMatrixAccordion`, metadata, edit/delete |
 | `ComicForm` | `/comic/new`, `/comic/:id/edit` | Create/edit series: barcode scan, title lookup, tomes table, author autocomplete |
 | `EnrichmentReview` | `/tools/enrichment-review` | Review pending metadata enrichment proposals (accept/reject) |
 | `HelpPage` | `/tools/help` | Integrated user manual and feature guide |
@@ -318,7 +318,8 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `Notifications` | `/notifications` | Notification center: list alerts, mark as read, delete |
 | `NotificationSettings` | `/settings/notifications` | Configure notification delivery channels per alert type |
 | `PurgeTool` | `/tools/purge` | Preview and execute permanent deletion of old trashed series |
-| `QuickAdd` | `/quick-add` | Rapid collection addition via continuous barcode scanner or fast search |
+| `QuickAdd` | `/quick-add` | Rapid collection addition via barcode scanner with reticle, 1-tap confirmation card, batch mode, and session ingestion counter |
+| `Search` | `/search` | Multicriteria series and volume search |
 | `ShareHandler` | `/share` | Web Share Target handler (opens detail if existing, pre-fills form if new) |
 | `Suggestions` | `/tools/suggestions` | Review AI-generated series recommendations (add to library or dismiss) |
 | `ToBuy` | `/to-buy` | Missing tomes to purchase grouped by series (`bought = false`) |
@@ -336,12 +337,12 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `AuthGuard` | Route wrapper redirecting unauthenticated users to `/login` |
 | `AuthorAutocomplete` | Headless UI combobox for searching and creating authors |
 | `BarcodeScanner` | Continuous camera barcode scanner via `html5-qrcode` |
-| `BottomNav` | Acquisition navigation bar (Collection, À acheter, elevated Add, Sur NAS, Envies) |
+| `BottomNav` | 4-pillar navigation bar (Collection, Recherche, Scanner, Outils) |
 | `Breadcrumb` | Hierarchical breadcrumb navigation with accessibility attributes |
 | `CardActionBar` | Mobile fixed action overlay for series card (Edit/Delete) |
 | `CollapsibleSection` | Expandable accordion container with animated toggle |
 | `CollectionMap` | Interactive visual grid of numbered tome squares opening TomeDrawer |
-| `ComicCard` | Option 1C Mini-dashboard card: unobstructed cover, missing tomes micro-badge, 3-metric tracking row (€, NAS, Lu) |
+| `ComicCard` | Mini-dashboard card: unobstructed cover, missing tomes micro-badge, 3-metric tracking row with ✕ indicator on unmonitored axes, operational tobuy/todownload strips |
 | `ComicCardSkeleton` / `SkeletonBox` | Shimmering loading placeholders |
 | `ComponentErrorBoundary` | Contextual error boundary with retry support |
 | `ConfirmModal` | Headless UI modal dialog for confirming destructive operations |
@@ -367,7 +368,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `OfflineBanner` | Sticky alert banner indicating offline mode and queued changes |
 | `ProgressBar` | Accessible progress indicator supporting compact and full variants |
 | `ProposalCard` | Card displaying metadata proposal with before/after diff and accept/reject controls |
-| `QuickAddScan` | Continuous camera barcode scanner view for QuickAdd |
+| `QuickAddScan` | Barcode scanner view with camera targeting reticle, laser effect, and 1-tap confirmation card |
 | `QuickAddSearch` | Instant title lookup search view for QuickAdd |
 | `SearchInput` | Text input with debounced callback and clear button |
 | `SelectListbox` | Accessible custom dropdown select built on Headless UI Listbox |
@@ -381,6 +382,7 @@ Three-tier: **Unit** (no kernel) → **Integration** (kernel + DB) → **Functio
 | `TomeDrawer` | Mobile bottom drawer with 3 large toggles (Acheté, Sur NAS, Lu) and instant auto-save |
 | `TomeTable` | Responsive tome list (desktop table / mobile cards) with batch tome creation and per-tome ISBN/title search |
 | `VirtualGrid` | High-performance virtualized grid powered by `react-virtuoso` |
+| `VolumeMatrixAccordion` | Foldable accordion containing volume squares (`CollectionMap`) or table view, sorted columns, bulk toggle, folded by default for long series (> 12 tomes) |
 
 ## Frontend — Hooks (`frontend/src/hooks/`)
 
@@ -472,7 +474,7 @@ Three-tier: Unit + Integration. Vitest + jsdom + Testing Library + MSW.
 | `src/theme.ts` | `THEME_COLOR_LIGHT` / `THEME_COLOR_DARK` — Canonical theme colors for PWA status bar |
 | `src/queryClient.ts` | TanStack Query client configuration (staleTime 5min, retry 1) |
 | `src/App.tsx` | `createBrowserRouter` route tree + providers + code-split lazy loading + View Transitions |
-| `src/index.css` | Tailwind CSS configuration, dark mode tokens, `--bottom-nav-h: 3.5rem` |
+| `src/index.css` | Tailwind CSS configuration, dark mode tokens, `--bottom-nav-h: 4.5rem` |
 | `lighthouserc.json` | Lighthouse CI budgets (performance ≥ 80, a11y ≥ 90, PWA ≥ 80, SEO ≥ 90) |
 
 ## Implementation Patterns

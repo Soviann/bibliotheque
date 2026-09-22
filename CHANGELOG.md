@@ -7,6 +7,19 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Navigation mobile à 4 piliers** : Refonte de `BottomNav` avec 4 piliers plats à hauteur égale (Collection, Recherche, Scanner, Outils) et suppression du bouton central surélevé.
+- **Recherche multicritère** : Nouvelle page `/search` permettant la recherche textuelle instantanée sur titre, auteur, éditeur, ISBN, et le filtrage rapide par type et par statut de suivi (`notInterestedBuy`, `notInterestedNas`).
+- **Suivi d'acquisition par axe** : Possibilité d'activer ou de désactiver le suivi d'achat physique ou NAS directement sur la fiche série, avec indicateur `✕` explicite sur les métriques non surveillées.
+- **Matrice des volumes repliable** : Composant `VolumeMatrixAccordion` compact et replié par défaut pour les séries longues (> 12 tomes), avec vue grille tactile ou tableau complet.
+- **Scanner avec réticule et validation 1-tap** : Refonte de `QuickAdd` avec réticule de visée caméra, carte de détection immédiate avec confirmation en un clic et compteur de session.
+
+### Changed
+
+- **Design tokens** : Intégration des polices DM Serif Display, Plus Jakarta Sans et JetBrains Mono, et alignement des surfaces et ombres sur les maquettes interactives.
+- **Filtres opérationnels de collection** : Filtres rapides intégrés directement sur la page d'accueil (`Toutes`, `À acheter`, `À télécharger`) avec bandeaux d'action inline sur les cartes.
+
 ## [v2.37.0] — 2026-09-21
 
 ### Added

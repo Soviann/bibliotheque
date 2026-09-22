@@ -917,4 +917,90 @@ describe("Home", () => {
     );
     expect(searchInput).toHaveValue("Naruto");
   });
+
+  it("filters comics and shows banner when 'À acheter' mode is clicked", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({
+        id: 1,
+        isOneShot: false,
+        notInterestedBuy: false,
+        title: "Naruto",
+        unboughtTomes: [{ id: 10, isHorsSerie: false, number: 5 }],
+      }),
+      createMockComicSeries({
+        id: 2,
+        isOneShot: false,
+        notInterestedBuy: false,
+        title: "One Piece",
+        unboughtTomes: [],
+      }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
+    });
+
+    const toBuyBtn = screen.getByRole("button", { name: /À acheter/ });
+    await user.click(toBuyBtn);
+
+    expect(
+      screen.getByText(/Mode « À acheter » actif/),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Naruto")[0]).toBeInTheDocument();
+    expect(screen.queryByText("One Piece")).not.toBeInTheDocument();
+  });
+
+  it("filters comics and shows banner when 'À télécharger' mode is clicked", async () => {
+    const user = userEvent.setup();
+    const comics = [
+      createMockComicSeries({
+        coveredCount: 10,
+        id: 1,
+        isOneShot: false,
+        latestPublishedIssue: 10,
+        notInterestedNas: false,
+        onNasCount: 8,
+        title: "Bleach",
+      }),
+      createMockComicSeries({
+        coveredCount: 5,
+        id: 2,
+        isOneShot: false,
+        latestPublishedIssue: 5,
+        notInterestedNas: false,
+        onNasCount: 5,
+        title: "Death Note",
+      }),
+    ];
+
+    server.use(
+      http.get("/api/comic_series", () =>
+        HttpResponse.json(createMockHydraCollection(comics)),
+      ),
+    );
+
+    renderWithProviders(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Bleach")[0]).toBeInTheDocument();
+    });
+
+    const toDownloadBtn = screen.getByRole("button", { name: /À télécharger/ });
+    await user.click(toDownloadBtn);
+
+    expect(
+      screen.getByText(/Mode « À télécharger » actif/),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Bleach")[0]).toBeInTheDocument();
+    expect(screen.queryByText("Death Note")).not.toBeInTheDocument();
+  });
 });

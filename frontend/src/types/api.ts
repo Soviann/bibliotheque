@@ -155,6 +155,8 @@ export interface CreateComicPayload {
   latestPublishedIssue: number | null;
   latestPublishedIssueComplete: boolean;
   lookupCompletedAt?: string;
+  notInterestedBuy?: boolean;
+  notInterestedNas?: boolean;
   publishedDate: string | null;
   publisher: string | null;
   status: ComicStatus;

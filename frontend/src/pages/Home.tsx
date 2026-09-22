@@ -2,12 +2,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
   Filter,
+  HardDrive,
   Heart,
   LayoutGrid,
   Loader2,
   RefreshCw,
   Rows3,
   Search,
+  ShoppingCart,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -24,6 +26,7 @@ import SearchInput from "../components/SearchInput";
 import ShelfView from "../components/ShelfView";
 import StickySearchBar from "../components/StickySearchBar";
 import VirtualGrid from "../components/VirtualGrid";
+import { useBuyTome } from "../hooks/useBuyTome";
 import { useComics } from "../hooks/useComics";
 import { useDebounce } from "../hooks/useDebounce";
 import { useDeleteComic } from "../hooks/useDeleteComic";
@@ -181,14 +184,68 @@ export default function Home() {
     [handleDelete],
   );
 
+  const modeParam = searchParams.get("mode") ?? "all";
+  const mode: "all" | "tobuy" | "todownload" =
+    modeParam === "tobuy" || modeParam === "todownload" ? modeParam : "all";
+
+  const handleModeChange = useCallback(
+    (m: "all" | "tobuy" | "todownload") =>
+      updateParam("mode", m === "all" ? "" : m),
+    [updateParam],
+  );
+
+  const buyTome = useBuyTome();
+  const handleBuyTome = useCallback(
+    (seriesId: number, tomeId: number) => {
+      buyTome.mutate(
+        { seriesId, tomeId },
+        {
+          onError: () => toast.error("Erreur lors de la mise à jour du tome"),
+          onSuccess: () => toast.success("Tome marqué comme acheté"),
+        },
+      );
+    },
+    [buyTome],
+  );
+
   const filtered = useMemo(() => {
     const preFiltered = allComics.filter((c) => {
       if (type && c.type !== type) return false;
       if (status && c.status !== status) return false;
+      if (mode === "tobuy") {
+        if (
+          c.isOneShot ||
+          c.notInterestedBuy ||
+          (c.unboughtTomes?.length ?? 0) === 0
+        ) {
+          return false;
+        }
+      } else if (mode === "todownload") {
+        const total = Math.max(c.latestPublishedIssue ?? 0, c.coveredCount);
+        if (c.isOneShot || c.notInterestedNas || total - c.onNasCount <= 0) {
+          return false;
+        }
+      }
       return true;
     });
     return sortComics(searchComics(preFiltered, debouncedSearch), sort);
-  }, [allComics, debouncedSearch, sort, status, type]);
+  }, [allComics, debouncedSearch, mode, sort, status, type]);
+
+  const toBuyCount = useMemo(() => {
+    return allComics.filter(
+      (c) =>
+        !c.isOneShot &&
+        !c.notInterestedBuy &&
+        (c.unboughtTomes?.length ?? 0) > 0,
+    ).length;
+  }, [allComics]);
+
+  const toDownloadCount = useMemo(() => {
+    return allComics.filter((c) => {
+      const total = Math.max(c.latestPublishedIssue ?? 0, c.coveredCount);
+      return !c.isOneShot && !c.notInterestedNas && total - c.onNasCount > 0;
+    }).length;
+  }, [allComics]);
 
   const handleResetFilters = useCallback(() => {
     setSearchParams(
@@ -197,6 +254,7 @@ export default function Home() {
         next.delete("type");
         next.delete("status");
         next.delete("sort");
+        next.delete("mode");
         return next;
       },
       { replace: true },
@@ -208,7 +266,7 @@ export default function Home() {
 
   // N'afficher la section « Continuer la lecture » que sur la vue par défaut (pas de filtre/recherche)
   const showContinueReading =
-    !isLoading && !debouncedSearch && !type && !status;
+    !isLoading && !debouncedSearch && !type && !status && mode === "all";
 
   return (
     <div
@@ -292,6 +350,77 @@ export default function Home() {
         </span>
       </div>
 
+      {/* Operational Quick Filter Tabs: Toutes / À acheter / À télécharger */}
+      <div className="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none">
+        <button
+          className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold shadow-xs transition ${
+            mode === "all"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-950"
+              : "border border-surface-border bg-surface-primary text-text-secondary hover:text-amber-600 dark:bg-surface-elevated dark:hover:text-amber-400"
+          }`}
+          onClick={() => handleModeChange("all")}
+          type="button"
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          <span>Toutes</span>
+        </button>
+
+        <button
+          className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold shadow-xs transition ${
+            mode === "tobuy"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-950"
+              : "border border-surface-border bg-surface-primary text-text-secondary hover:text-amber-600 dark:bg-surface-elevated dark:hover:text-amber-400"
+          }`}
+          onClick={() => handleModeChange("tobuy")}
+          type="button"
+        >
+          <ShoppingCart className="h-3.5 w-3.5 text-amber-500" />
+          <span>À acheter</span>
+          {toBuyCount > 0 && (
+            <span className="rounded bg-amber-500/15 px-1.5 py-0.2 font-mono text-[10px] text-amber-600 dark:text-amber-400">
+              {toBuyCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold shadow-xs transition ${
+            mode === "todownload"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-950"
+              : "border border-surface-border bg-surface-primary text-text-secondary hover:text-amber-600 dark:bg-surface-elevated dark:hover:text-amber-400"
+          }`}
+          onClick={() => handleModeChange("todownload")}
+          type="button"
+        >
+          <HardDrive className="h-3.5 w-3.5 text-blue-500" />
+          <span>À télécharger</span>
+          {toDownloadCount > 0 && (
+            <span className="rounded bg-blue-500/15 px-1.5 py-0.2 font-mono text-[10px] text-blue-600 dark:text-blue-400">
+              {toDownloadCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Mode active banner */}
+      {mode === "tobuy" && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-xs font-semibold text-amber-800 dark:text-amber-300">
+          <ShoppingCart className="h-4 w-4 shrink-0 text-amber-500" />
+          <span>
+            Mode « À acheter » actif : séries suivies pour achat avec tomes manquants
+          </span>
+        </div>
+      )}
+
+      {mode === "todownload" && (
+        <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3.5 py-2 text-xs font-semibold text-blue-800 dark:text-blue-300">
+          <HardDrive className="h-4 w-4 shrink-0 text-blue-500" />
+          <span>
+            Mode « À télécharger » actif : séries suivies sur le NAS avec tomes manquants
+          </span>
+        </div>
+      )}
+
       {/* Quick filter chips */}
       <FilterChips
         onStatusChange={handleStatusChange}
@@ -350,7 +479,7 @@ export default function Home() {
             title="Aucune série avec ces filtres"
           />
         )
-      ) : viewMode === "shelves" && !debouncedSearch && !type && !status ? (
+      ) : viewMode === "shelves" && !debouncedSearch && !type && !status && mode === "all" ? (
         <ShelfView comics={filtered} onFilterByStatus={handleShelfSeeAll} />
       ) : (
         <ComponentErrorBoundary label="la grille">
@@ -358,7 +487,9 @@ export default function Home() {
             items={filtered}
             renderItem={(comic) => (
               <ComicCard
+                acquisitionMode={mode}
                 comic={comic}
+                onBuyTome={handleBuyTome}
                 onDelete={handleDelete}
                 onMenuOpen={setMenuComic}
               />

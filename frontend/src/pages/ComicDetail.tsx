@@ -1,16 +1,13 @@
 import {
   AlertTriangle,
   ArrowLeft,
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   Bell,
   BellOff,
   BookOpen,
   Edit,
   ExternalLink,
-  LayoutGrid,
-  Table2,
+  HardDrive,
+  ShoppingBag,
   Trash2,
 } from "lucide-react";
 import {
@@ -24,16 +21,18 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGoBack } from "../hooks/useGoBack";
 import { toast } from "sonner";
-import CollectionMap from "../components/CollectionMap";
 import ComponentErrorBoundary from "../components/ComponentErrorBoundary";
 import CoverImage from "../components/CoverImage";
 import CoverLightbox from "../components/CoverLightbox";
 import EmptyState from "../components/EmptyState";
-import ProgressBar from "../components/ProgressBar";
 import SkeletonBox from "../components/SkeletonBox";
 import SeriesEnrichmentProposals from "../components/SeriesEnrichmentProposals";
 import SyncPendingIndicator from "../components/SyncPendingIndicator";
 import TomeDrawer from "../components/TomeDrawer";
+import VolumeMatrixAccordion, {
+  type SortDirection,
+  type SortKey,
+} from "../components/VolumeMatrixAccordion";
 import type { Tome } from "../types/api";
 import { useComic } from "../hooks/useComic";
 import { useCreateTome } from "../hooks/useCreateTome";
@@ -42,6 +41,7 @@ import { useDeleteComic } from "../hooks/useDeleteComic";
 import { useDominantColor } from "../hooks/useDominantColor";
 import { useRestoreComic } from "../hooks/useTrash";
 import { useToggleAuthorFollow } from "../hooks/useFollowedAuthors";
+import { useUpdateComic } from "../hooks/useUpdateComic";
 import { useUpdateTome } from "../hooks/useUpdateTome";
 import {
   ComicStatus,
@@ -84,64 +84,6 @@ function AuthorWithFollow({
     </span>
   );
 }
-
-type BooleanField = "bought" | "onNas" | "read";
-type SortKey = "number" | "title" | BooleanField;
-type SortDirection = "asc" | "desc";
-
-const FIELD_LABELS: Record<BooleanField, string> = {
-  bought: "acheté",
-  onNas: "NAS",
-  read: "lu",
-};
-
-function HeaderCheckbox({
-  field,
-  onChange,
-  tomes,
-}: {
-  field: BooleanField;
-  onChange: () => void;
-  tomes: Tome[];
-}) {
-  const ref = useRef<HTMLInputElement>(null);
-  const checkedCount = tomes.filter((t) => t[field]).length;
-  const allChecked = checkedCount === tomes.length;
-  const someChecked = checkedCount > 0 && !allChecked;
-
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.indeterminate = someChecked;
-    }
-  }, [someChecked]);
-
-  return (
-    <input
-      aria-label={`Tout cocher ${FIELD_LABELS[field]}`}
-      checked={allChecked}
-      className="h-4 w-4 cursor-pointer accent-primary-600"
-      onChange={onChange}
-      ref={ref}
-      type="checkbox"
-    />
-  );
-}
-
-function SortIcon({
-  active,
-  direction,
-}: {
-  active: boolean;
-  direction: SortDirection;
-}) {
-  if (!active) return <ArrowUpDown className="h-3.5 w-3.5 text-text-muted" />;
-  return direction === "asc" ? (
-    <ArrowUp className="h-3.5 w-3.5" />
-  ) : (
-    <ArrowDown className="h-3.5 w-3.5" />
-  );
-}
-
 function compareTomes(
   a: Tome,
   b: Tome,
@@ -184,9 +126,48 @@ export default function ComicDetail() {
   const { data: comic, isLoading } = useComic(id ? Number(id) : undefined);
   const deleteComic = useDeleteComic();
   const restoreComic = useRestoreComic();
+  const updateComic = useUpdateComic();
   const updateTome = useUpdateTome(id ? Number(id) : undefined);
   const createTome = useCreateTome(id ? Number(id) : 0);
   const createTomesBatch = useCreateTomesBatch(id ? Number(id) : 0);
+
+  const handleToggleTracking = useCallback(
+    (axis: "buy" | "nas") => {
+      if (!comic) return;
+      if (axis === "buy") {
+        const nextVal = !comic.notInterestedBuy;
+        updateComic.mutate(
+          { id: comic.id, notInterestedBuy: nextVal },
+          {
+            onError: () => toast.error("Erreur lors de la mise à jour"),
+            onSuccess: () => {
+              toast.success(
+                nextVal
+                  ? "Achat désactivé pour cette série"
+                  : "Achat activé pour cette série",
+              );
+            },
+          },
+        );
+      } else {
+        const nextVal = !comic.notInterestedNas;
+        updateComic.mutate(
+          { id: comic.id, notInterestedNas: nextVal },
+          {
+            onError: () => toast.error("Erreur lors de la mise à jour"),
+            onSuccess: () => {
+              toast.success(
+                nextVal
+                  ? "Suivi NAS désactivé pour cette série"
+                  : "Suivi NAS activé pour cette série",
+              );
+            },
+          },
+        );
+      }
+    },
+    [comic, updateComic],
+  );
   const [isCompleting, setIsCompleting] = useState(false);
   const coverSrc = comic ? getCoverSrc(comic) : null;
   const [dominantColor, extractColor] = useDominantColor(coverSrc);
@@ -716,27 +697,206 @@ export default function ComicDetail() {
         </div>
       </div>
 
-      {/* Progression */}
+      {/* Unified Metrics & Acquisition Tracking */}
       {showProgress && (
-        <div className="grid gap-3 sm:grid-cols-3">
-          <ProgressBar
-            color="bg-[rgb(var(--series-color))]"
-            current={boughtCount}
-            label="Achetés"
-            total={progressTotal}
-          />
-          <ProgressBar
-            color="bg-[rgb(var(--series-color))]"
-            current={readCount}
-            label="Lus"
-            total={progressTotal}
-          />
-          <ProgressBar
-            color="bg-[rgb(var(--series-color))]"
-            current={onNasCount}
-            label="Sur NAS"
-            total={progressTotal}
-          />
+        <div className="space-y-3 rounded-2xl border border-surface-border bg-surface-secondary/60 p-3.5 shadow-xs dark:border-white/10 dark:bg-surface-elevated/40">
+          {/* Acquisition Tracking Switches */}
+          <div className="flex items-center justify-between border-b border-surface-border pb-2 text-xs dark:border-white/10">
+            <span className="text-[11px] font-semibold text-text-muted">
+              Suivi d'acquisition :
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                aria-label={
+                  comic.notInterestedBuy
+                    ? "Activer le suivi d'achat"
+                    : "Désactiver le suivi d'achat"
+                }
+                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-bold transition active:scale-95 ${
+                  comic.notInterestedBuy
+                    ? "border border-neutral-500/20 bg-neutral-500/10 text-text-muted"
+                    : "border border-amber-500/40 bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                }`}
+                onClick={() => handleToggleTracking("buy")}
+                type="button"
+              >
+                <ShoppingBag className="h-3 w-3" />
+                <span>À acheter : {comic.notInterestedBuy ? "Non" : "Oui"}</span>
+              </button>
+              <button
+                aria-label={
+                  comic.notInterestedNas
+                    ? "Activer le suivi NAS"
+                    : "Désactiver le suivi NAS"
+                }
+                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-bold transition active:scale-95 ${
+                  comic.notInterestedNas
+                    ? "border border-neutral-500/20 bg-neutral-500/10 text-text-muted"
+                    : "border border-blue-500/40 bg-blue-500/20 text-blue-700 dark:text-blue-300"
+                }`}
+                onClick={() => handleToggleTracking("nas")}
+                type="button"
+              >
+                <HardDrive className="h-3 w-3" />
+                <span>Sur NAS : {comic.notInterestedNas ? "Non" : "Oui"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* The 3 Figures in Tabular Font */}
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {/* Achetés */}
+            <div className="space-y-1">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                Achetés
+              </span>
+              <div className="font-mono text-base font-bold text-text-primary">
+                {comic.notInterestedBuy ? (
+                  <span className="text-sm text-text-muted" title="Non suivi">
+                    ✕
+                  </span>
+                ) : (
+                  `${boughtCount} / ${progressTotal}`
+                )}
+              </div>
+              <div
+                aria-label="Achetés"
+                aria-valuemax={progressTotal}
+                aria-valuemin={0}
+                aria-valuenow={comic.notInterestedBuy ? 0 : boughtCount}
+                className="h-1.5 w-full overflow-hidden rounded-full bg-surface-tertiary dark:bg-white/10"
+                role="progressbar"
+              >
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{
+                    width: `${
+                      !comic.notInterestedBuy && progressTotal > 0
+                        ? (boughtCount / progressTotal) * 100
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Sur NAS */}
+            <div className="space-y-1 border-x border-surface-border px-2 dark:border-white/10">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                Sur NAS
+              </span>
+              <div className="font-mono text-base font-bold text-text-primary">
+                {comic.notInterestedNas ? (
+                  <span className="text-sm text-text-muted" title="Non suivi">
+                    ✕
+                  </span>
+                ) : (
+                  `${onNasCount} / ${progressTotal}`
+                )}
+              </div>
+              <div
+                aria-label="Sur NAS"
+                aria-valuemax={progressTotal}
+                aria-valuemin={0}
+                aria-valuenow={comic.notInterestedNas ? 0 : onNasCount}
+                className="h-1.5 w-full overflow-hidden rounded-full bg-surface-tertiary dark:bg-white/10"
+                role="progressbar"
+              >
+                <div
+                  className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                  style={{
+                    width: `${
+                      !comic.notInterestedNas && progressTotal > 0
+                        ? (onNasCount / progressTotal) * 100
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Lus */}
+            <div className="space-y-1">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Lus
+              </span>
+              <div className="font-mono text-base font-bold text-text-primary">
+                {`${readCount} / ${progressTotal}`}
+              </div>
+              <div
+                aria-label="Lus"
+                aria-valuemax={progressTotal}
+                aria-valuemin={0}
+                aria-valuenow={readCount}
+                className="h-1.5 w-full overflow-hidden rounded-full bg-surface-tertiary dark:bg-white/10"
+                role="progressbar"
+              >
+                <div
+                  className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                  style={{
+                    width: `${
+                      progressTotal > 0 ? (readCount / progressTotal) * 100 : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Integrated Missing Tomes (À Acheter & À Télécharger) */}
+          <div className="space-y-1.5 border-t border-surface-border pt-2.5 text-xs dark:border-white/10">
+            {comic.notInterestedBuy ? (
+              <div className="flex items-center gap-1.5 text-xs italic text-text-muted">
+                <span className="font-bold text-text-muted">✕</span> Série non
+                suivie pour achat physique
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+                  <span className="truncate font-medium text-text-secondary">
+                    À acheter :{" "}
+                    <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                      {progressTotal - boughtCount > 0
+                        ? `${progressTotal - boughtCount} tome${
+                            progressTotal - boughtCount > 1 ? "s" : ""
+                          }`
+                        : "Complet"}
+                    </span>
+                  </span>
+                </div>
+                <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                  Physique
+                </span>
+              </div>
+            )}
+
+            {comic.notInterestedNas ? (
+              <div className="flex items-center gap-1.5 text-xs italic text-text-muted">
+                <span className="font-bold text-text-muted">✕</span> Série non
+                suivie sur le NAS
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                  <span className="truncate font-medium text-text-secondary">
+                    À télécharger :{" "}
+                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
+                      {progressTotal - onNasCount > 0
+                        ? `${progressTotal - onNasCount} tome${
+                            progressTotal - onNasCount > 1 ? "s" : ""
+                          }`
+                        : "Sur NAS 100%"}
+                    </span>
+                  </span>
+                </div>
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                  {progressTotal - onNasCount === 0 ? "Sur NAS 100%" : "Numérique"}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -763,139 +923,18 @@ export default function ComicDetail() {
       {/* Tomes */}
       {!comic.isOneShot && optimisticTomes.length > 0 && (
         <ComponentErrorBoundary label="les tomes">
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold text-text-primary">
-                Tomes ({optimisticTomes.length})
-              </h2>
-              <div className="flex rounded-lg border border-surface-border p-0.5 dark:border-white/10">
-                <button
-                  aria-label="Vue carte"
-                  className={`rounded-md px-2 py-1 ${tomeView === "map" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/40 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
-                  onClick={() => handleTomeViewChange("map")}
-                  type="button"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </button>
-                <button
-                  aria-label="Vue tableau"
-                  className={`rounded-md px-2 py-1 ${tomeView === "table" ? "bg-primary-100 text-primary-700 dark:bg-primary-950/40 dark:text-primary-400" : "text-text-muted hover:text-text-secondary"}`}
-                  onClick={() => handleTomeViewChange("table")}
-                  type="button"
-                >
-                  <Table2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-            {tomeView === "map" && (
-              <CollectionMap
-                latestPublishedIssue={comic.latestPublishedIssue}
-                onSelectTome={handleSelectMapTome}
-                tomes={optimisticTomes}
-              />
-            )}
-            {tomeView === "table" && (
-              <div className="overflow-x-auto rounded-xl border border-surface-border dark:border-white/10">
-                <table className="w-full text-sm">
-                  <thead className="bg-surface-elevated dark:bg-surface-elevated/50">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-medium text-text-secondary">
-                        <button
-                          className="inline-flex items-center gap-1"
-                          onClick={() => dispatchSort("number")}
-                          type="button"
-                        >
-                          #
-                          <SortIcon
-                            active={sort.key === "number"}
-                            direction={sort.direction}
-                          />
-                        </button>
-                      </th>
-                      <th className="px-4 py-2 text-left font-medium text-text-secondary">
-                        <button
-                          className="inline-flex items-center gap-1"
-                          onClick={() => dispatchSort("title")}
-                          type="button"
-                        >
-                          Titre
-                          <SortIcon
-                            active={sort.key === "title"}
-                            direction={sort.direction}
-                          />
-                        </button>
-                      </th>
-                      {(["bought", "read", "onNas"] as const).map((field) => (
-                        <th
-                          className="px-4 py-2 text-center font-medium text-text-secondary"
-                          key={field}
-                        >
-                          <div className="flex flex-col items-center gap-1">
-                            <button
-                              className="inline-flex items-center gap-1"
-                              onClick={() => dispatchSort(field)}
-                              type="button"
-                            >
-                              <span>
-                                {field === "bought"
-                                  ? "Acheté"
-                                  : field === "read"
-                                    ? "Lu"
-                                    : "NAS"}
-                              </span>
-                              <SortIcon
-                                active={sort.key === field}
-                                direction={sort.direction}
-                              />
-                            </button>
-                            <HeaderCheckbox
-                              field={field}
-                              onChange={() => handleToggleAllTomes(field)}
-                              tomes={optimisticTomes}
-                            />
-                          </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-surface-border dark:divide-white/5">
-                    {sortedTomes.map((tome, index) => (
-                      <tr
-                        className={`transition-colors hover:bg-surface-tertiary/50 dark:hover:bg-primary-950/20 ${index % 2 === 1 ? "bg-surface-secondary/50 dark:bg-surface-elevated/30" : ""}`}
-                        key={tome.id}
-                      >
-                        <td className="px-4 py-2 font-medium text-text-primary">
-                          {tome._syncPending && (
-                            <SyncPendingIndicator className="mr-1" />
-                          )}
-                          {tome.isHorsSerie ? "HS" : ""}
-                          {tome.tomeEnd
-                            ? `${tome.number}-${tome.tomeEnd}`
-                            : tome.number}
-                        </td>
-                        <td className="px-4 py-2 text-text-secondary">
-                          {tome.title ?? "\u2014"}
-                        </td>
-                        {(["bought", "read", "onNas"] as const).map((field) => (
-                          <td className="px-4 py-2 text-center" key={field}>
-                            <label className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
-                              <input
-                                aria-label={`Tome ${tome.tomeEnd ? `${tome.number}-${tome.tomeEnd}` : tome.number} ${field === "bought" ? "acheté" : field === "read" ? "lu" : "NAS"}`}
-                                checked={tome[field]}
-                                className="h-5 w-5 cursor-pointer accent-primary-600"
-                                onChange={() => handleToggleTome(tome, field)}
-                                type="checkbox"
-                              />
-                            </label>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <VolumeMatrixAccordion
+            latestPublishedIssue={comic.latestPublishedIssue}
+            onSelectMapTome={handleSelectMapTome}
+            onSort={(key) => dispatchSort(key)}
+            onToggleAllTomes={handleToggleAllTomes}
+            onToggleTome={handleToggleTome}
+            onTomeViewChange={handleTomeViewChange}
+            sort={sort}
+            sortedTomes={sortedTomes}
+            tomes={optimisticTomes}
+            tomeView={tomeView}
+          />
         </ComponentErrorBoundary>
       )}
 

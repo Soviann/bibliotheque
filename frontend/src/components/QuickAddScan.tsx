@@ -1,5 +1,5 @@
 import { Html5Qrcode } from "html5-qrcode";
-import { Camera, Loader2 } from "lucide-react";
+import { Barcode, CheckCircle2, Loader2, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { fetchLookupIsbn } from "../hooks/useLookup";
@@ -40,7 +40,7 @@ export default function QuickAddScan({ batchMode, onAdd }: QuickAddScanProps) {
     scanner
       .start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 100 } },
+        { fps: 10, qrbox: { height: 100, width: 250 } },
         async (decodedText) => {
           const isbn = decodedText.replace(/[^0-9X]/gi, "");
           if (isbn.length !== 10 && isbn.length !== 13) return;
@@ -97,43 +97,66 @@ export default function QuickAddScan({ batchMode, onAdd }: QuickAddScanProps) {
   if (loading) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
-        <p className="text-sm text-text-muted">Recherche en cours…</p>
+        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+        <p className="text-sm text-text-muted">Recherche ISBN en cours…</p>
       </div>
     );
   }
 
   if (preview) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
-        {preview.thumbnail && (
-          <CoverImage
-            alt={preview.title ?? ""}
-            className="h-48 w-36 rounded-xl shadow-lg"
-            src={preview.thumbnail}
-          />
-        )}
-        <div className="text-center">
-          <h3 className="font-display text-lg font-semibold text-text-primary">
-            {preview.title}
-          </h3>
-          {preview.tomeNumber && (
-            <p className="text-sm text-text-muted">Tome {preview.tomeNumber}</p>
-          )}
-          {preview.publisher && (
-            <p className="text-xs text-text-muted">{preview.publisher}</p>
-          )}
-        </div>
-        <div className="flex gap-3">
+      <div className="flex flex-1 flex-col items-center justify-center px-4">
+        {/* Live Detection Card */}
+        <div className="w-full max-w-sm space-y-3.5 rounded-3xl border border-surface-border bg-surface-secondary/70 p-4 shadow-xl dark:border-white/10 dark:bg-surface-elevated/40">
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              ISBN détecté{preview.isbn ? ` : ${preview.isbn}` : ""}
+            </span>
+            <span className="font-mono text-[10px] text-text-muted">
+              {preview.publisher ?? "Bedetheque · BNF"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {preview.thumbnail ? (
+              <CoverImage
+                alt={preview.title ?? ""}
+                className="h-20 w-14 shrink-0 rounded-xl object-cover shadow-md"
+                src={preview.thumbnail}
+              />
+            ) : (
+              <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-xl bg-surface-tertiary">
+                <Barcode className="h-6 w-6 text-text-muted" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate font-serif text-base font-bold text-text-primary">
+                {preview.title}
+              </h3>
+              <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                {preview.tomeNumber ? `Tome ${preview.tomeNumber}` : "Tome 1"}
+              </p>
+              {preview.authors && (
+                <p className="truncate text-[11px] text-text-muted">
+                  {preview.authors}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* 1-tap confirmation button */}
           <button
-            className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-medium text-white transition-transform active:scale-95"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 py-3 text-sm font-bold text-neutral-950 shadow-xl shadow-amber-500/20 transition hover:bg-amber-400 active:scale-95"
             onClick={handleConfirm}
             type="button"
           >
-            Ajouter
+            <PlusCircle className="h-4 w-4 stroke-[2.5]" />
+            <span>Valider et Continuer (1 tap)</span>
           </button>
+
           <button
-            className="rounded-xl border border-surface-border px-6 py-2.5 text-sm font-medium text-text-secondary"
+            className="w-full rounded-xl py-1.5 text-center text-xs text-text-muted transition hover:text-text-primary"
             onClick={startScanner}
             type="button"
           >
@@ -145,21 +168,36 @@ export default function QuickAddScan({ batchMode, onAdd }: QuickAddScanProps) {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-2">
       {!scanning ? (
         <button
-          className="flex flex-col items-center gap-3 rounded-2xl bg-surface-tertiary px-8 py-6 transition-transform active:scale-95"
+          aria-label="Appuyer pour scanner"
+          className="group relative flex aspect-[4/3] w-full max-w-xs flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-amber-500/50 bg-neutral-900/90 text-white shadow-xl transition active:scale-95"
           onClick={startScanner}
           type="button"
         >
-          <Camera className="h-12 w-12 text-primary-500" />
-          <span className="text-sm font-medium text-text-secondary">
-            Appuyer pour scanner
-          </span>
+          {/* Reticle Corners */}
+          <div className="absolute left-3 top-3 h-6 w-6 rounded-tl-lg border-l-2 border-t-2 border-amber-400" />
+          <div className="absolute right-3 top-3 h-6 w-6 rounded-tr-lg border-r-2 border-t-2 border-amber-400" />
+          <div className="absolute bottom-3 left-3 h-6 w-6 rounded-bl-lg border-b-2 border-l-2 border-amber-400" />
+          <div className="absolute bottom-3 right-3 h-6 w-6 rounded-br-lg border-b-2 border-r-2 border-amber-400" />
+
+          {/* Laser Line */}
+          <div className="laser-line pointer-events-none absolute inset-x-4 top-4 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_#f59e0b]" />
+
+          <div className="z-10 space-y-2 px-4 text-center">
+            <Barcode className="mx-auto h-12 w-12 text-amber-400/80 stroke-[1.5]" />
+            <p className="text-xs font-bold text-white">
+              Alignez le code-barres ISBN
+            </p>
+            <p className="text-[10px] text-neutral-300">
+              Appuyer pour scanner
+            </p>
+          </div>
         </button>
       ) : (
         <div
-          className="w-full max-w-sm overflow-hidden rounded-2xl"
+          className="aspect-[4/3] w-full max-w-xs overflow-hidden rounded-3xl border-2 border-dashed border-amber-500/50 shadow-xl"
           id="quick-add-scanner"
         />
       )}

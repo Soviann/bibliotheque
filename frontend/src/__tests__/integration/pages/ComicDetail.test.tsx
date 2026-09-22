@@ -1895,4 +1895,133 @@ describe("ComicDetail", () => {
       expect(screen.getByRole("button", { name: /Acheté/ })).toBeInTheDocument();
     });
   });
+
+  describe("unified metrics and acquisition tracking", () => {
+    it("displays ✕ on Achetés metric and unmonitored text when notInterestedBuy is true", async () => {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              notInterestedBuy: true,
+              notInterestedNas: false,
+              title: "Unmonitored Buy Series",
+              tomes: [
+                createMockTome({ bought: false, id: 1, number: 1, onNas: true }),
+              ],
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Unmonitored Buy Series")).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText("Série non suivie pour achat physique"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("À acheter : Non")).toBeInTheDocument();
+      expect(screen.getAllByText("✕").length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("displays ✕ on Sur NAS metric and unmonitored text when notInterestedNas is true", async () => {
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              notInterestedBuy: false,
+              notInterestedNas: true,
+              title: "Unmonitored NAS Series",
+              tomes: [
+                createMockTome({ bought: true, id: 1, number: 1, onNas: false }),
+              ],
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Unmonitored NAS Series")).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText("Série non suivie sur le NAS"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Sur NAS : Non")).toBeInTheDocument();
+    });
+
+    it("toggles buy tracking when clicking buy toggle button", async () => {
+      const user = userEvent.setup();
+      let patchBody: Record<string, unknown> | null = null;
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              notInterestedBuy: false,
+              title: "Toggle Tracking Series",
+              tomes: [createMockTome({ id: 1, number: 1 })],
+            }),
+          ),
+        ),
+        http.patch("/api/comic_series/1", async ({ request }) => {
+          patchBody = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              notInterestedBuy: true,
+              title: "Toggle Tracking Series",
+            }),
+          );
+        }),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("À acheter : Oui")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("À acheter : Oui"));
+
+      await waitFor(() => {
+        expect(patchBody).toEqual({ notInterestedBuy: true });
+      });
+    });
+
+    it("renders VolumeMatrixAccordion folded for series with > 12 tomes", async () => {
+      const tomes = Array.from({ length: 15 }, (_, i) =>
+        createMockTome({ id: i + 1, number: i + 1 }),
+      );
+
+      server.use(
+        http.get("/api/comic_series/1", () =>
+          HttpResponse.json(
+            createMockComicSeries({
+              id: 1,
+              latestPublishedIssue: 15,
+              title: "Long Series",
+              tomes,
+            }),
+          ),
+        ),
+      );
+
+      renderComicDetail();
+
+      await waitFor(() => {
+        expect(screen.getByText("Long Series")).toBeInTheDocument();
+      });
+
+      const details = screen.getByText("Matrice des volumes").closest("details");
+      expect(details).not.toHaveAttribute("open");
+    });
+  });
 });

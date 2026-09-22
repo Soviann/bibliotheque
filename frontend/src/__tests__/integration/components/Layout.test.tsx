@@ -89,9 +89,9 @@ describe("Layout", () => {
     );
 
     expect(screen.getByText("Collection")).toBeInTheDocument();
-    expect(screen.getByText("À acheter")).toBeInTheDocument();
-    expect(screen.getByText("Sur NAS")).toBeInTheDocument();
-    expect(screen.getByText("Envies")).toBeInTheDocument();
+    expect(screen.getByText("Recherche")).toBeInTheDocument();
+    expect(screen.getByText("Scanner")).toBeInTheDocument();
+    expect(screen.getAllByText("Outils").length).toBeGreaterThanOrEqual(1);
   });
 
   it("has a dark mode toggle button with aria-label", () => {
