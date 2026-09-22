@@ -7,6 +7,12 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.38.1] — 2026-09-22
+
+### Fixed
+
+- **Navigation d'en-tête** : Suppression du bouton d'accès aux outils redondant dans le header, l'accès étant désormais centralisé dans la barre de navigation inférieure.
+
 ## [v2.38.0] — 2026-09-22
 
 ### Added
