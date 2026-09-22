@@ -10,6 +10,7 @@ use App\Enum\ComicType;
 use App\Enum\EnrichmentConfidence;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Enrichment\EnrichmentService;
+use App\Service\Lookup\BatchLookupService;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,12 +21,18 @@ use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Tests unitaires pour la commande d'enrichissement automatique.
  */
 final class AutoEnrichCommandTest extends TestCase
 {
+    private ComicSeriesRepository&MockObject $batchComicSeriesRepository;
+    private EntityManagerInterface&MockObject $batchEntityManager;
+    private BatchLookupService $batchLookupService;
+    private MessageBusInterface&MockObject $batchMessageBus;
     private Stub&ComicSeriesRepository $comicSeriesRepository;
     private MockObject&EntityManagerInterface $entityManager;
     private MockObject&EnrichmentService $enrichmentService;
@@ -34,6 +41,14 @@ final class AutoEnrichCommandTest extends TestCase
 
     protected function setUp(): void
     {
+        $this->batchComicSeriesRepository = $this->createMock(ComicSeriesRepository::class);
+        $this->batchEntityManager = $this->createMock(EntityManagerInterface::class);
+        $this->batchMessageBus = $this->createMock(MessageBusInterface::class);
+        $this->batchLookupService = new BatchLookupService(
+            $this->batchComicSeriesRepository,
+            $this->batchEntityManager,
+            $this->batchMessageBus,
+        );
         $this->comicSeriesRepository = $this->createStub(ComicSeriesRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->enrichmentService = $this->createMock(EnrichmentService::class);
@@ -134,9 +149,98 @@ final class AutoEnrichCommandTest extends TestCase
         self::assertSame(Command::SUCCESS, $tester->getStatusCode());
     }
 
+    public function testQueueOptionDelegatesToBatchLookupService(): void
+    {
+        $series1 = (new ComicSeries())->setTitle('Série 1')->setType(ComicType::MANGA);
+        $ref1 = new \ReflectionProperty(ComicSeries::class, 'id');
+        $ref1->setValue($series1, 101);
+
+        $series2 = (new ComicSeries())->setTitle('Série 2')->setType(ComicType::MANGA);
+        $ref2 = new \ReflectionProperty(ComicSeries::class, 'id');
+        $ref2->setValue($series2, 102);
+
+        $this->batchComicSeriesRepository->expects(self::once())
+            ->method('findWithMissingLookupData')
+            ->with(type: ComicType::MANGA, limit: 5, force: true)
+            ->willReturn([$series1, $series2]);
+
+        $this->batchEntityManager->expects(self::once())->method('flush');
+
+        $this->batchMessageBus->expects(self::exactly(2))
+            ->method('dispatch')
+            ->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
+
+        $command = $this->createCommand();
+        $tester = new CommandTester($command);
+        $tester->execute([
+            '--force' => true,
+            '--limit' => '5',
+            '--queue' => true,
+            '--type' => 'manga',
+        ]);
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertStringContainsString('2 série(s) mise(s) en file pour enrichissement asynchrone.', $tester->getDisplay());
+    }
+
+    public function testQueueDryRunOptionDisplaysCountWithoutQueueing(): void
+    {
+        $series1 = (new ComicSeries())->setTitle('Série 1')->setType(ComicType::BD);
+
+        $this->batchComicSeriesRepository->expects(self::once())
+            ->method('findWithMissingLookupData')
+            ->with(type: ComicType::BD, limit: null, force: true)
+            ->willReturn([$series1]);
+
+        $this->batchMessageBus->expects(self::never())
+            ->method('dispatch');
+
+        $command = $this->createCommand();
+        $tester = new CommandTester($command);
+        $tester->execute([
+            '--dry-run' => true,
+            '--force' => true,
+            '--queue' => true,
+            '--type' => 'bd',
+        ]);
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertStringContainsString('Mode dry-run : 1 série(s) seraient mises en file.', $tester->getDisplay());
+    }
+
+    public function testQueueDryRunOptionRespectsLimit(): void
+    {
+        $series = [
+            (new ComicSeries())->setTitle('Série 1')->setType(ComicType::BD),
+            (new ComicSeries())->setTitle('Série 2')->setType(ComicType::BD),
+            (new ComicSeries())->setTitle('Série 3')->setType(ComicType::BD),
+        ];
+
+        $this->batchComicSeriesRepository->expects(self::once())
+            ->method('findWithMissingLookupData')
+            ->with(type: ComicType::BD, limit: null, force: false)
+            ->willReturn($series);
+
+        $this->batchMessageBus->expects(self::never())
+            ->method('dispatch');
+
+        $command = $this->createCommand();
+        $tester = new CommandTester($command);
+        $tester->execute([
+            '--dry-run' => true,
+            '--limit' => '2',
+            '--queue' => true,
+            '--type' => 'bd',
+        ]);
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertStringContainsString('Mode dry-run : 2 série(s) seraient mises en file.', $tester->getDisplay());
+    }
+
     private function createCommand(): AutoEnrichCommand
     {
         return new AutoEnrichCommand(
+            $this->batchLookupService,
             $this->comicSeriesRepository,
             $this->entityManager,
             $this->enrichmentService,
