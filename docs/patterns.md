@@ -111,11 +111,13 @@ Reference for implementing features without exploring the codebase.
 | `EnrichSeriesMessage(seriesId)` | `EnrichSeriesHandler` | Automated metadata enrichment via lookup providers (async via Messenger) |
 | `WarmThumbnailsMessage(coverImage)` | `WarmThumbnailsHandler` | Pre-warms LiipImagine thumbnail cache for cover (async via Messenger) |
 
-## Deploy Tasks (`backend/src/DeployTask/`)
+## Deploy Tasks (`backend/src/DeployTask/`, `backend/deploy-tasks/`)
 
 | File | Purpose |
 |------|---------|
 | `DeployTaskInterface` / `AbstractDeployTask` | One-off post-deployment database migration and data-fix runner (`app:deploy:run-tasks`) |
+| `Task001ResetAndImport` | Initial reset and import (historical) |
+| `Task002ResetAndImport` | Full DB reset, media purge, Excel catalog import and async enrichment queueing |
 
 ## Services (`backend/src/Service/`)
 
@@ -230,7 +232,7 @@ Reference for implementing features without exploring the codebase.
 
 | Command | Signature |
 |---------|-----------|
-| `AutoEnrichCommand` | `app:auto-enrich [--delay=2] [--dry-run] [--force] [--limit=0] [--type=...]` — automated metadata enrichment with confidence scoring |
+| `AutoEnrichCommand` | `app:auto-enrich [--delay=2] [--dry-run] [--force] [--limit=0] [--queue] [--type=...]` — automated metadata enrichment with confidence scoring (foreground loop or async queue via Messenger) |
 | `CheckAuthorReleasesCommand` | `app:check-author-releases [--dry-run]` — checks new series from followed authors |
 | `CheckNewReleasesCommand` | `app:check-new-releases [--dry-run] [--limit=0]` — checks new issues for BUYING series |
 | `DetectMissingTomesCommand` | `app:detect-missing-tomes [--dry-run]` — scans for gaps in tome numbers and creates alerts |

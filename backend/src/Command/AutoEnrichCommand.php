@@ -9,6 +9,7 @@ use App\Enum\EnrichmentConfidence;
 use App\Enum\LookupMode;
 use App\Repository\ComicSeriesRepository;
 use App\Service\Enrichment\EnrichmentService;
+use App\Service\Lookup\BatchLookupService;
 use App\Service\Lookup\Contract\LookupResult;
 use App\Service\Lookup\LookupOrchestrator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,6 +36,7 @@ final class AutoEnrichCommand extends Command
     private const int STALE_DAYS = 30;
 
     public function __construct(
+        private readonly BatchLookupService $batchLookupService,
         private readonly ComicSeriesRepository $comicSeriesRepository,
         private EntityManagerInterface $entityManager,
         private readonly EnrichmentService $enrichmentService,
@@ -51,6 +53,7 @@ final class AutoEnrichCommand extends Command
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simuler sans persister')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Ignorer lookupCompletedAt')
             ->addOption('limit', 'l', InputOption::VALUE_REQUIRED, 'Nombre maximum de séries (0 = illimité)', '0')
+            ->addOption('queue', 'q', InputOption::VALUE_NONE, 'Mettre en file pour traitement asynchrone par le worker Messenger')
             ->addOption('type', 't', InputOption::VALUE_REQUIRED, 'Filtrer par type (bd, manga, comics, livre)')
         ;
     }
@@ -69,12 +72,36 @@ final class AutoEnrichCommand extends Command
         /** @var string $limitOption */
         $limitOption = $input->getOption('limit');
         $limit = (int) $limitOption;
+        /** @var bool $queue */
+        $queue = $input->getOption('queue');
         /** @var string|null $typeValue */
         $typeValue = $input->getOption('type');
 
         $type = \is_string($typeValue) ? ComicType::tryFrom($typeValue) : null;
 
         $io->title('Enrichissement automatique');
+
+        if ($queue) {
+            if ($dryRun) {
+                $count = $this->batchLookupService->countSeriesToProcess($type, $force);
+                if ($limit > 0) {
+                    $count = \min($count, $limit);
+                }
+                $io->info(\sprintf('Mode dry-run : %d série(s) seraient mises en file.', $count));
+
+                return Command::SUCCESS;
+            }
+
+            $queued = $this->batchLookupService->queue(
+                force: $force,
+                limit: $limit,
+                type: $type,
+            );
+
+            $io->success(\sprintf('%d série(s) mise(s) en file pour enrichissement asynchrone.', $queued));
+
+            return Command::SUCCESS;
+        }
 
         if ($dryRun) {
             $io->warning('Mode dry-run activé. Aucune donnée ne sera persistée.');

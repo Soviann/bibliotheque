@@ -7,6 +7,11 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+
+- **Tâche de réinitialisation et réimport (Task002ResetAndImport)** : Tâche de déploiement one-shot pour purger la BDD de production, nettoyer les couvertures et miniatures orphelines, réimporter le catalogue depuis `var/import.xlsx` et mettre en file l'enrichissement (#583).
+- **Option `--queue` sur `app:auto-enrich`** : Permet de déléguer la mise en file de l'enrichissement automatique au worker Messenger en arrière-plan sans bloquer la console (#583).
+
 ## [v2.38.1] — 2026-09-22
 
 ### Fixed
