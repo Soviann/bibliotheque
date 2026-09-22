@@ -38,7 +38,11 @@ export default function Search() {
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(RECENT_SEARCHES_KEY);
-      return saved ? JSON.parse(saved) : ["Kentarō Miura", "Glénat", "Tomes manquants"];
+      if (!saved) return ["Kentarō Miura", "Glénat", "Tomes manquants"];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed)
+        ? parsed.filter((item): item is string => typeof item === "string")
+        : ["Kentarō Miura", "Glénat", "Tomes manquants"];
     } catch {
       return [];
     }

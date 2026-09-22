@@ -98,7 +98,7 @@ export default function VolumeMatrixAccordion({
   tomes,
   tomeView,
 }: VolumeMatrixAccordionProps) {
-  const isLongSeries = (latestPublishedIssue ?? tomes.length) > 12;
+  const isLongSeries = Math.max(latestPublishedIssue ?? 0, tomes.length) > 12;
   const [isOpen, setIsOpen] = useState(() => !isLongSeries);
 
   const { boughtCount, missingBuy, missingNas, onNasCount } = useMemo(() => {
