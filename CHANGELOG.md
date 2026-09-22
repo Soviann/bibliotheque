@@ -7,6 +7,13 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.39.1] — 2026-09-22
+
+### Fixed
+
+- **Raccourci de commande console** : Suppression du raccourci `-q` sur l'option `--queue` de `app:auto-enrich`, en conflit avec l'option globale `--quiet` de Symfony Console.
+- **Workflow Dependabot** : Restriction de l'exécution du workflow `dependabot-auto-merge` aux seules PRs créées par Dependabot pour éviter les faux échecs sur les PRs manuelles.
+
 ## [v2.39.0] — 2026-09-22
 
 ### Added

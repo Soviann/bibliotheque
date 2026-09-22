@@ -53,7 +53,7 @@ final class AutoEnrichCommand extends Command
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simuler sans persister')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Ignorer lookupCompletedAt')
             ->addOption('limit', 'l', InputOption::VALUE_REQUIRED, 'Nombre maximum de séries (0 = illimité)', '0')
-            ->addOption('queue', 'q', InputOption::VALUE_NONE, 'Mettre en file pour traitement asynchrone par le worker Messenger')
+            ->addOption('queue', null, InputOption::VALUE_NONE, 'Mettre en file pour traitement asynchrone par le worker Messenger')
             ->addOption('type', 't', InputOption::VALUE_REQUIRED, 'Filtrer par type (bd, manga, comics, livre)')
         ;
     }
