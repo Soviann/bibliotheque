@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.39.0] — 2026-09-22
+
 ### Added
 
 - **Tâche de réinitialisation et réimport (Task002ResetAndImport)** : Tâche de déploiement one-shot pour purger la BDD de production, nettoyer les couvertures et miniatures orphelines, réimporter le catalogue depuis `var/import.xlsx` et mettre en file l'enrichissement (#583).
