@@ -7,6 +7,8 @@ et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+## [v2.38.0] — 2026-09-22
+
 ### Added
 
 - **Navigation mobile à 4 piliers** : Refonte de `BottomNav` avec 4 piliers plats à hauteur égale (Collection, Recherche, Scanner, Outils) et suppression du bouton central surélevé.
