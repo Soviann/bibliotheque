@@ -535,3 +535,4 @@ Three-tier: Unit + Integration. Vitest + jsdom + Testing Library + MSW.
 | `.dockerignore` (root) | Root build context: excludes local var, vendor, node_modules, tests, and dev envs (preserves `config/secrets/prod/` vault) |
 
 Single image: `ghcr.io/soviann/bibliotheque` (CI `docker-publish.yml`). App paths under `/app`.
+NAS orchestration targets (`make import`, `make nas-db-reset`, `make ssh-db-pull`) run on the host via the `nas` CLI (`nas compose backend ...`).

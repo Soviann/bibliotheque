@@ -52,6 +52,7 @@ All `npm`, `npx`, `composer`, `php`, `bin/console`, `bin/phpunit`, `make` comman
 | `coverage` | PHPUnit HTML (pcov) |
 | `rector` / `rector-dry` | Apply / preview |
 | `deploy` | docker-compose prod |
+| `import` / `nas-db-reset` / `ssh-db-pull` | Host-only: NAS catalog import / DB reset / stream prod DB to DDEV (uses `nas` CLI) |
 
 Direct DDEV when Make does not fit:
 ```bash

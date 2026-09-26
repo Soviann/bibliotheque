@@ -3,10 +3,12 @@
 # ──────────────────────────────────────────────────
 # Raccourcis pour les commandes courantes.
 # Usage : ddev exec make <cible>   (ex. ddev exec make test)
+# Cibles NAS/hôte (ex. make import, make ssh-db-pull) : exécuter directement sur l'hôte.
 #
-# Ce Makefile est conçu pour être exécuté à l'intérieur
+# La plupart des cibles sont conçues pour être exécutées à l'intérieur
 # du conteneur DDEV (via `ddev exec make ...` ou `ddev ssh`).
-# Ne pas exécuter directement sur la machine hôte.
+# Les cibles d'orchestration NAS (`import`, `nas-db-reset`, `ssh-db-pull`)
+# s'exécutent sur la machine hôte via le CLI `nas`.
 # ──────────────────────────────────────────────────
 
 include backend/.env
@@ -176,37 +178,29 @@ jwt: ## Générer les clés JWT
 scheduler: ## Lancer le scheduler manuellement
 	cd $(BACK) && php bin/console messenger:consume scheduler_default --time-limit=3600
 
-# ── Import ───────────────────────────────────────
+# ── NAS & Import (exécuté sur l'hôte via CLI nas) ─
 
-.PHONY: import
+.PHONY: import nas-db-reset ssh-db-pull
 
-NAS_IMPORT_FILE := /volume1/downloads/import.xlsx
+NAS                ?= nas
+NAS_IMPORT_FILE    := /volume1/downloads/import.xlsx
 NAS_CONTAINER_FILE := /tmp/import.xlsx
-NAS_SSH := sshpass -p '$(NAS_PASSWORD)' ssh -p $(NAS_PORT) $(NAS_USERNAME)@192.168.1.49
-NAS_SUDO := echo $(NAS_PASSWORD) | sudo -S
-NAS_COMPOSE := cd /volume1/docker/bibliotheque/backend && $(NAS_SUDO) /usr/local/bin/docker compose --env-file .env.nas
 
 import: ## Importer depuis import.xlsx sur le NAS (usage : make import [DRY_RUN=1])
-	$(NAS_SSH) '$(NAS_SUDO) /usr/local/bin/docker cp $(NAS_IMPORT_FILE) backend-app-1:$(NAS_CONTAINER_FILE)'
+	$(NAS) compose backend cp $(NAS_IMPORT_FILE) app:$(NAS_CONTAINER_FILE)
 ifdef DRY_RUN
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app php bin/console app:import $(NAS_CONTAINER_FILE) --dry-run --env=prod'
+	$(NAS) compose backend exec -T app php bin/console app:import $(NAS_CONTAINER_FILE) --dry-run --env=prod
 else
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app php bin/console app:import $(NAS_CONTAINER_FILE) --env=prod'
+	$(NAS) compose backend exec -T app php bin/console app:import $(NAS_CONTAINER_FILE) --env=prod
 endif
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app rm -f $(NAS_CONTAINER_FILE)'
-
-.PHONY: nas-db-reset ssh-db-pull
+	$(NAS) compose backend exec -T app rm -f $(NAS_CONTAINER_FILE)
 
 nas-db-reset: ## Reset la BDD du NAS : drop + create + migrate
-	$(NAS_SSH) '$(NAS_COMPOSE) exec -T app sh -c "php bin/console doctrine:database:drop --force --env=prod && php bin/console doctrine:database:create --env=prod && php bin/console doctrine:migrations:migrate -n --env=prod"'
+	$(NAS) compose backend exec -T app sh -c "php bin/console doctrine:database:drop --force --env=prod && php bin/console doctrine:database:create --env=prod && php bin/console doctrine:migrations:migrate -n --env=prod"
 
-ssh-db-pull: ## Pull la BDD prod depuis le NAS et l'importe dans DDEV
-	@echo "Dump de la BDD production depuis le NAS..."
-	@$(NAS_SSH) '$(NAS_COMPOSE) exec -T db sh -c '"'"'exec mysqldump -u biblio -p"$$MYSQL_PASSWORD" --single-transaction --skip-lock-tables --routines --triggers bibliotheque'"'"'' > /tmp/bibliotheque-prod.sql
-	@echo "Dump : $$(du -h /tmp/bibliotheque-prod.sql | cut -f1)"
-	@echo "Import dans DDEV..."
-	ddev import-db --file=/tmp/bibliotheque-prod.sql
-	@rm -f /tmp/bibliotheque-prod.sql
+ssh-db-pull: ## Pull la BDD prod depuis le NAS et l'importe directement dans DDEV
+	@echo "Dump de la BDD production depuis le NAS et import dans DDEV..."
+	$(NAS) compose backend exec -T db sh -c 'exec mysqldump -u biblio -p"$$MYSQL_PASSWORD" --single-transaction --skip-lock-tables --routines --triggers bibliotheque' | ddev import-db
 	@echo "BDD prod importée dans DDEV"
 
 # ── Production ────────────────────────────────────
